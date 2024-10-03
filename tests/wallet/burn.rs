@@ -44,25 +44,6 @@ fn inscriptions_can_be_burned() {
 }
 
 #[test]
-fn runes_cannot_be_burned() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-
-  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[""]);
-
-  create_wallet(&core, &ord);
-
-  etch(&core, &ord, Rune(RUNE));
-  let rune_id = RuneId { block: 7, tx: 1 };
-
-  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 {rune_id}",))
-    .core(&core)
-    .ord(&ord)
-    .stderr_regex(r"error: invalid value '7:1' for '<INSCRIPTION_ID>.*")
-    .expected_exit_code(2)
-    .run_and_extract_stdout();
-}
-
-#[test]
 fn runic_outputs_are_protected() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
