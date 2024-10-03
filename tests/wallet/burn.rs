@@ -114,7 +114,7 @@ fn runic_outputs_are_protected() {
 }
 
 #[test]
-fn inscriptions_on_large_utxos_are_protected() {
+fn cannot_burn_inscriptions_on_large_utxos() {
   let core = mockcore::spawn();
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
@@ -134,7 +134,7 @@ fn inscriptions_on_large_utxos_are_protected() {
 }
 
 #[test]
-fn multiple_inscriptions_on_same_utxo_are_protected() {
+fn cannot_burn_inscription_sharing_utxo_with_another_inscription() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest"], &[]);
@@ -190,7 +190,7 @@ fn multiple_inscriptions_on_same_utxo_are_protected() {
 }
 
 #[test]
-fn large_postage_is_protected() {
+fn cannot_burn_with_excess_postage() {
   let core = mockcore::spawn();
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
