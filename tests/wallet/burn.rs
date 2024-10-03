@@ -106,7 +106,7 @@ fn runic_outputs_are_protected() {
     ],
     outputs: 2,
     output_values: &[2000, 50 * COIN_VALUE],
-    receiver: Some(address.require_network(Network::Regtest).unwrap()),
+    recipient: Some(address.require_network(Network::Regtest).unwrap()),
     ..default()
   });
 
@@ -187,7 +187,7 @@ fn multiple_inscriptions_on_same_utxo_are_protected() {
     ],
     outputs: 2,
     output_values: &[3000, 50 * COIN_VALUE],
-    receiver: Some(address.require_network(Network::Regtest).unwrap()),
+    recipient: Some(address.require_network(Network::Regtest).unwrap()),
     ..default()
   });
 
