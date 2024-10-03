@@ -98,7 +98,7 @@ fn sats(
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::sats::OutputRare>>()
 }
 
-fn inscribe_with_custom_postage(
+fn inscribe_with_postage(
   core: &mockcore::Handle,
   ord: &TestServer,
   postage: Option<u64>,
@@ -128,7 +128,7 @@ fn inscribe_with_custom_postage(
 }
 
 fn inscribe(core: &mockcore::Handle, ord: &TestServer) -> (InscriptionId, Txid) {
-  inscribe_with_custom_postage(core, ord, None)
+  inscribe_with_postage(core, ord, None)
 }
 
 fn drain(core: &mockcore::Handle, ord: &TestServer) {

@@ -51,7 +51,7 @@ fn runic_outputs_are_protected() {
 
   create_wallet(&core, &ord);
 
-  let (inscription, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let (inscription, _) = inscribe_with_postage(&core, &ord, Some(1000));
   let height = core.height();
 
   let rune = Rune(RUNE);
@@ -123,7 +123,7 @@ fn cannot_burn_inscriptions_on_large_utxos() {
 
   core.mine_blocks(1);
 
-  let (inscription, _) = inscribe_with_custom_postage(&core, &ord, Some(10_001));
+  let (inscription, _) = inscribe_with_postage(&core, &ord, Some(10_001));
 
   CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription}",))
     .core(&core)
@@ -150,11 +150,11 @@ fn cannot_burn_inscription_sharing_utxo_with_another_inscription() {
     .next()
     .unwrap();
 
-  let (inscription0, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let (inscription0, _) = inscribe_with_postage(&core, &ord, Some(1000));
   let height0 = core.height();
-  let (inscription1, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let (inscription1, _) = inscribe_with_postage(&core, &ord, Some(1000));
   let height1 = core.height();
-  let (inscription2, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let (inscription2, _) = inscribe_with_postage(&core, &ord, Some(1000));
   let height2 = core.height();
 
   let txid = core.broadcast_tx(TransactionTemplate {
