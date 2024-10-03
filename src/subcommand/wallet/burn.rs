@@ -12,15 +12,15 @@ pub struct Burn {
     value_name = "AMOUNT"
   )]
   postage: Option<Amount>,
-  inscription_id: InscriptionId,
+  inscription: InscriptionId,
 }
 
 impl Burn {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let inscription_info = wallet
       .inscription_info()
-      .get(&self.inscription_id)
-      .ok_or_else(|| anyhow!("inscription {} not found", self.inscription_id))?
+      .get(&self.inscription)
+      .ok_or_else(|| anyhow!("inscription {} not found", self.inscription))?
       .clone();
 
     let Some(value) = inscription_info.value else {
@@ -49,7 +49,7 @@ impl Burn {
     Ok(Some(Box::new(send::Output {
       txid,
       psbt,
-      outgoing: Outgoing::InscriptionId(self.inscription_id),
+      outgoing: Outgoing::InscriptionId(self.inscription),
       fee,
     })))
   }
