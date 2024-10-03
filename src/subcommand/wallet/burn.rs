@@ -1,6 +1,4 @@
-use {super::*, crate::outgoing::Outgoing, bitcoin::opcodes};
-
-const MAX_BURN_SATS: u64 = 10000;
+use {super::*, bitcoin::opcodes};
 
 #[derive(Debug, Parser)]
 pub struct Burn {
@@ -10,29 +8,33 @@ pub struct Burn {
   fee_rate: FeeRate,
   #[arg(
     long,
-    help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]"
+    help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]",
+    value_name = "AMOUNT"
   )]
   postage: Option<Amount>,
-  inscription_id: InscriptionId,
+  inscription: InscriptionId,
 }
 
 impl Burn {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let inscription_info = wallet
       .inscription_info()
-      .get(&self.inscription_id)
-      .ok_or_else(|| anyhow!("inscription {} not found", self.inscription_id))?
+      .get(&self.inscription)
+      .ok_or_else(|| anyhow!("inscription {} not found", self.inscription))?
       .clone();
 
-    if inscription_info.value.unwrap() > MAX_BURN_SATS {
-      return Err(anyhow!(
-        "The amount of sats where the inscription is on exceeds {}",
-        MAX_BURN_SATS
-      ));
+    let Some(value) = inscription_info.value else {
+      bail!("Cannot burn unbound inscription");
+    };
+
+    ensure! {
+      value <= TARGET_POSTAGE.to_sat(),
+      "Cannot burn inscription contained in UTXO exceeding {TARGET_POSTAGE}",
     }
 
-    if self.postage.unwrap_or_default() > Amount::from_sat(MAX_BURN_SATS) {
-      return Err(anyhow!("Target postage exceeds {}", MAX_BURN_SATS));
+    ensure! {
+      self.postage.unwrap_or_default() <= TARGET_POSTAGE,
+      "Postage may not exceed {TARGET_POSTAGE}",
     }
 
     let unsigned_transaction = Self::create_unsigned_burn_transaction(
@@ -47,7 +49,7 @@ impl Burn {
     Ok(Some(Box::new(send::Output {
       txid,
       psbt,
-      outgoing: Outgoing::InscriptionId(self.inscription_id),
+      outgoing: Outgoing::InscriptionId(self.inscription),
       fee,
     })))
   }
@@ -67,13 +69,9 @@ impl Burn {
 
     let change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
-    let postage = if let Some(postage) = postage {
-      Target::ExactPostage(postage)
-    } else {
-      Target::Postage
-    };
+    let postage = postage.map(Target::ExactPostage).unwrap_or(Target::Postage);
 
-    let burn_script = script::Builder::new()
+    let script_pubkey = script::Builder::new()
       .push_opcode(opcodes::all::OP_RETURN)
       .into_script();
 
@@ -84,7 +82,7 @@ impl Burn {
         wallet.utxos().clone(),
         wallet.locked_utxos().clone().into_keys().collect(),
         runic_outputs,
-        burn_script,
+        script_pubkey,
         change,
         fee_rate,
         postage,
