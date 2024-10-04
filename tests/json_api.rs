@@ -363,6 +363,54 @@ fn get_output() {
 }
 
 #[test]
+fn address_cardinals_api() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_args(
+    &core,
+    &["--index-runes", "--index-sats", "--index-addresses"],
+  );
+
+  create_wallet(&core, &ord);
+  core.mine_blocks(1);
+
+  let address = "bc1qxma2dwmutht4vxyl6u395slew5ectfpn35ug9l";
+
+  let send = CommandBuilder::new(format!("wallet send --fee-rate 13.3 {address} 2btc"))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  let response = ord.json_request(format!("/address/{}/cardinals", address));
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let cardinals_json: Vec<api::Output> = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    cardinals_json,
+    vec![api::Output {
+      address: Some(address.parse().unwrap()),
+      inscriptions: vec![],
+      indexed: true,
+      runes: BTreeMap::new(),
+      sat_ranges: Some(vec![(5000000000, 5200000000),]),
+      script_pubkey: ScriptBuf::from(
+        address
+          .parse::<Address<NetworkUnchecked>>()
+          .unwrap()
+          .assume_checked()
+      ),
+      spent: false,
+      transaction: send.txid,
+      value: 2 * COIN_VALUE,
+    }]
+  );
+}
+
+#[test]
 fn json_request_fails_when_disabled() {
   let core = mockcore::spawn();
 

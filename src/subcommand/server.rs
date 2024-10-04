@@ -164,6 +164,7 @@ impl Server {
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/address/:address", get(Self::address))
+        .route("/address/:address/cardinals", get(Self::address_cardinals))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockhash", get(Self::block_hash))
@@ -883,6 +884,55 @@ impl Server {
         }
         .page(server_config)
         .into_response()
+      })
+    })
+  }
+
+  async fn address_cardinals(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(address): Path<Address<NetworkUnchecked>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        let address = address
+          .require_network(server_config.chain.network())
+          .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+        let mut outputs = index.get_address_info(&address)?;
+
+        outputs.sort();
+
+        let cardinal_outputs: Vec<OutPoint> = outputs
+          .into_iter()
+          .filter(|output| {
+            let has_inscriptions = index
+              .get_inscriptions_on_output_with_satpoints(*output)
+              .map(|inscriptions| !inscriptions.is_empty())
+              .unwrap_or(false);
+
+            let has_runes = index
+              .get_rune_balances_for_output(*output)
+              .map(|runes| !runes.is_empty())
+              .unwrap_or(false);
+
+            !has_inscriptions && !has_runes
+          })
+          .collect();
+
+        let mut response = Vec::new();
+
+        for outpoint in cardinal_outputs {
+          let (output_info, _) = index
+            .get_output_info(outpoint)?
+            .ok_or_not_found(|| format!("output {outpoint}"))?;
+
+          response.push(output_info);
+        }
+        Json(response).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
       })
     })
   }
