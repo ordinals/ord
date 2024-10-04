@@ -930,6 +930,7 @@ impl Server {
 
           response.push(output_info);
         }
+
         Json(response).into_response()
       } else {
         StatusCode::NOT_FOUND.into_response()
