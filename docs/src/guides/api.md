@@ -6,32 +6,30 @@ By default, the `ord server` gives access to endpoints that return JSON instead 
 
 ### Endpoint List
 
-- **`/address/<ADDRESS>`**: List all contents of an address.
-- **`/address/<ADDRESS>/cardinals`**: List the cardinal outputs of an address.
-- **`/block/<BLOCKHEIGHT>`**: Returns the first 100 inscription ID's for the specified block.
-- **`/block/<BLOCKHEIGHT>/<PAGE>`**: Pagination allows you to choose which page of 100 inscriptions from the block to return.
-- **`/block/<QUERY>`**: Returns the blockhash for the latest block.
-- **`/blockcount`**: Returns the hieight of the latest block.
-- **`/blockhash`**: Returns blockhash for the latest block.
-- **`/blockhash/<HEIGHT>`**: Returns blockhash of specified block.
-- **`/blockheight`**: Returns the hieight of the latest block.
-- **`/blocks`**: Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.
-- **`/blocktime`**: Returns the UNIX timestamp of when the latest block was mined.
-- **`/decode/<TXID>`**: Decode a transaction, congruent to ord's decode feature
- **`/input/<BLOCK>/<TRANSACTION>/<INPUT>`**: <returns nothing>
- - **`/inscription/<INSCRIPTION_ID>`**: Fetch details about a specific inscription by its ID.
- - **`/inscription/<INSCRIPTION_ID>/<CHILD>`**: Returns the inscription information for the specified child.
-- **`/inscriptions`**: Get a list of the latest 100 inscriptions.
-- **`/inscriptions/<PAGE>`**: Pagination allows you to choose which page of 100 inscriptions to return.
-- **`/inscriptions/block/<BLOCK_HEIGHT>`**: Get inscriptions for a specific block.
-- **`/install.sh`**:  Installs the latest pre-built binary of `ord`
-- **`/output/<OUTPOINT>`**: Returns information about a UTXO, including inscriptions within it.
-- **`/rune/<RUNE>`**: Returns details about the specified rune.
-- **`/runes`**: Returns details for last 100 inscribed runes.
-- **`/runes/<PAGE>`**: Pagination allows you to specify which page of 100 runes you'd like to return.
-- **`/sat/<SAT>`**: Returns details about a specific satoshi.
-- **`/status`**: Returns details about the server installation and index.
-- **`/tx/<TXID>`**: Returns details about the specified transaction.
+- **[/address/<ADDRESS\>](#addressaddress)**: List all contents of an address.
+- **[/address/<ADDRESS\>/cardinals](#addressaddresscardinals)**: List the cardinal outputs of an address.
+- **[/block/<BLOCKHASH\>](#blockblockheight-or-blockblockhash)**: Returns info about the specified block.
+- **[/block/<BLOCKHEIGHT\>](#blockblockheight-or-blockblockhash)**: Returns info about the specified block.
+- **[/blockcount](#blockcount)**: Returns the hieight of the latest block.
+- **[/blockhash](#blockhash)**: Returns blockhash for the latest block.
+- **[/blockhash/<HEIGHT\>](#blockhashheight)**: Returns blockhash of specified block.
+- **[/blockheight](#blockheight)**: Returns the height of the latest block.
+- **[/blocks](#blocks)**: Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.
+- **[/blocktime](#blocktime)**: Returns the UNIX timestamp of when the latest block was mined.
+- **[/decode/<TXID\>](#decodetransaction_id)**: Decode a transaction, congruent to ord's 
+- **[/inscription/<INSCRIPTION_ID>](#inscriptioninscription_id)**: Fetch details about a specific inscription by its ID.
+ - **[/inscription/<INSCRIPTION_ID>/<CHILD\>](#inscriptioninscription_idchild)**: Returns the inscription information for the specified child.
+- **[/inscriptions](#inscriptions)**: Get a list of the latest 100 inscriptions.
+- **[/inscriptions/<PAGE\>](#inscriptionspage)**: Pagination allows you to choose which page of 100 inscriptions to return.
+- **[/inscriptions/block/<BLOCK_HEIGHT\>](#inscriptionsblockblock_height)**: Get inscriptions for a specific block.
+- **[/install.sh](wallet.md#installing-ord)**:  Installs the latest pre-built binary of `ord`
+- **[/output/<OUTPOINT\>](#outputoutpoint)**: Returns information about a UTXO, including inscriptions within it.
+- **[/rune/<RUNE\>](#runerune)**: Returns details about the specified rune.
+- **[/runes](#runes-and-runespage)**: Returns details for last 100 inscribed runes.
+- **[/runes/<PAGE\>](#runes-and-runespage)**: Pagination allows you to specify which page of 100 runes you'd like to return.
+- **[/sat/<SAT\>](#satsat)**: Returns details about a specific satoshi.
+- **[/status](#status)**: Returns details about the server installation and index.
+- **[/tx/<TXID\>](#txtransaction_id)**: Returns details about the specified transaction.
 
 
 ## Examples
@@ -110,7 +108,7 @@ By default, the `ord server` gives access to endpoints that return JSON instead 
   example to be provided once code is merged, see [3979](https://github.com/ordinals/ord/pull/3979)
   ``` 
 
-### `/block/<HEIGHT> or /block/<HASH>`
+### `/block/<BLOCKHEIGHT> or /block/<BLOCKHASH>`
 - ```bash
   curl -s -H "Accept: application/json" 'http://0.0.0.0:80/block/0'
   ```
