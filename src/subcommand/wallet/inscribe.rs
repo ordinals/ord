@@ -37,7 +37,8 @@ pub(crate) struct Inscribe {
   pub(crate) parent: Option<InscriptionId>,
   #[arg(
     long,
-    help = "Include <AMOUNT> postage with inscription. [default: 10000sat]"
+    help = "Include <AMOUNT> postage with inscription. [default: 10000sat]",
+    value_name = "AMOUNT"
   )]
   pub(crate) postage: Option<Amount>,
   #[clap(long, help = "Allow reinscription.")]
@@ -81,7 +82,7 @@ impl Inscribe {
       mode: batch::Mode::SeparateOutputs,
       no_backup: self.shared.no_backup,
       no_limit: self.shared.no_limit,
-      parent_info: wallet.get_parent_info(self.parent)?,
+      parent_info: wallet.get_parent_info(self.parent.as_slice())?,
       postages: vec![self.postage.unwrap_or(TARGET_POSTAGE)],
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.shared.fee_rate,

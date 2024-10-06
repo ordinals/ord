@@ -145,7 +145,7 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -161,6 +161,129 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     r".*<dt>parents</dt>\s*<dd>.*</dd>.*",
+  );
+
+  let request = ord.request(format!("/content/{}", output.inscriptions[2].id));
+  assert_eq!(request.status(), 200);
+  assert_eq!(request.headers().get("content-type").unwrap(), "audio/wav");
+}
+
+#[test]
+fn batch_inscribe_inscriptions_with_multiple_parents() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let parent_output_1 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let parent_output_2 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let parent_output_3 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let parent_id_1 = parent_output_1.inscriptions[0].id;
+  let parent_id_2 = parent_output_2.inscriptions[0].id;
+  let parent_id_3 = parent_output_3.inscriptions[0].id;
+
+  let output = CommandBuilder::new("wallet batch --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("parents:\n- {parent_id_1}\n- {parent_id_2}\n- {parent_id_3}\nmode: separate-outputs\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+    )
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*{parent_id_3}.*",),
+  );
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[1].id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*{parent_id_3}.*",),
+  );
+}
+
+#[test]
+fn batch_inscribe_and_etch_with_two_parents() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let parent_output_1 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let parent_output_2 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  assert_eq!(core.descriptors().len(), 4);
+
+  let parent_id_1 = parent_output_1.inscriptions[0].id;
+  let parent_id_2 = parent_output_2.inscriptions[0].id;
+
+  let output = CommandBuilder::new("wallet batch --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("parents:\n- {parent_id_1}\n- {parent_id_2}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+    )
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*",),
+  );
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[1].id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*",),
   );
 
   let request = ord.request(format!("/content/{}", output.inscriptions[2].id));
@@ -342,7 +465,7 @@ fn batch_in_separate_outputs_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: separate-outputs\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: separate-outputs\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -351,6 +474,7 @@ fn batch_in_separate_outputs_with_parent() {
   for inscription in &output.inscriptions {
     assert_eq!(inscription.location.offset, 0);
   }
+
   let mut outpoints = output
     .inscriptions
     .iter()
@@ -419,7 +543,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: separate-outputs\npostage: 777\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: separate-outputs\npostage: 777\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -661,7 +785,7 @@ fn batch_same_sat_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("mode: same-sat\nparent: {parent_id}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("mode: same-sat\nparents:\n- {parent_id}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -821,7 +945,7 @@ fn batch_inscribe_with_sat_argument_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: same-sat\nsat: 5000111111\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: same-sat\nsat: 5000111111\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -1115,7 +1239,8 @@ fn batch_inscribe_with_satpoints_with_parent() {
       format!(
         r#"
 mode: satpoints
-parent: {parent_id}
+parents:
+- {parent_id}
 inscriptions:
 - file: inscription.txt
   satpoint: {}
