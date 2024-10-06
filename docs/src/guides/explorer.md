@@ -18,7 +18,7 @@ To specify a port add the `--http-port` flag:
 `ord server --http-port 8080`
 
 The JSON-API endpoints are enabled by default, to disable them add the
-`--disable-json-api` flag (see [here](/api.md) for more info):
+`--disable-json-api` flag (see [here](api.md) for more info):
 
 `ord server --disable-json-api`
 
