@@ -98,23 +98,37 @@ fn sats(
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::sats::OutputRare>>()
 }
 
-fn inscribe(core: &mockcore::Handle, ord: &TestServer) -> (InscriptionId, Txid) {
+fn inscribe_with_postage(
+  core: &mockcore::Handle,
+  ord: &TestServer,
+  postage: Option<u64>,
+) -> (InscriptionId, Txid) {
   core.mine_blocks(1);
 
-  let output = CommandBuilder::new(format!(
+  let mut command_str = format!(
     "--chain {} wallet inscribe --fee-rate 1 --file foo.txt",
     core.network()
-  ))
-  .write("foo.txt", "FOO")
-  .core(core)
-  .ord(ord)
-  .run_and_deserialize_output::<Batch>();
+  );
+
+  if let Some(postage_value) = postage {
+    command_str.push_str(&format!(" --postage {}sat", postage_value));
+  }
+
+  let output = CommandBuilder::new(command_str)
+    .write("foo.txt", "FOO")
+    .core(core)
+    .ord(ord)
+    .run_and_deserialize_output::<Batch>();
 
   core.mine_blocks(1);
 
   assert_eq!(output.inscriptions.len(), 1);
 
   (output.inscriptions[0].id, output.reveal)
+}
+
+fn inscribe(core: &mockcore::Handle, ord: &TestServer) -> (InscriptionId, Txid) {
+  inscribe_with_postage(core, ord, None)
 }
 
 fn drain(core: &mockcore::Handle, ord: &TestServer) {

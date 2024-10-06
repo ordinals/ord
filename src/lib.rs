@@ -24,6 +24,7 @@ use {
       teleburn, ParsedEnvelope,
     },
     into_usize::IntoUsize,
+    outgoing::Outgoing,
     representation::Representation,
     settings::Settings,
     subcommand::{OutputFormat, Subcommand, SubcommandResult},
