@@ -223,6 +223,7 @@ impl Server {
           "/r/inscription/:inscription_id",
           get(Self::inscription_recursive),
         )
+        .route("/r/charms", get(Self::charms))
         .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
           "/r/children/:inscription_id/:page",
@@ -1740,6 +1741,15 @@ impl Server {
         StatusCode::NOT_FOUND.into_response()
       })
     })
+  }
+
+  async fn charms() -> ServerResult {
+    let charms_map: HashMap<String, String> = Charm::ALL
+      .iter()
+      .map(|charm| (charm.icon().to_string(), charm.to_string()))
+      .collect();
+
+    Ok(Json(charms_map).into_response())
   }
 
   async fn collections(
@@ -6236,6 +6246,28 @@ next
       .id
       .is_none());
   }
+
+  #[test]
+  fn charms_recursive() {
+    let server = TestServer::new();
+
+    let charms_response = server.get_json::<HashMap<String, String>>("/r/charms");
+
+    assert!(!charms_response.is_empty());
+    
+    for charm in Charm::ALL {
+      let icon = charm.icon();
+      let name = charm.to_string();
+      assert_eq!(charms_response.get(icon), Some(&name));
+    }
+
+    assert_eq!(charms_response.len(), Charm::ALL.len());
+
+    for value in charms_response.values() {
+      assert!(Charm::ALL.iter().any(|c| c.to_string() == *value));
+    }
+  }
+
 
   #[test]
   fn children_recursive_endpoint() {
