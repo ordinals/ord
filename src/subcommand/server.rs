@@ -6259,7 +6259,7 @@ next
     let charms_response = server.get_json::<HashMap<String, String>>("/r/charms");
 
     assert!(!charms_response.is_empty());
-    
+
     for charm in Charm::ALL {
       let icon = charm.icon();
       let name = charm.to_string();
@@ -6272,7 +6272,6 @@ next
       assert!(Charm::ALL.iter().any(|c| c.to_string() == *value));
     }
   }
-
 
   #[test]
   fn children_recursive_endpoint() {
