@@ -109,7 +109,7 @@ impl File {
     &self,
     wallet: &Wallet,
     utxos: &BTreeMap<OutPoint, TxOut>,
-    parents_values: Vec<u64>,
+    parent_values: Vec<u64>,
     compress: bool,
   ) -> Result<(
     Vec<Inscription>,
@@ -121,7 +121,7 @@ impl File {
     let mut reveal_satpoints = Vec::new();
     let mut postages = Vec::new();
 
-    let mut pointer = parents_values.iter().sum();
+    let mut pointer = parent_values.iter().sum();
 
     for (i, entry) in self.inscriptions.iter().enumerate() {
       if let Some(delegate) = entry.delegate {

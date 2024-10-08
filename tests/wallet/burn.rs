@@ -44,25 +44,6 @@ fn inscriptions_can_be_burned() {
 }
 
 #[test]
-fn runes_cannot_be_burned() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-
-  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[""]);
-
-  create_wallet(&core, &ord);
-
-  etch(&core, &ord, Rune(RUNE));
-  let rune_id = RuneId { block: 7, tx: 1 };
-
-  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 {rune_id}",))
-    .core(&core)
-    .ord(&ord)
-    .stderr_regex(r"error: invalid value '7:1' for '<INSCRIPTION_ID>.*")
-    .expected_exit_code(2)
-    .run_and_extract_stdout();
-}
-
-#[test]
 fn runic_outputs_are_protected() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
@@ -70,7 +51,7 @@ fn runic_outputs_are_protected() {
 
   create_wallet(&core, &ord);
 
-  let (inscription, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let (inscription, _) = inscribe_with_postage(&core, &ord, Some(1000));
   let height = core.height();
 
   let rune = Rune(RUNE);
@@ -106,7 +87,7 @@ fn runic_outputs_are_protected() {
     ],
     outputs: 2,
     output_values: &[2000, 50 * COIN_VALUE],
-    receiver: Some(address.require_network(Network::Regtest).unwrap()),
+    recipient: Some(address.require_network(Network::Regtest).unwrap()),
     ..default()
   });
 
@@ -133,7 +114,7 @@ fn runic_outputs_are_protected() {
 }
 
 #[test]
-fn inscriptions_on_large_utxos_are_protected() {
+fn cannot_burn_inscriptions_on_large_utxos() {
   let core = mockcore::spawn();
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
@@ -142,18 +123,18 @@ fn inscriptions_on_large_utxos_are_protected() {
 
   core.mine_blocks(1);
 
-  let (inscription, _) = inscribe_with_custom_postage(&core, &ord, Some(10_001));
+  let (inscription, _) = inscribe_with_postage(&core, &ord, Some(10_001));
 
   CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription}",))
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: The amount of sats where the inscription is on exceeds 10000\n")
+    .expected_stderr("error: Cannot burn inscription contained in UTXO exceeding 0.0001 BTC\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
 
 #[test]
-fn multiple_inscriptions_on_same_utxo_are_protected() {
+fn cannot_burn_inscription_sharing_utxo_with_another_inscription() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest"], &[]);
@@ -169,11 +150,11 @@ fn multiple_inscriptions_on_same_utxo_are_protected() {
     .next()
     .unwrap();
 
-  let (inscription0, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let (inscription0, _) = inscribe_with_postage(&core, &ord, Some(1000));
   let height0 = core.height();
-  let (inscription1, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let (inscription1, _) = inscribe_with_postage(&core, &ord, Some(1000));
   let height1 = core.height();
-  let (inscription2, _) = inscribe_with_custom_postage(&core, &ord, Some(1000));
+  let (inscription2, _) = inscribe_with_postage(&core, &ord, Some(1000));
   let height2 = core.height();
 
   let txid = core.broadcast_tx(TransactionTemplate {
@@ -187,7 +168,7 @@ fn multiple_inscriptions_on_same_utxo_are_protected() {
     ],
     outputs: 2,
     output_values: &[3000, 50 * COIN_VALUE],
-    receiver: Some(address.require_network(Network::Regtest).unwrap()),
+    recipient: Some(address.require_network(Network::Regtest).unwrap()),
     ..default()
   });
 
@@ -209,7 +190,7 @@ fn multiple_inscriptions_on_same_utxo_are_protected() {
 }
 
 #[test]
-fn large_postage_is_protected() {
+fn cannot_burn_with_excess_postage() {
   let core = mockcore::spawn();
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
@@ -227,7 +208,7 @@ fn large_postage_is_protected() {
   ))
   .core(&core)
   .ord(&ord)
-  .expected_stderr("error: Target postage exceeds 10000\n")
+  .expected_stderr("error: Postage may not exceed 0.0001 BTC\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }

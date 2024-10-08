@@ -1,4 +1,4 @@
-use {super::*, crate::outgoing::Outgoing};
+use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -8,7 +8,8 @@ pub(crate) struct Send {
   fee_rate: FeeRate,
   #[arg(
     long,
-    help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]"
+    help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]",
+    value_name = "AMOUNT"
   )]
   pub(crate) postage: Option<Amount>,
   address: Address<NetworkUnchecked>,

@@ -24,6 +24,7 @@ use {
       teleburn, ParsedEnvelope,
     },
     into_usize::IntoUsize,
+    outgoing::Outgoing,
     representation::Representation,
     settings::Settings,
     subcommand::{OutputFormat, Subcommand, SubcommandResult},
@@ -129,7 +130,7 @@ pub mod wallet;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
-pub const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
+const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
