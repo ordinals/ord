@@ -192,7 +192,8 @@ percentile in sats/vB.
   "sat": null,
   "satpoint": "3bd72a7ef68776c9429961e43043ff65efa7fb2d8bb407386a9e3b19f149bc36:0:0",
   "timestamp": 1708312562,
-  "value": 10000
+  "value": 10000,
+  "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf"
 }
 ```
 
@@ -221,3 +222,7 @@ percentile in sats/vB.
    "id":"17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0"
 }
 ```
+
+
+See
+[examples](examples.md#recursion) for on-chain examples of inscriptions that feature this functionality.

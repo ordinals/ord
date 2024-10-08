@@ -4,7 +4,7 @@ use {
   arbitrary::Arbitrary,
   bitcoin::{
     address::{Address, NetworkUnchecked},
-    Amount, OutPoint, TxOut,
+    Amount, Network, OutPoint, TxOut,
   },
   libfuzzer_sys::fuzz_target,
   ord::{FeeRate, InscriptionId, Target, TransactionBuilder},
@@ -75,10 +75,11 @@ fuzz_target!(|input: Input| {
         amounts,
         BTreeSet::new(),
         BTreeSet::new(),
-        recipient,
+        recipient.script_pubkey(),
         change,
         fee_rate,
         Target::Value(Amount::from_sat(output_value)),
+        Network::Bitcoin,
       )
       .build_transaction();
     }
@@ -89,10 +90,11 @@ fuzz_target!(|input: Input| {
         amounts,
         BTreeSet::new(),
         BTreeSet::new(),
-        recipient,
+        recipient.script_pubkey(),
         change,
         fee_rate,
         Target::Postage,
+        Network::Bitcoin,
       )
       .build_transaction();
     }

@@ -15,7 +15,7 @@ use {
   axum::{
     body,
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
-    http::{header, HeaderName, HeaderValue, StatusCode, Uri},
+    http::{header, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
     Router,
@@ -84,8 +84,6 @@ pub struct Server {
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
   pub(crate) decompress: bool,
-  #[arg(long, help = "Disable cross origin isolation.")]
-  pub(crate) disable_cross_origin_isolation: bool,
   #[arg(long, help = "Disable JSON API.")]
   pub(crate) disable_json_api: bool,
   #[arg(
@@ -155,7 +153,6 @@ impl Server {
 
       let server_config = Arc::new(ServerConfig {
         chain: settings.chain(),
-        cross_origin_isolation: !self.disable_cross_origin_isolation,
         csp_origin: self.csp_origin.clone(),
         decompress: self.decompress,
         domain: acme_domains.first().cloned(),
@@ -260,6 +257,7 @@ impl Server {
         .route("/runes/:page", get(Self::runes_paginated))
         .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
+        .route("/satpoint/:satpoint", get(Self::satpoint))
         .route("/search", get(Self::search_by_query))
         .route("/search/*query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -286,24 +284,6 @@ impl Server {
         )
         .layer(CompressionLayer::new())
         .with_state(server_config.clone());
-
-      let router = if server_config.cross_origin_isolation {
-        router
-          .layer(SetResponseHeaderLayer::overriding(
-            HeaderName::from_static("cross-origin-embedder-policy"),
-            HeaderValue::from_static("require-corp"),
-          ))
-          .layer(SetResponseHeaderLayer::overriding(
-            HeaderName::from_static("cross-origin-opener-policy"),
-            HeaderValue::from_static("same-origin"),
-          ))
-          .layer(SetResponseHeaderLayer::overriding(
-            HeaderName::from_static("cross-origin-resource-policy"),
-            HeaderValue::from_static("same-site"),
-          ))
-      } else {
-        router
-      };
 
       let router = if server_config.json_api_enabled {
         router.layer(DefaultBodyLimit::disable())
@@ -631,6 +611,36 @@ impl Server {
     })
   }
 
+  async fn satpoint(
+    Extension(index): Extension<Arc<Index>>,
+    Path(satpoint): Path<SatPoint>,
+  ) -> ServerResult<Redirect> {
+    task::block_in_place(|| {
+      let (output_info, _) = index
+        .get_output_info(satpoint.outpoint)?
+        .ok_or_not_found(|| format!("satpoint {satpoint}"))?;
+
+      let Some(ranges) = output_info.sat_ranges else {
+        return Err(ServerError::NotFound("sat index required".into()));
+      };
+
+      let mut total = 0;
+      for (start, end) in ranges {
+        let size = end - start;
+        if satpoint.offset < total + size {
+          let sat = start + satpoint.offset - total;
+
+          return Ok(Redirect::to(&format!("/sat/{sat}")));
+        }
+        total += size;
+      }
+
+      Err(ServerError::NotFound(format!(
+        "satpoint {satpoint} not found"
+      )))
+    })
+  }
+
   async fn outputs(
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(accept_json): AcceptJson,
@@ -856,7 +866,13 @@ impl Server {
       let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
 
       Ok(if accept_json {
-        Json(outputs).into_response()
+        Json(api::AddressInfo {
+          sat_balance,
+          outputs,
+          inscriptions,
+          runes_balances,
+        })
+        .into_response()
       } else {
         AddressHtml {
           address,
@@ -1071,6 +1087,14 @@ impl Server {
         )
       };
 
+      let address = output.as_ref().and_then(|output| {
+        server_config
+          .chain
+          .address_from_script(&output.script_pubkey)
+          .ok()
+          .map(|address| address.to_string())
+      });
+
       Ok(
         Json(api::InscriptionRecursive {
           charms: Charm::charms(entry.charms),
@@ -1086,6 +1110,7 @@ impl Server {
           sat: entry.sat,
           satpoint,
           timestamp: timestamp(entry.timestamp.into()).timestamp(),
+          address,
         })
         .into_response(),
       )
@@ -1150,6 +1175,8 @@ impl Server {
         Ok(Redirect::to(&format!("/rune/{rune}")))
       } else if re::ADDRESS.is_match(query) {
         Ok(Redirect::to(&format!("/address/{query}")))
+      } else if re::SATPOINT.is_match(query) {
+        Ok(Redirect::to(&format!("/satpoint/{query}")))
       } else {
         Ok(Redirect::to(&format!("/sat/{query}")))
       }
@@ -2822,6 +2849,79 @@ mod tests {
   }
 
   #[test]
+  fn search_by_satpoint_returns_sat() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    let txid = server.mine_blocks(1)[0].txdata[0].txid();
+
+    server.assert_redirect(
+      &format!("/search/{txid}:0:0"),
+      &format!("/satpoint/{txid}:0:0"),
+    );
+
+    server.assert_redirect(
+      &format!("/search?query={txid}:0:0"),
+      &format!("/satpoint/{txid}:0:0"),
+    );
+
+    server.assert_redirect(
+      &format!("/satpoint/{txid}:0:0"),
+      &format!("/sat/{}", 50 * COIN_VALUE),
+    );
+
+    server.assert_response_regex("/search/1:2:3", StatusCode::BAD_REQUEST, ".*");
+  }
+
+  #[test]
+  fn satpoint_returns_sat_in_multiple_ranges() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    server.mine_blocks(1);
+
+    let split = TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      outputs: 2,
+      fee: 0,
+      ..default()
+    };
+
+    server.core.broadcast_tx(split);
+
+    server.mine_blocks(1);
+
+    let merge = TransactionTemplate {
+      inputs: &[(2, 0, 0, Default::default()), (2, 1, 0, Default::default())],
+      fee: 0,
+      ..default()
+    };
+
+    let txid = server.core.broadcast_tx(merge);
+
+    server.mine_blocks(1);
+
+    server.assert_redirect(
+      &format!("/satpoint/{txid}:0:0"),
+      &format!("/sat/{}", 100 * COIN_VALUE),
+    );
+
+    server.assert_redirect(
+      &format!("/satpoint/{txid}:0:{}", 50 * COIN_VALUE),
+      &format!("/sat/{}", 50 * COIN_VALUE),
+    );
+
+    server.assert_redirect(
+      &format!("/satpoint/{txid}:0:{}", 50 * COIN_VALUE - 1),
+      &format!("/sat/{}", 150 * COIN_VALUE - 1),
+    );
+  }
+
+  #[test]
   fn html_runes_balances_not_found() {
     TestServer::builder()
       .chain(Chain::Regtest)
@@ -3443,9 +3543,9 @@ mod tests {
       server.get_json::<api::Output>(format!("/output/{output}")),
       api::Output {
         value: 5000000000,
-        script_pubkey: address.script_pubkey().to_asm_string(),
+        script_pubkey: address.script_pubkey(),
         address: Some(uncheck(&address)),
-        transaction: txid.to_string(),
+        transaction: txid,
         sat_ranges: None,
         indexed: true,
         inscriptions: Vec::new(),
@@ -3562,6 +3662,8 @@ mod tests {
   <dd>false</dd>
   <dt>address index</dt>
   <dd>false</dd>
+  <dt>inscription index</dt>
+  <dd>true</dd>
   <dt>rune index</dt>
   <dd>false</dd>
   <dt>sat index</dt>
@@ -3575,15 +3677,6 @@ mod tests {
     <a href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
       [[:xdigit:]]{40}
     </a>
-  </dd>
-  <dt>inscription content types</dt>
-  <dd>
-    <dl>
-      <dt>text/plain;charset=utf-8</dt>
-      <dd>2</dt>
-      <dt><em>none</em></dt>
-      <dd>1</dt>
-    </dl>
   </dd>
 </dl>
 .*",
@@ -3739,7 +3832,7 @@ mod tests {
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
-  <li><a href=/sat/0 class=mythic>0</a>-<a href=/sat/5000000000>5000000000</a><a href=/range/0/5000000000> \\(5000000000 sats\\)</a></li>
+  <li><a href=/sat/0 class=mythic>0</a>-<a href=/sat/5000000000 class=uncommon>5000000000</a> \\(5000000000 sats\\)</li>
 </ul>.*"
         ),
       );
@@ -3759,27 +3852,6 @@ mod tests {
   <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
   <dt>spent</dt><dd>false</dd>
 </dl>.*"
-      ),
-    );
-  }
-
-  #[test]
-  fn null_output_is_initially_empty() {
-    let txid = "0000000000000000000000000000000000000000000000000000000000000000";
-    TestServer::builder().index_sats().build().assert_response_regex(
-      format!("/output/{txid}:4294967295"),
-      StatusCode::OK,
-      format!(
-        ".*<title>Output {txid}:4294967295</title>.*<h1>Output <span class=monospace>{txid}:4294967295</span></h1>
-<dl>
-  <dt>value</dt><dd>0</dd>
-  <dt>script pubkey</dt><dd class=monospace></dd>
-  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
-  <dt>spent</dt><dd>false</dd>
-</dl>
-<h2>0 Sat Ranges</h2>
-<ul class=monospace>
-</ul>.*"
       ),
     );
   }
@@ -3805,7 +3877,7 @@ mod tests {
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
-  <li><a href=/sat/5000000000 class=uncommon>5000000000</a>-<a href=/sat/10000000000>10000000000</a><a href=/range/5000000000/10000000000> \\(5000000000 sats\\)</a></li>
+  <li><a href=/sat/5000000000 class=uncommon>5000000000</a>-<a href=/sat/10000000000 class=uncommon>10000000000</a> \\(5000000000 sats\\)</li>
 </ul>.*"
       ),
     );
@@ -3860,7 +3932,7 @@ mod tests {
 <dl>
   <dt>inscriptions</dt>
   <dd class=thumbnails>
-    <a href=/inscription/.*><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/.*></iframe></a>
+    <a href=/inscription/.*><iframe sandbox=allow-scripts loading=lazy src=/preview/.*></iframe></a>
   </dd>.*",
     );
   }
@@ -4814,31 +4886,6 @@ mod tests {
         .unwrap(),
       "max-age=31536000; includeSubDomains; preload",
     );
-  }
-
-  #[test]
-  fn cross_origin_isolation_headers() {
-    const COEP: HeaderName = HeaderName::from_static("cross-origin-embedder-policy");
-    const COOP: HeaderName = HeaderName::from_static("cross-origin-opener-policy");
-    const CORP: HeaderName = HeaderName::from_static("cross-origin-resource-policy");
-
-    {
-      let response = TestServer::new().get("/status");
-      assert_eq!(response.headers().get(COEP).unwrap(), "require-corp");
-      assert_eq!(response.headers().get(COOP).unwrap(), "same-origin");
-      assert_eq!(response.headers().get(CORP).unwrap(), "same-site");
-    }
-
-    {
-      let response = TestServer::builder()
-        .server_flag("--disable-cross-origin-isolation")
-        .build()
-        .get("/status");
-
-      assert!(response.headers().get(COEP).is_none());
-      assert!(response.headers().get(COOP).is_none());
-      assert!(response.headers().get(CORP).is_none());
-    }
   }
 
   #[test]
@@ -6762,6 +6809,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
 
@@ -6791,6 +6839,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
 
@@ -6813,6 +6862,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
   }
@@ -6998,6 +7048,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: None
       }
     );
   }
@@ -7052,6 +7103,7 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
       }
     );
 
@@ -7096,7 +7148,18 @@ next
         },
         timestamp: 2,
         value: Some(50 * COIN_VALUE),
+        address: None
       }
+    );
+  }
+
+  #[test]
+  fn unknown_output_returns_404() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.assert_response(
+      "/output/0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:123",
+      StatusCode::NOT_FOUND,
+      "output 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:123 not found",
     );
   }
 }

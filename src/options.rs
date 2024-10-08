@@ -38,11 +38,6 @@ pub struct Options {
   pub(crate) cookie_file: Option<PathBuf>,
   #[arg(long, alias = "datadir", help = "Store index in <DATA_DIR>.")]
   pub(crate) data_dir: Option<PathBuf>,
-  #[arg(
-    long,
-    help = "Don't look for inscriptions below <FIRST_INSCRIPTION_HEIGHT>."
-  )]
-  pub(crate) first_inscription_height: Option<u32>,
   #[arg(long, help = "Limit index to <HEIGHT_LIMIT> blocks.")]
   pub(crate) height_limit: Option<u32>,
   #[arg(long, help = "Use index at <INDEX>.")]
@@ -61,8 +56,6 @@ pub struct Options {
   pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
-  #[arg(long, help = "Keep sat index entries of spent outputs.")]
-  pub(crate) index_spent_sats: bool,
   #[arg(long, help = "Store transactions in index.")]
   pub(crate) index_transactions: bool,
   #[arg(long, help = "Run in integration test mode.")]

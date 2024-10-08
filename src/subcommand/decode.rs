@@ -12,8 +12,8 @@ pub struct RawOutput {
   pub runestone: Option<Artifact>,
 }
 
-#[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
 #[serde_with::skip_serializing_none]
+#[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
 pub struct CompactInscription {
   pub body: Option<String>,
   pub content_encoding: Option<String>,

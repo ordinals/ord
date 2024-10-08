@@ -46,9 +46,6 @@ deploy-mainnet-bravo branch='master' remote='ordinals/ord': \
 deploy-mainnet-charlie branch='master' remote='ordinals/ord': \
   (deploy branch remote 'main' 'charlie.ordinals.net')
 
-deploy-regtest branch='master' remote='ordinals/ord': \
-  (deploy branch remote 'regtest' 'regtest.ordinals.net')
-
 deploy-signet branch='master' remote='ordinals/ord': \
   (deploy branch remote 'signet' 'signet.ordinals.net')
 
@@ -56,7 +53,6 @@ deploy-testnet branch='master' remote='ordinals/ord': \
   (deploy branch remote 'test' 'testnet.ordinals.net')
 
 deploy-all: \
-  deploy-regtest \
   deploy-testnet \
   deploy-signet \
   deploy-mainnet-alpha \
@@ -64,14 +60,13 @@ deploy-all: \
   deploy-mainnet-charlie
 
 delete-indices: \
-  (delete-index "regtest.ordinals.net") \
   (delete-index "signet.ordinals.net") \
   (delete-index "testnet.ordinals.net")
 
 delete-index domain:
   ssh root@{{domain}} 'systemctl stop ord && rm -f /var/lib/ord/*/index.redb'
 
-servers := 'alpha bravo charlie regtest signet testnet'
+servers := 'alpha bravo charlie signet testnet'
 
 initialize-server-keys:
   #!/usr/bin/env bash
@@ -188,7 +183,7 @@ open-docs:
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build
-  for language in ar de es fil fr hi it ja ko pt ru zh; do
+  for language in ar de es fil fr hi it ja ko pt ru zh nl; do
     MDBOOK_BOOK__LANGUAGE=$language mdbook build docs -d build/$language
     mv docs/build/$language/html docs/build/html/$language
   done
