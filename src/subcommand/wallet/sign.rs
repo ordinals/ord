@@ -10,6 +10,19 @@ pub(crate) struct Sign {
 
 impl Sign {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
+    let to_spend = bip322::create_to_spend(
+      &self
+        .address
+        .require_network(wallet.chain().network())?
+        .to_string()
+        .parse()
+        .unwrap()
+        .assume_checked(),
+      self.message.as_bytes(),
+    )?;
+
+    let to_sign = bip322::create_to_sign(&to_spend, None)?;
+
     todo!()
   }
 }
