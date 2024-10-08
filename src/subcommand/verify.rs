@@ -24,17 +24,17 @@ impl Verify {
         &self.address.assume_checked().to_string(),
         &self.message,
         &witness,
-      )
-      .map_or_else(|e| Err(e.into()), |_| Ok(None))
+      )?;
     } else if let Some(transaction) = self.transaction {
       bip322::verify_full_encoded(
         &self.address.assume_checked().to_string(),
         &self.message,
         &transaction,
-      )
-      .map_or_else(|e| Err(e.into()), |_| Ok(None))
+      )?;
     } else {
-      unreachable!()
+      unreachable!();
     }
+
+    Ok(None)
   }
 }
