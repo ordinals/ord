@@ -10,9 +10,6 @@ pub(crate) struct Sign {
 
 impl Sign {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-
-
-
     todo!()
   }
 }
