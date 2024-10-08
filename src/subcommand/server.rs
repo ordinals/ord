@@ -222,6 +222,7 @@ impl Server {
         )
         .route("/preview/:inscription_id", get(Self::preview))
         .route("/pushtx", post(Self::push_tx))
+        .route("/tx/mempool/:txid", get(Self::get_mempool_entry))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
           "/r/blockhash/:height",
@@ -1757,6 +1758,23 @@ impl Server {
           Json(result),
         )
           .into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
+    })
+  }
+
+  async fn get_mempool_entry(
+    Extension(index): Extension<Arc<Index>>,
+    Path(txid): Path<Txid>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        let tx_mempool_entry = index.client.call::<serde_json::Value>("getmempoolentry", &[txid.to_string().into()])
+          .map_err(|_| ServerError::NotFound("Failed to fetch mempool entry".to_string()))?;
+
+        Json(tx_mempool_entry).into_response()
       } else {
         StatusCode::NOT_FOUND.into_response()
       })
