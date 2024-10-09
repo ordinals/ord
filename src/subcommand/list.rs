@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, crate::api::RuneInfo};
 
 #[derive(Debug, Parser)]
 pub(crate) struct List {
@@ -11,7 +11,7 @@ pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
-  pub runes: BTreeMap<SpacedRune, Pile>,
+  pub runes: BTreeMap<SpacedRune, RuneInfo>,
   pub sat_ranges: Option<Vec<Range>>,
   pub script_pubkey: String,
   pub spent: bool,
