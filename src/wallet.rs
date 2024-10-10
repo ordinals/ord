@@ -216,18 +216,16 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn get_parent_info(
-    &self,
-    parent: Option<InscriptionId>,
-  ) -> Result<Option<ParentInfo>> {
-    if let Some(parent_id) = parent {
-      if !self.inscription_exists(parent_id)? {
+  pub(crate) fn get_parent_info(&self, parents: &[InscriptionId]) -> Result<Vec<ParentInfo>> {
+    let mut parent_info = Vec::new();
+    for parent_id in parents {
+      if !self.inscription_exists(*parent_id)? {
         return Err(anyhow!("parent {parent_id} does not exist"));
       }
 
       let satpoint = self
         .inscription_info
-        .get(&parent_id)
+        .get(parent_id)
         .ok_or_else(|| anyhow!("parent {parent_id} not in wallet"))?
         .satpoint;
 
@@ -237,15 +235,15 @@ impl Wallet {
         .ok_or_else(|| anyhow!("parent {parent_id} not in wallet"))?
         .clone();
 
-      Ok(Some(ParentInfo {
+      parent_info.push(ParentInfo {
         destination: self.get_change_address()?,
-        id: parent_id,
+        id: *parent_id,
         location: satpoint,
         tx_out,
-      }))
-    } else {
-      Ok(None)
+      });
     }
+
+    Ok(parent_info)
   }
 
   pub(crate) fn get_runic_outputs(&self) -> Result<BTreeSet<OutPoint>> {
@@ -740,5 +738,64 @@ impl Wallet {
         })
         .collect::<Result<Vec<(Rune, EtchingEntry)>, StorageError>>()?,
     )
+  }
+
+  pub(super) fn sign_transaction(
+    &self,
+    unsigned_transaction: Transaction,
+    dry_run: bool,
+  ) -> Result<(Txid, String, u64)> {
+    let unspent_outputs = self.utxos();
+
+    let (txid, psbt) = if dry_run {
+      let psbt = self
+        .bitcoin_client()
+        .wallet_process_psbt(
+          &base64::engine::general_purpose::STANDARD
+            .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+          Some(false),
+          None,
+          None,
+        )?
+        .psbt;
+
+      (unsigned_transaction.txid(), psbt)
+    } else {
+      let psbt = self
+        .bitcoin_client()
+        .wallet_process_psbt(
+          &base64::engine::general_purpose::STANDARD
+            .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+          Some(true),
+          None,
+          None,
+        )?
+        .psbt;
+
+      let signed_tx = self
+        .bitcoin_client()
+        .finalize_psbt(&psbt, None)?
+        .hex
+        .ok_or_else(|| anyhow!("unable to sign transaction"))?;
+
+      (
+        self.bitcoin_client().send_raw_transaction(&signed_tx)?,
+        psbt,
+      )
+    };
+
+    let mut fee = 0;
+    for txin in unsigned_transaction.input.iter() {
+      let Some(txout) = unspent_outputs.get(&txin.previous_output) else {
+        panic!("input {} not found in utxos", txin.previous_output);
+      };
+      fee += txout.value;
+    }
+
+    for txout in unsigned_transaction.output.iter() {
+      fee = fee.checked_sub(txout.value).unwrap();
+    }
+
+    Ok((txid, psbt, fee))
   }
 }

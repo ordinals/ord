@@ -24,6 +24,7 @@ use {
       teleburn, ParsedEnvelope,
     },
     into_usize::IntoUsize,
+    outgoing::Outgoing,
     representation::Representation,
     settings::Settings,
     subcommand::{OutputFormat, Subcommand, SubcommandResult},
@@ -65,7 +66,7 @@ use {
   std::{
     backtrace::BacktraceStatus,
     cmp,
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
+    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
     env,
     ffi::OsString,
     fmt::{self, Display, Formatter},
