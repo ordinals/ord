@@ -789,11 +789,11 @@ impl Wallet {
       let Some(txout) = unspent_outputs.get(&txin.previous_output) else {
         panic!("input {} not found in utxos", txin.previous_output);
       };
-      fee += txout.value;
+      fee += txout.value.to_sat();
     }
 
     for txout in unsigned_transaction.output.iter() {
-      fee = fee.checked_sub(txout.value).unwrap();
+      fee = fee.checked_sub(txout.value.to_sat()).unwrap();
     }
 
     Ok((txid, psbt, fee))

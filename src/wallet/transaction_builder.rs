@@ -228,7 +228,7 @@ impl TransactionBuilder {
     self.inputs.push(self.outgoing.outpoint);
     self.outputs.push(TxOut {
       script_pubkey: self.recipient.clone(),
-      value: amount,
+      value: Amount::from_sat(amount),
     });
 
     tprintln!(
@@ -262,10 +262,10 @@ impl TransactionBuilder {
             .pop()
             .unwrap_or_else(|| panic!("not enough change addresses"))
             .script_pubkey(),
-          value: sat_offset,
+          value: Amount::from_sat(sat_offset),
         },
       );
-      self.outputs.last_mut().expect("no output").value -= sat_offset;
+      self.outputs.last_mut().expect("no output").value -= Amount::from_sat(sat_offset);
     }
 
     self
@@ -280,17 +280,17 @@ impl TransactionBuilder {
         .last()
         .unwrap()
         .script_pubkey()
-        .dust_value()
-        .to_sat();
+        .dust_value();
 
       if self.outputs[0].value >= dust_limit {
         tprintln!("no padding needed");
       } else {
         while self.outputs[0].value < dust_limit {
-          let (utxo, size) = self.select_cardinal_utxo(dust_limit - self.outputs[0].value, true)?;
+          let (utxo, size) =
+            self.select_cardinal_utxo((dust_limit - self.outputs[0].value).to_sat(), true)?;
 
           self.inputs.insert(0, utxo);
-          self.outputs[0].value += size.to_sat();
+          self.outputs[0].value += size;
 
           tprintln!(
             "padded alignment output to {} with additional {size} sat input",
@@ -315,9 +315,7 @@ impl TransactionBuilder {
       .checked_add(estimated_fee)
       .ok_or(Error::ValueOverflow)?;
 
-    if let Some(mut deficit) =
-      total.checked_sub(Amount::from_sat(self.outputs.last().unwrap().value))
-    {
+    if let Some(mut deficit) = total.checked_sub(self.outputs.last().unwrap().value) {
       while deficit > Amount::ZERO {
         let additional_fee = self.fee_rate.fee(Self::ADDITIONAL_INPUT_VBYTES);
 
@@ -333,7 +331,7 @@ impl TransactionBuilder {
 
         self.inputs.push(utxo);
 
-        self.outputs.last_mut().unwrap().value += value.to_sat();
+        self.outputs.last_mut().unwrap().value += value;
 
         if benefit > deficit {
           tprintln!("added {value} sat input to cover {deficit} sat deficit");
@@ -354,7 +352,7 @@ impl TransactionBuilder {
     let total_output_amount = self
       .outputs
       .iter()
-      .map(|tx_out| Amount::from_sat(tx_out.value))
+      .map(|tx_out| tx_out.value)
       .sum::<Amount>();
 
     self
@@ -385,14 +383,14 @@ impl TransactionBuilder {
               .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
       {
         tprintln!("stripped {} sats", (value - target).to_sat());
-        self.outputs.last_mut().expect("no outputs found").value = target.to_sat();
+        self.outputs.last_mut().expect("no outputs found").value = target;
         self.outputs.push(TxOut {
           script_pubkey: self
             .unused_change_addresses
             .pop()
             .unwrap_or_else(|| panic!("not enough change addresses"))
             .script_pubkey(),
-          value: (value - target).to_sat(),
+          value: value - target,
         });
       }
     }
@@ -408,7 +406,7 @@ impl TransactionBuilder {
     let total_output_amount = self
       .outputs
       .iter()
-      .map(|tx_out| Amount::from_sat(tx_out.value))
+      .map(|tx_out| tx_out.value)
       .sum::<Amount>();
 
     let last_tx_out = self
@@ -422,13 +420,13 @@ impl TransactionBuilder {
     );
 
     assert!(
-      last_tx_out.value >= fee.to_sat(),
+      last_tx_out.value >= fee,
       "invariant: last output can pay fee: {} {}",
       last_tx_out.value,
       fee,
     );
 
-    last_tx_out.value -= fee.to_sat();
+    last_tx_out.value -= fee;
 
     self
   }
