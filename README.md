@@ -210,6 +210,8 @@ Syncing
 `ord` requires a synced `bitcoind` node with `-txindex` to build the index of
 satoshi locations. `ord` communicates with `bitcoind` via RPC.
 
+The current release of Bitcoin Core (v28.0) needs to be run with `deprecatedrpc=warnings` in bitcoin.conf to work with ord.
+
 If `bitcoind` is run locally by the same user, without additional
 configuration, `ord` should find it automatically by reading the `.cookie` file
 from `bitcoind`'s datadir, and connecting using the default RPC port.
