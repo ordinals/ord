@@ -856,9 +856,7 @@ impl Server {
         .require_network(server_config.chain.network())
         .map_err(|err| ServerError::BadRequest(err.to_string()))?;
 
-      let mut outputs = index.get_address_info(&address)?;
-
-      outputs.sort();
+      let outputs = index.get_address_info(&address)?;
 
       let sat_balance = index.get_sat_balances_for_outputs(&outputs)?;
 
