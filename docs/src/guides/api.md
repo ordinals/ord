@@ -18,7 +18,7 @@ By default, the `ord server` gives access to endpoints that return JSON instead 
 - **[/blocktime](#blocktime)**: Returns the UNIX timestamp of when the latest block was mined.
 - **[/decode/<TXID\>](#decodetransaction_id)**: Decode a transaction, congruent to ord's 
 - **[/inscription/<INSCRIPTION_ID>](#inscriptioninscription_id)**: Fetch details about a specific inscription by its ID.
- - **[/inscription/<INSCRIPTION_ID>/<CHILD\>](#inscriptioninscription_idchild)**: Returns the inscription information for the specified child.
+- **[/inscription/<INSCRIPTION_ID>/<CHILD\>](#inscriptioninscription_idchild)**: Returns the inscription information for the specified child.
 - **[/inscriptions](#inscriptions)**: Get a list of the latest 100 inscriptions.
 - **[/inscriptions/<PAGE\>](#inscriptionspage)**: Pagination allows you to choose which page of 100 inscriptions to return.
 - **[/inscriptions/block/<BLOCK_HEIGHT\>](#inscriptionsblockblock_height)**: Get inscriptions for a specific block.
@@ -2210,24 +2210,12 @@ By default, the `ord server` gives access to endpoints that return JSON instead 
   ```json
   {
     "entry": {
-  {
-    "entry": {
-    "entry": {
       "block": 1,
       "burned": 139,
       "divisibility": 0,
       "etching": "0000000000000000000000000000000000000000000000000000000000000000",
-      "divisibility": 0,
-      "etching": "0000000000000000000000000000000000000000000000000000000000000000",
-      "mints": 33689631,
-      "etching": "0000000000000000000000000000000000000000000000000000000000000000",
-      "mints": 33689631,
+      "mints": 33891693,
       "number": 0,
-      "mints": 33689631,
-      "number": 0,
-      "premine": 0,
-      "number": 0,
-      "premine": 0,
       "premine": 0,
       "spaced_rune": "UNCOMMON•GOODS",
       "symbol": "⧉",
@@ -2242,10 +2230,10 @@ By default, the `ord server` gives access to endpoints that return JSON instead 
           null,
           null
         ]
-      },
-      "timestamp": 0,
-      "turbo": true
     },
+    "timestamp": 0,
+    "turbo": true
+  },
     "id": "1:0",
     "mintable": true,
     "parent": null
@@ -3769,29 +3757,29 @@ By default, the `ord server` gives access to endpoints that return JSON instead 
   ```
   ```json
     {
-    "address_index": true,
-    "blessed_inscriptions": 76332641,
-    "chain": "mainnet",
-    "cursed_inscriptions": 472043,
-    "height": 864351,
-    "initial_sync_time": {
-      "secs": 59213,
-      "nanos": 979632000
-    },
-    "inscriptions": 76804684,
-    "lost_sats": 0,
-    "minimum_rune_for_next_block": "PVHGFEDCAZZ",
-    "rune_index": true,
-    "runes": 119811,
-    "sat_index": false,
-    "started": "2024-09-27T17:43:39.291876400Z",
-    "transaction_index": false,
-    "unrecoverably_reorged": false,
-    "uptime": {
-      "secs": 709843,
-      "nanos": 910346200
+      "address_index": true,
+      "blessed_inscriptions": 76332641,
+      "chain": "mainnet",
+      "cursed_inscriptions": 472043,
+      "height": 864351,
+      "initial_sync_time": {
+        "secs": 59213,
+        "nanos": 979632000
+      },
+      "inscriptions": 76804684,
+      "lost_sats": 0,
+      "minimum_rune_for_next_block": "PVHGFEDCAZZ",
+      "rune_index": true,
+      "runes": 119811,
+      "sat_index": false,
+      "started": "2024-09-27T17:43:39.291876400Z",
+      "transaction_index": false,
+      "unrecoverably_reorged": false,
+      "uptime": {
+        "secs": 709843,
+        "nanos": 910346200
+      }
     }
-  }
   ```
 
 ### `/tx/<TRANSACTION_ID>`
