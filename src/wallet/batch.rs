@@ -575,7 +575,7 @@ mod tests {
     )
     .unwrap();
 
-    assert!(reveal_tx.vsize() >= MAX_STANDARD_TX_WEIGHT as usize);
+    assert!(reveal_tx.total_size() >= MAX_STANDARD_TX_WEIGHT as usize);
   }
 
   #[test]
