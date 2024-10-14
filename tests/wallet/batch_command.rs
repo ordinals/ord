@@ -608,7 +608,7 @@ fn batch_inscribe_fails_if_invalid_network_destination_address() {
     .write("batch.yaml", "mode: separate-outputs\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
     .core(&core)
     .ord(&ord)
-    .stderr_regex("error: address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 belongs to network bitcoin which is different from required regtest\n")
+    .stderr_regex("error: validation error\n\nbecause:\n- address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 is not valid on regtest\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -995,7 +995,7 @@ fn batch_inscribe_with_satpoint() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   let output = CommandBuilder::new("wallet batch --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
@@ -1165,7 +1165,7 @@ fn batch_inscribe_with_satpoints_with_parent() {
   let txids = core
     .mine_blocks(3)
     .iter()
-    .map(|block| block.txdata[0].txid())
+    .map(|block| block.txdata[0].compute_txid())
     .collect::<Vec<Txid>>();
 
   let satpoint_1 = SatPoint {

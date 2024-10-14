@@ -9,7 +9,7 @@ fn outputs() {
   create_wallet(&core, &ord);
 
   let coinbase_tx = &core.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
-  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let outpoint = OutPoint::new(coinbase_tx.compute_txid(), 0);
   let amount = coinbase_tx.output[0].value;
 
   let output = CommandBuilder::new("wallet outputs")
@@ -31,7 +31,7 @@ fn outputs_includes_locked_outputs() {
   create_wallet(&core, &ord);
 
   let coinbase_tx = &core.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
-  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let outpoint = OutPoint::new(coinbase_tx.compute_txid(), 0);
   let amount = coinbase_tx.output[0].value;
 
   core.lock(outpoint);
@@ -55,7 +55,7 @@ fn outputs_includes_unbound_outputs() {
   create_wallet(&core, &ord);
 
   let coinbase_tx = &core.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
-  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let outpoint = OutPoint::new(coinbase_tx.compute_txid(), 0);
   let amount = coinbase_tx.output[0].value;
 
   core.lock(outpoint);
@@ -79,7 +79,7 @@ fn outputs_includes_sat_ranges() {
   create_wallet(&core, &ord);
 
   let coinbase_tx = &core.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0];
-  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let outpoint = OutPoint::new(coinbase_tx.compute_txid(), 0);
   let amount = coinbase_tx.output[0].value;
 
   let output = CommandBuilder::new("wallet outputs --ranges")

@@ -2855,7 +2855,7 @@ mod tests {
       .index_sats()
       .build();
 
-    let txid = server.mine_blocks(1)[0].txdata[0].txid();
+    let txid = server.mine_blocks(1)[0].txdata[0].compute_txid();
 
     server.assert_redirect(
       &format!("/search/{txid}:0:0"),
@@ -4129,7 +4129,7 @@ mod tests {
     let test_server = TestServer::new();
 
     let coinbase_tx = test_server.mine_blocks(1)[0].txdata[0].clone();
-    let txid = coinbase_tx.txid();
+    let txid = coinbase_tx.compute_txid();
 
     test_server.assert_response_regex(
       format!("/tx/{txid}"),

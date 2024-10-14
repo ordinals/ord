@@ -43,7 +43,7 @@ pub enum Error {
     output_value: Amount,
     dust_value: Amount,
   },
-  InvalidAddress(bitcoin::address::Error),
+  InvalidAddress(bitcoin::address::FromScriptError),
   NotEnoughCardinalUtxos,
   NotInWallet(SatPoint),
   OutOfRange(SatPoint, u64),
@@ -93,8 +93,8 @@ impl Display for Error {
 
 impl std::error::Error for Error {}
 
-impl From<bitcoin::address::Error> for Error {
-  fn from(source: bitcoin::address::Error) -> Self {
+impl From<bitcoin::address::FromScriptError> for Error {
+  fn from(source: bitcoin::address::FromScriptError) -> Self {
     Self::InvalidAddress(source)
   }
 }
@@ -170,7 +170,7 @@ impl TransactionBuilder {
       }
 
       if let Target::Value(output_value) | Target::ExactPostage(output_value) = self.target {
-        let dust_value = self.recipient.dust_value();
+        let dust_value = self.recipient.minimal_non_dust();
 
         if output_value < dust_value {
           return Err(Error::Dust {
@@ -197,7 +197,7 @@ impl TransactionBuilder {
       .last()
       .unwrap()
       .script_pubkey()
-      .dust_value()
+      .minimal_non_dust()
       .to_sat();
 
     for (inscribed_satpoint, inscription_ids) in self.inscriptions.iter().rev() {
@@ -280,7 +280,7 @@ impl TransactionBuilder {
         .last()
         .unwrap()
         .script_pubkey()
-        .dust_value();
+        .minimal_non_dust();
 
       if self.outputs[0].value >= dust_limit {
         tprintln!("no padding needed");
@@ -307,7 +307,12 @@ impl TransactionBuilder {
     let estimated_fee = self.estimate_fee();
 
     let min_value = match self.target {
-      Target::Postage => self.outputs.last().unwrap().script_pubkey.dust_value(),
+      Target::Postage => self
+        .outputs
+        .last()
+        .unwrap()
+        .script_pubkey
+        .minimal_non_dust(),
       Target::Value(value) | Target::ExactPostage(value) => value,
     };
 
@@ -377,7 +382,7 @@ impl TransactionBuilder {
             .last()
             .unwrap()
             .script_pubkey()
-            .dust_value()
+            .minimal_non_dust()
             + self
               .fee_rate
               .fee(self.estimate_vbytes() + Self::ADDITIONAL_OUTPUT_VBYTES)
@@ -573,7 +578,7 @@ impl TransactionBuilder {
                 <= self
                   .change_addresses
                   .iter()
-                  .map(|address| address.script_pubkey().dust_value())
+                  .map(|address| address.script_pubkey().minimal_non_dust())
                   .max()
                   .unwrap_or_default()
                   + slop,
@@ -619,7 +624,7 @@ impl TransactionBuilder {
 
     for tx_out in &transaction.output {
       assert!(
-        tx_out.value >= tx_out.script_pubkey.dust_value(),
+        tx_out.value >= tx_out.script_pubkey.minimal_non_dust(),
         "invariant: all outputs are above dust limit",
       );
     }

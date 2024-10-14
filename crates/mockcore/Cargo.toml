@@ -8,7 +8,8 @@ homepage = "https://github.com/ordinals/ord"
 repository = "https://github.com/ordinals/ord"
 
 [dependencies]
-bitcoin = { version = "0.31.2", features = ["serde", "rand"] }
+bitcoin = { version = "0.32.3", features = ["serde", "rand"] }
+bitcoin-io = "0.1.2"
 base64 = "0.22.0"
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"

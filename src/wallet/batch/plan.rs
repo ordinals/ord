@@ -78,9 +78,9 @@ impl Plan {
       let reveal_psbt = Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone()))?;
 
       return Ok(Some(Box::new(self.output(
-        commit_tx.txid(),
+        commit_tx.compute_txid(),
         Some(commit_psbt),
-        reveal_tx.txid(),
+        reveal_tx.compute_txid(),
         false,
         Some(base64::engine::general_purpose::STANDARD.encode(reveal_psbt.serialize())),
         total_fees,
@@ -102,7 +102,7 @@ impl Plan {
           .iter()
           .enumerate()
           .map(|(vout, output)| SignRawTransactionInput {
-            txid: commit_tx.txid(),
+            txid: commit_tx.compute_txid(),
             vout: vout.try_into().unwrap(),
             script_pub_key: output.script_pubkey.clone(),
             redeem_script: None,
@@ -142,9 +142,9 @@ impl Plan {
         &commit,
         &reveal,
         self.output(
-          commit.txid(),
+          commit.compute_txid(),
           None,
-          reveal.txid(),
+          reveal.compute_txid(),
           false,
           None,
           total_fees,
@@ -544,7 +544,7 @@ impl Plan {
       .expect("should find sat commit/inscription output");
 
     reveal_inputs[commit_input] = OutPoint {
-      txid: unsigned_commit_tx.txid(),
+      txid: unsigned_commit_tx.compute_txid(),
       vout: vout.try_into().unwrap(),
     };
 
@@ -560,7 +560,7 @@ impl Plan {
 
     for output in reveal_tx.output.iter() {
       ensure!(
-        output.value >= output.script_pubkey.dust_value(),
+        output.value >= output.script_pubkey.minimal_non_dust(),
         "commit transaction output would be dust"
       );
     }
@@ -590,7 +590,7 @@ impl Plan {
       )
       .expect("signature hash should compute");
 
-    let sig = secp256k1.sign_schnorr(
+    let signature = secp256k1.sign_schnorr(
       &secp256k1::Message::from_digest_slice(sighash.as_ref())
         .expect("should be cryptographically secure hash"),
       &key_pair,
@@ -602,8 +602,8 @@ impl Plan {
 
     witness.push(
       Signature {
-        sig,
-        hash_ty: TapSighashType::Default,
+        signature,
+        sighash_type: TapSighashType::Default,
       }
       .to_vec(),
     );
@@ -655,7 +655,7 @@ impl Plan {
     let rune = rune.map(|(destination, rune, vout)| RuneInfo {
       destination: destination.map(|destination| uncheck(&destination)),
       location: vout.map(|vout| OutPoint {
-        txid: reveal_tx.txid(),
+        txid: reveal_tx.compute_txid(),
         vout,
       }),
       rune,

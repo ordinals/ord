@@ -334,13 +334,13 @@ impl Wallet {
     Ok(
       if let Some(commit_tx) = self
         .bitcoin_client()
-        .get_transaction(&commit.txid(), Some(true))
+        .get_transaction(&commit.compute_txid(), Some(true))
         .into_option()?
       {
         let current_confirmations = u32::try_from(commit_tx.info.confirmations)?;
         if self
           .bitcoin_client()
-          .get_tx_out(&commit.txid(), 0, Some(true))?
+          .get_tx_out(&commit.compute_txid(), 0, Some(true))?
           .is_none()
         {
           Maturity::CommitSpent(commit_tx.info.txid)
@@ -367,7 +367,7 @@ impl Wallet {
     eprintln!(
       "Waiting for rune {} commitment {} to mature…",
       rune,
-      entry.commit.txid()
+      entry.commit.compute_txid()
     );
 
     let mut pending_confirmations: u32 = Runestone::COMMIT_CONFIRMATIONS.into();
@@ -417,7 +417,7 @@ impl Wallet {
       Err(err) => {
         return Err(anyhow!(
           "Failed to send reveal transaction: {err}\nCommit tx {} will be recovered once mined",
-          entry.commit.txid()
+          entry.commit.compute_txid()
         ))
       }
     };
@@ -759,7 +759,7 @@ impl Wallet {
         )?
         .psbt;
 
-      (unsigned_transaction.txid(), psbt)
+      (unsigned_transaction.compute_txid(), psbt)
     } else {
       let psbt = self
         .bitcoin_client()

@@ -440,7 +440,7 @@ impl Index {
     };
 
     Ok(Self {
-      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
+      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.compute_txid(),
       client,
       database,
       durability,
@@ -2528,7 +2528,7 @@ mod tests {
   #[test]
   fn list_second_coinbase_transaction() {
     let context = Context::builder().arg("--index-sats").build();
-    let txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       &[(50 * COIN_VALUE, 100 * COIN_VALUE)],
@@ -2596,7 +2596,7 @@ mod tests {
       ..default()
     };
     let txid = context.core.broadcast_tx(fee_paying_tx);
-    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -2636,7 +2636,7 @@ mod tests {
     context.core.broadcast_tx(first_fee_paying_tx);
     context.core.broadcast_tx(second_fee_paying_tx);
 
-    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
     assert_eq!(
       context
@@ -2708,7 +2708,7 @@ mod tests {
       ..default()
     });
     context.mine_blocks(1);
-    let txid = context.core.tx(1, 0).txid();
+    let txid = context.core.tx(1, 0).compute_txid();
     assert_matches!(context.index.list(OutPoint::new(txid, 0)).unwrap(), None);
   }
 
@@ -2766,7 +2766,7 @@ mod tests {
       context.index.find(Sat(50 * COIN_VALUE)).unwrap().unwrap(),
       SatPoint {
         outpoint: OutPoint {
-          txid: tx.txid(),
+          txid: tx.compute_txid(),
           vout: 0,
         },
         offset: 0,
@@ -3049,7 +3049,7 @@ mod tests {
         ..default()
       });
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -3084,7 +3084,7 @@ mod tests {
         ..default()
       });
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -3112,7 +3112,7 @@ mod tests {
       });
       let inscription_id = InscriptionId { txid, index: 0 };
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -5914,7 +5914,7 @@ mod tests {
         inscription_id,
         SatPoint {
           outpoint: OutPoint {
-            txid: blocks[0].txdata[0].txid(),
+            txid: blocks[0].txdata[0].compute_txid(),
             vout: 0,
           },
           offset: 50 * COIN_VALUE,
@@ -5945,7 +5945,7 @@ mod tests {
         inscription_id,
         SatPoint {
           outpoint: OutPoint {
-            txid: blocks[0].txdata[0].txid(),
+            txid: blocks[0].txdata[0].compute_txid(),
             vout: 0,
           },
           offset: 50 * COIN_VALUE,
@@ -6193,7 +6193,7 @@ mod tests {
     assert!(!context
       .index
       .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6208,7 +6208,7 @@ mod tests {
     assert!(context
       .index
       .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6233,7 +6233,7 @@ mod tests {
     assert!(context
       .index
       .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6241,7 +6241,7 @@ mod tests {
     assert!(!context
       .index
       .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 1,
       })
       .unwrap());
@@ -6282,7 +6282,7 @@ mod tests {
       .unwrap();
 
     let first_address_second_output = OutPoint {
-      txid: transaction.txid(),
+      txid: transaction.compute_txid(),
       vout: 1,
     };
 
@@ -6290,7 +6290,7 @@ mod tests {
       context.index.get_address_info(&first_address).unwrap(),
       [
         OutPoint {
-          txid: transaction.txid(),
+          txid: transaction.compute_txid(),
           vout: 0
         },
         first_address_second_output
@@ -6322,7 +6322,7 @@ mod tests {
     assert_eq!(
       context.index.get_address_info(&second_address).unwrap(),
       [OutPoint {
-        txid: transaction.txid(),
+        txid: transaction.compute_txid(),
         vout: 0
       }]
     );

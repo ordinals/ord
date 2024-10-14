@@ -16,7 +16,6 @@ use {
     cmp,
     collections::{HashMap, VecDeque},
     fmt::{self, Formatter},
-    io,
     num::ParseIntError,
     ops::{Add, AddAssign, Sub},
   },

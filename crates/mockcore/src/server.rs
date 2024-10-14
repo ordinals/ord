@@ -2,7 +2,7 @@ use {
   super::*,
   base64::Engine,
   bitcoin::{consensus::Decodable, psbt::Psbt, Witness},
-  std::io::Cursor,
+  bitcoincore_rpc::json::StringOrStringArray,
 };
 
 pub(crate) struct Server {
@@ -65,7 +65,7 @@ impl Api for Server {
       automatic_pruning: None,
       prune_target_size: None,
       softforks: HashMap::new(),
-      warnings: String::new(),
+      warnings: StringOrStringArray::String(String::new()),
     })
   }
 
@@ -85,7 +85,7 @@ impl Api for Server {
       relay_fee: Amount::from_sat(0),
       incremental_fee: Amount::from_sat(0),
       local_addresses: Vec::new(),
-      warnings: String::new(),
+      warnings: StringOrStringArray::String(String::new()),
     })
   }
 
@@ -257,7 +257,7 @@ impl Api for Server {
 
     for (height, hash) in state.hashes.iter().enumerate() {
       for tx in &state.blocks[hash].txdata {
-        if tx.txid() == txid {
+        if tx.compute_txid() == txid {
           confirmations = Some(state.hashes.len() - height);
         }
       }
@@ -360,7 +360,7 @@ impl Api for Server {
   ) -> Result<FundRawTransactionResult, jsonrpc_core::Error> {
     let options = options.unwrap();
 
-    let mut cursor = Cursor::new(hex::decode(tx).unwrap());
+    let mut cursor = bitcoin_io::Cursor::new(hex::decode(tx).unwrap());
 
     let version = Version(i32::consensus_decode_from_finite_reader(&mut cursor).unwrap());
     let input = Vec::<TxIn>::consensus_decode_from_finite_reader(&mut cursor).unwrap();
@@ -526,7 +526,7 @@ impl Api for Server {
 
     state.mempool.push(tx.clone());
 
-    Ok(tx.txid().to_string())
+    Ok(tx.compute_txid().to_string())
   }
 
   fn send_to_address(
@@ -578,11 +578,11 @@ impl Api for Server {
       output: vec![
         TxOut {
           value,
-          script_pubkey: address.payload().script_pubkey(),
+          script_pubkey: address.assume_checked_ref().script_pubkey(),
         },
         TxOut {
           value: *utxo_amount - value,
-          script_pubkey: address.payload().script_pubkey(),
+          script_pubkey: address.assume_checked_ref().script_pubkey(),
         },
       ],
     };
@@ -593,7 +593,7 @@ impl Api for Server {
 
     transaction.output[1].value -= Amount::from_sat(fee);
 
-    let txid = transaction.txid();
+    let txid = transaction.compute_txid();
 
     state.mempool.push(transaction);
 
@@ -617,7 +617,7 @@ impl Api for Server {
 
     'outer: for (height, hash) in state.hashes.iter().enumerate() {
       for tx in &state.blocks[hash].txdata {
-        if tx.txid() == txid {
+        if tx.compute_txid() == txid {
           confirmations = Some(state.hashes.len() - height);
           break 'outer;
         }
@@ -837,7 +837,7 @@ impl Api for Server {
         .iter()
         .take(count.unwrap_or(u16::MAX).into())
         .map(|(txid, tx)| (*txid, tx))
-        .chain(state.mempool.iter().map(|tx| (tx.txid(), tx)))
+        .chain(state.mempool.iter().map(|tx| (tx.compute_txid(), tx)))
         .map(|(txid, tx)| ListTransactionResult {
           info: WalletTxInfo {
             confirmations: state.get_confirmations(tx),

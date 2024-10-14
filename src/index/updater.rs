@@ -24,7 +24,7 @@ impl From<Block> for BlockData {
         .txdata
         .into_iter()
         .map(|transaction| {
-          let txid = transaction.txid();
+          let txid = transaction.compute_txid();
           (transaction, txid)
         })
         .collect(),

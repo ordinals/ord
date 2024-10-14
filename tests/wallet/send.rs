@@ -22,7 +22,7 @@ fn inscriptions_can_be_sent() {
   .stdout_regex(r".*")
   .run_and_deserialize_output::<Send>();
 
-  let txid = core.mempool()[0].txid();
+  let txid = core.mempool()[0].compute_txid();
   assert_eq!(txid, output.txid);
 
   core.mine_blocks(1);
@@ -55,7 +55,7 @@ fn send_unknown_inscription() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {txid}i0"
@@ -164,7 +164,7 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   CommandBuilder::new("wallet --name foo create")
     .core(&core)
@@ -187,7 +187,7 @@ fn send_addresses_must_be_valid_for_network() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks_with_subsidy(1, 1_000)[0].txdata[0].txid();
+  let txid = core.mine_blocks_with_subsidy(1, 1_000)[0].txdata[0].compute_txid();
 
   CommandBuilder::new(format!(
     "wallet send --fee-rate 1 tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz {txid}:0:0"
@@ -195,7 +195,7 @@ fn send_addresses_must_be_valid_for_network() {
   .core(&core)
     .ord(&ord)
   .expected_stderr(
-    "error: address tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz belongs to network testnet which is different from required bitcoin\n",
+    "error: validation error\n\nbecause:\n- address tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz is not valid on bitcoin\n",
   )
   .expected_exit_code(1)
   .run_and_extract_stdout();
@@ -209,7 +209,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
+  let txid = core.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].compute_txid();
 
   let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
@@ -218,7 +218,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   .ord(&ord)
   .run_and_deserialize_output::<Send>();
 
-  assert_eq!(core.mempool()[0].txid(), output.txid);
+  assert_eq!(core.mempool()[0].compute_txid(), output.txid);
 }
 
 #[test]
@@ -229,7 +229,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks_with_subsidy(1, 10_000)[0].txdata[0].txid();
+  let txid = core.mine_blocks_with_subsidy(1, 10_000)[0].txdata[0].compute_txid();
   CommandBuilder::new(format!(
     "wallet inscribe --satpoint {txid}:0:0 --file degenerate.png --fee-rate 0"
   ))
@@ -238,7 +238,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   .ord(&ord)
   .run_and_deserialize_output::<Batch>();
 
-  let txid = core.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
+  let txid = core.mine_blocks_with_subsidy(1, 100)[0].txdata[0].compute_txid();
   CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
@@ -362,7 +362,7 @@ inscriptions:
       indexed: true,
       runes: BTreeMap::new(),
       sat_ranges: Some(vec![(5_000_000_000, 5_000_030_000)]),
-      script_pubkey: destination.payload().script_pubkey(),
+      script_pubkey: destination.assume_checked_ref().script_pubkey(),
       spent: false,
       transaction: reveal_txid,
       value: 30_000,
@@ -621,7 +621,7 @@ fn send_btc_does_not_send_locked_utxos() {
   create_wallet(&core, &ord);
 
   let coinbase_tx = &core.mine_blocks(1)[0].txdata[0];
-  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let outpoint = OutPoint::new(coinbase_tx.compute_txid(), 0);
 
   core.lock(outpoint);
 
@@ -679,7 +679,7 @@ fn sending_rune_that_has_not_been_etched_is_an_error() {
   create_wallet(&core, &ord);
 
   let coinbase_tx = &core.mine_blocks(1)[0].txdata[0];
-  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let outpoint = OutPoint::new(coinbase_tx.compute_txid(), 0);
 
   core.lock(outpoint);
 

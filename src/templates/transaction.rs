@@ -42,14 +42,14 @@ mod tests {
       ],
     };
 
-    let txid = transaction.txid();
+    let txid = transaction.compute_txid();
 
     pretty_assert_eq!(
       TransactionHtml {
         chain: Chain::Mainnet,
         etching: None,
         inscription_count: 0,
-        txid: transaction.txid(),
+        txid: transaction.compute_txid(),
         transaction,
       }.to_string(),
       format!(

@@ -131,7 +131,7 @@ impl State {
                 })
                 .sum::<Amount>()
                 - tx.output.iter().map(|txout| txout.value).sum::<Amount>();
-              self.transactions.insert(tx.txid(), tx.clone());
+              self.transactions.insert(tx.compute_txid(), tx.clone());
 
               fee
             })
@@ -140,7 +140,9 @@ impl State {
       }],
     };
 
-    self.transactions.insert(coinbase.txid(), coinbase.clone());
+    self
+      .transactions
+      .insert(coinbase.compute_txid(), coinbase.clone());
 
     let block = Block {
       header: Header {
@@ -159,7 +161,7 @@ impl State {
     for tx in block.txdata.iter() {
       self
         .txid_to_block_height
-        .insert(tx.txid(), self.hashes.len().try_into().unwrap());
+        .insert(tx.compute_txid(), self.hashes.len().try_into().unwrap());
 
       for input in tx.input.iter() {
         if !input.previous_output.is_null() {
@@ -171,7 +173,7 @@ impl State {
         if !txout.script_pubkey.is_op_return() {
           self.utxos.insert(
             OutPoint {
-              txid: tx.txid(),
+              txid: tx.compute_txid(),
               vout: vout.try_into().unwrap(),
             },
             txout.value,
@@ -201,7 +203,7 @@ impl State {
       let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
       total_value += tx.output[*vout].value.to_sat();
       input.push(TxIn {
-        previous_output: OutPoint::new(tx.txid(), *vout as u32),
+        previous_output: OutPoint::new(tx.compute_txid(), *vout as u32),
         script_sig: ScriptBuf::new(),
         sequence: Sequence::MAX,
         witness: witness.clone(),
@@ -258,7 +260,7 @@ impl State {
       );
     }
 
-    let txid = tx.txid();
+    let txid = tx.compute_txid();
 
     self.mempool.push(tx);
 
