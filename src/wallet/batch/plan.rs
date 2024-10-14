@@ -364,7 +364,7 @@ impl Plan {
     }
 
     let secp256k1 = Secp256k1::new();
-    let key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
+    let key_pair = UntweakedKeypair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
 
     let reveal_script = Inscription::append_batch_reveal_script(
@@ -591,7 +591,7 @@ impl Plan {
       .expect("signature hash should compute");
 
     let sig = secp256k1.sign_schnorr(
-      &secp256k1::Message::from_slice(sighash.as_ref())
+      &secp256k1::Message::from_digest_slice(sighash.as_ref())
         .expect("should be cryptographically secure hash"),
       &key_pair,
     );
@@ -671,7 +671,7 @@ impl Plan {
     })
   }
 
-  fn backup_recovery_key(wallet: &Wallet, recovery_key_pair: TweakedKeyPair) -> Result {
+  fn backup_recovery_key(wallet: &Wallet, recovery_key_pair: TweakedKeypair) -> Result {
     let recovery_private_key = PrivateKey::new(
       recovery_key_pair.to_inner().secret_key(),
       wallet.chain().network(),

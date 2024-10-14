@@ -66,7 +66,7 @@ use {
   std::{
     backtrace::BacktraceStatus,
     cmp,
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashSet},
     env,
     ffi::OsString,
     fmt::{self, Display, Formatter},

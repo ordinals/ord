@@ -18,7 +18,7 @@ fn outputs() {
     .run_and_deserialize_output::<Vec<Output>>();
 
   assert_eq!(output[0].output, outpoint);
-  assert_eq!(output[0].amount, amount);
+  assert_eq!(output[0].amount, amount.to_sat());
   assert!(output[0].sat_ranges.is_none());
 }
 
@@ -42,7 +42,7 @@ fn outputs_includes_locked_outputs() {
     .run_and_deserialize_output::<Vec<Output>>();
 
   assert_eq!(output[0].output, outpoint);
-  assert_eq!(output[0].amount, amount);
+  assert_eq!(output[0].amount, amount.to_sat());
   assert!(output[0].sat_ranges.is_none());
 }
 
@@ -66,7 +66,7 @@ fn outputs_includes_unbound_outputs() {
     .run_and_deserialize_output::<Vec<Output>>();
 
   assert_eq!(output[0].output, outpoint);
-  assert_eq!(output[0].amount, amount);
+  assert_eq!(output[0].amount, amount.to_sat());
   assert!(output[0].sat_ranges.is_none());
 }
 
@@ -88,7 +88,7 @@ fn outputs_includes_sat_ranges() {
     .run_and_deserialize_output::<Vec<Output>>();
 
   assert_eq!(output[0].output, outpoint);
-  assert_eq!(output[0].amount, amount);
+  assert_eq!(output[0].amount, amount.to_sat());
   assert_eq!(
     output[0].sat_ranges,
     Some(vec!["5000000000-5001000000".to_string()])

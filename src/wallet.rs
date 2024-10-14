@@ -4,7 +4,7 @@ use {
   batch::ParentInfo,
   bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
-    bip32::{ChildNumber, DerivationPath, Fingerprint, Xpriv, Xpub},
+    bip32::{ChildNumber, DerivationPath, Fingerprint, Xpriv},
     psbt::Psbt,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},

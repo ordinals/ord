@@ -301,31 +301,28 @@ fn inscribe_with_fee_rate() {
       .run_and_deserialize_output::<Batch>();
 
   let tx1 = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx1.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &tx1.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx1.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx1.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
 
   let tx2 = &core.mempool()[1];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx2.input {
-    fee += &tx1.output[input.previous_output.vout as usize].value;
+    fee += tx1.output[input.previous_output.vout as usize].value;
   }
   for output in &tx2.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx2.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx2.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
   assert_eq!(
@@ -355,31 +352,28 @@ fn inscribe_with_commit_fee_rate() {
   .run_and_deserialize_output::<Batch>();
 
   let tx1 = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx1.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &tx1.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx1.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx1.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
 
   let tx2 = &core.mempool()[1];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx2.input {
-    fee += &tx1.output[input.previous_output.vout as usize].value;
+    fee += tx1.output[input.previous_output.vout as usize].value;
   }
   for output in &tx2.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx2.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx2.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 1.0);
 }
@@ -495,7 +489,7 @@ fn inscribe_to_specific_destination() {
   assert_eq!(reveal_tx.txid(), txid);
   assert_eq!(
     reveal_tx.output.first().unwrap().script_pubkey,
-    destination.payload.script_pubkey()
+    destination.payload().script_pubkey()
   );
 }
 

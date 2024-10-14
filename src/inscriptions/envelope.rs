@@ -261,7 +261,7 @@ mod tests {
 
   fn parse(witnesses: &[Witness]) -> Vec<ParsedEnvelope> {
     ParsedEnvelope::from_transaction(&Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: witnesses
         .iter()

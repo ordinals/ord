@@ -131,7 +131,7 @@ pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
 
 pub(crate) fn default_address(chain: Chain) -> Address {
   Address::from_script(
-    &ScriptBuf::new_v0_p2wpkh(&WPubkeyHash::all_zeros()),
+    &ScriptBuf::new_p2wpkh(&WPubkeyHash::all_zeros()),
     chain.network(),
   )
   .unwrap()

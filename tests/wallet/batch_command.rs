@@ -1045,28 +1045,25 @@ fn batch_inscribe_with_fee_rate() {
     .run_and_deserialize_output::<Batch>();
 
   let commit_tx = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &commit_tx.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &commit_tx.output {
     fee -= output.value;
   }
-  let fee_rate = fee as f64 / commit_tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / commit_tx.vsize() as f64;
   pretty_assert_eq!(fee_rate, set_fee_rate);
 
   let reveal_tx = &core.mempool()[1];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &reveal_tx.input {
-    fee += &commit_tx.output[input.previous_output.vout as usize].value;
+    fee += commit_tx.output[input.previous_output.vout as usize].value;
   }
   for output in &reveal_tx.output {
     fee -= output.value;
   }
-  let fee_rate = fee as f64 / reveal_tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / reveal_tx.vsize() as f64;
   pretty_assert_eq!(fee_rate, set_fee_rate);
 
   assert_eq!(

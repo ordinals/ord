@@ -362,7 +362,7 @@ inscriptions:
       indexed: true,
       runes: BTreeMap::new(),
       sat_ranges: Some(vec![(5_000_000_000, 5_000_030_000)]),
-      script_pubkey: destination.payload.script_pubkey(),
+      script_pubkey: destination.payload().script_pubkey(),
       spent: false,
       transaction: reveal_txid,
       value: 30_000,
@@ -455,19 +455,16 @@ fn send_btc_with_fee_rate() {
 
   let tx = &core.mempool()[0];
 
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
 
   for output in &tx.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx.vsize() as f64;
 
   assert!(f64::abs(fee_rate - 13.3) < 0.1);
 
@@ -479,7 +476,7 @@ fn send_btc_with_fee_rate() {
       .assume_checked()
   );
 
-  assert_eq!(tx.output[0].value, 2 * COIN_VALUE);
+  assert_eq!(tx.output[0].value.to_sat(), 2 * COIN_VALUE);
 }
 
 #[test]
@@ -543,18 +540,15 @@ fn wallet_send_with_fee_rate() {
   .run_and_deserialize_output::<Send>();
 
   let tx = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &tx.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
 }
@@ -604,21 +598,18 @@ fn wallet_send_with_fee_rate_and_target_postage() {
   .run_and_deserialize_output::<Send>();
 
   let tx = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &tx.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
-  pretty_assert_eq!(tx.output[0].value, 77_000);
+  pretty_assert_eq!(tx.output[0].value.to_sat(), 77_000);
 }
 
 #[test]
@@ -814,8 +805,8 @@ fn sending_rune_with_change_works() {
 
   let tx = core.tx_by_id(output.txid);
 
-  assert_eq!(tx.output[1].value, 1234);
-  assert_eq!(tx.output[2].value, 1234);
+  assert_eq!(tx.output[1].value.to_sat(), 1234);
+  assert_eq!(tx.output[2].value.to_sat(), 1234);
 
   let balances = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)

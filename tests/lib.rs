@@ -4,8 +4,7 @@ use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bitcoin::{
     address::{Address, NetworkUnchecked},
-    blockdata::constants::COIN_VALUE,
-    Network, OutPoint, Sequence, Txid, Witness,
+    Amount, Network, OutPoint, Sequence, Txid, Witness,
   },
   chrono::{DateTime, Utc},
   executable_path::executable_path,
@@ -48,6 +47,8 @@ macro_rules! assert_regex_match {
     }
   };
 }
+
+pub const COIN_VALUE: u64 = 100_000_000;
 
 mod command_builder;
 mod expected;

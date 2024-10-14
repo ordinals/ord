@@ -22,7 +22,7 @@ mod tests {
   #[test]
   fn html() {
     let transaction = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         sequence: Default::default(),
@@ -32,11 +32,11 @@ mod tests {
       }],
       output: vec![
         TxOut {
-          value: 50 * COIN_VALUE,
+          value: Amount::from_sat(50 * COIN_VALUE),
           script_pubkey: script::Builder::new().push_int(0).into_script(),
         },
         TxOut {
-          value: 50 * COIN_VALUE,
+          value: Amount::from_sat(50 * COIN_VALUE),
           script_pubkey: script::Builder::new().push_int(1).into_script(),
         },
       ],

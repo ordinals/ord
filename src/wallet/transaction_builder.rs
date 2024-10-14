@@ -752,7 +752,7 @@ mod tests {
       tx_builder.outputs,
       [TxOut {
         script_pubkey: recipient(),
-        value: 100 * COIN_VALUE - 51 * COIN_VALUE
+        value: Amount::from_sat(100 * COIN_VALUE - 51 * COIN_VALUE)
       }]
     )
   }
@@ -779,15 +779,15 @@ mod tests {
       outputs: vec![
         TxOut {
           script_pubkey: recipient(),
-          value: 5_000,
+          value: Amount::from_sat(5_000),
         },
         TxOut {
           script_pubkey: change(0).script_pubkey(),
-          value: 5_000,
+          value: Amount::from_sat(5_000),
         },
         TxOut {
           script_pubkey: change(1).script_pubkey(),
-          value: 1_724,
+          value: Amount::from_sat(1_724),
         },
       ],
       target: Target::Postage,
@@ -797,7 +797,7 @@ mod tests {
     pretty_assert_eq!(
       tx_builder.build(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2)), tx_in(outpoint(3))],
         output: vec![
@@ -849,7 +849,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![tx_out(4901, recipient_address())],
@@ -903,7 +903,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
         output: vec![tx_out(4_950, change(1)), tx_out(4_862, recipient_address())],
@@ -980,7 +980,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
         output: vec![
@@ -1104,7 +1104,7 @@ mod tests {
     .select_outgoing()
     .unwrap();
 
-    builder.outputs[0].value = 0;
+    builder.outputs[0].value = Amount::from_sat(0);
 
     builder.build().unwrap();
   }
@@ -1128,7 +1128,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![
@@ -1181,7 +1181,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![tx_out(3_333, change(1)), tx_out(6_537, recipient_address())],
@@ -1211,7 +1211,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(2)), tx_in(outpoint(1))],
         output: vec![
@@ -1352,15 +1352,15 @@ mod tests {
       outputs: vec![
         TxOut {
           script_pubkey: recipient(),
-          value: 5_000,
+          value: Amount::from_sat(5_000),
         },
         TxOut {
           script_pubkey: recipient(),
-          value: 5_000,
+          value: Amount::from_sat(5_000),
         },
         TxOut {
           script_pubkey: change(1).script_pubkey(),
-          value: 1_774,
+          value: Amount::from_sat(1_774),
         },
       ],
       target: Target::Postage,
@@ -1393,15 +1393,15 @@ mod tests {
       outputs: vec![
         TxOut {
           script_pubkey: recipient(),
-          value: 5_000,
+          value: Amount::from_sat(5_000),
         },
         TxOut {
           script_pubkey: change(0).script_pubkey(),
-          value: 5_000,
+          value: Amount::from_sat(5_000),
         },
         TxOut {
           script_pubkey: change(0).script_pubkey(),
-          value: 1_774,
+          value: Amount::from_sat(1_774),
         },
       ],
       target: Target::Postage,
@@ -1514,7 +1514,7 @@ mod tests {
     pretty_assert_eq!(
       transaction,
       Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![tx_out(10_000 - fee.to_sat(), recipient_address())],
@@ -1541,7 +1541,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![tx_out(1000, recipient_address()), tx_out(3870, change(1))],
@@ -1571,7 +1571,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
         output: vec![tx_out(1500, recipient_address()), tx_out(312, change(1))],
@@ -1672,7 +1672,7 @@ mod tests {
           .unwrap()
           .assume_checked()
           .script_pubkey(),
-        value: 0,
+        value: Amount::from_sat(0),
       }],
     );
     assert_eq!(after - before, TransactionBuilder::ADDITIONAL_OUTPUT_VBYTES);
@@ -1697,7 +1697,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![tx_out(901, recipient_address())],
@@ -1724,7 +1724,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![tx_out(20_000, recipient_address())],
@@ -1751,7 +1751,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![tx_out(1005, recipient_address())],
@@ -1844,7 +1844,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![tx_out(1802, recipient_address())],
@@ -1871,7 +1871,7 @@ mod tests {
       )
       .build_transaction(),
       Ok(Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![tx_out(20250, recipient_address())],
@@ -1923,7 +1923,7 @@ mod tests {
       tx_builder.outputs,
       [TxOut {
         script_pubkey: recipient(),
-        value: 3_003 + 3_006 + 3_005 + 3_001
+        value: Amount::from_sat(3_003 + 3_006 + 3_005 + 3_001)
       }]
     )
   }
@@ -1975,11 +1975,11 @@ mod tests {
       [
         TxOut {
           script_pubkey: change(1).script_pubkey(),
-          value: 101 + 104 + 105 + 1
+          value: Amount::from_sat(101 + 104 + 105 + 1)
         },
         TxOut {
           script_pubkey: recipient(),
-          value: 19_999
+          value: Amount::from_sat(19_999)
         }
       ]
     )
@@ -2078,7 +2078,7 @@ mod tests {
     pretty_assert_eq!(
       transaction,
       Transaction {
-        version: 2,
+        version: Version(2),
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![
