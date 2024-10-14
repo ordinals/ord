@@ -255,7 +255,6 @@ impl Server {
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
         .route("/runes/:page", get(Self::runes_paginated))
-        .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
         .route("/satpoint/:satpoint", get(Self::satpoint))
         .route("/search", get(Self::search_by_query))
@@ -763,34 +762,6 @@ impl Server {
         }
         .page(server_config)
         .into_response()
-      })
-    })
-  }
-
-  async fn runes_balances(
-    Extension(index): Extension<Arc<Index>>,
-    AcceptJson(accept_json): AcceptJson,
-  ) -> ServerResult {
-    task::block_in_place(|| {
-      Ok(if accept_json {
-        Json(
-          index
-            .get_rune_balance_map()?
-            .into_iter()
-            .map(|(rune, balances)| {
-              (
-                rune,
-                balances
-                  .into_iter()
-                  .map(|(outpoint, pile)| (outpoint, pile.amount))
-                  .collect(),
-              )
-            })
-            .collect::<BTreeMap<SpacedRune, BTreeMap<OutPoint, u128>>>(),
-        )
-        .into_response()
-      } else {
-        StatusCode::NOT_FOUND.into_response()
       })
     })
   }
@@ -2919,14 +2890,6 @@ mod tests {
       &format!("/satpoint/{txid}:0:{}", 50 * COIN_VALUE - 1),
       &format!("/sat/{}", 150 * COIN_VALUE - 1),
     );
-  }
-
-  #[test]
-  fn html_runes_balances_not_found() {
-    TestServer::builder()
-      .chain(Chain::Regtest)
-      .build()
-      .assert_response("/runes/balances", StatusCode::NOT_FOUND, "");
   }
 
   #[test]
