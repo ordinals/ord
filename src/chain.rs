@@ -61,7 +61,7 @@ impl Chain {
 
   pub(crate) fn genesis_coinbase_outpoint(self) -> OutPoint {
     OutPoint {
-      txid: self.genesis_block().coinbase().unwrap().txid(),
+      txid: self.genesis_block().coinbase().unwrap().compute_txid(),
       vout: 0,
     }
   }

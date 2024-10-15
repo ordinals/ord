@@ -185,7 +185,7 @@ impl Output {
       script_pubkey: tx_out.script_pubkey,
       spent,
       transaction: outpoint.txid,
-      value: tx_out.value,
+      value: tx_out.value.to_sat(),
     }
   }
 }

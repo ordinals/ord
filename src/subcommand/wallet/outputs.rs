@@ -32,7 +32,7 @@ impl Outputs {
 
       outputs.push(Output {
         output: *output,
-        amount: txout.value,
+        amount: txout.value.to_sat(),
         sat_ranges,
       });
     }

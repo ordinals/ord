@@ -215,7 +215,10 @@ mod tests {
     );
 
     case("0 btc", Outgoing::Amount("0 btc".parse().unwrap()));
-    case("1.2 btc", Outgoing::Amount("1.2 btc".parse().unwrap()));
+    case(
+      "1.20000000 btc",
+      Outgoing::Amount("1.2 btc".parse().unwrap()),
+    );
 
     case(
       "0:XY•Z",

@@ -20,7 +20,7 @@ fn inscriptions_can_be_burned() {
     .stdout_regex(r".*")
     .run_and_deserialize_output::<Send>();
 
-  let txid = core.mempool()[0].txid();
+  let txid = core.mempool()[0].compute_txid();
   assert_eq!(txid, output.txid);
 
   core.mine_blocks(1);
@@ -128,7 +128,7 @@ fn cannot_burn_inscriptions_on_large_utxos() {
   CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription}",))
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: Cannot burn inscription contained in UTXO exceeding 0.0001 BTC\n")
+    .expected_stderr("error: Cannot burn inscription contained in UTXO exceeding 0.00010000 BTC\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -208,7 +208,7 @@ fn cannot_burn_with_excess_postage() {
   ))
   .core(&core)
   .ord(&ord)
-  .expected_stderr("error: Postage may not exceed 0.0001 BTC\n")
+  .expected_stderr("error: Postage may not exceed 0.00010000 BTC\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }

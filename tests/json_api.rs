@@ -88,7 +88,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
 
   inscribe(&core, &ord);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   let Batch { reveal, .. } = CommandBuilder::new(format!(
     "wallet inscribe --satpoint {}:0:1 --fee-rate 1 --file foo.txt",
@@ -445,7 +445,7 @@ fn get_transaction() {
 
   let transaction = core.mine_blocks(1)[0].txdata[0].clone();
 
-  let txid = transaction.txid();
+  let txid = transaction.compute_txid();
 
   let response = ord.json_request(format!("/tx/{txid}"));
 

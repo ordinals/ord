@@ -41,8 +41,10 @@ use {
     consensus::{self, Decodable, Encodable},
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
-    script, Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn,
-    TxOut, Txid, Witness,
+    script,
+    transaction::Version,
+    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
+    Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chrono::{DateTime, TimeZone, Utc},
@@ -64,7 +66,7 @@ use {
   std::{
     backtrace::BacktraceStatus,
     cmp,
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet},
+    collections::{BTreeMap, BTreeSet, HashSet},
     env,
     ffi::OsString,
     fmt::{self, Display, Formatter},
@@ -130,6 +132,7 @@ pub mod wallet;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
+pub const COIN_VALUE: u64 = 100_000_000;
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);

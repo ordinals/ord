@@ -31,10 +31,12 @@ impl ContextBuilder {
     ];
 
     let options = Options::try_parse_from(command.into_iter().chain(self.args)).unwrap();
+
     let index = Index::open_with_event_sender(
       &Settings::from_options(options).or_defaults().unwrap(),
       self.event_sender,
     )?;
+
     index.update().unwrap();
 
     Ok(Context {
