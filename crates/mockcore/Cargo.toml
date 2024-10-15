@@ -15,7 +15,7 @@ hex = "0.4.3"
 jsonrpc-core = "18.0.0"
 jsonrpc-derive = "18.0.0"
 jsonrpc-http-server = "18.0.0"
-# bitcoincore-rpc = "0.18.0"
+# bitcoincore-rpc = "0.19.0"
 bitcoincore-rpc = { path = "../../../rust-bitcoincore-rpc/client" }
 reqwest = { version = "0.12.8", features = ["blocking"] }
 serde = { version = "1.0.137", features = ["derive"] }
