@@ -43,7 +43,7 @@ pub enum Error {
     output_value: Amount,
     dust_value: Amount,
   },
-  InvalidAddress,
+  InvalidAddress(bitcoin::address::Error),
   NotEnoughCardinalUtxos,
   NotInWallet(SatPoint),
   OutOfRange(SatPoint, u64),
@@ -69,7 +69,7 @@ impl Display for Error {
         output_value,
         dust_value,
       } => write!(f, "output value is below dust value: {output_value} < {dust_value}"),
-      Error::InvalidAddress => write!(f, "invalid address"),
+      Error::InvalidAddress(source) => write!(f, "invalid address: {source}", ),
       Error::NotInWallet(outgoing_satpoint) => write!(f, "outgoing satpoint {outgoing_satpoint} not in wallet"),
       Error::OutOfRange(outgoing_satpoint, maximum) => write!(f, "outgoing satpoint {outgoing_satpoint} offset higher than maximum {maximum}"),
       Error::NotEnoughCardinalUtxos => write!(
@@ -94,8 +94,8 @@ impl Display for Error {
 impl std::error::Error for Error {}
 
 impl From<bitcoin::address::Error> for Error {
-  fn from(_: bitcoin::address::Error) -> Self {
-    Self::InvalidAddress
+  fn from(source: bitcoin::address::Error) -> Self {
+    Self::InvalidAddress(source)
   }
 }
 
@@ -169,18 +169,15 @@ impl TransactionBuilder {
         return Err(Error::DuplicateAddress(recipient_as_address));
       }
 
-      match self.target {
-        Target::Value(output_value) | Target::ExactPostage(output_value) => {
-          let dust_value = self.recipient.dust_value();
+      if let Target::Value(output_value) | Target::ExactPostage(output_value) = self.target {
+        let dust_value = self.recipient.dust_value();
 
-          if output_value < dust_value {
-            return Err(Error::Dust {
-              output_value,
-              dust_value,
-            });
-          }
+        if output_value < dust_value {
+          return Err(Error::Dust {
+            output_value,
+            dust_value,
+          });
         }
-        _ => (),
       }
     }
 
@@ -440,10 +437,10 @@ impl TransactionBuilder {
   /// inputs are taproot key path spends, which allows us to know that witnesses
   /// will all consist of single Schnorr signatures.
   fn estimate_vbytes(&self) -> usize {
-    Self::estimate_vbytes_with(self.inputs.len(), self.outputs.to_vec())
+    Self::estimate_vbytes_with(self.inputs.len(), &self.outputs)
   }
 
-  fn estimate_vbytes_with(inputs: usize, outputs: Vec<TxOut>) -> usize {
+  fn estimate_vbytes_with(inputs: usize, outputs: &[TxOut]) -> usize {
     Transaction {
       version: 2,
       lock_time: LockTime::ZERO,
@@ -455,7 +452,7 @@ impl TransactionBuilder {
           witness: Witness::from_slice(&[&[0; Self::SCHNORR_SIGNATURE_SIZE]]),
         })
         .collect(),
-      output: outputs.into_iter().collect(),
+      output: outputs.to_vec(),
     }
     .vsize()
   }
@@ -478,7 +475,7 @@ impl TransactionBuilder {
           witness: Witness::new(),
         })
         .collect(),
-      output: self.outputs.to_vec(),
+      output: self.outputs.clone(),
     };
 
     assert_eq!(
@@ -805,7 +802,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2)), tx_in(outpoint(3))],
         output: vec![
-          tx_out(5_000, recipient_as_address()),
+          tx_out(5_000, recipient_address()),
           tx_out(5_000, change(0)),
           tx_out(1_724, change(1))
         ],
@@ -856,7 +853,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(4901, recipient_as_address())],
+        output: vec![tx_out(4901, recipient_address())],
       })
     )
   }
@@ -910,10 +907,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
-        output: vec![
-          tx_out(4_950, change(1)),
-          tx_out(4_862, recipient_as_address())
-        ],
+        output: vec![tx_out(4_950, change(1)), tx_out(4_862, recipient_address())],
       })
     )
   }
@@ -992,7 +986,7 @@ mod tests {
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
         output: vec![
           tx_out(4_950, change(1)),
-          tx_out(TARGET_POSTAGE.to_sat(), recipient_as_address()),
+          tx_out(TARGET_POSTAGE.to_sat(), recipient_address()),
           tx_out(14_831, change(0)),
         ],
       })
@@ -1139,7 +1133,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![
-          tx_out(TARGET_POSTAGE.to_sat(), recipient_as_address()),
+          tx_out(TARGET_POSTAGE.to_sat(), recipient_address()),
           tx_out(989_870, change(1))
         ],
       })
@@ -1191,10 +1185,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![
-          tx_out(3_333, change(1)),
-          tx_out(6_537, recipient_as_address())
-        ],
+        output: vec![tx_out(3_333, change(1)), tx_out(6_537, recipient_address())],
       })
     )
   }
@@ -1226,7 +1217,7 @@ mod tests {
         input: vec![tx_in(outpoint(2)), tx_in(outpoint(1))],
         output: vec![
           tx_out(10_001, change(1)),
-          tx_out(9_811, recipient_as_address())
+          tx_out(9_811, recipient_address())
         ],
       })
     )
@@ -1527,7 +1518,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(10_000 - fee.to_sat(), recipient_as_address())],
+        output: vec![tx_out(10_000 - fee.to_sat(), recipient_address())],
       }
     )
   }
@@ -1554,10 +1545,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![
-          tx_out(1000, recipient_as_address()),
-          tx_out(3870, change(1))
-        ],
+        output: vec![tx_out(1000, recipient_address()), tx_out(3870, change(1))],
       })
     )
   }
@@ -1587,7 +1575,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1)), tx_in(outpoint(2))],
-        output: vec![tx_out(1500, recipient_as_address()), tx_out(312, change(1))],
+        output: vec![tx_out(1500, recipient_address()), tx_out(312, change(1))],
       })
     )
   }
@@ -1669,17 +1657,17 @@ mod tests {
 
   #[test]
   fn additional_input_size_is_correct() {
-    let before = TransactionBuilder::estimate_vbytes_with(0, Vec::new());
-    let after = TransactionBuilder::estimate_vbytes_with(1, Vec::new());
+    let before = TransactionBuilder::estimate_vbytes_with(0, &[]);
+    let after = TransactionBuilder::estimate_vbytes_with(1, &[]);
     assert_eq!(after - before, TransactionBuilder::ADDITIONAL_INPUT_VBYTES);
   }
 
   #[test]
   fn additional_output_size_is_correct() {
-    let before = TransactionBuilder::estimate_vbytes_with(0, Vec::new());
+    let before = TransactionBuilder::estimate_vbytes_with(0, &[]);
     let after = TransactionBuilder::estimate_vbytes_with(
       0,
-      vec![TxOut {
+      &[TxOut {
         script_pubkey: "bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k"
           .parse::<Address<NetworkUnchecked>>()
           .unwrap()
@@ -1713,7 +1701,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(901, recipient_as_address())],
+        output: vec![tx_out(901, recipient_address())],
       }),
     );
   }
@@ -1740,7 +1728,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(20_000, recipient_as_address())],
+        output: vec![tx_out(20_000, recipient_address())],
       }),
     );
   }
@@ -1767,7 +1755,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(1005, recipient_as_address())],
+        output: vec![tx_out(1005, recipient_address())],
       }),
     );
   }
@@ -1806,13 +1794,13 @@ mod tests {
         BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
-        [recipient_as_address(), change(1)],
+        [recipient_address(), change(1)],
         FeeRate::try_from(0.0).unwrap(),
         Target::Value(Amount::from_sat(1000)),
         Network::Testnet,
       )
       .build_transaction(),
-      Err(Error::DuplicateAddress(recipient_as_address()))
+      Err(Error::DuplicateAddress(recipient_address()))
     );
   }
 
@@ -1860,7 +1848,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(1802, recipient_as_address())],
+        output: vec![tx_out(1802, recipient_address())],
       }),
     );
   }
@@ -1887,7 +1875,7 @@ mod tests {
         version: 2,
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
-        output: vec![tx_out(20250, recipient_as_address())],
+        output: vec![tx_out(20250, recipient_address())],
       }),
     );
   }
@@ -2095,7 +2083,7 @@ mod tests {
         lock_time: LockTime::ZERO,
         input: vec![tx_in(outpoint(1))],
         output: vec![
-          tx_out(66_000, recipient_as_address()),
+          tx_out(66_000, recipient_address()),
           tx_out(1_000_000 - 66_000 - fee.to_sat(), change(1))
         ],
       }

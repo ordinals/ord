@@ -232,8 +232,8 @@ impl State {
             .get(i)
             .cloned()
             .unwrap_or(value_per_output),
-          script_pubkey: if template.receiver.is_some() {
-            template.receiver.as_ref().unwrap().script_pubkey()
+          script_pubkey: if let Some(recipient) = &template.recipient {
+            recipient.script_pubkey()
           } else if template.p2tr {
             let secp = Secp256k1::new();
             let keypair = KeyPair::new(&secp, &mut rand::thread_rng());
