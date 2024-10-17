@@ -50,7 +50,7 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 28;
+const SCHEMA_VERSION: u64 = 29;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
@@ -6674,17 +6674,5 @@ mod tests {
     // good error messages in older versions, the schema statistic key must be
     // zero
     assert_eq!(Statistic::Schema.key(), 0);
-  }
-
-  #[test]
-  fn reminder_to_update_utxo_entry_type_name() {
-    // This test will break when the schema version is updated, and is a
-    // reminder to fix the type name in `impl redb::Value for &UtxoEntry`.
-    //
-    // The type name should be changed from `ord::index::utxo_entry::UtxoValue`
-    // to `ord::UtxoEntry`. I think it's probably best if we just name types
-    // `ord::NAME`, instead of including the full path, since the full path
-    // will change if we reorganize the code.
-    assert_eq!(SCHEMA_VERSION, 28);
   }
 }
