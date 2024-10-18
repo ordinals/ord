@@ -18,6 +18,7 @@ Summary
 - [Contributing](contributing.md)
 - [Donate](donate.md)
 - [Guides](guides.md)
+  - [API](guides/api.md)
   - [Explorer](guides/explorer.md)
   - [Wallet](guides/wallet.md)
   - [Batch Inscribing](guides/batch-inscribing.md)
