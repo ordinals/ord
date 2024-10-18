@@ -1,94 +1,97 @@
-## JSON-API
+# JSON-API
 
 By default, the `ord server` gives access to endpoints that return JSON instead of HTML if you set the HTTP `Accept: application/json` header. The structure of these objects closely follows what is shown in the HTML.  These endpoints are:
 
-### Endpoint List
+## Endpoints
 
 <details>
  <summary>
     <code>GET</code>
     <code><b>/address/&lt;ADDRESS&gt;</b></code>
-    &emsp;&emsp;&emsp; List all assets of an address
  </summary>
 
-#### Example
+### Description
+List all assets of an address
 
+### Example
 ```bash
-curl -s -H "Accept: application/json" http://0.0.0.0:80/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
-  ```
->```json
->  {
->    "outputs": [
->      "ddf44a0e0080f458a1a1b6255a9fa0957f2611883a483c1901ccb0f59e3eb302:0",
->      "77c5a00da7dcf2c8f965effd25dda16ec8ec8d6b8937e89bbbdf10a1dc5aeb0d:0",
->      "36f5a76644ee3002483e08345feaa97a71c7a210050333a8f02e942af1294227:1434",
->      "e2a15acfb519ac6d95bbfd411f1f3dba4692672ea0b0a8f868da8b3f565fb428:0",
->      "2b84aab0b4b9869a005ae2571a94064163652f2aeffecd4fedf0397dd6b7cf41:1",
->      "e267548a8cc0c6e6033a6f82b355163bc1d041879206d27feb46e605b3e82759:246",
->      "f5b586cf0e61b7d89c18a74c47a1f8df9ff530a66ed62c02cec72fde9a23a45a:0",
->      "4fd271181e901809f6e2d5f89ce95ddfeb886f8db1582a35c812401af8e77661:42",
->      "29f8633939e956b078fb2fa0e1219089bbe2544169e7a2755e97cc254b783cb2:0",
->      "7aeca5c346aec84acde229e5927dd09aef680992223cfa57fe6f1ff7698b12da:0",
->      "cccc35d597cd5a8079f6fe54bb9c743e5297d9165b0dcfa74e74687514c66be0:0",
->      "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:0",
->      "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:1",
->      "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:2",
->      "6b23a6cf6d2850f437a50f1673fc8410ae36146541b3101d8573539871a91bf0:0",
->      "fe130d3ca1577c65ac768f4b5b9d12a88d947ddcc31196bcf870ed5ff18403f5:2",
->      "5fddcbdc3eb21a93e8dd1dd3f9087c3677f422b82d5ba39a6b1ec37338154af6:0",
->      "c63c4910be259007e1119dbbe6fe0d923b207e78058a4f69bd54df6a3a6488f6:0"
->    ],
->    "inscriptions": [
->      "77c5a00da7dcf2c8f965effd25dda16ec8ec8d6b8937e89bbbdf10a1dc5aeb0di0",
->      "1417086d6abf96f68287b799b13b0081ec895d0b4a5fb7b70d2fde404eeb8aa1i0",
->      "eb6636995ba074472e4193dbf65bb268ef5379509d9fffb20ddd5857039f80abi1",
->      "4fd271181e901809f6e2d5f89ce95ddfeb886f8db1582a35c812401af8e77661i42",
->      "40ab704e6123c681554102556ae3f37b0525863968311f845322fe2f2403a4c6i0",
->      "0b36fa5ebce6c0e028b61647a89f9488a9c9f6ad0b90a215d10eb96ee8aedf9ei0",
->      "87a0088e83e43a79e0e9b451037067bca726f5fd3da083e8684996dd1e6b6c70i0",
->      "54abce9b4380e2fe90ac0cb49b442afee76838ffd91f1ffcac46f6a6fea790c5i72",
->      "54abce9b4380e2fe90ac0cb49b442afee76838ffd91f1ffcac46f6a6fea790c5i768",
->      "b4ba20c4eb45425f4960820f493a04a3b1c2e1364927d6001e7dc7dd524cf922i931",
->      "781938d9e2e93698d41f30b4d1c7f7bfcd403761bce3c0ab579be47b408809e2i0",
->      "fe130d3ca1577c65ac768f4b5b9d12a88d947ddcc31196bcf870ed5ff18403f5i1",
->      "26482871f33f1051f450f2da9af275794c0b5f1c61ebf35e4467fb42c2813403i0"
->    ],
->    "sat_balance": 22635,
->    "runes_balances": [
->      [
->        "RSIC•AUBERGINE",
->        "1100000000",
->        "🍆"
->      ],
->      [
->        "SPACEY•CODARMOR",
->        "279550",
->        "🚀"
->      ],
->      [
->        "ISABEL•FOXEN•DUKE",
->        "10000",
->        "⚡"
->      ],
->      [
->        "EPIC•EPIC•EPIC•EPIC",
->        "1000",
->        "💥"
->      ]
->    ]
->  }
->  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
+```
+```json
+{
+  "outputs": [
+    "ddf44a0e0080f458a1a1b6255a9fa0957f2611883a483c1901ccb0f59e3eb302:0",
+    "77c5a00da7dcf2c8f965effd25dda16ec8ec8d6b8937e89bbbdf10a1dc5aeb0d:0",
+    "36f5a76644ee3002483e08345feaa97a71c7a210050333a8f02e942af1294227:1434",
+    "e2a15acfb519ac6d95bbfd411f1f3dba4692672ea0b0a8f868da8b3f565fb428:0",
+    "2b84aab0b4b9869a005ae2571a94064163652f2aeffecd4fedf0397dd6b7cf41:1",
+    "e267548a8cc0c6e6033a6f82b355163bc1d041879206d27feb46e605b3e82759:246",
+    "f5b586cf0e61b7d89c18a74c47a1f8df9ff530a66ed62c02cec72fde9a23a45a:0",
+    "4fd271181e901809f6e2d5f89ce95ddfeb886f8db1582a35c812401af8e77661:42",
+    "29f8633939e956b078fb2fa0e1219089bbe2544169e7a2755e97cc254b783cb2:0",
+    "7aeca5c346aec84acde229e5927dd09aef680992223cfa57fe6f1ff7698b12da:0",
+    "cccc35d597cd5a8079f6fe54bb9c743e5297d9165b0dcfa74e74687514c66be0:0",
+    "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:0",
+    "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:1",
+    "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:2",
+    "6b23a6cf6d2850f437a50f1673fc8410ae36146541b3101d8573539871a91bf0:0",
+    "fe130d3ca1577c65ac768f4b5b9d12a88d947ddcc31196bcf870ed5ff18403f5:2",
+    "5fddcbdc3eb21a93e8dd1dd3f9087c3677f422b82d5ba39a6b1ec37338154af6:0",
+    "c63c4910be259007e1119dbbe6fe0d923b207e78058a4f69bd54df6a3a6488f6:0"
+  ],
+  "inscriptions": [
+    "77c5a00da7dcf2c8f965effd25dda16ec8ec8d6b8937e89bbbdf10a1dc5aeb0di0",
+    "1417086d6abf96f68287b799b13b0081ec895d0b4a5fb7b70d2fde404eeb8aa1i0",
+    "eb6636995ba074472e4193dbf65bb268ef5379509d9fffb20ddd5857039f80abi1",
+    "4fd271181e901809f6e2d5f89ce95ddfeb886f8db1582a35c812401af8e77661i42",
+    "40ab704e6123c681554102556ae3f37b0525863968311f845322fe2f2403a4c6i0",
+    "0b36fa5ebce6c0e028b61647a89f9488a9c9f6ad0b90a215d10eb96ee8aedf9ei0",
+    "87a0088e83e43a79e0e9b451037067bca726f5fd3da083e8684996dd1e6b6c70i0",
+    "54abce9b4380e2fe90ac0cb49b442afee76838ffd91f1ffcac46f6a6fea790c5i72",
+    "54abce9b4380e2fe90ac0cb49b442afee76838ffd91f1ffcac46f6a6fea790c5i768",
+    "b4ba20c4eb45425f4960820f493a04a3b1c2e1364927d6001e7dc7dd524cf922i931",
+    "781938d9e2e93698d41f30b4d1c7f7bfcd403761bce3c0ab579be47b408809e2i0",
+    "fe130d3ca1577c65ac768f4b5b9d12a88d947ddcc31196bcf870ed5ff18403f5i1",
+    "26482871f33f1051f450f2da9af275794c0b5f1c61ebf35e4467fb42c2813403i0"
+  ],
+  "sat_balance": 22635,
+  "runes_balances": [
+    [
+      "RSIC•AUBERGINE",
+      "1100000000",
+      "🍆"
+    ],
+    [
+      "SPACEY•CODARMOR",
+      "279550",
+      "🚀"
+    ],
+    [
+      "ISABEL•FOXEN•DUKE",
+      "10000",
+      "⚡"
+    ],
+    [
+      "EPIC•EPIC•EPIC•EPIC",
+      "1000",
+      "💥"
+    ]
+  ]
+}
+```
 </details>
 
 <details>
  <summary>
     <code>GET</code>
     <code><b>/address/&lt;ADDRESS&gt;/cardinals</b></code>
-    &emsp;&emsp;&emsp; List all cardinal outputs of an address
  </summary>
 
-#### Example
+### Description
+List all cardinal outputs of an address
 
+### Example
 example to be provided once code is merged, see [3979](https://github.com/ordinals/ord/pull/3979)
 </details>
 
@@ -96,46 +99,46 @@ example to be provided once code is merged, see [3979](https://github.com/ordina
   <summary>
     <code>GET</code>
     <code><b>/block/&lt;BLOCKHASH&gt;</b></code>
-    &emsp;&emsp;&emsp; Returns info about the specified block.
   </summary>
 
+### Description
+Returns info about the specified block.
 
-#### Example
-
+### Example
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f'
-  ```
-
-  ```json
-  {
-    "best_height": 864325,
-    "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
-    "height": 0,
-    "inscriptions": [],
-    "runes": [],
-    "target": "00000000ffff0000000000000000000000000000000000000000000000000000",
-    "transactions": [
-      {
-        "version": 1,
-        "lock_time": 0,
-        "input": [
-          {
-            "previous_output": "0000000000000000000000000000000000000000000000000000000000000000:4294967295",
-            "script_sig": "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73",
-            "sequence": 4294967295,
-            "witness": []
-          }
-        ],
-        "output": [
-          {
-            "value": 5000000000,
-            "script_pubkey": "4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac"
-          }
-        ]
-      }
-    ]
-  }
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
+```
+```json
+{
+  "best_height": 864325,
+  "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+  "height": 0,
+  "inscriptions": [],
+  "runes": [],
+  "target": "00000000ffff0000000000000000000000000000000000000000000000000000",
+  "transactions": [
+    {
+      "version": 1,
+      "lock_time": 0,
+      "input": [
+        {
+          "previous_output": "0000000000000000000000000000000000000000000000000000000000000000:4294967295",
+          "script_sig": "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73",
+          "sequence": 4294967295,
+          "witness": []
+        }
+      ],
+      "output": [
+        {
+          "value": 5000000000,
+          "script_pubkey": "4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac"
+        }
+      ]
+    }
+  ]
+}
+```
 </details>
 
 <details>
@@ -144,8 +147,8 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/block/000000000019d6689
     <code><b>/block/&lt;BLOCKHEIGHT&gt;</b></code>
     &emsp;&emsp;&emsp; Returns info about the specified block.
   </summary>
- 
- #### Example
+
+#### Example
 
 ```bash
 curl -s -H "Accept: application/json" 'http://0.0.0.0:80/block/0'
@@ -188,7 +191,7 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/block/0'
       <code><b>/blockcount</b></code>
       &emsp;&emsp;&emsp; Returns the hieight of the latest block.
    </summary>
- 
+
  #### Example
 
 ```bash
@@ -205,7 +208,7 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockcount'
       <code><b>/blockhash</b></code>
       &emsp;&emsp;&emsp; Returns blockhash for the latest block.
    </summary>
- 
+
  #### Example
 
 ```bash
@@ -222,7 +225,7 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockhash'
       <code><b>/blockhash/&lt;BLOCKHEIGHT&gt;</b></code>
       &emsp;&emsp;&emsp; Returns blockhash of specified block.
    </summary>
- 
+
  #### Example
 
 ```bash
@@ -239,7 +242,7 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockhash/840000'
     <code><b>/blockheight</b></code>
     &emsp;&emsp;&emsp; Returns the height of the latest block.
   </summary>
- 
+
  #### Example
 
 ```bash
