@@ -14,7 +14,8 @@ use {
     wallet::batch, wallet::ListDescriptorsResult, InscriptionId, RuneEntry,
   },
   ordinals::{
-    Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune, COIN_VALUE,
+    Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
+    COIN_VALUE,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
