@@ -598,32 +598,12 @@ dependencies = [
 [[package]]
 name = "bitcoincore-rpc"
 version = "0.19.0"
-dependencies = [
- "bitcoincore-rpc-json 0.19.0",
- "jsonrpc",
- "log",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "bitcoincore-rpc"
-version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "aedd23ae0fd321affb4bbbc36126c6f49a32818dc6b979395d24da8c9d4e80ee"
 dependencies = [
- "bitcoincore-rpc-json 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitcoincore-rpc-json",
  "jsonrpc",
  "log",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "bitcoincore-rpc-json"
-version = "0.19.0"
-dependencies = [
- "bitcoin 0.32.3",
  "serde",
  "serde_json",
 ]
@@ -2210,11 +2190,11 @@ dependencies = [
  "base64 0.22.1",
  "bitcoin 0.32.3",
  "bitcoin-io",
- "bitcoincore-rpc 0.19.0",
  "hex",
  "jsonrpc-core",
  "jsonrpc-derive",
  "jsonrpc-http-server",
+ "ord-bitcoincore-rpc",
  "reqwest 0.12.8",
  "serde",
  "serde_json",
@@ -2462,7 +2442,7 @@ dependencies = [
  "bitcoin 0.32.3",
  "bitcoin-io",
  "bitcoin-units",
- "bitcoincore-rpc 0.19.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "bitcoincore-rpc",
  "boilerplate",
  "brotli",
  "chrono",
@@ -2514,6 +2494,30 @@ dependencies = [
  "tower-http",
  "unindent",
  "urlencoding",
+]
+
+[[package]]
+name = "ord-bitcoincore-rpc"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a00065be964ca4b401bc998e473423b1c5e8dbffb9c30f206e83e651e605ef76"
+dependencies = [
+ "jsonrpc",
+ "log",
+ "ord-bitcoincore-rpc-json",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ord-bitcoincore-rpc-json"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b521de9d7b3171464565f244207af17f6d1b54085d46dd43162cf56e2ef5a9e"
+dependencies = [
+ "bitcoin 0.32.3",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
