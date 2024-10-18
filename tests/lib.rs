@@ -14,7 +14,7 @@ use {
     wallet::batch, wallet::ListDescriptorsResult, InscriptionId, RuneEntry,
   },
   ordinals::{
-    Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
+    Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune, COIN_VALUE,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
@@ -47,8 +47,6 @@ macro_rules! assert_regex_match {
     }
   };
 }
-
-pub const COIN_VALUE: u64 = 100_000_000;
 
 mod command_builder;
 mod expected;

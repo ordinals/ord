@@ -42,7 +42,7 @@ use {
   tempfile::TempDir,
 };
 
-pub const COIN_VALUE: u64 = 100_000_000;
+const COIN_VALUE: u64 = 100_000_000;
 
 mod api;
 mod server;

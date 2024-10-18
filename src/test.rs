@@ -4,6 +4,7 @@ pub(crate) use {
     blockdata::script::{PushBytes, PushBytesBuf},
     opcodes, WPubkeyHash,
   },
+  ordinals::COIN_VALUE,
   mockcore::TransactionTemplate,
   pretty_assertions::assert_eq as pretty_assert_eq,
   std::iter,
