@@ -25,6 +25,7 @@ fn default() {
   "index_cache_size": \d+,
   "index_runes": false,
   "index_sats": false,
+  "index_signals": false,
   "index_transactions": false,
   "integration_test": false,
   "no_index_inscriptions": false,

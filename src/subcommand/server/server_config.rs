@@ -7,6 +7,7 @@ pub(crate) struct ServerConfig {
   pub(crate) decompress: bool,
   pub(crate) domain: Option<String>,
   pub(crate) index_sats: bool,
+  pub(crate) index_signals: bool,
   pub(crate) json_api_enabled: bool,
   pub(crate) proxy: Option<Url>,
 }
