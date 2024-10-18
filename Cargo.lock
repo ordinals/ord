@@ -2440,8 +2440,6 @@ dependencies = [
  "bip322",
  "bip39",
  "bitcoin 0.32.3",
- "bitcoin-io",
- "bitcoin-units",
  "bitcoincore-rpc",
  "boilerplate",
  "brotli",

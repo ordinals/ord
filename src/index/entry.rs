@@ -421,7 +421,7 @@ impl Entry for OutPoint {
   type Value = OutPointValue;
 
   fn load(value: Self::Value) -> Self {
-    Decodable::consensus_decode(&mut bitcoin_io::Cursor::new(value)).unwrap()
+    Decodable::consensus_decode(&mut bitcoin::io::Cursor::new(value)).unwrap()
   }
 
   fn store(self) -> Self::Value {
@@ -437,7 +437,7 @@ impl Entry for SatPoint {
   type Value = SatPointValue;
 
   fn load(value: Self::Value) -> Self {
-    Decodable::consensus_decode(&mut bitcoin_io::Cursor::new(value)).unwrap()
+    Decodable::consensus_decode(&mut bitcoin::io::Cursor::new(value)).unwrap()
   }
 
   fn store(self) -> Self::Value {

@@ -26,8 +26,6 @@ base64 = "0.22.0"
 bip322 = "0.0.7"
 bip39 = "2.0.0"
 bitcoin = { version = "0.32.3", features = ["rand"] }
-bitcoin-io = "0.1.2"
-bitcoin-units = "0.1.2"
 bitcoincore-rpc = "0.19.0"
 boilerplate = { version = "1.0.0", features = ["axum"] }
 brotli = "7.0.0"

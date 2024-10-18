@@ -47,7 +47,7 @@ pub enum SnafuError {
   UnrecognizedRepresentation { input: String },
   #[snafu(display("Unrecognized outgoing amount: `{}`", input))]
   AmountParse {
-    source: bitcoin_units::amount::ParseError,
+    source: bitcoin::amount::ParseAmountError,
     input: String,
   },
   #[snafu(display("Unrecognized outgoing: `{}`", input))]
