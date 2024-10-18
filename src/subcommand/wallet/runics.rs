@@ -17,7 +17,8 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
         let rune_balances = wallet.get_runes_balances_in_output(output).ok()?;
         let mut runes = BTreeMap::new();
 
-        for (spaced_rune, pile) in rune_balances {
+        for (spaced_rune, info) in rune_balances {
+          let pile = info.pile;
           runes
             .entry(spaced_rune)
             .and_modify(|decimal: &mut Decimal| {
