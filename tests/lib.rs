@@ -4,8 +4,7 @@ use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bitcoin::{
     address::{Address, NetworkUnchecked},
-    blockdata::constants::COIN_VALUE,
-    Network, OutPoint, Sequence, Txid, Witness,
+    Amount, Network, OutPoint, Sequence, Txid, Witness,
   },
   chrono::{DateTime, Utc},
   executable_path::executable_path,
@@ -16,6 +15,7 @@ use {
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
+    COIN_VALUE,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,

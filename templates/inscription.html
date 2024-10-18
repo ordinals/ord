@@ -67,7 +67,7 @@
   <dd class=monospace><a href=/address/{{address}}>{{ address }}</a></dd>
 %% }
   <dt>value</dt>
-  <dd>{{ output.value }}</dd>
+  <dd>{{ output.value.to_sat() }}</dd>
 %% }
 %% if let Some(sat) = self.sat {
   <dt>sat</dt>

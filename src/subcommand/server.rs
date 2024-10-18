@@ -1077,7 +1077,7 @@ impl Server {
           id: inscription_id,
           number: entry.inscription_number,
           output: satpoint.outpoint,
-          value: output.as_ref().map(|o| o.value),
+          value: output.as_ref().map(|o| o.value.to_sat()),
           sat: entry.sat,
           satpoint,
           timestamp: timestamp(entry.timestamp.into()).timestamp(),
@@ -2826,7 +2826,7 @@ mod tests {
       .index_sats()
       .build();
 
-    let txid = server.mine_blocks(1)[0].txdata[0].txid();
+    let txid = server.mine_blocks(1)[0].txdata[0].compute_txid();
 
     server.assert_redirect(
       &format!("/search/{txid}:0:0"),
@@ -4092,7 +4092,7 @@ mod tests {
     let test_server = TestServer::new();
 
     let coinbase_tx = test_server.mine_blocks(1)[0].txdata[0].clone();
-    let txid = coinbase_tx.txid();
+    let txid = coinbase_tx.compute_txid();
 
     test_server.assert_response_regex(
       format!("/tx/{txid}"),

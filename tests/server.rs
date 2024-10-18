@@ -675,7 +675,7 @@ fn inscription_transactions_are_stored_with_transaction_index() {
 
   let (_inscription, reveal) = inscribe(&core, &ord);
 
-  let coinbase = core.tx(1, 0).txid();
+  let coinbase = core.tx(1, 0).compute_txid();
 
   assert_eq!(
     ord.request(format!("/tx/{reveal}")).status(),
