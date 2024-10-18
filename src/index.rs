@@ -7,6 +7,7 @@ use {
     event::Event,
     lot::Lot,
     reorg::Reorg,
+    signal::{Signal, SignalEntry},
     updater::Updater,
     utxo_entry::{ParsedUtxoEntry, UtxoEntry, UtxoEntryBuf},
   },
@@ -44,6 +45,7 @@ mod fetcher;
 mod lot;
 mod reorg;
 mod rtx;
+pub mod signal;
 mod updater;
 mod utxo_entry;
 
@@ -72,6 +74,9 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
+// Instead of a seperate table this could be part of the OUTPOINT_TO_UTXO_ENTRY table
+// because once a UTXO is spent its signal disappears
+define_table! { OUTPOINT_TO_SIGNAL, &OutPointValue, SignalEntry }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
@@ -91,6 +96,7 @@ pub(crate) enum Statistic {
   Runes = 13,
   SatRanges = 14,
   UnboundInscriptions = 16,
+  IndexSignals = 17,
 }
 
 impl Statistic {
@@ -202,6 +208,7 @@ pub struct Index {
   index_inscriptions: bool,
   index_runes: bool,
   index_sats: bool,
+  index_signals: bool,
   index_transactions: bool,
   path: PathBuf,
   settings: Settings,
@@ -322,6 +329,7 @@ impl Index {
         tx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
         tx.open_table(TRANSACTION_ID_TO_RUNE)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
+        tx.open_table(OUTPOINT_TO_SIGNAL)?;
 
         {
           let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
@@ -348,6 +356,12 @@ impl Index {
             &mut statistics,
             Statistic::IndexSats,
             u64::from(settings.index_sats_raw()),
+          )?;
+
+          Self::set_statistic(
+            &mut statistics,
+            Statistic::IndexSignals,
+            u64::from(settings.index_signals_raw()),
           )?;
 
           Self::set_statistic(
@@ -413,6 +427,7 @@ impl Index {
     let index_addresses;
     let index_runes;
     let index_sats;
+    let index_signals;
     let index_transactions;
     let index_inscriptions;
 
@@ -423,6 +438,7 @@ impl Index {
       index_inscriptions = Self::is_statistic_set(&statistics, Statistic::IndexInscriptions)?;
       index_runes = Self::is_statistic_set(&statistics, Statistic::IndexRunes)?;
       index_sats = Self::is_statistic_set(&statistics, Statistic::IndexSats)?;
+      index_signals = Self::is_statistic_set(&statistics, Statistic::IndexSignals)?;
       index_transactions = Self::is_statistic_set(&statistics, Statistic::IndexTransactions)?;
     }
 
@@ -451,6 +467,7 @@ impl Index {
       index_addresses,
       index_runes,
       index_sats,
+      index_signals,
       index_transactions,
       index_inscriptions,
       settings: settings.clone(),
@@ -503,6 +520,52 @@ impl Index {
 
   pub fn has_sat_index(&self) -> bool {
     self.index_sats
+  }
+
+  pub fn has_signal_index(&self) -> bool {
+    self.index_signals
+  }
+
+  pub fn set_signal(&self, outpoint: OutPoint, signal: Signal) -> Result {
+    let wtx = self.database.begin_write()?;
+
+    let mut outpoint_to_signal = wtx.open_table(OUTPOINT_TO_SIGNAL)?;
+
+    outpoint_to_signal.insert(&outpoint.store(), signal.store())?;
+
+    Ok(())
+  }
+
+  pub fn get_signal(&self, outpoint: OutPoint) -> Result<Signal> {
+    let rtx = self.database.begin_read()?;
+
+    let outpoint_to_signal = rtx.open_table(OUTPOINT_TO_SIGNAL)?;
+
+    Ok(Signal::load(
+      outpoint_to_signal
+        .get(&outpoint.store())?
+        .map(|guard| guard.value())
+        .unwrap(),
+    ))
+  }
+
+  pub fn get_all_signals(&self) -> Result<BTreeMap<OutPoint, Signal>> {
+    let rtx = self.database.begin_read()?;
+
+    rtx
+      .open_table(OUTPOINT_TO_SIGNAL)?
+      .iter()?
+      .map(|result| {
+        result
+          .map(|(outpoint, signal)| {
+            (
+              OutPoint::load(*outpoint.value()),
+              Signal::load(signal.value()),
+            )
+          })
+          .map_err(|err| err.into())
+      })
+      .collect::<Result<BTreeMap<OutPoint, Signal>>>()
   }
 
   pub fn status(&self) -> Result<StatusHtml> {
