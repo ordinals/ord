@@ -2522,7 +2522,6 @@ name = "ordinals"
 version = "0.0.11"
 dependencies = [
  "bitcoin 0.32.3",
- "bitcoin-io",
  "derive_more",
  "pretty_assertions",
  "serde",
