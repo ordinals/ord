@@ -360,7 +360,7 @@ impl Api for Server {
   ) -> Result<FundRawTransactionResult, jsonrpc_core::Error> {
     let options = options.unwrap();
 
-    let mut cursor = bitcoin_io::Cursor::new(hex::decode(tx).unwrap());
+    let mut cursor = bitcoin::io::Cursor::new(hex::decode(tx).unwrap());
 
     let version = Version(i32::consensus_decode_from_finite_reader(&mut cursor).unwrap());
     let input = Vec::<TxIn>::consensus_decode_from_finite_reader(&mut cursor).unwrap();
