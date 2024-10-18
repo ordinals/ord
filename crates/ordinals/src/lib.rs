@@ -29,8 +29,8 @@ pub use {
   spaced_rune::SpacedRune, terms::Terms,
 };
 
-pub const CYCLE_EPOCHS: u32 = 6;
 pub const COIN_VALUE: u64 = 100_000_000;
+pub const CYCLE_EPOCHS: u32 = 6;
 
 fn default<T: Default>() -> T {
   Default::default()
