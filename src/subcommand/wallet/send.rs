@@ -92,12 +92,12 @@ impl Send {
     wallet.lock_non_cardinal_outputs()?;
 
     let unfunded_transaction = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: Vec::new(),
       output: vec![TxOut {
         script_pubkey: destination.script_pubkey(),
-        value: amount.to_sat(),
+        value: amount,
       }],
     };
 
@@ -252,7 +252,7 @@ impl Send {
     };
 
     let unfunded_transaction = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: inputs
         .into_iter()
@@ -267,21 +267,21 @@ impl Send {
         vec![
           TxOut {
             script_pubkey: runestone.encipher(),
-            value: 0,
+            value: Amount::from_sat(0),
           },
           TxOut {
             script_pubkey: wallet.get_change_address()?.script_pubkey(),
-            value: postage.to_sat(),
+            value: postage,
           },
           TxOut {
             script_pubkey: destination.script_pubkey(),
-            value: postage.to_sat(),
+            value: postage,
           },
         ]
       } else {
         vec![TxOut {
           script_pubkey: destination.script_pubkey(),
-          value: postage.to_sat(),
+          value: postage,
         }]
       },
     };

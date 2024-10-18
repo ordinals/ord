@@ -3,7 +3,7 @@
   <dt>hash</dt><dd class=monospace>{{self.hash}}</dd>
   <dt>target</dt><dd class=monospace>{{self.target}}</dd>
   <dt>timestamp</dt><dd><time>{{timestamp(self.block.header.time.into())}}</time></dd>
-  <dt>size</dt><dd>{{self.block.size()}}</dd>
+  <dt>size</dt><dd>{{self.block.total_size()}}</dd>
   <dt>weight</dt><dd>{{self.block.weight()}}</dd>
 %% if self.height.0 > 0 {
   <dt>previous blockhash</dt><dd><a href=/block/{{self.block.header.prev_blockhash}} class=monospace>{{self.block.header.prev_blockhash}}</a></dd>
