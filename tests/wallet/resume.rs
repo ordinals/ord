@@ -248,7 +248,7 @@ fn commitment_output_is_locked() {
     "Waiting for rune AAAAAAAAAAAAA commitment [[:xdigit:]]{64} to mature…\n"
   );
 
-  let commitment = core.mempool()[0].txid();
+  let commitment = core.mempool()[0].compute_txid();
 
   core.mine_blocks(1);
 

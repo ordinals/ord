@@ -25,7 +25,7 @@
     </table>
   </dd>
 %% }
-  <dt>value</dt><dd>{{ self.output.value }}</dd>
+  <dt>value</dt><dd>{{ self.output.value.to_sat() }}</dd>
   <dt>script pubkey</dt><dd class=monospace>{{ self.output.script_pubkey.to_asm_string() }}</dd>
 %% if let Ok(address) = self.chain.address_from_script(&self.output.script_pubkey ) {
   <dt>address</dt><dd class=monospace><a href=/address/{{address}}>{{ address }}</a></dd>

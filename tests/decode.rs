@@ -1,8 +1,8 @@
 use {
   super::*,
   bitcoin::{
-    absolute::LockTime, consensus::Encodable, opcodes, script, ScriptBuf, Sequence, Transaction,
-    TxIn, TxOut, Witness,
+    absolute::LockTime, consensus::Encodable, opcodes, script, transaction::Version, ScriptBuf,
+    Sequence, Transaction, TxIn, TxOut, Witness,
   },
   ord::{
     subcommand::decode::{CompactInscription, CompactOutput, RawOutput},
@@ -28,7 +28,7 @@ fn transaction() -> Vec<u8> {
   witness.push([]);
 
   let transaction = Transaction {
-    version: 2,
+    version: Version(2),
     lock_time: LockTime::ZERO,
     input: vec![TxIn {
       previous_output: OutPoint::null(),
@@ -38,7 +38,7 @@ fn transaction() -> Vec<u8> {
     }],
     output: vec![TxOut {
       script_pubkey: Runestone::default().encipher(),
-      value: 0,
+      value: Amount::from_sat(0),
     }],
   };
 
