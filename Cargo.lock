@@ -2189,7 +2189,6 @@ version = "0.0.1"
 dependencies = [
  "base64 0.22.1",
  "bitcoin 0.32.3",
- "bitcoin-io",
  "hex",
  "jsonrpc-core",
  "jsonrpc-derive",
