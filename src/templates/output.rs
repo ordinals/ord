@@ -31,7 +31,7 @@ mod tests {
         chain: Chain::Mainnet,
         inscriptions: Vec::new(),
         outpoint: outpoint(1),
-        output: TxOut { value: 3, script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
+        output: TxOut { value: Amount::from_sat(3), script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
         runes: BTreeMap::new(),
         sat_ranges: Some(vec![(0, 1), (1, 3)]),
         spent: false,
@@ -63,7 +63,7 @@ mod tests {
         inscriptions: Vec::new(),
         outpoint: outpoint(1),
         output: TxOut {
-          value: 1,
+          value: Amount::from_sat(1),
           script_pubkey: script::Builder::new().push_int(0).into_script(),
         },
         runes: BTreeMap::new(),
@@ -90,7 +90,7 @@ mod tests {
         chain: Chain::Mainnet,
         inscriptions: Vec::new(),
         outpoint: outpoint(1),
-        output: TxOut { value: 3, script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
+        output: TxOut { value: Amount::from_sat(3), script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
         runes: BTreeMap::new(),
         sat_ranges: Some(vec![(0, 1), (1, 3)]),
         spent: true,
@@ -121,7 +121,7 @@ mod tests {
         chain: Chain::Mainnet,
         inscriptions: Vec::new(),
         outpoint: outpoint(1),
-        output: TxOut { value: 3, script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
+        output: TxOut { value: Amount::from_sat(3), script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
         runes: BTreeMap::new(),
         sat_ranges: None,
         spent: false,
@@ -149,7 +149,7 @@ mod tests {
         inscriptions: vec![inscription_id(1)],
         outpoint: outpoint(1),
         output: TxOut {
-          value: 3,
+          value: Amount::from_sat(3),
           script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
         runes: BTreeMap::new(),
@@ -178,7 +178,7 @@ mod tests {
         inscriptions: Vec::new(),
         outpoint: outpoint(1),
         output: TxOut {
-          value: 3,
+          value: Amount::from_sat(3),
           script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
         runes: vec![(

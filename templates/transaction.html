@@ -28,7 +28,7 @@
       {{ outpoint }}
     </a>
     <dl>
-      <dt>value</dt><dd>{{ output.value }}</dd>
+      <dt>value</dt><dd>{{ output.value.to_sat() }}</dd>
       <dt>script pubkey</dt><dd class=monospace>{{ output.script_pubkey.to_asm_string() }}</dd>
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey) {
       <dt>address</dt><dd class=monospace><a href=/address/{{address}}>{{ address }}</a></dd>

@@ -25,7 +25,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
       } else {
         Some(CardinalUtxo {
           output: *output,
-          amount: txout.value,
+          amount: txout.value.to_sat(),
         })
       }
     })

@@ -329,7 +329,7 @@ fn minting_rune_with_destination() {
 
   assert_eq!(
     core.mempool()[0].output[1].script_pubkey,
-    destination.payload.script_pubkey()
+    destination.assume_checked_ref().script_pubkey()
   );
 
   core.mine_blocks(1);

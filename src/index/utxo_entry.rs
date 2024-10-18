@@ -114,7 +114,7 @@ impl redb::Value for &UtxoEntry {
   }
 
   fn type_name() -> TypeName {
-    TypeName::new("&ord::index::utxo_entry::UtxoValue")
+    TypeName::new("ord::UtxoEntry")
   }
 }
 
