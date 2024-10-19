@@ -1,4 +1,14 @@
-use super::*;
+use {
+  super::*,
+  base64::{engine::general_purpose, Engine},
+};
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Output {
+  address: Address<NetworkUnchecked>,
+  message: String,
+  signature: String,
+}
 
 #[derive(Debug, Parser)]
 pub(crate) struct Sign {
@@ -10,19 +20,34 @@ pub(crate) struct Sign {
 
 impl Sign {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    let to_spend = bip322::create_to_spend(
-      &self.address.require_network(wallet.chain().network())?,
-      self.message.as_bytes(),
-    )?;
+    let address = self.address.require_network(wallet.chain().network())?;
+
+    let to_spend = bip322::create_to_spend(&address, self.message.as_bytes())?;
 
     let to_sign = bip322::create_to_sign(&to_spend, None)?;
 
-    let _ = wallet.bitcoin_client().sign_raw_transaction_with_wallet(
+    let result = wallet.bitcoin_client().sign_raw_transaction_with_wallet(
       &to_sign.extract_tx()?,
-      None,
+      Some(&[bitcoincore_rpc::json::SignRawTransactionInput {
+        txid: to_spend.compute_txid(),
+        vout: 0,
+        script_pub_key: address.script_pubkey(),
+        redeem_script: None,
+        amount: Some(Amount::ZERO),
+      }]),
       None,
     )?;
 
-    todo!();
+    let mut buffer = Vec::new();
+
+    Transaction::consensus_decode(&mut result.hex.as_slice())?.input[0]
+      .witness
+      .consensus_encode(&mut buffer)?;
+
+    Ok(Some(Box::new(Output {
+      address: address.as_unchecked().clone(),
+      message: self.message,
+      signature: general_purpose::STANDARD.encode(buffer),
+    })))
   }
 }
