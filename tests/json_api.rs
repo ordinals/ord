@@ -1,6 +1,7 @@
 use {
   super::*,
   bitcoin::{BlockHash, ScriptBuf},
+  ord::subcommand::wallet::send::Output,
   ord::{Envelope, Inscription},
 };
 
@@ -408,6 +409,65 @@ fn address_cardinals_api() {
       value: 2 * COIN_VALUE,
     }]
   );
+}
+
+#[test]
+fn address_cardinals_api_excludes_runic_and_inscriptions_utxos() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+  let ord =
+    TestServer::spawn_with_args(&core, &["--index-runes", "--index-addresses", "--regtest"]);
+
+  create_wallet(&core, &ord);
+
+  etch(&core, &ord, Rune(RUNE));
+
+  let (inscription_id, _reveal) = inscribe(&core, &ord);
+
+  let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 {address} {inscription_id}",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<Output>();
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 {address} 1000:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<Output>();
+
+  core.mine_blocks(6);
+
+  ord.assert_response_regex(
+    format!("/address/{address}"),
+    format!(".*<dd>.*{}.*: 1000¢</dd>.*", Rune(RUNE)),
+  );
+
+  ord.assert_response_regex(
+    format!("/address/{address}"),
+      r".*
+<dl>.*
+  <dt>inscriptions</dt>
+  <dd class=thumbnails>
+    <a href=/inscription/[[:xdigit:]]{64}i\d><iframe .* src=/preview/[[:xdigit:]]{64}i\d></iframe></a>
+  </dd>.*"
+    ,
+  );
+
+  let cardinals_response = ord.json_request(format!("/address/{}/cardinals", address));
+
+  assert_eq!(cardinals_response.status(), StatusCode::OK);
+
+  let cardinals_json: Vec<api::Output> =
+    serde_json::from_str(&cardinals_response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(cardinals_json, vec![]);
 }
 
 #[test]
