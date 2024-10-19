@@ -1,155 +1,161 @@
-## JSON-API
+# JSON-API
 
 By default, the `ord server` gives access to endpoints that return JSON instead of HTML if you set the HTTP `Accept: application/json` header. The structure of these objects closely follows what is shown in the HTML.  These endpoints are:
 
-### Endpoint List
+## Endpoints
 
 <details>
  <summary>
     <code>GET</code>
     <code><b>/address/&lt;ADDRESS&gt;</b></code>
-    &emsp;&emsp;&emsp; List all assets of an address
  </summary>
 
-#### Example
+### Description
+List all assets of an address
 
+### Example
 ```bash
-curl -s -H "Accept: application/json" http://0.0.0.0:80/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
-  ```
->```json
->  {
->    "outputs": [
->      "ddf44a0e0080f458a1a1b6255a9fa0957f2611883a483c1901ccb0f59e3eb302:0",
->      "77c5a00da7dcf2c8f965effd25dda16ec8ec8d6b8937e89bbbdf10a1dc5aeb0d:0",
->      "36f5a76644ee3002483e08345feaa97a71c7a210050333a8f02e942af1294227:1434",
->      "e2a15acfb519ac6d95bbfd411f1f3dba4692672ea0b0a8f868da8b3f565fb428:0",
->      "2b84aab0b4b9869a005ae2571a94064163652f2aeffecd4fedf0397dd6b7cf41:1",
->      "e267548a8cc0c6e6033a6f82b355163bc1d041879206d27feb46e605b3e82759:246",
->      "f5b586cf0e61b7d89c18a74c47a1f8df9ff530a66ed62c02cec72fde9a23a45a:0",
->      "4fd271181e901809f6e2d5f89ce95ddfeb886f8db1582a35c812401af8e77661:42",
->      "29f8633939e956b078fb2fa0e1219089bbe2544169e7a2755e97cc254b783cb2:0",
->      "7aeca5c346aec84acde229e5927dd09aef680992223cfa57fe6f1ff7698b12da:0",
->      "cccc35d597cd5a8079f6fe54bb9c743e5297d9165b0dcfa74e74687514c66be0:0",
->      "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:0",
->      "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:1",
->      "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:2",
->      "6b23a6cf6d2850f437a50f1673fc8410ae36146541b3101d8573539871a91bf0:0",
->      "fe130d3ca1577c65ac768f4b5b9d12a88d947ddcc31196bcf870ed5ff18403f5:2",
->      "5fddcbdc3eb21a93e8dd1dd3f9087c3677f422b82d5ba39a6b1ec37338154af6:0",
->      "c63c4910be259007e1119dbbe6fe0d923b207e78058a4f69bd54df6a3a6488f6:0"
->    ],
->    "inscriptions": [
->      "77c5a00da7dcf2c8f965effd25dda16ec8ec8d6b8937e89bbbdf10a1dc5aeb0di0",
->      "1417086d6abf96f68287b799b13b0081ec895d0b4a5fb7b70d2fde404eeb8aa1i0",
->      "eb6636995ba074472e4193dbf65bb268ef5379509d9fffb20ddd5857039f80abi1",
->      "4fd271181e901809f6e2d5f89ce95ddfeb886f8db1582a35c812401af8e77661i42",
->      "40ab704e6123c681554102556ae3f37b0525863968311f845322fe2f2403a4c6i0",
->      "0b36fa5ebce6c0e028b61647a89f9488a9c9f6ad0b90a215d10eb96ee8aedf9ei0",
->      "87a0088e83e43a79e0e9b451037067bca726f5fd3da083e8684996dd1e6b6c70i0",
->      "54abce9b4380e2fe90ac0cb49b442afee76838ffd91f1ffcac46f6a6fea790c5i72",
->      "54abce9b4380e2fe90ac0cb49b442afee76838ffd91f1ffcac46f6a6fea790c5i768",
->      "b4ba20c4eb45425f4960820f493a04a3b1c2e1364927d6001e7dc7dd524cf922i931",
->      "781938d9e2e93698d41f30b4d1c7f7bfcd403761bce3c0ab579be47b408809e2i0",
->      "fe130d3ca1577c65ac768f4b5b9d12a88d947ddcc31196bcf870ed5ff18403f5i1",
->      "26482871f33f1051f450f2da9af275794c0b5f1c61ebf35e4467fb42c2813403i0"
->    ],
->    "sat_balance": 22635,
->    "runes_balances": [
->      [
->        "RSIC•AUBERGINE",
->        "1100000000",
->        "🍆"
->      ],
->      [
->        "SPACEY•CODARMOR",
->        "279550",
->        "🚀"
->      ],
->      [
->        "ISABEL•FOXEN•DUKE",
->        "10000",
->        "⚡"
->      ],
->      [
->        "EPIC•EPIC•EPIC•EPIC",
->        "1000",
->        "💥"
->      ]
->    ]
->  }
->  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
+```
+```json
+{
+  "outputs": [
+    "ddf44a0e0080f458a1a1b6255a9fa0957f2611883a483c1901ccb0f59e3eb302:0",
+    "77c5a00da7dcf2c8f965effd25dda16ec8ec8d6b8937e89bbbdf10a1dc5aeb0d:0",
+    "36f5a76644ee3002483e08345feaa97a71c7a210050333a8f02e942af1294227:1434",
+    "e2a15acfb519ac6d95bbfd411f1f3dba4692672ea0b0a8f868da8b3f565fb428:0",
+    "2b84aab0b4b9869a005ae2571a94064163652f2aeffecd4fedf0397dd6b7cf41:1",
+    "e267548a8cc0c6e6033a6f82b355163bc1d041879206d27feb46e605b3e82759:246",
+    "f5b586cf0e61b7d89c18a74c47a1f8df9ff530a66ed62c02cec72fde9a23a45a:0",
+    "4fd271181e901809f6e2d5f89ce95ddfeb886f8db1582a35c812401af8e77661:42",
+    "29f8633939e956b078fb2fa0e1219089bbe2544169e7a2755e97cc254b783cb2:0",
+    "7aeca5c346aec84acde229e5927dd09aef680992223cfa57fe6f1ff7698b12da:0",
+    "cccc35d597cd5a8079f6fe54bb9c743e5297d9165b0dcfa74e74687514c66be0:0",
+    "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:0",
+    "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:1",
+    "590745241244d41a90df7e2cf0d7745877e4cedac573525946cc8ac7f18757e8:2",
+    "6b23a6cf6d2850f437a50f1673fc8410ae36146541b3101d8573539871a91bf0:0",
+    "fe130d3ca1577c65ac768f4b5b9d12a88d947ddcc31196bcf870ed5ff18403f5:2",
+    "5fddcbdc3eb21a93e8dd1dd3f9087c3677f422b82d5ba39a6b1ec37338154af6:0",
+    "c63c4910be259007e1119dbbe6fe0d923b207e78058a4f69bd54df6a3a6488f6:0"
+  ],
+  "inscriptions": [
+    "77c5a00da7dcf2c8f965effd25dda16ec8ec8d6b8937e89bbbdf10a1dc5aeb0di0",
+    "1417086d6abf96f68287b799b13b0081ec895d0b4a5fb7b70d2fde404eeb8aa1i0",
+    "eb6636995ba074472e4193dbf65bb268ef5379509d9fffb20ddd5857039f80abi1",
+    "4fd271181e901809f6e2d5f89ce95ddfeb886f8db1582a35c812401af8e77661i42",
+    "40ab704e6123c681554102556ae3f37b0525863968311f845322fe2f2403a4c6i0",
+    "0b36fa5ebce6c0e028b61647a89f9488a9c9f6ad0b90a215d10eb96ee8aedf9ei0",
+    "87a0088e83e43a79e0e9b451037067bca726f5fd3da083e8684996dd1e6b6c70i0",
+    "54abce9b4380e2fe90ac0cb49b442afee76838ffd91f1ffcac46f6a6fea790c5i72",
+    "54abce9b4380e2fe90ac0cb49b442afee76838ffd91f1ffcac46f6a6fea790c5i768",
+    "b4ba20c4eb45425f4960820f493a04a3b1c2e1364927d6001e7dc7dd524cf922i931",
+    "781938d9e2e93698d41f30b4d1c7f7bfcd403761bce3c0ab579be47b408809e2i0",
+    "fe130d3ca1577c65ac768f4b5b9d12a88d947ddcc31196bcf870ed5ff18403f5i1",
+    "26482871f33f1051f450f2da9af275794c0b5f1c61ebf35e4467fb42c2813403i0"
+  ],
+  "sat_balance": 22635,
+  "runes_balances": [
+    [
+      "RSIC•AUBERGINE",
+      "1100000000",
+      "🍆"
+    ],
+    [
+      "SPACEY•CODARMOR",
+      "279550",
+      "🚀"
+    ],
+    [
+      "ISABEL•FOXEN•DUKE",
+      "10000",
+      "⚡"
+    ],
+    [
+      "EPIC•EPIC•EPIC•EPIC",
+      "1000",
+      "💥"
+    ]
+  ]
+}
+```
 </details>
 
 <details>
  <summary>
     <code>GET</code>
     <code><b>/address/&lt;ADDRESS&gt;/cardinals</b></code>
-    &emsp;&emsp;&emsp; List all cardinal outputs of an address
  </summary>
 
-#### Example
+### Description
+List all cardinal outputs of an address
 
-example to be provided once code is merged, see [3979](https://github.com/ordinals/ord/pull/3979)
+### Example
+<i>example to be provided once code is merged, see [3979](https://github.com/ordinals/ord/pull/3979)</i>
 </details>
 
 <details>
   <summary>
     <code>GET</code>
     <code><b>/block/&lt;BLOCKHASH&gt;</b></code>
-    &emsp;&emsp;&emsp; Returns info about the specified block.
   </summary>
 
+### Description
+Returns info about the specified block.
 
-#### Example
-
+### Example
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f'
-  ```
-
-  ```json
-  {
-    "best_height": 864325,
-    "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
-    "height": 0,
-    "inscriptions": [],
-    "runes": [],
-    "target": "00000000ffff0000000000000000000000000000000000000000000000000000",
-    "transactions": [
-      {
-        "version": 1,
-        "lock_time": 0,
-        "input": [
-          {
-            "previous_output": "0000000000000000000000000000000000000000000000000000000000000000:4294967295",
-            "script_sig": "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73",
-            "sequence": 4294967295,
-            "witness": []
-          }
-        ],
-        "output": [
-          {
-            "value": 5000000000,
-            "script_pubkey": "4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac"
-          }
-        ]
-      }
-    ]
-  }
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
+```
+```json
+{
+  "best_height": 864325,
+  "hash": "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+  "height": 0,
+  "inscriptions": [],
+  "runes": [],
+  "target": "00000000ffff0000000000000000000000000000000000000000000000000000",
+  "transactions": [
+    {
+      "version": 1,
+      "lock_time": 0,
+      "input": [
+        {
+          "previous_output": "0000000000000000000000000000000000000000000000000000000000000000:4294967295",
+          "script_sig": "04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73",
+          "sequence": 4294967295,
+          "witness": []
+        }
+      ],
+      "output": [
+        {
+          "value": 5000000000,
+          "script_pubkey": "4104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac"
+        }
+      ]
+    }
+  ]
+}
+```
 </details>
 
 <details>
   <summary>
     <code>GET</code>
     <code><b>/block/&lt;BLOCKHEIGHT&gt;</b></code>
-    &emsp;&emsp;&emsp; Returns info about the specified block.
   </summary>
- 
- #### Example
+
+### Description
+Returns info about the specified block.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/block/0'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/block/0
+```
   ```json
   {
     "best_height": 864325,
@@ -186,14 +192,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/block/0'
    <summary>
       <code>GET</code>
       <code><b>/blockcount</b></code>
-      &emsp;&emsp;&emsp; Returns the hieight of the latest block.
    </summary>
- 
- #### Example
+
+### Description
+
+Returns the hieight of the latest block.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockcount'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/blockcount
+```
   ```json
   864328
   ```
@@ -203,14 +213,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockcount'
    <summary>
       <code>GET</code>
       <code><b>/blockhash</b></code>
-      &emsp;&emsp;&emsp; Returns blockhash for the latest block.
    </summary>
- 
- #### Example
+
+### Description
+
+Returns blockhash for the latest block.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockhash'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/blockhash
+```
   ```text
   00000000000000000000c82c12a925a224605b1bb767f696ae4ff10332dbe9bc
   ```
@@ -220,14 +234,19 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockhash'
    <summary>
       <code>GET</code>
       <code><b>/blockhash/&lt;BLOCKHEIGHT&gt;</b></code>
-      &emsp;&emsp;&emsp; Returns blockhash of specified block.
+      &emsp;&emsp;&emsp; 
    </summary>
- 
- #### Example
+
+### Description
+
+Returns blockhash of specified block.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockhash/840000'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/blockhash/840000
+```
 ```text
   0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5
   ```
@@ -237,14 +256,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockhash/840000'
   <summary>
     <code>GET</code>
     <code><b>/blockheight</b></code>
-    &emsp;&emsp;&emsp; Returns the height of the latest block.
   </summary>
- 
- #### Example
+
+### Description
+
+Returns the height of the latest block.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockheight'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/blockheight
+```
   ```json
   864330
   ```
@@ -254,14 +277,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blockheight'
   <summary>
     <code>GET</code>
     <code><b>/blocks</b></code>
-    &emsp;&emsp;&emsp; Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.
   </summary>
 
-#### Example
+### Description
+
+Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blocks'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/blocks
+```
   ```json
     {
     "last": 864335,
@@ -427,14 +454,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blocks'
 <summary>
 <code>GET</code>
 <code><b>/blocktime</b></code>
-&emsp;&emsp;&emsp; Returns the UNIX timestamp of when the latest block was mined.
 </summary>
 
-#### Example
+### Description
+
+Returns the UNIX timestamp of when the latest block was mined.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blocktime'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/blocktime
+```
 ```json
 1728158372
   ```
@@ -444,14 +475,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/blocktime'
 <summary>
 <code>GET</code>
 <code><b>/decode/&lt;TRANSCATION_ID&gt;</b></code>
-&emsp;&emsp;&emsp; Decode a transaction, congruent to the `ord decode` command
 </summary>
 
-#### Example
+### Description
+
+Decode a transaction, congruent to the `ord decode` command
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799
+```
   ```json
   {
     "inscriptions": [
@@ -1289,14 +1324,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/decode/6fb976ab49dcec01
 <summary>
 <code>GET</code>
 <code><b>/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
-&emsp;&emsp;&emsp; Fetch details about a specific inscription by its ID.
 </summary>
 
-#### Example
+### Description
+
+Fetch details about a specific inscription by its ID.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0'
-  ```
+curl -s -H "Accept: application/json" /
+  http://0.0.0.0:80/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
+```
 ```json
   {
     "address": "bc1ppth27qnr74qhusy9pmcyeaelgvsfky6qzquv9nf56gqmte59vfhqwkqguh",
@@ -1329,14 +1368,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscription/6fb976ab49d
 <summary>
 <code>GET</code>
 <code><b>/inscription/&lt;INSCRIPTION_ID&gt;/&lt;CHILD&gt;</b></code>
-&emsp;&emsp;&emsp; Returns the inscription information for the specified child.
 </summary>
 
-#### Example
+### Description
+
+Returns the inscription information for the specified child.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
+```
 ```json
   {
     "address": "bc1pnhyyzpetra3zvm376ng8ncnv9phtt45fczpt7sv2eatedtjj9vjqwhj080",
@@ -1369,14 +1412,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscription/b1ef66c2d1a
 <summary>
 <code>GET</code>
 <code><b>/inscriptions</b></code>
-&emsp;&emsp;&emsp; Get a list of the latest 100 inscriptions.
 </summary>
 
-#### Example
+### Description
+
+Get a list of the latest 100 inscriptions.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/inscriptions
+```
   ```json
   {
     "ids": [
@@ -1491,14 +1538,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions'
 <summary>
 <code>GET</code>
 <code><b>/inscriptions/&lt;PAGE&gt;</b></code>
-&emsp;&emsp;&emsp; Pagination allows you to choose which page of 100 inscriptions to return.
 </summary>
 
-#### Example
+### Description
+
+Pagination allows you to choose which page of 100 inscriptions to return.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions/9'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/inscriptions/9
+```
   ```json
   {
     "ids": [
@@ -1613,14 +1664,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions/9'
 <summary>
 <code>GET</code>
 <code><b>/inscriptions/block/&lt;BLOCKHEIGHT&gt;</b></code>
-&emsp;&emsp;&emsp; Get inscriptions for a specific block.
 </summary>
 
-#### Example
+### Description
+
+Get inscriptions for a specific block.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions/block/767430'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/inscriptions/block/767430
+```
   ```json
     {
       "ids": [
@@ -1636,10 +1691,13 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/inscriptions/block/7674
 <summary>
 <code>GET</code>
 <code><b>/install.sh</b></code>
-&emsp;&emsp;&emsp; Installs the latest pre-built binary of `ord`
 </summary>
 
-#### Example
+### Description
+
+Installs the latest pre-built binary of `ord`
+
+### Example
 
 see [wallet.md](wallet.md#installing-ord)
 </details>
@@ -1648,14 +1706,18 @@ see [wallet.md](wallet.md#installing-ord)
  <summary>
     <code>GET</code>
     <code><b>/output/&lt;OUTPOINT&gt;</b></code>
-    &emsp;&emsp;&emsp; Returns information about a UTXO, including inscriptions within it.
  </summary>
 
-#### Example
+### Description
+
+Returns information about a UTXO, including inscriptions within it.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
+```
   ```json
   {
     "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
@@ -1675,10 +1737,13 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/output/bc4c30829a9564c0
  <summary>
     <code>POST</code>
     <code><b>/outputs</b></code>
-    &emsp;&emsp;&emsp; List information from a list of outputs
  </summary>
 
-#### Example
+### Description
+
+List information from a list of outputs
+
+### Example
 
 ```bash
 curl -s -X POST \
@@ -1719,14 +1784,18 @@ curl -s -X POST \
 <summary>
 <code>GET</code>
 <code><b>/rune/&lt;RUNE&gt;</b></code>
-&emsp;&emsp;&emsp; Returns details about the specified rune.
 </summary>
 
-#### Example
+### Description
+
+Returns details about the specified rune.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://localhost/rune/UNCOMMONGOODS'
-  ```
+curl -s -H "Accept: application/json" \
+  http://localhost/rune/UNCOMMONGOODS
+```
   ```json
   {
     "entry": {
@@ -1765,14 +1834,18 @@ curl -s -H "Accept: application/json" 'http://localhost/rune/UNCOMMONGOODS'
 <summary>
 <code>GET</code>
 <code><b>/runes</b></code>
-&emsp;&emsp;&emsp; Returns details for last 100 inscribed runes.
 </summary>
 
-#### Example
+### Description
+
+Returns details for last 100 inscribed runes.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://localhost/runes'
-  ```
+curl -s -H "Accept: application/json" \
+  'http://localhost/runes
+```
 ```json
   {
     "entries": [
@@ -3256,14 +3329,18 @@ curl -s -H "Accept: application/json" 'http://localhost/runes'
 <summary>
 <code>GET</code>
 <code><b>/runes/&lt;PAGE&gt;</b></code>
-&emsp;&emsp;&emsp; Pagination allows you to specify which page of 100 runes you'd like to return.
 </summary>
 
-#### Example
+### Descripion 
+
+Pagination allows you to specify which page of 100 runes you'd like to return.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://localhost/runes/0'
-  ```
+curl -s -H "Accept: application/json" \
+  http://localhost/runes/0
+```
 ```json
   {
     "entries": [
@@ -4747,14 +4824,18 @@ curl -s -H "Accept: application/json" 'http://localhost/runes/0'
 <summary>
 <code>GET</code>
 <code><b>/sat/&lt;SAT&gt;</b></code>
-&emsp;&emsp;&emsp; Returns details about a specific satoshi.
 </summary>
 
-#### Example
+### Description
+
+Returns details about a specific satoshi.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/sat/2099994106992659'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/sat/2099994106992659
+```
   ```json
     {
       "block": 3891094,
@@ -4780,14 +4861,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/sat/2099994106992659'
 <summary>
 <code>GET</code>
 <code><b>/status</b></code>
-&emsp;&emsp;&emsp; Returns details about the server installation and index.
 </summary>
 
-#### Example
+### Description
+
+Returns details about the server installation and index.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/status'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/status
+```
   ```json
     {
       "address_index": true,
@@ -4820,14 +4905,18 @@ curl -s -H "Accept: application/json" 'http://0.0.0.0:80/status'
 <summary>
 <code>GET</code>
 <code><b>/tx/&lt;TRANSACTION_ID&gt;</b></code>
-&emsp;&emsp;&emsp; Returns details about the specified transaction.
 </summary>
 
-#### Example
+### Description
+
+Returns details about the specified transaction.
+
+### Example
 
 ```bash
-curl -s -H "Accept: application/json" 'http://0.0.0.0:80/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743'
-  ```
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
+```
   ```json
   {
     "chain": "mainnet",
