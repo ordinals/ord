@@ -56,6 +56,8 @@ pub struct Options {
   pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
+  #[arg(long, help = "Index UTXO signals.")]
+  pub(crate) index_signals: bool,
   #[arg(long, help = "Store transactions in index.")]
   pub(crate) index_transactions: bool,
   #[arg(long, help = "Run in integration test mode.")]

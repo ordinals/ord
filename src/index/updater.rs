@@ -422,6 +422,7 @@ impl<'index> Updater<'index> {
     let mut sequence_number_to_inscription_entry =
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
+    let mut outpoint_to_signal = wtx.open_table(OUTPOINT_TO_SIGNAL)?;
 
     let index_inscriptions = self.height >= self.index.settings.first_inscription_height()
       && self.index.index_inscriptions;
@@ -547,6 +548,10 @@ impl<'index> Updater<'index> {
           .iter()
           .map(|input| {
             let outpoint = input.previous_output.store();
+
+            if self.index.index_signals {
+              outpoint_to_signal.remove(&outpoint)?;
+            }
 
             let entry = if let Some(entry) = utxo_cache.remove(&OutPoint::load(outpoint)) {
               self.outputs_cached += 1;
