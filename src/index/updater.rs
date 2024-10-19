@@ -24,7 +24,7 @@ impl From<Block> for BlockData {
         .txdata
         .into_iter()
         .map(|transaction| {
-          let txid = transaction.txid();
+          let txid = transaction.compute_txid();
           (transaction, txid)
         })
         .collect(),
@@ -575,7 +575,7 @@ impl<'index> Updater<'index> {
               })?;
 
               let mut entry = UtxoEntryBuf::new();
-              entry.push_value(txout.value, self.index);
+              entry.push_value(txout.value.to_sat(), self.index);
               if self.index.index_addresses {
                 entry.push_script_pubkey(txout.script_pubkey.as_bytes(), self.index);
               }
@@ -630,7 +630,7 @@ impl<'index> Updater<'index> {
         input_sat_ranges = None;
 
         for (vout, txout) in tx.output.iter().enumerate() {
-          output_utxo_entries[vout].push_value(txout.value, self.index);
+          output_utxo_entries[vout].push_value(txout.value.to_sat(), self.index);
         }
       }
 
@@ -763,7 +763,7 @@ impl<'index> Updater<'index> {
         txid,
       };
 
-      let mut remaining = output.value;
+      let mut remaining = output.value.to_sat();
       while remaining > 0 {
         let range = pending_input_sat_range.take().unwrap_or_else(|| {
           SatRange::load(
@@ -780,7 +780,7 @@ impl<'index> Updater<'index> {
             &range.0,
             &SatPoint {
               outpoint,
-              offset: output.value - remaining,
+              offset: output.value.to_sat() - remaining,
             }
             .store(),
           )?;

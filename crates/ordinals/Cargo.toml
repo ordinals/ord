@@ -1,6 +1,6 @@
 [package]
 name = "ordinals"
-version = "0.0.10"
+version = "0.0.11"
 edition = "2021"
 description = "Library for interoperating with ordinals and inscriptions"
 homepage = "https://github.com/ordinals/ord"
@@ -9,7 +9,7 @@ license = "CC0-1.0"
 rust-version = "1.74.0"
 
 [dependencies]
-bitcoin = { version = "0.30.1", features = ["rand"] }
+bitcoin = { version = "0.32.3", features = ["rand"] }
 derive_more = { version = "1.0.0", features = ["display", "from_str"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_with = "3.7.0"

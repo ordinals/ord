@@ -435,9 +435,9 @@ impl Settings {
     let rpc_chain = loop {
       match client.get_blockchain_info() {
         Ok(blockchain_info) => {
-          break match blockchain_info.chain.as_str() {
-            "main" => Chain::Mainnet,
-            "test" => Chain::Testnet,
+          break match blockchain_info.chain.to_string().as_str() {
+            "bitcoin" => Chain::Mainnet,
+            "testnet" => Chain::Testnet,
             "regtest" => Chain::Regtest,
             "signet" => Chain::Signet,
             other => bail!("Bitcoin RPC server on unknown chain: {other}"),
