@@ -1177,13 +1177,13 @@ impl Server {
       Ok(if accept_json && server_config.index_signals {
         let Some(address) = index
           .get_output_info(utxo_signal.outpoint)?
-          .and_then(|(a, b)| a.address)
+          .and_then(|(a, _)| a.address)
         else {
           return Ok(StatusCode::NOT_FOUND.into_response());
         };
 
-        let message = utxo_signal.signal.message;
-        let signature = utxo_signal.signal.signature;
+        let message = utxo_signal.signal.message.clone();
+        let signature = utxo_signal.signal.signature.clone();
 
         if bip322::verify_simple(&address.assume_checked(), message.as_slice(), signature).is_ok() {
           Json(index.set_signal(utxo_signal.outpoint, utxo_signal.signal)?).into_response()
