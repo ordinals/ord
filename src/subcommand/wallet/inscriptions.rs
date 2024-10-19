@@ -25,7 +25,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
           location: *location,
           inscription: *inscription,
           explorer: format!("{explorer}{inscription}"),
-          postage: txout.value,
+          postage: txout.value.to_sat(),
         })
       }
     }

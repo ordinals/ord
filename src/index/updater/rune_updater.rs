@@ -438,7 +438,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         let taproot = tx_info.vout[input.previous_output.vout.into_usize()]
           .script_pub_key
           .script()?
-          .is_v1_p2tr();
+          .is_p2tr();
 
         if !taproot {
           continue;

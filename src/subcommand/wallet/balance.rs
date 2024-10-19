@@ -32,7 +32,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     let is_runic = !rune_balances.is_empty();
 
     if is_ordinal {
-      ordinal += txout.value;
+      ordinal += txout.value.to_sat();
     }
 
     if is_runic {
@@ -48,11 +48,11 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
             scale: pile.divisibility,
           });
       }
-      runic += txout.value;
+      runic += txout.value.to_sat();
     }
 
     if !is_ordinal && !is_runic {
-      cardinal += txout.value;
+      cardinal += txout.value.to_sat();
     }
 
     if is_ordinal && is_runic {

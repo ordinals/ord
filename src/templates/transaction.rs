@@ -22,7 +22,7 @@ mod tests {
   #[test]
   fn html() {
     let transaction = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         sequence: Default::default(),
@@ -32,24 +32,24 @@ mod tests {
       }],
       output: vec![
         TxOut {
-          value: 50 * COIN_VALUE,
+          value: Amount::from_sat(50 * COIN_VALUE),
           script_pubkey: script::Builder::new().push_int(0).into_script(),
         },
         TxOut {
-          value: 50 * COIN_VALUE,
+          value: Amount::from_sat(50 * COIN_VALUE),
           script_pubkey: script::Builder::new().push_int(1).into_script(),
         },
       ],
     };
 
-    let txid = transaction.txid();
+    let txid = transaction.compute_txid();
 
     pretty_assert_eq!(
       TransactionHtml {
         chain: Chain::Mainnet,
         etching: None,
         inscription_count: 0,
-        txid: transaction.txid(),
+        txid: transaction.compute_txid(),
         transaction,
       }.to_string(),
       format!(

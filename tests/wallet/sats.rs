@@ -27,7 +27,7 @@ fn sats() {
 
   create_wallet(&core, &ord);
 
-  let second_coinbase = core.mine_blocks(1)[0].txdata[0].txid();
+  let second_coinbase = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   let output = CommandBuilder::new("--index-sats wallet sats")
     .core(&core)
@@ -46,7 +46,7 @@ fn sats_from_tsv_success() {
 
   create_wallet(&core, &ord);
 
-  let second_coinbase = core.mine_blocks(1)[0].txdata[0].txid();
+  let second_coinbase = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   let output = CommandBuilder::new("--index-sats wallet sats --tsv foo.tsv")
     .write("foo.tsv", "nvtcsezkbtg")
@@ -103,7 +103,7 @@ fn sats_all() {
 
   create_wallet(&core, &ord);
 
-  let second_coinbase = core.mine_blocks(1)[0].txdata[0].txid();
+  let second_coinbase = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   let output = CommandBuilder::new("--index-sats wallet sats --all")
     .core(&core)
