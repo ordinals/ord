@@ -11,12 +11,13 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
   let mut addresses: BTreeMap<Address, api::AddressInfo> = BTreeMap::new();
 
-  let inscriptions = wallet
-    .inscriptions()
-    .clone()
-    .into_iter()
-    .map(|(satpoint, inscriptions)| (satpoint.outpoint, inscriptions))
-    .collect::<BTreeMap<OutPoint, Vec<_>>>();
+  let mut inscriptions = BTreeMap::new();
+  for (satpoint, satpoint_inscriptions) in wallet.inscriptions().into_iter() {
+    inscriptions
+      .entry(satpoint.outpoint)
+      .and_modify(|e: &mut Vec<_>| e.extend(satpoint_inscriptions))
+      .or_insert(satpoint_inscriptions.clone());
+  }
 
   for (output, txout) in unspent_outputs {
     let address = wallet.chain().address_from_script(&txout.script_pubkey)?;
@@ -26,7 +27,9 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
       .entry(address)
       .and_modify(|info: &mut api::AddressInfo| {
         info.outputs.push(*output);
-        info.inscriptions.extend(inscriptions.get(output).unwrap());
+        info
+          .inscriptions
+          .extend(inscriptions.get(output).cloned().unwrap_or_default());
         info.sat_balance += txout.value.to_sat();
         info.runes_balances.extend(
           rune_balances
@@ -46,7 +49,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
       })
       .or_insert(api::AddressInfo {
         outputs: vec![*output],
-        inscriptions: inscriptions.get(output).unwrap().clone(),
+        inscriptions: inscriptions.get(output).cloned().unwrap_or_default(),
         sat_balance: txout.value.to_sat(),
         runes_balances: rune_balances
           .iter()
