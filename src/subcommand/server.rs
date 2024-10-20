@@ -3561,6 +3561,7 @@ mod tests {
         sat_ranges: None,
         indexed: true,
         inscriptions: Vec::new(),
+        outpoint: OutPoint { txid, vout: 0 },
         runes: vec![(
           SpacedRune {
             rune: Rune(RUNE),

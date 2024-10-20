@@ -343,6 +343,7 @@ fn get_output() {
         InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
       ],
+      outpoint: OutPoint { txid, vout: 0 },
       indexed: true,
       runes: BTreeMap::new(),
       sat_ranges: Some(vec![
@@ -395,6 +396,7 @@ fn address_cardinals_api() {
     vec![api::Output {
       address: Some(address.parse().unwrap()),
       inscriptions: vec![],
+      outpoint: OutPoint { txid: send.txid, vout: 0 },
       indexed: true,
       runes: BTreeMap::new(),
       sat_ranges: Some(vec![(5000000000, 5200000000),]),
