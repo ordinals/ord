@@ -234,7 +234,7 @@ curl -s -H "Accept: application/json" \
    <summary>
       <code>GET</code>
       <code><b>/blockhash/&lt;BLOCKHEIGHT&gt;</b></code>
-      &emsp;&emsp;&emsp; 
+      &emsp;&emsp;&emsp;
    </summary>
 
 ### Description
@@ -3331,7 +3331,7 @@ curl -s -H "Accept: application/json" \
 <code><b>/runes/&lt;PAGE&gt;</b></code>
 </summary>
 
-### Descripion 
+### Descripion
 
 Pagination allows you to specify which page of 100 runes you'd like to return.
 
@@ -4948,3 +4948,7 @@ curl -s -H "Accept: application/json" \
   }
   ```
 </details>
+
+## Recursive Endpoints
+
+<!-- {{#include ../inscriptions/recursion.md:36:}} -->

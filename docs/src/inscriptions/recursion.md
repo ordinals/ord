@@ -30,6 +30,7 @@ Recursion has a number of interesting use-cases:
   inscribed as individual images, or in a shared texture atlas, and then
   combined, collage-style, in unique combinations in multiple inscriptions.
 
+
 ## Endpoints
 
 <details>
@@ -3228,7 +3229,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-the first 100 inscription ids on a sat. requires sat index. 
+the first 100 inscription ids on a sat. requires sat index.
 
 ### Example
 ```bash
@@ -3256,7 +3257,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-the set of 100 inscription ids on `<PAGE>`. requires sat index. 
+the set of 100 inscription ids on `<PAGE>`. requires sat index.
 
 ### Example
 ```bash
@@ -3291,7 +3292,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-the inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. requires sat index. 
+the inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. requires sat index.
 
 ### Example
 ```bash
