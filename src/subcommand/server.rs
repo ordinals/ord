@@ -165,6 +165,11 @@ impl Server {
         .route("/", get(Self::home))
         .route("/address/:address", get(Self::address))
         .route("/address/:address/cardinals", get(Self::address_cardinals))
+        .route("/address/:address/runes", get(Self::address_runes))
+        .route(
+          "/address/:address/inscriptions",
+          get(Self::address_inscriptions),
+        )
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockhash", get(Self::block_hash))
@@ -894,6 +899,88 @@ impl Server {
 
         for outpoint in cardinal_outputs {
           let (output_info, _) = index
+            .get_output_info(outpoint)?
+            .ok_or_not_found(|| format!("output {outpoint}"))?;
+
+          response.push(output_info);
+        }
+
+        Json(response).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
+    })
+  }
+
+  async fn address_runes(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(address): Path<Address<NetworkUnchecked>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        let address = address
+          .require_network(server_config.chain.network())
+          .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+        let outputs = index.get_address_info(&address)?;
+
+        let runic_outputs: Vec<OutPoint> = outputs
+          .into_iter()
+          .filter(|output| {
+            index
+              .get_rune_balances_for_output(*output)
+              .map(|runes| !runes.is_empty())
+              .unwrap_or(false)
+          })
+          .collect();
+
+        let mut response = Vec::new();
+
+        for outpoint in runic_outputs {
+          let (output_info, _txout) = index
+            .get_output_info(outpoint)?
+            .ok_or_not_found(|| format!("output {outpoint}"))?;
+
+          response.push(output_info);
+        }
+
+        Json(response).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
+    })
+  }
+
+  async fn address_inscriptions(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(address): Path<Address<NetworkUnchecked>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        let address = address
+          .require_network(server_config.chain.network())
+          .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+        let outputs = index.get_address_info(&address)?;
+
+        let inscription_outputs: Vec<OutPoint> = outputs
+          .into_iter()
+          .filter(|output| {
+            index
+              .get_inscriptions_on_output_with_satpoints(*output)
+              .map(|inscriptions| !inscriptions.is_empty())
+              .unwrap_or(false)
+          })
+          .collect();
+
+        let mut response = Vec::new();
+
+        for outpoint in inscription_outputs {
+          let (output_info, _txout) = index
             .get_output_info(outpoint)?
             .ok_or_not_found(|| format!("output {outpoint}"))?;
 
@@ -3561,7 +3648,7 @@ mod tests {
         sat_ranges: None,
         indexed: true,
         inscriptions: Vec::new(),
-        outpoint: OutPoint { txid, vout: 0 },
+        outpoint: output,
         runes: vec![(
           SpacedRune {
             rune: Rune(RUNE),

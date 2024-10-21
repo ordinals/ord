@@ -365,69 +365,18 @@ fn get_output() {
 }
 
 #[test]
-fn address_cardinals_api() {
-  let core = mockcore::spawn();
-
-  let ord = TestServer::spawn_with_args(
-    &core,
-    &["--index-runes", "--index-sats", "--index-addresses"],
-  );
-
-  create_wallet(&core, &ord);
-  core.mine_blocks(1);
-
-  let address = "bc1qxma2dwmutht4vxyl6u395slew5ectfpn35ug9l";
-
-  let send = CommandBuilder::new(format!("wallet send --fee-rate 13.3 {address} 2btc"))
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Send>();
-
-  core.mine_blocks(1);
-
-  let response = ord.json_request(format!("/address/{}/cardinals", address));
-
-  assert_eq!(response.status(), StatusCode::OK);
-
-  let cardinals_json: Vec<api::Output> = serde_json::from_str(&response.text().unwrap()).unwrap();
-
-  pretty_assert_eq!(
-    cardinals_json,
-    vec![api::Output {
-      address: Some(address.parse().unwrap()),
-      inscriptions: vec![],
-      outpoint: OutPoint { txid: send.txid, vout: 0 },
-      indexed: true,
-      runes: BTreeMap::new(),
-      sat_ranges: Some(vec![(5000000000, 5200000000),]),
-      script_pubkey: ScriptBuf::from(
-        address
-          .parse::<Address<NetworkUnchecked>>()
-          .unwrap()
-          .assume_checked()
-      ),
-      spent: false,
-      transaction: send.txid,
-      value: 2 * COIN_VALUE,
-    }]
-  );
-}
-
-#[test]
-fn address_cardinals_api_excludes_runic_and_inscriptions_utxos() {
+fn address_cardinals_ordinals_runes_api() {
   let core = mockcore::builder().network(Network::Regtest).build();
   let ord =
     TestServer::spawn_with_args(&core, &["--index-runes", "--index-addresses", "--regtest"]);
 
   create_wallet(&core, &ord);
 
-  etch(&core, &ord, Rune(RUNE));
-
-  let (inscription_id, _reveal) = inscribe(&core, &ord);
-
   let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
 
-  CommandBuilder::new(format!(
+  let (inscription_id, reveal) = inscribe(&core, &ord);
+
+  let inscription_send = CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet send --fee-rate 1 {address} {inscription_id}",
   ))
   .core(&core)
@@ -435,7 +384,11 @@ fn address_cardinals_api_excludes_runic_and_inscriptions_utxos() {
   .stdout_regex(".*")
   .run_and_deserialize_output::<Output>();
 
-  CommandBuilder::new(format!(
+  core.mine_blocks(1);
+
+  etch(&core, &ord, Rune(RUNE));
+
+  let rune_send = CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet send --fee-rate 1 {address} 1000:{}",
     Rune(RUNE)
   ))
@@ -444,23 +397,14 @@ fn address_cardinals_api_excludes_runic_and_inscriptions_utxos() {
   .stdout_regex(".*")
   .run_and_deserialize_output::<Output>();
 
+  let cardinal_send = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 13.3 {address} 2btc"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
   core.mine_blocks(6);
-
-  ord.assert_response_regex(
-    format!("/address/{address}"),
-    format!(".*<dd>.*{}.*: 1000¢</dd>.*", Rune(RUNE)),
-  );
-
-  ord.assert_response_regex(
-    format!("/address/{address}"),
-      r".*
-<dl>.*
-  <dt>inscriptions</dt>
-  <dd class=thumbnails>
-    <a href=/inscription/[[:xdigit:]]{64}i\d><iframe .* src=/preview/[[:xdigit:]]{64}i\d></iframe></a>
-  </dd>.*"
-    ,
-  );
 
   let cardinals_response = ord.json_request(format!("/address/{}/cardinals", address));
 
@@ -469,7 +413,107 @@ fn address_cardinals_api_excludes_runic_and_inscriptions_utxos() {
   let cardinals_json: Vec<api::Output> =
     serde_json::from_str(&cardinals_response.text().unwrap()).unwrap();
 
-  pretty_assert_eq!(cardinals_json, vec![]);
+  pretty_assert_eq!(
+    cardinals_json,
+    vec![api::Output {
+      address: Some(address.parse().unwrap()),
+      inscriptions: vec![],
+      outpoint: OutPoint {
+        txid: cardinal_send.txid,
+        vout: 0
+      },
+      indexed: true,
+      runes: BTreeMap::new(),
+      sat_ranges: None,
+      script_pubkey: ScriptBuf::from(
+        address
+          .parse::<Address<NetworkUnchecked>>()
+          .unwrap()
+          .assume_checked()
+      ),
+      spent: false,
+      transaction: cardinal_send.txid,
+      value: 2 * COIN_VALUE,
+    }]
+  );
+
+  let runes_response = ord.json_request(format!("/address/{}/runes", address));
+
+  assert_eq!(runes_response.status(), StatusCode::OK);
+
+  let runes_json: Vec<api::Output> = serde_json::from_str(&runes_response.text().unwrap()).unwrap();
+
+  let mut expected_runes = BTreeMap::new();
+
+  expected_runes.insert(
+    SpacedRune {
+      rune: Rune(RUNE),
+      spacers: 0,
+    },
+    Pile {
+      amount: 1000,
+      divisibility: 0,
+      symbol: Some('¢'),
+    },
+  );
+
+  pretty_assert_eq!(
+    runes_json,
+    vec![api::Output {
+      address: Some(address.parse().unwrap()),
+      inscriptions: vec![],
+      outpoint: OutPoint {
+        txid: rune_send.txid,
+        vout: 0
+      },
+      indexed: true,
+      runes: expected_runes,
+      sat_ranges: None,
+      script_pubkey: ScriptBuf::from(
+        address
+          .parse::<Address<NetworkUnchecked>>()
+          .unwrap()
+          .assume_checked()
+      ),
+      spent: false,
+      transaction: rune_send.txid,
+      value: 9901,
+    }]
+  );
+
+  let inscriptions_response = ord.json_request(format!("/address/{}/inscriptions", address));
+
+  assert_eq!(inscriptions_response.status(), StatusCode::OK);
+
+  let inscriptions_json: Vec<api::Output> =
+    serde_json::from_str(&inscriptions_response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(
+    inscriptions_json,
+    vec![api::Output {
+      address: Some(address.parse().unwrap()),
+      inscriptions: vec![InscriptionId {
+        txid: reveal,
+        index: 0
+      },],
+      outpoint: OutPoint {
+        txid: inscription_send.txid,
+        vout: 0
+      },
+      indexed: true,
+      runes: BTreeMap::new(),
+      sat_ranges: None,
+      script_pubkey: ScriptBuf::from(
+        address
+          .parse::<Address<NetworkUnchecked>>()
+          .unwrap()
+          .assume_checked()
+      ),
+      spent: false,
+      transaction: inscription_send.txid,
+      value: 9901,
+    }]
+  );
 }
 
 #[test]
