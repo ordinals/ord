@@ -1,6 +1,14 @@
 Changelog
 =========
 
+[0.21.1](https://github.com/ordinals/ord/releases/tag/0.21.1) - 2024-10-20
+--------------------------------------------------------------------------
+
+### Changed
+- Revert redb to 2.1.3 (#4003)
+- Update rust-bitcoin in ord (#3962)
+- Remove /runes/balances API endpoint (#3980)
+
 [0.21.0](https://github.com/ordinals/ord/releases/tag/0.21.0) - 2024-10-11
 --------------------------------------------------------------------------
 
