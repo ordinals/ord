@@ -38,6 +38,7 @@ The recursive endpoints are:
 - `/r/blockheight`: latest block height.
 - `/r/blockinfo/<QUERY>`: block info. `<QUERY>` may be a block height or block hash.
 - `/r/blocktime`: UNIX time stamp of latest block.
+- `/r/charms`: the current charms and associated names
 - `/r/children/<INSCRIPTION_ID>`: the first 100 child inscription ids.
 - `/r/children/<INSCRIPTION_ID>/<PAGE>`: the set of 100 child inscription ids on `<PAGE>`.
 - `/r/children/<INSCRIPTION_ID>/inscriptions`: details of the first 100 child inscriptions.
@@ -135,6 +136,26 @@ percentile in sats/vB.
    ],
    "more":false,
    "page":49
+}
+```
+
+- `/r/charms`
+
+```json
+{
+  "👹": "cursed",
+  "🪻": "epic",
+  "🧿": "rare",
+  "🪙": "coin",
+  "🌱": "uncommon",
+  "🎃": "mythic",
+  "9️⃣": "nineball",
+  "🔓": "unbound",
+  "❤️‍🔥": "vindicated",
+  "♻️": "reinscription",
+  "🤔": "lost",
+  "🌝": "legendary",
+  "🔥": "burned"
 }
 ```
 
