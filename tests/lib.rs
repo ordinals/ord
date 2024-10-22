@@ -327,7 +327,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     mint_definition.push("<dt>mintable</dt>".into());
     mint_definition.push(format!("<dd>{mintable}</dd>"));
 
-    if terms.cap > 0 {
+    if mintable {
       mint_definition.push("<dt>progress</dt>".into());
       mint_definition.push("<dd>0%</dd>".into());
     }
