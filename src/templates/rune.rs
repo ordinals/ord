@@ -10,6 +10,10 @@ pub struct RuneHtml {
 
 impl RuneHtml {
   fn mint_progress(&self) -> Option<Decimal> {
+    if !self.mintable {
+      return None;
+    }
+
     let cap = self.entry.terms?.cap?;
 
     if cap == 0 {
@@ -284,6 +288,45 @@ mod tests {
         }),
       },
       ".*
+      <dt>mintable</dt>
+      <dd>false</dd>
+    </dl>.*"
+    );
+
+    assert_regex_match!(
+      RuneHtml {
+        entry: RuneEntry {
+          block: 0,
+          burned: 0,
+          divisibility: 0,
+          etching: Txid::all_zeros(),
+          mints: 5555,
+          terms: Some(Terms {
+            cap: Some(10000),
+            offset: (None, None),
+            height: (None, None),
+            amount: None,
+          }),
+          number: 0,
+          premine: 0,
+          spaced_rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0
+          },
+          symbol: None,
+          timestamp: 0,
+          turbo: false,
+        },
+        id: RuneId { block: 0, tx: 0 },
+        mintable: true,
+        parent: Some(InscriptionId {
+          txid: Txid::all_zeros(),
+          index: 0,
+        }),
+      },
+      ".*
+      <dt>mintable</dt>
+      <dd>true</dd>
       <dt>progress</dt>
       <dd>55.55%</dd>.*"
     );
