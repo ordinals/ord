@@ -1668,6 +1668,7 @@ impl Server {
             charm.set(&mut acc);
             acc
           })),
+          child_count: info.child_count,
           children: info.children,
           fee: info.fee,
           height: info.height,

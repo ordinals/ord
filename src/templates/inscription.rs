@@ -4,6 +4,7 @@ use super::*;
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
   pub(crate) charms: u16,
+  pub(crate) child_count: u64,
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) fee: u64,
   pub(crate) height: u32,

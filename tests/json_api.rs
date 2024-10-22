@@ -158,6 +158,7 @@ fn get_inscription() {
     api::Inscription {
       address: None,
       charms: vec![Charm::Coin, Charm::Uncommon],
+      child_count: 0,
       children: Vec::new(),
       content_length: Some(3),
       content_type: Some("text/plain;charset=utf-8".to_string()),
