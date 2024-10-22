@@ -5210,7 +5210,7 @@ next
     server.assert_response_regex(
       format!("/inscription/{parent_inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription 0</title>.*<dt>children</dt>.*<a href=/inscription/{inscription_id}>.*</a>.*"),
+      format!(".*<title>Inscription 0</title>.*<dt>children \\(1\\)</dt>.*<a href=/inscription/{inscription_id}>.*</a>.*"),
     );
 
     assert_eq!(
