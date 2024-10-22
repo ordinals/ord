@@ -505,7 +505,7 @@ impl Index {
     self.index_sats
   }
 
-  pub fn status(&self) -> Result<StatusHtml> {
+  pub fn status(&self, json_api: bool) -> Result<StatusHtml> {
     let rtx = self.database.begin_read()?;
 
     let statistic_to_count = rtx.open_table(STATISTIC_TO_COUNT)?;
@@ -541,6 +541,7 @@ impl Index {
       initial_sync_time: Duration::from_micros(initial_sync_time),
       inscription_index: self.has_inscription_index(),
       inscriptions: blessed_inscriptions + cursed_inscriptions,
+      json_api,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
         self.settings.chain().network(),
