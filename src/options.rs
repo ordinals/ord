@@ -51,7 +51,7 @@ pub struct Options {
   pub(crate) index_cache_size: Option<usize>,
   #[arg(
     long,
-    help = "Track location of runes. RUNES ARE IN AN UNFINISHED PRE-ALPHA STATE AND SUBJECT TO CHANGE AT ANY TIME."
+    help = "Track location of runes."
   )]
   pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
