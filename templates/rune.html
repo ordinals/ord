@@ -45,6 +45,10 @@
       <dd>{{ terms.cap.unwrap_or_default() - self.entry.mints }}</dd>
       <dt>mintable</dt>
       <dd>{{ self.mintable }}</dd>
+%% if let Some(mint_progress) = self.mint_progress() {
+      <dt>progress</dt>
+      <dd>{{ mint_progress }}%</dd>
+%% }
     </dl>
   </dd>
 %% } else {
@@ -52,8 +56,6 @@
 %% }
   <dt>supply</dt>
   <dd>{{ self.entry.pile(self.entry.supply()) }}</dd>
-  <dt>mint progress</dt>
-  <dd>{{ Decimal { value: ((self.entry.supply() as f64 / self.entry.max_supply() as f64) * 10000.0) as u128, scale: 2 } }}%</dd>
   <dt>premine</dt>
   <dd>{{ self.entry.pile(self.entry.premine) }}</dd>
   <dt>premine percentage</dt>
