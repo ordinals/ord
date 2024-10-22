@@ -1,6 +1,60 @@
 Changelog
 =========
 
+[0.21.1](https://github.com/ordinals/ord/releases/tag/0.21.1) - 2024-10-20
+--------------------------------------------------------------------------
+
+### Fixed
+- Revert redb to 2.1.3 ([#4003](https://github.com/ordinals/ord/pull/4003) by [raphjaph](https://github.com/raphjaph))
+
+### Changed
+- Remove /runes/balances API endpoint ([#3980](https://github.com/ordinals/ord/pull/3980) by [lifofifoX](https://github.com/lifofifoX))
+
+### Misc
+- Update rust-bitcoin in ord ([#3962](https://github.com/ordinals/ord/pull/3962) by [raphjaph](https://github.com/raphjaph))
+
+[0.21.0](https://github.com/ordinals/ord/releases/tag/0.21.0) - 2024-10-11
+--------------------------------------------------------------------------
+
+### Added
+- Add `ord verify` ([#3906](https://github.com/ordinals/ord/pull/3906) by [raphjaph](https://github.com/raphjaph))
+
+### Misc
+- Remove regtest.ordinals.net just recipes ([#3978](https://github.com/ordinals/ord/pull/3978) by [casey](https://github.com/casey))
+- Refactor burn command ([#3976](https://github.com/ordinals/ord/pull/3976) by [casey](https://github.com/casey))
+
+[0.20.1](https://github.com/ordinals/ord/releases/tag/0.20.1) - 2024-10-03
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix non-existant output lookup ([#3968](https://github.com/ordinals/ord/pull/3968) by [raphjaph](https://github.com/raphjaph))
+- Fix output API struct ([#3957](https://github.com/ordinals/ord/pull/3957) by [raphjaph](https://github.com/raphjaph))
+- Start indexing at correct block height ([#3956](https://github.com/ordinals/ord/pull/3956) by [partialord](https://github.com/partialord))
+- Fix /output page ([#3948](https://github.com/ordinals/ord/pull/3948) by [raphjaph](https://github.com/raphjaph))
+
+### Added
+- Add multi parent support to wallet ([#3228](https://github.com/ordinals/ord/pull/3228) by [raphjaph](https://github.com/raphjaph))
+- Implement burn for wallet command ([#3437](https://github.com/ordinals/ord/pull/3437) by [onchainguy-btc](https://github.com/onchainguy-btc))
+- Add `/satpoint/<SATPOINT>` endpoint ([#3949](https://github.com/ordinals/ord/pull/3949) by [raphjaph](https://github.com/raphjaph))
+- Add inscription examples to handbook ([#3769](https://github.com/ordinals/ord/pull/3769) by [cryptoni9n](https://github.com/cryptoni9n))
+- Add inscription index to /status ([#3938](https://github.com/ordinals/ord/pull/3938) by [casey](https://github.com/casey))
+
+### Changed
+- Keep sat ranges in low-level format ([#3963](https://github.com/ordinals/ord/pull/3963) by [partialord](https://github.com/partialord))
+- Remove dependency on `ord-bitcoincore-rpc` crate ([#3959](https://github.com/ordinals/ord/pull/3959) by [raphjaph](https://github.com/raphjaph))
+- Don't log RPC connections to bitcoind ([#3952](https://github.com/ordinals/ord/pull/3952) by [raphjaph](https://github.com/raphjaph))
+- Skip serializing None in batch::File ([#3943](https://github.com/ordinals/ord/pull/3943) by [raphjaph](https://github.com/raphjaph))
+- Allow scrolling in iframe ([#3947](https://github.com/ordinals/ord/pull/3947) by [raphjaph](https://github.com/raphjaph))
+- Put AddressInfo into api module ([#3933](https://github.com/ordinals/ord/pull/3933) by [raphjaph](https://github.com/raphjaph))
+
+### Misc
+- Rename parents_values -> parent_values ([#3973](https://github.com/ordinals/ord/pull/3973) by [casey](https://github.com/casey))
+- Get parents using `as_slice` instead of converting to `Vec` ([#3972](https://github.com/ordinals/ord/pull/3972) by [casey](https://github.com/casey))
+- Remove unnecessary symbols in docs/src/guides/testing.md ([#3945](https://github.com/ordinals/ord/pull/3945) by [tiaoxizhan](https://github.com/tiaoxizhan))
+- Fix clippy lint ([#3937](https://github.com/ordinals/ord/pull/3937) by [casey](https://github.com/casey))
+- Add test to remind us to fix the UtxoEntry redb type name ([#3934](https://github.com/ordinals/ord/pull/3934) by [casey](https://github.com/casey))
+- Bump version to 0.20.0-dev ([#3929](https://github.com/ordinals/ord/pull/3929) by [casey](https://github.com/casey))
+
 [0.20.0](https://github.com/ordinals/ord/releases/tag/0.20.0) - 2024-09-03
 --------------------------------------------------------------------------
 

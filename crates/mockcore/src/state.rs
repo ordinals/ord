@@ -1,7 +1,7 @@
 use {
   super::*,
   bitcoin::{
-    key::{KeyPair, Secp256k1, XOnlyPublicKey},
+    key::{Keypair, Secp256k1, XOnlyPublicKey},
     secp256k1::rand,
     WPubkeyHash,
   },
@@ -59,7 +59,7 @@ impl State {
 
   pub(crate) fn new_address(&mut self, change: bool) -> Address {
     let secp256k1 = Secp256k1::new();
-    let key_pair = KeyPair::new(&secp256k1, &mut rand::thread_rng());
+    let key_pair = Keypair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
     let address = Address::p2tr(&secp256k1, public_key, None, self.network);
     if change {
@@ -105,7 +105,7 @@ impl State {
   #[track_caller]
   pub(crate) fn mine_block(&mut self, subsidy: u64) -> Block {
     let coinbase = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         previous_output: OutPoint::null(),
@@ -116,7 +116,7 @@ impl State {
         witness: Witness::new(),
       }],
       output: vec![TxOut {
-        value: subsidy
+        value: Amount::from_sat(subsidy)
           + self
             .mempool
             .iter()
@@ -129,22 +129,24 @@ impl State {
                     [txin.previous_output.vout as usize]
                     .value
                 })
-                .sum::<u64>()
-                - tx.output.iter().map(|txout| txout.value).sum::<u64>();
-              self.transactions.insert(tx.txid(), tx.clone());
+                .sum::<Amount>()
+                - tx.output.iter().map(|txout| txout.value).sum::<Amount>();
+              self.transactions.insert(tx.compute_txid(), tx.clone());
 
               fee
             })
-            .sum::<u64>(),
+            .sum::<Amount>(),
         script_pubkey: self.new_address(false).into(),
       }],
     };
 
-    self.transactions.insert(coinbase.txid(), coinbase.clone());
+    self
+      .transactions
+      .insert(coinbase.compute_txid(), coinbase.clone());
 
     let block = Block {
       header: Header {
-        version: Version::ONE,
+        version: bitcoin::block::Version::ONE,
         prev_blockhash: *self.hashes.last().unwrap(),
         merkle_root: TxMerkleNode::all_zeros(),
         time: self.blocks.len().try_into().unwrap(),
@@ -159,7 +161,7 @@ impl State {
     for tx in block.txdata.iter() {
       self
         .txid_to_block_height
-        .insert(tx.txid(), self.hashes.len().try_into().unwrap());
+        .insert(tx.compute_txid(), self.hashes.len().try_into().unwrap());
 
       for input in tx.input.iter() {
         if !input.previous_output.is_null() {
@@ -171,10 +173,10 @@ impl State {
         if !txout.script_pubkey.is_op_return() {
           self.utxos.insert(
             OutPoint {
-              txid: tx.txid(),
+              txid: tx.compute_txid(),
               vout: vout.try_into().unwrap(),
             },
-            Amount::from_sat(txout.value),
+            txout.value,
           );
         }
       }
@@ -199,9 +201,9 @@ impl State {
     let mut input = Vec::new();
     for (height, tx, vout, witness) in template.inputs.iter() {
       let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
-      total_value += tx.output[*vout].value;
+      total_value += tx.output[*vout].value.to_sat();
       input.push(TxIn {
-        previous_output: OutPoint::new(tx.txid(), *vout as u32),
+        previous_output: OutPoint::new(tx.compute_txid(), *vout as u32),
         script_sig: ScriptBuf::new(),
         sequence: Sequence::MAX,
         witness: witness.clone(),
@@ -222,23 +224,27 @@ impl State {
     }
 
     let mut tx = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input,
       output: (0..template.outputs)
         .map(|i| TxOut {
-          value: template
-            .output_values
-            .get(i)
-            .cloned()
-            .unwrap_or(value_per_output),
-          script_pubkey: if template.p2tr {
+          value: Amount::from_sat(
+            template
+              .output_values
+              .get(i)
+              .cloned()
+              .unwrap_or(value_per_output),
+          ),
+          script_pubkey: if let Some(recipient) = &template.recipient {
+            recipient.script_pubkey()
+          } else if template.p2tr {
             let secp = Secp256k1::new();
-            let keypair = KeyPair::new(&secp, &mut rand::thread_rng());
+            let keypair = Keypair::new(&secp, &mut rand::thread_rng());
             let internal_key = XOnlyPublicKey::from_keypair(&keypair);
-            ScriptBuf::new_v1_p2tr(&secp, internal_key.0, None)
+            ScriptBuf::new_p2tr(&secp, internal_key.0, None)
           } else {
-            ScriptBuf::new_v0_p2wpkh(&WPubkeyHash::all_zeros())
+            ScriptBuf::new_p2wpkh(&WPubkeyHash::all_zeros())
           },
         })
         .collect(),
@@ -248,13 +254,13 @@ impl State {
       tx.output.insert(
         template.op_return_index.unwrap_or(tx.output.len()),
         TxOut {
-          value: template.op_return_value.unwrap_or_default(),
+          value: Amount::from_sat(template.op_return_value.unwrap_or_default()),
           script_pubkey,
         },
       );
     }
 
-    let txid = tx.txid();
+    let txid = tx.compute_txid();
 
     self.mempool.push(tx);
 
