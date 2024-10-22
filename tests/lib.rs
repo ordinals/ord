@@ -10,8 +10,8 @@ use {
   executable_path::executable_path,
   mockcore::TransactionTemplate,
   ord::{
-    api, chain::Chain, decimal::Decimal, outgoing::Outgoing, subcommand::runes::RuneInfo,
-    wallet::batch, wallet::ListDescriptorsResult, InscriptionId, RuneEntry,
+    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, wallet::batch,
+    wallet::ListDescriptorsResult, InscriptionId, RuneEntry,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
@@ -327,6 +327,11 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     mint_definition.push("<dt>mintable</dt>".into());
     mint_definition.push(format!("<dd>{mintable}</dd>"));
 
+    if terms.cap > 0 {
+      mint_definition.push("<dt>progress</dt>".into());
+      mint_definition.push("<dd>0%</dd>".into());
+    }
+
     mint_definition.push("</dl>".into());
     mint_definition.push("</dd>".into());
   } else {
@@ -334,14 +339,6 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   }
 
   let RuneId { block, tx } = id;
-
-  let supply_int = supply.to_integer(divisibility).unwrap();
-  let premine_int = premine.to_integer(divisibility).unwrap();
-
-  let mint_progress = Decimal {
-    value: ((premine_int as f64 / supply_int as f64) * 10000.0) as u128,
-    scale: 2,
-  };
 
   ord.assert_response_regex(
     format!("/rune/{rune}"),
@@ -356,8 +353,6 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   {}
   <dt>supply</dt>
   <dd>{premine} {symbol}</dd>
-  <dt>mint progress</dt>
-  <dd>{mint_progress}%</dd>
   <dt>premine</dt>
   <dd>{premine} {symbol}</dd>
   <dt>premine percentage</dt>
