@@ -11,7 +11,8 @@ By default, the `ord server` gives access to endpoints that return JSON instead 
  </summary>
 
 ### Description
-List all assets of an address
+List all assets of an address. Requires index with `--index-addresses` flag. 
+
 
 ### Example
 ```bash
@@ -89,7 +90,10 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-List all cardinal outputs of an address
+List all cardinal outputs of an address. Requires index with `--index-addresses` flag. 
+
+### Required index flag
+`--index-addresses` (Track unspent output addresses.)
 
 ### Example
 <i>example to be provided once code is merged, see [3979](https://github.com/ordinals/ord/pull/3979)</i>
@@ -1788,7 +1792,11 @@ curl -s -X POST \
 
 ### Description
 
-Returns details about the specified rune.
+Returns details about the specified rune. Requires index with `--index-runes` flag.
+
+### Required index flag
+
+`--index-runes` (Track location of runes.)
 
 ### Example
 
@@ -1838,7 +1846,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Returns details for last 100 inscribed runes.
+Returns details for last 100 inscribed runes.  Requires index with `--index-runes` flag.
 
 ### Example
 
@@ -4828,7 +4836,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Returns details about a specific satoshi.
+Returns details about a specific satoshi.  Requires index with `--index-sats` flag. 
 
 ### Example
 

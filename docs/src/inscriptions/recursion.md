@@ -39,7 +39,7 @@ Recursion has a number of interesting use-cases:
  </summary>
 
 ### Description
-the content of the inscription with `<INSCRIPTION_ID>`
+The content of the inscription with `<INSCRIPTION_ID>`
 
 ### Example
 ```bash
@@ -56,7 +56,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-latest block hash in text.
+Latest block hash in text.
 
 ### Example
 ```bash
@@ -75,7 +75,7 @@ curl -s  \
  </summary>
 
 ### Description
-block hash at given block height in text.
+Block hash at given block height in text.
 
 ### Example
 ```bash
@@ -94,7 +94,7 @@ curl -s  \
  </summary>
 
 ### Description
-latest block height in text.
+Latest block height in text.
 
 ### Example
 ```bash
@@ -113,7 +113,7 @@ curl -s  \
  </summary>
 
 ### Description
-block info. `<QUERY>` may be a block height or block hash.
+Block info. `<QUERY>` may be a block height or block hash.
 
 ### Example (blockheight)
 ```bash
@@ -232,7 +232,7 @@ curl -s  \
  </summary>
 
 ### Description
-the first 100 child inscription ids.
+The first 100 child inscription ids.
 
 ### Example
 ```bash
@@ -356,7 +356,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-the set of 100 child inscription ids on `<PAGE>`.
+The set of 100 child inscription ids on `<PAGE>`.
 
 ### Example
 ```bash
@@ -480,7 +480,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-details of the first 100 child inscriptions.
+Details of the first 100 child inscriptions.
 
 ### Example
 ```bash
@@ -1802,7 +1802,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-details of the set of 100 child inscriptions on <PAGE>.
+Details of the set of 100 child inscriptions on <PAGE>.
 
 ### Example
 ```bash
@@ -3125,7 +3125,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-information about an inscription.
+Information about an inscription.
 
 ### Example
 ```bash
@@ -3180,7 +3180,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-the first 100 parent inscription ids.
+The first 100 parent inscription ids.
 
 ### Example
 ```bash
@@ -3205,7 +3205,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-the set of 100 parent inscription ids on `<PAGE>`.
+The set of 100 parent inscription ids on `<PAGE>`.
 
 ### Example
 ```bash
@@ -3228,7 +3228,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-the first 100 inscription ids on a sat. requires sat index. 
+The first 100 inscription ids on a sat. Requires index with `--index-sats` flag. 
 
 ### Example
 ```bash
@@ -3256,7 +3256,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-the set of 100 inscription ids on `<PAGE>`. requires sat index. 
+The set of 100 inscription ids on `<PAGE>`. Requires index with `--index-sats` flag. 
 
 ### Example
 ```bash
@@ -3291,7 +3291,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-the inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. requires sat index. 
+The inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. Requires index with `--index-sats` flag. 
 
 ### Example
 ```bash
