@@ -1,6 +1,28 @@
 Changelog
 =========
 
+[0.21.1](https://github.com/ordinals/ord/releases/tag/0.21.1) - 2024-10-20
+--------------------------------------------------------------------------
+
+### Fixed
+- Revert redb to 2.1.3 ([#4003](https://github.com/ordinals/ord/pull/4003) by [raphjaph](https://github.com/raphjaph))
+
+### Changed
+- Remove /runes/balances API endpoint ([#3980](https://github.com/ordinals/ord/pull/3980) by [lifofifoX](https://github.com/lifofifoX))
+
+### Misc
+- Update rust-bitcoin in ord ([#3962](https://github.com/ordinals/ord/pull/3962) by [raphjaph](https://github.com/raphjaph))
+
+[0.21.0](https://github.com/ordinals/ord/releases/tag/0.21.0) - 2024-10-11
+--------------------------------------------------------------------------
+
+### Added
+- Add `ord verify` ([#3906](https://github.com/ordinals/ord/pull/3906) by [raphjaph](https://github.com/raphjaph))
+
+### Misc
+- Remove regtest.ordinals.net just recipes ([#3978](https://github.com/ordinals/ord/pull/3978) by [casey](https://github.com/casey))
+- Refactor burn command ([#3976](https://github.com/ordinals/ord/pull/3976) by [casey](https://github.com/casey))
+
 [0.20.1](https://github.com/ordinals/ord/releases/tag/0.20.1) - 2024-10-03
 --------------------------------------------------------------------------
 

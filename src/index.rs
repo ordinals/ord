@@ -50,7 +50,7 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 28;
+const SCHEMA_VERSION: u64 = 29;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
@@ -440,7 +440,7 @@ impl Index {
     };
 
     Ok(Self {
-      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
+      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.compute_txid(),
       client,
       database,
       durability,
@@ -505,7 +505,7 @@ impl Index {
     self.index_sats
   }
 
-  pub fn status(&self) -> Result<StatusHtml> {
+  pub fn status(&self, json_api: bool) -> Result<StatusHtml> {
     let rtx = self.database.begin_read()?;
 
     let statistic_to_count = rtx.open_table(STATISTIC_TO_COUNT)?;
@@ -541,6 +541,7 @@ impl Index {
       initial_sync_time: Duration::from_micros(initial_sync_time),
       inscription_index: self.has_inscription_index(),
       inscriptions: blessed_inscriptions + cursed_inscriptions,
+      json_api,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
         self.settings.chain().network(),
@@ -2121,7 +2122,7 @@ impl Index {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp.into()).timestamp(),
-        value: output.as_ref().map(|o| o.value),
+        value: output.as_ref().map(|o| o.value.to_sat()),
       },
       output,
       inscription,
@@ -2343,7 +2344,7 @@ impl Index {
       indexed = true;
 
       TxOut {
-        value,
+        value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
       }
     } else {
@@ -2528,7 +2529,7 @@ mod tests {
   #[test]
   fn list_second_coinbase_transaction() {
     let context = Context::builder().arg("--index-sats").build();
-    let txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       &[(50 * COIN_VALUE, 100 * COIN_VALUE)],
@@ -2596,7 +2597,7 @@ mod tests {
       ..default()
     };
     let txid = context.core.broadcast_tx(fee_paying_tx);
-    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -2636,7 +2637,7 @@ mod tests {
     context.core.broadcast_tx(first_fee_paying_tx);
     context.core.broadcast_tx(second_fee_paying_tx);
 
-    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
     assert_eq!(
       context
@@ -2708,7 +2709,7 @@ mod tests {
       ..default()
     });
     context.mine_blocks(1);
-    let txid = context.core.tx(1, 0).txid();
+    let txid = context.core.tx(1, 0).compute_txid();
     assert_matches!(context.index.list(OutPoint::new(txid, 0)).unwrap(), None);
   }
 
@@ -2766,7 +2767,7 @@ mod tests {
       context.index.find(Sat(50 * COIN_VALUE)).unwrap().unwrap(),
       SatPoint {
         outpoint: OutPoint {
-          txid: tx.txid(),
+          txid: tx.compute_txid(),
           vout: 0,
         },
         offset: 0,
@@ -3049,7 +3050,7 @@ mod tests {
         ..default()
       });
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -3084,7 +3085,7 @@ mod tests {
         ..default()
       });
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -3112,7 +3113,7 @@ mod tests {
       });
       let inscription_id = InscriptionId { txid, index: 0 };
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -5914,7 +5915,7 @@ mod tests {
         inscription_id,
         SatPoint {
           outpoint: OutPoint {
-            txid: blocks[0].txdata[0].txid(),
+            txid: blocks[0].txdata[0].compute_txid(),
             vout: 0,
           },
           offset: 50 * COIN_VALUE,
@@ -5945,7 +5946,7 @@ mod tests {
         inscription_id,
         SatPoint {
           outpoint: OutPoint {
-            txid: blocks[0].txdata[0].txid(),
+            txid: blocks[0].txdata[0].compute_txid(),
             vout: 0,
           },
           offset: 50 * COIN_VALUE,
@@ -6193,7 +6194,7 @@ mod tests {
     assert!(!context
       .index
       .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6208,7 +6209,7 @@ mod tests {
     assert!(context
       .index
       .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6233,7 +6234,7 @@ mod tests {
     assert!(context
       .index
       .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6241,7 +6242,7 @@ mod tests {
     assert!(!context
       .index
       .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 1,
       })
       .unwrap());
@@ -6282,7 +6283,7 @@ mod tests {
       .unwrap();
 
     let first_address_second_output = OutPoint {
-      txid: transaction.txid(),
+      txid: transaction.compute_txid(),
       vout: 1,
     };
 
@@ -6290,7 +6291,7 @@ mod tests {
       context.index.get_address_info(&first_address).unwrap(),
       [
         OutPoint {
-          txid: transaction.txid(),
+          txid: transaction.compute_txid(),
           vout: 0
         },
         first_address_second_output
@@ -6322,7 +6323,7 @@ mod tests {
     assert_eq!(
       context.index.get_address_info(&second_address).unwrap(),
       [OutPoint {
-        txid: transaction.txid(),
+        txid: transaction.compute_txid(),
         vout: 0
       }]
     );
@@ -6674,17 +6675,5 @@ mod tests {
     // good error messages in older versions, the schema statistic key must be
     // zero
     assert_eq!(Statistic::Schema.key(), 0);
-  }
-
-  #[test]
-  fn reminder_to_update_utxo_entry_type_name() {
-    // This test will break when the schema version is updated, and is a
-    // reminder to fix the type name in `impl redb::Value for &UtxoEntry`.
-    //
-    // The type name should be changed from `ord::index::utxo_entry::UtxoValue`
-    // to `ord::UtxoEntry`. I think it's probably best if we just name types
-    // `ord::NAME`, instead of including the full path, since the full path
-    // will change if we reorganize the code.
-    assert_eq!(SCHEMA_VERSION, 28);
   }
 }
