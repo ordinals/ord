@@ -64,6 +64,44 @@ fn address_page_shows_outputs_and_sat_balance() {
 }
 
 #[test]
+fn address_recursive_shows_outputs_and_sat_balance() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn_with_args(&core, &["--index-addresses"]);
+
+  create_wallet(&core, &ord);
+  core.mine_blocks(1);
+
+  let address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4";
+
+  let send = CommandBuilder::new(format!("wallet send --fee-rate 8.8 {address} 2btc"))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+  use serde_json::json;
+
+  let response = ord.request(format!("/r/address/{address}"));
+  println!("Response: {:?}", response.text().unwrap());
+
+  let expected_json = json!({
+      "outputs": [      OutPoint {
+        txid: send.txid,
+        vout: 0
+      }],
+      "inscriptions": [],
+      "sat_balance": 200000000,
+      "runes_balances": []
+  })
+  .to_string();
+
+  ord.assert_response_regex(
+    format!("/r/address/{address}"),
+    regex::escape(&expected_json),
+  );
+}
+
+#[test]
 fn address_page_shows_single_rune() {
   let core = mockcore::builder().network(Network::Regtest).build();
   let ord =
@@ -90,6 +128,33 @@ fn address_page_shows_single_rune() {
     format!("/address/{address}"),
     format!(".*<dd>.*{}.*: 1000¢</dd>.*", Rune(RUNE)),
   );
+}
+#[test]
+fn address_recursive_shows_single_rune() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+  let ord =
+    TestServer::spawn_with_args(&core, &["--index-runes", "--index-addresses", "--regtest"]);
+
+  create_wallet(&core, &ord);
+
+  etch(&core, &ord, Rune(RUNE));
+
+  let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 8.8 {address} 1000:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<Output>();
+
+  core.mine_blocks(6);
+
+  let expected_regex = r#"(?s)\{"outputs":\["[^"]*"\],"inscriptions":\[\],"sat_balance":\d+,"runes_balances":\[\[\"AAAAAAAAAAAAA\",\"1000\",\"¢\"\]\]\}"#;
+
+  ord.assert_response_regex(format!("/r/address/{address}"), expected_regex);
 }
 
 #[test]
@@ -138,6 +203,45 @@ fn address_page_shows_multiple_runes() {
 }
 
 #[test]
+fn address_recursive_shows_multiple_runes() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+  let ord =
+    TestServer::spawn_with_args(&core, &["--index-runes", "--index-addresses", "--regtest"]);
+
+  create_wallet(&core, &ord);
+
+  etch(&core, &ord, Rune(RUNE));
+  etch(&core, &ord, Rune(RUNE + 1));
+
+  let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 8.8 {address} 1000:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<Output>();
+
+  core.mine_blocks(6);
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 8.8 {address} 1000:{}",
+    Rune(RUNE + 1)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<Output>();
+
+  core.mine_blocks(6);
+
+  let expected_regex = r#"(?s)\{"outputs":\["[^"]+:0","[^"]+:0"\],"inscriptions":\[\],"sat_balance":\d+,"runes_balances":\[\["AAAAAAAAAAAAA","1000","¢"\],\["AAAAAAAAAAAAB","1000","¢"\]\]\}"#;
+  ord.assert_response_regex(format!("/r/address/{address}"), expected_regex);
+}
+
+#[test]
 fn address_page_shows_aggregated_runes_balance() {
   let core = mockcore::builder().network(Network::Regtest).build();
   let ord =
@@ -175,6 +279,45 @@ fn address_page_shows_aggregated_runes_balance() {
     format!("/address/{address}"),
     format!(".*<dd>.*{}.*: 500¢</dd>.*", Rune(RUNE)),
   );
+}
+
+#[test]
+fn address_recusive_shows_aggregated_runes_balance() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+  let ord =
+    TestServer::spawn_with_args(&core, &["--index-runes", "--index-addresses", "--regtest"]);
+
+  create_wallet(&core, &ord);
+
+  etch(&core, &ord, Rune(RUNE));
+
+  let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 8.8 {address} 250:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<Output>();
+
+  core.mine_blocks(6);
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 8.8 {address} 250:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<Output>();
+
+  core.mine_blocks(6);
+
+  let expected_regex = r#"(?s)\{"outputs":\["[^"]+:2","[^"]+:2"\],"inscriptions":\[\],"sat_balance":\d+,"runes_balances":\[\["AAAAAAAAAAAAA","500","¢"\]\]\}"#;
+
+  ord.assert_response_regex(format!("/r/address/{address}"), expected_regex);
 }
 
 #[test]
@@ -222,6 +365,44 @@ fn address_page_shows_aggregated_inscriptions() {
   </dd>.*"
     ,
   );
+}
+
+#[test]
+fn address_recursive_shows_aggregated_inscriptions() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+  let ord =
+    TestServer::spawn_with_args(&core, &["--index-runes", "--index-addresses", "--regtest"]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription_id_1, _reveal) = inscribe(&core, &ord);
+
+  let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 8.8 {address} {inscription_id_1}",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<Output>();
+
+  core.mine_blocks(1);
+
+  let (inscription_id_2, _reveal) = inscribe(&core, &ord);
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 8.8 {address} {inscription_id_2}",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stdout_regex(".*")
+  .run_and_deserialize_output::<Output>();
+
+  core.mine_blocks(1);
+
+  let expected_regex = r#"(?s)\{"outputs":\["[^"]+:0","[^"]+:0"\],"inscriptions":\["[a-f0-9]{64}i\d","[a-f0-9]{64}i\d"\],"sat_balance":\d+,"runes_balances":\[\]\}"#;
+  ord.assert_response_regex(format!("/r/address/{address}"), expected_regex);
 }
 
 #[test]
