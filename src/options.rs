@@ -49,10 +49,7 @@ pub struct Options {
     help = "Set index cache size to <INDEX_CACHE_SIZE> bytes. [default: 1/4 available RAM]"
   )]
   pub(crate) index_cache_size: Option<usize>,
-  #[arg(
-    long,
-    help = "Track location of runes. RUNES ARE IN AN UNFINISHED PRE-ALPHA STATE AND SUBJECT TO CHANGE AT ANY TIME."
-  )]
+  #[arg(long, help = "Track location of runes.")]
   pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,

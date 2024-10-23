@@ -1108,9 +1108,12 @@ impl Server {
   ) -> ServerResult {
     task::block_in_place(|| {
       Ok(if accept_json {
-        Json(index.status()?).into_response()
+        Json(index.status(server_config.json_api_enabled)?).into_response()
       } else {
-        index.status()?.page(server_config).into_response()
+        index
+          .status(server_config.json_api_enabled)?
+          .page(server_config)
+          .into_response()
       })
     })
   }
@@ -3248,8 +3251,6 @@ mod tests {
   <dd>no</dd>
   <dt>supply</dt>
   <dd>340282366920938463463374607431768211455\u{A0}%</dd>
-  <dt>mint progress</dt>
-  <dd>100%</dd>
   <dt>premine</dt>
   <dd>340282366920938463463374607431768211455\u{A0}%</dd>
   <dt>premine percentage</dt>
@@ -3704,6 +3705,8 @@ mod tests {
   <dd>false</dd>
   <dt>transaction index</dt>
   <dd>false</dd>
+  <dt>json api</dt>
+  <dd>true</dd>
   <dt>git branch</dt>
   <dd>.*</dd>
   <dt>git commit</dt>
