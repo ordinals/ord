@@ -476,7 +476,7 @@ curl -s -H "Accept: application/json" \
 <details>
  <summary>
     <code>GET</code>
-    <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;inscriptions&gt;</b></code>
+    <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
  </summary>
 
 ### Description
@@ -1798,11 +1798,11 @@ curl -s -H "Accept: application/json" \
 <details>
  <summary>
     <code>GET</code>
-    <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;inscriptions&gt;/9</b></code>
+    <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
  </summary>
 
 ### Description
-Details of the set of 100 child inscriptions on <PAGE>.
+Details of the set of 100 child inscriptions on &lt;PAGE&gt;.
 
 ### Example
 ```bash
@@ -3228,7 +3228,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-The first 100 inscription ids on a sat. Requires index with `--index-sats` flag. 
+The first 100 inscription ids on a sat. Requires index with `--index-sats` flag.
 
 ### Example
 ```bash
@@ -3256,7 +3256,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-The set of 100 inscription ids on `<PAGE>`. Requires index with `--index-sats` flag. 
+The set of 100 inscription ids on `<PAGE>`. Requires index with `--index-sats` flag.
 
 ### Example
 ```bash
@@ -3291,7 +3291,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-The inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. Requires index with `--index-sats` flag. 
+The inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. Requires index with `--index-sats` flag.
 
 ### Example
 ```bash
