@@ -1778,10 +1778,6 @@ curl -s -X POST \
 
 Returns details about the specified rune. Requires index with `--index-runes` flag.
 
-### Required index flag
-
-`--index-runes` (Track location of runes.)
-
 ### Example
 
 ```bash
