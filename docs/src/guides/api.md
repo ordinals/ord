@@ -1310,6 +1310,79 @@ curl -s -H "Accept: application/json" \
 
 <details>
 <summary>
+<code>POST</code>
+<code><b>/inscription</b></code>
+</summary>
+
+### Description
+
+Fetch details about specific inscription ID's.
+
+### Example
+
+```bash
+curl -s -X POST \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '["ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi1", "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0"]' \
+  http://0.0.0.0:80/inscriptions
+```
+```json
+[
+  {
+    "address": "bc1pnhyyzpetra3zvm376ng8ncnv9phtt45fczpt7sv2eatedtjj9vjqwhj080",
+    "charms": [
+      "vindicated"
+    ],
+    "children": [],
+    "content_length": 116597,
+    "content_type": "image/avif",
+    "effective_content_type": "image/avif",
+    "fee": 1470535,
+    "height": 839704,
+    "id": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi1",
+    "next": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi2",
+    "number": 69994606,
+    "parents": [
+      "b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0"
+    ],
+    "previous": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0",
+    "rune": null,
+    "sat": null,
+    "satpoint": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527f:2:0",
+    "timestamp": 1713399652,
+    "value": 10000
+  },
+  {
+    "address": "bc1pnhyyzpetra3zvm376ng8ncnv9phtt45fczpt7sv2eatedtjj9vjqwhj080",
+    "charms": [
+      "vindicated"
+    ],
+    "children": [],
+    "content_length": 106268,
+    "content_type": "image/avif",
+    "effective_content_type": "image/avif",
+    "fee": 1470535,
+    "height": 839704,
+    "id": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0",
+    "next": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi1",
+    "number": 69994605,
+    "parents": [
+      "b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0"
+    ],
+    "previous": "e2619e0fa641ed2dfba083dc57a15ca1d3f195f15d187de353e1576a0cb6e87ci8",
+    "rune": null,
+    "sat": null,
+    "satpoint": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527f:1:0",
+    "timestamp": 1713399652,
+    "value": 10000
+  }
+]
+```
+</details>
+
+<details>
+<summary>
 <code>GET</code>
 <code><b>/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
 </summary>
