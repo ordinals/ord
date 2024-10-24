@@ -193,7 +193,7 @@ mod tests {
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
       },
-      "<h1>Sat 0</h1>.*<dt>address</dt><dd class=monospace>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</dd>.*",
+      "<h1>Sat 0</h1>.*<dt>address</dt><dd class=monospace><a href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>.*",
     );
   }
 }
