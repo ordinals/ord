@@ -27,7 +27,7 @@
   </dd>
 %% }
 %% if !self.children.is_empty() {
-  <dt>children ({{ self.child_count }})</dt>
+  <dt>children</dt>
   <dd>
     <div class=thumbnails>
 %% for id in &self.children {
@@ -35,7 +35,7 @@
 %% }
     </div>
     <div class=center>
-      <a href=/children/{{self.id}}>all</a>
+      <a href=/children/{{self.id}}>all ({{ self.child_count }})</a>
     </div>
   </dd>
 %% }

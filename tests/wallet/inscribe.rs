@@ -635,7 +635,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   ord.assert_response_regex(
     format!("/inscription/{}", child_output.parents.first().unwrap()),
     format!(
-      ".*<dt>children \\(1\\)</dt>.*<a href=/inscription/{}>.*",
+      ".*<dt>children</dt>.*<a href=/inscription/{}>.*",
       child_output.inscriptions[0].id
     ),
   );

@@ -5210,7 +5210,7 @@ next
     server.assert_response_regex(
       format!("/inscription/{parent_inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription 0</title>.*<dt>children \\(1\\)</dt>.*<a href=/inscription/{inscription_id}>.*</a>.*"),
+      format!(".*<title>Inscription 0</title>.*<dt>children</dt>.*<a href=/inscription/{inscription_id}>.*</a>.*"),
     );
 
     assert_eq!(
@@ -5377,7 +5377,7 @@ next
 .*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
 .*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
     <div class=center>
-      <a href=/children/{parent_inscription_id}>all</a>
+      <a href=/children/{parent_inscription_id}>all \\(5\\)</a>
     </div>.*"
       ),
     );

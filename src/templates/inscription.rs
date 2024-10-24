@@ -286,14 +286,14 @@ mod tests {
         <div>❯</div>
         </div>
         <dl>
-          <dt>children \\(2\\)</dt>
+          <dt>children</dt>
           <dd>
             <div class=thumbnails>
               <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
               <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
             </div>
             <div class=center>
-              <a href=/children/1{64}i1>all</a>
+              <a href=/children/1{64}i1>all \\(2\\)</a>
             </div>
           </dd>
           <dt>id</dt>
@@ -349,13 +349,13 @@ mod tests {
         <div>❯</div>
         </div>
         <dl>
-          <dt>children \\(1\\)</dt>
+          <dt>children</dt>
           <dd>
             <div class=thumbnails>
               <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
             </div>
             <div class=center>
-              <a href=/children/1{64}i1>all</a>
+              <a href=/children/1{64}i1>all \\(1\\)</a>
             </div>
           </dd>
           <dt>id</dt>
