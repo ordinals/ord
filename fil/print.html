@@ -5754,7 +5754,72 @@ OP_ENDIF
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
 </code></pre>
-<pre><code class="language-json">  {
+<pre><code class="language-json">{
+  "address": "bc1pnhyyzpetra3zvm376ng8ncnv9phtt45fczpt7sv2eatedtjj9vjqwhj080",
+  "charms": [
+    "vindicated"
+  ],
+  "children": [],
+  "content_length": 106268,
+  "content_type": "image/avif",
+  "effective_content_type": "image/avif",
+  "fee": 1470535,
+  "height": 839704,
+  "id": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0",
+  "next": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi1",
+  "number": 69994605,
+  "parents": [
+    "b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0"
+  ],
+  "previous": "e2619e0fa641ed2dfba083dc57a15ca1d3f195f15d187de353e1576a0cb6e87ci8",
+  "rune": null,
+  "sat": null,
+  "satpoint": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527f:1:0",
+  "timestamp": 1713399652,
+  "value": 10000
+}
+</code></pre>
+</details>
+<details>
+<summary>
+<code>POST</code>
+<code><b>/inscriptions</b></code>
+</summary>
+<h3 id="description-29"><a class="header" href="#description-29">Description</a></h3>
+<p>Fetch details for a list of inscription IDs.</p>
+<h3 id="halimbawa-31"><a class="header" href="#halimbawa-31">Halimbawa</a></h3>
+<pre><code class="language-bash">curl -s -X POST \
+  -H "Accept: application/json" \
+  -H "Content-Type: application/json" \
+  -d '["ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi1", "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0"]' \
+  http://0.0.0.0:80/inscriptions
+</code></pre>
+<pre><code class="language-json">[
+  {
+    "address": "bc1pnhyyzpetra3zvm376ng8ncnv9phtt45fczpt7sv2eatedtjj9vjqwhj080",
+    "charms": [
+      "vindicated"
+    ],
+    "children": [],
+    "content_length": 116597,
+    "content_type": "image/avif",
+    "effective_content_type": "image/avif",
+    "fee": 1470535,
+    "height": 839704,
+    "id": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi1",
+    "next": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi2",
+    "number": 69994606,
+    "parents": [
+      "b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0"
+    ],
+    "previous": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0",
+    "rune": null,
+    "sat": null,
+    "satpoint": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527f:2:0",
+    "timestamp": 1713399652,
+    "value": 10000
+  },
+  {
     "address": "bc1pnhyyzpetra3zvm376ng8ncnv9phtt45fczpt7sv2eatedtjj9vjqwhj080",
     "charms": [
       "vindicated"
@@ -5778,16 +5843,17 @@ OP_ENDIF
     "timestamp": 1713399652,
     "value": 10000
   }
+]
 </code></pre>
-  </details>
+</details>
 <details>
 <summary>
 <code>GET</code>
 <code><b>/inscriptions</b></code>
 </summary>
-<h3 id="description-29"><a class="header" href="#description-29">Description</a></h3>
+<h3 id="description-30"><a class="header" href="#description-30">Description</a></h3>
 <p>Get a list of the latest 100 inscriptions.</p>
-<h3 id="halimbawa-31"><a class="header" href="#halimbawa-31">Halimbawa</a></h3>
+<h3 id="halimbawa-32"><a class="header" href="#halimbawa-32">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions
 </code></pre>
@@ -5904,9 +5970,9 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/inscriptions/&lt;PAGE&gt;</b></code>
 </summary>
-<h3 id="description-30"><a class="header" href="#description-30">Description</a></h3>
+<h3 id="description-31"><a class="header" href="#description-31">Description</a></h3>
 <p>Pagination allows you to choose which page of 100 inscriptions to return.</p>
-<h3 id="halimbawa-32"><a class="header" href="#halimbawa-32">Halimbawa</a></h3>
+<h3 id="halimbawa-33"><a class="header" href="#halimbawa-33">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions/9
 </code></pre>
@@ -6023,9 +6089,9 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/inscriptions/block/&lt;BLOCKHEIGHT&gt;</b></code>
 </summary>
-<h3 id="description-31"><a class="header" href="#description-31">Description</a></h3>
+<h3 id="description-32"><a class="header" href="#description-32">Description</a></h3>
 <p>Get inscriptions for a specific block.</p>
-<h3 id="halimbawa-33"><a class="header" href="#halimbawa-33">Halimbawa</a></h3>
+<h3 id="halimbawa-34"><a class="header" href="#halimbawa-34">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions/block/767430
 </code></pre>
@@ -6043,9 +6109,9 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/install.sh</b></code>
 </summary>
-<h3 id="description-32"><a class="header" href="#description-32">Description</a></h3>
+<h3 id="description-33"><a class="header" href="#description-33">Description</a></h3>
 <p>Installs the latest pre-built binary of <code>ord</code></p>
-<h3 id="halimbawa-34"><a class="header" href="#halimbawa-34">Halimbawa</a></h3>
+<h3 id="halimbawa-35"><a class="header" href="#halimbawa-35">Halimbawa</a></h3>
 <p>see <a href="guides/wallet.html#installing-ord">wallet.md</a></p>
 </details>
 <details>
@@ -6053,9 +6119,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/output/&lt;OUTPOINT&gt;</b></code>
  </summary>
-<h3 id="description-33"><a class="header" href="#description-33">Description</a></h3>
+<h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
 <p>Returns information about a UTXO, including inscriptions within it.</p>
-<h3 id="halimbawa-35"><a class="header" href="#halimbawa-35">Halimbawa</a></h3>
+<h3 id="halimbawa-36"><a class="header" href="#halimbawa-36">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
 </code></pre>
@@ -6077,9 +6143,9 @@ OP_ENDIF
     <code>POST</code>
     <code><b>/outputs</b></code>
  </summary>
-<h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
+<h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
 <p>List information from a list of outputs</p>
-<h3 id="halimbawa-36"><a class="header" href="#halimbawa-36">Halimbawa</a></h3>
+<h3 id="halimbawa-37"><a class="header" href="#halimbawa-37">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -6117,9 +6183,9 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/rune/&lt;RUNE&gt;</b></code>
 </summary>
-<h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
+<h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
 <p>Returns details about the specified rune. Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="halimbawa-37"><a class="header" href="#halimbawa-37">Halimbawa</a></h3>
+<h3 id="halimbawa-38"><a class="header" href="#halimbawa-38">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://localhost/rune/UNCOMMONGOODS
 </code></pre>
@@ -6160,9 +6226,9 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/runes</b></code>
 </summary>
-<h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
+<h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
 <p>Returns details for last 100 inscribed runes.  Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="halimbawa-38"><a class="header" href="#halimbawa-38">Halimbawa</a></h3>
+<h3 id="halimbawa-39"><a class="header" href="#halimbawa-39">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   'http://localhost/runes
 </code></pre>
@@ -7650,7 +7716,7 @@ OP_ENDIF
 </summary>
 <h3 id="descripion"><a class="header" href="#descripion">Descripion</a></h3>
 <p>Pagination allows you to specify which page of 100 runes you'd like to return.</p>
-<h3 id="halimbawa-39"><a class="header" href="#halimbawa-39">Halimbawa</a></h3>
+<h3 id="halimbawa-40"><a class="header" href="#halimbawa-40">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://localhost/runes/0
 </code></pre>
@@ -9136,9 +9202,9 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/sat/&lt;SAT&gt;</b></code>
 </summary>
-<h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
+<h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
 <p>Returns details about a specific satoshi.  Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="halimbawa-40"><a class="header" href="#halimbawa-40">Halimbawa</a></h3>
+<h3 id="halimbawa-41"><a class="header" href="#halimbawa-41">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/sat/2099994106992659
 </code></pre>
@@ -9166,9 +9232,9 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/status</b></code>
 </summary>
-<h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
+<h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
 <p>Returns details about the server installation and index.</p>
-<h3 id="halimbawa-41"><a class="header" href="#halimbawa-41">Halimbawa</a></h3>
+<h3 id="halimbawa-42"><a class="header" href="#halimbawa-42">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/status
 </code></pre>
@@ -9203,9 +9269,9 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/tx/&lt;TRANSACTION_ID&gt;</b></code>
 </summary>
-<h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
+<h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
 <p>Returns details about the specified transaction.</p>
-<h3 id="halimbawa-42"><a class="header" href="#halimbawa-42">Halimbawa</a></h3>
+<h3 id="halimbawa-43"><a class="header" href="#halimbawa-43">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
 </code></pre>
@@ -9246,9 +9312,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/content/&lt;INSCRIPTION_ID&gt;</b></code>
  </summary>
-<h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
+<h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
 <p>The content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code></p>
-<h3 id="halimbawa-43"><a class="header" href="#halimbawa-43">Halimbawa</a></h3>
+<h3 id="halimbawa-44"><a class="header" href="#halimbawa-44">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 &gt; skull.jpg
 </code></pre>
@@ -9259,9 +9325,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/blockhash</b></code>
  </summary>
-<h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
+<h3 id="description-42"><a class="header" href="#description-42">Description</a></h3>
 <p>Latest block hash in text.</p>
-<h3 id="halimbawa-44"><a class="header" href="#halimbawa-44">Halimbawa</a></h3>
+<h3 id="halimbawa-45"><a class="header" href="#halimbawa-45">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash
 </code></pre>
@@ -9273,9 +9339,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/blockhash/&lt;HEIGHT&gt;</b></code>
  </summary>
-<h3 id="description-42"><a class="header" href="#description-42">Description</a></h3>
+<h3 id="description-43"><a class="header" href="#description-43">Description</a></h3>
 <p>Block hash at given block height in text.</p>
-<h3 id="halimbawa-45"><a class="header" href="#halimbawa-45">Halimbawa</a></h3>
+<h3 id="halimbawa-46"><a class="header" href="#halimbawa-46">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash/840000
 </code></pre>
@@ -9287,9 +9353,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/blockheight</b></code>
  </summary>
-<h3 id="description-43"><a class="header" href="#description-43">Description</a></h3>
+<h3 id="description-44"><a class="header" href="#description-44">Description</a></h3>
 <p>Latest block height in text.</p>
-<h3 id="halimbawa-46"><a class="header" href="#halimbawa-46">Halimbawa</a></h3>
+<h3 id="halimbawa-47"><a class="header" href="#halimbawa-47">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockheight
 </code></pre>
@@ -9301,7 +9367,7 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/blockinfo/&lt;QUERY&gt;</b></code>
  </summary>
-<h3 id="description-44"><a class="header" href="#description-44">Description</a></h3>
+<h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
 <p>Block info. <code>&lt;QUERY&gt;</code> may be a block height or block hash.</p>
 <h3 id="example-blockheight-1"><a class="header" href="#example-blockheight-1">Example (blockheight)</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -9394,9 +9460,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/blocktime</b></code>
  </summary>
-<h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
+<h3 id="description-46"><a class="header" href="#description-46">Description</a></h3>
 <p>UNIX time stamp of latest block in text.</p>
-<h3 id="halimbawa-47"><a class="header" href="#halimbawa-47">Halimbawa</a></h3>
+<h3 id="halimbawa-48"><a class="header" href="#halimbawa-48">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blocktime
 </code></pre>
@@ -9408,9 +9474,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;</b></code>
  </summary>
-<h3 id="description-46"><a class="header" href="#description-46">Description</a></h3>
+<h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
 <p>The first 100 child inscription ids.</p>
-<h3 id="halimbawa-48"><a class="header" href="#halimbawa-48">Halimbawa</a></h3>
+<h3 id="halimbawa-49"><a class="header" href="#halimbawa-49">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0
 </code></pre>
@@ -9527,9 +9593,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
  </summary>
-<h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
+<h3 id="description-48"><a class="header" href="#description-48">Description</a></h3>
 <p>The set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</p>
-<h3 id="halimbawa-49"><a class="header" href="#halimbawa-49">Halimbawa</a></h3>
+<h3 id="halimbawa-50"><a class="header" href="#halimbawa-50">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/9
 </code></pre>
@@ -9646,9 +9712,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
  </summary>
-<h3 id="description-48"><a class="header" href="#description-48">Description</a></h3>
+<h3 id="description-49"><a class="header" href="#description-49">Description</a></h3>
 <p>Details of the first 100 child inscriptions.</p>
-<h3 id="halimbawa-50"><a class="header" href="#halimbawa-50">Halimbawa</a></h3>
+<h3 id="halimbawa-51"><a class="header" href="#halimbawa-51">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions
 </code></pre>
@@ -10963,9 +11029,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
  </summary>
-<h3 id="description-49"><a class="header" href="#description-49">Description</a></h3>
+<h3 id="description-50"><a class="header" href="#description-50">Description</a></h3>
 <p>Details of the set of 100 child inscriptions on &lt;PAGE&gt;.</p>
-<h3 id="halimbawa-51"><a class="header" href="#halimbawa-51">Halimbawa</a></h3>
+<h3 id="halimbawa-52"><a class="header" href="#halimbawa-52">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions/9
 </code></pre>
@@ -12281,9 +12347,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
  </summary>
-<h3 id="description-50"><a class="header" href="#description-50">Description</a></h3>
+<h3 id="description-51"><a class="header" href="#description-51">Description</a></h3>
 <p>Information about an inscription.</p>
-<h3 id="halimbawa-52"><a class="header" href="#halimbawa-52">Halimbawa</a></h3>
+<h3 id="halimbawa-53"><a class="header" href="#halimbawa-53">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/inscriptions/13130e4b299ed361f2a734f6433844ef0f0211cd504e0ca8f4d4ab20f51b8127i0
 </code></pre>
@@ -12312,9 +12378,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/metadata/&lt;INSCRIPTION_ID&gt;</b></code>
  </summary>
-<h3 id="description-51"><a class="header" href="#description-51">Description</a></h3>
+<h3 id="description-52"><a class="header" href="#description-52">Description</a></h3>
 <p>JSON string containing the hex-encoded CBOR metadata.</p>
-<h3 id="halimbawa-53"><a class="header" href="#halimbawa-53">Halimbawa</a></h3>
+<h3 id="halimbawa-54"><a class="header" href="#halimbawa-54">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/metadata/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
@@ -12326,9 +12392,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;</b></code>
  </summary>
-<h3 id="description-52"><a class="header" href="#description-52">Description</a></h3>
+<h3 id="description-53"><a class="header" href="#description-53">Description</a></h3>
 <p>The first 100 parent inscription ids.</p>
-<h3 id="halimbawa-54"><a class="header" href="#halimbawa-54">Halimbawa</a></h3>
+<h3 id="halimbawa-55"><a class="header" href="#halimbawa-55">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
@@ -12346,9 +12412,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
  </summary>
-<h3 id="description-53"><a class="header" href="#description-53">Description</a></h3>
+<h3 id="description-54"><a class="header" href="#description-54">Description</a></h3>
 <p>The set of 100 parent inscription ids on <code>&lt;PAGE&gt;</code>.</p>
-<h3 id="halimbawa-55"><a class="header" href="#halimbawa-55">Halimbawa</a></h3>
+<h3 id="halimbawa-56"><a class="header" href="#halimbawa-56">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/9
 </code></pre>
@@ -12364,9 +12430,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;</b></code>
  </summary>
-<h3 id="description-54"><a class="header" href="#description-54">Description</a></h3>
+<h3 id="description-55"><a class="header" href="#description-55">Description</a></h3>
 <p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="halimbawa-56"><a class="header" href="#halimbawa-56">Halimbawa</a></h3>
+<h3 id="halimbawa-57"><a class="header" href="#halimbawa-57">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/sat/153899938226999
 </code></pre>
@@ -12387,9 +12453,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/&lt;PAGE&gt;</b></code>
  </summary>
-<h3 id="description-55"><a class="header" href="#description-55">Description</a></h3>
+<h3 id="description-56"><a class="header" href="#description-56">Description</a></h3>
 <p>The set of 100 inscription ids on <code>&lt;PAGE&gt;</code>. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="halimbawa-57"><a class="header" href="#halimbawa-57">Halimbawa</a></h3>
+<h3 id="halimbawa-58"><a class="header" href="#halimbawa-58">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/sat/1499676120331756/1
 </code></pre>
@@ -12417,9 +12483,9 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;</b></code>
  </summary>
-<h3 id="description-56"><a class="header" href="#description-56">Description</a></h3>
+<h3 id="description-57"><a class="header" href="#description-57">Description</a></h3>
 <p>The inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="halimbawa-58"><a class="header" href="#halimbawa-58">Halimbawa</a></h3>
+<h3 id="halimbawa-59"><a class="header" href="#halimbawa-59">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/sat/153899938226999/at/-1
 </code></pre>
@@ -13134,7 +13200,7 @@ server_username: foo
 <p>Teleburn addresses are derived from inscription IDs. They have no corresponding private key, so assets sent to a teleburn address are burned. Currently, only Ethereum teleburn addresses are supported. Pull requests adding teleburn addresses for other chains are welcome.</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>Ethereum teleburn addresses are derived by taking the first 20 bytes of the SHA-256 hash of the inscription ID, serialized as 36 bytes, with the first 32 bytes containing the transaction ID, and the last four bytes containing big-endian inscription index, and interpreting it as an Ethereum address.</p>
-<h2 id="halimbawa-59"><a class="header" href="#halimbawa-59">Halimbawa</a></h2>
+<h2 id="halimbawa-60"><a class="header" href="#halimbawa-60">Halimbawa</a></h2>
 <p>The ENS domain name <a href="https://app.ens.domains/rodarmor.eth">rodarmor.eth</a>, was teleburned to <a href="https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0">inscription zero</a>.</p>
 <p>The inscription ID of inscription zero is <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
 <p>Passing <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code> to the teleburn command:</p>
@@ -13175,7 +13241,7 @@ $ord outputs
 </tbody></table>
 </div>
 <p>Regtest doesn't require downloading the blockchain since you create your own private blockchain, so indexing <code>ord</code> is almost instantaneous.</p>
-<h2 id="halimbawa-60"><a class="header" href="#halimbawa-60">Halimbawa</a></h2>
+<h2 id="halimbawa-61"><a class="header" href="#halimbawa-61">Halimbawa</a></h2>
 <p>Run <code>bitcoind</code> in regtest with:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
