@@ -269,7 +269,7 @@ mod tests {
   fn with_children() {
     assert_regex_match!(
       InscriptionHtml {
-        child_count: 2, // note that there is no invariant enforcement for accuracy
+        child_count: 2,
         children: vec![inscription_id(2), inscription_id(3)],
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -332,7 +332,7 @@ mod tests {
   fn with_paginated_children() {
     assert_regex_match!(
       InscriptionHtml {
-        child_count: 1, // note that there is no invariant enforcement for accuracy
+        child_count: 1,
         children: vec![inscription_id(2)],
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
