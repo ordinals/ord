@@ -12,7 +12,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut addresses: BTreeMap<Address, api::AddressInfo> = BTreeMap::new();
 
   let mut inscriptions = BTreeMap::new();
-  for (satpoint, satpoint_inscriptions) in wallet.inscriptions().into_iter() {
+  for (satpoint, satpoint_inscriptions) in wallet.inscriptions().iter() {
     inscriptions
       .entry(satpoint.outpoint)
       .and_modify(|e: &mut Vec<_>| e.extend(satpoint_inscriptions))
