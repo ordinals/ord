@@ -11,7 +11,7 @@ By default, the `ord server` gives access to endpoints that return JSON instead 
  </summary>
 
 ### Description
-List all assets of an address. Requires index with `--index-addresses` flag. 
+List all assets of an address. Requires index with `--index-addresses` flag.
 
 
 ### Example
@@ -81,22 +81,6 @@ curl -s -H "Accept: application/json" \
   ]
 }
 ```
-</details>
-
-<details>
- <summary>
-    <code>GET</code>
-    <code><b>/address/&lt;ADDRESS&gt;/cardinals</b></code>
- </summary>
-
-### Description
-List all cardinal outputs of an address. Requires index with `--index-addresses` flag. 
-
-### Required index flag
-`--index-addresses` (Track unspent output addresses.)
-
-### Example
-<i>example to be provided once code is merged, see [3979](https://github.com/ordinals/ord/pull/3979)</i>
 </details>
 
 <details>
@@ -200,7 +184,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Returns the hieight of the latest block.
+Returns the height of the latest block.
 
 ### Example
 
@@ -238,7 +222,7 @@ curl -s -H "Accept: application/json" \
    <summary>
       <code>GET</code>
       <code><b>/blockhash/&lt;BLOCKHEIGHT&gt;</b></code>
-      &emsp;&emsp;&emsp; 
+      &emsp;&emsp;&emsp;
    </summary>
 
 ### Description
@@ -3339,7 +3323,7 @@ curl -s -H "Accept: application/json" \
 <code><b>/runes/&lt;PAGE&gt;</b></code>
 </summary>
 
-### Descripion 
+### Descripion
 
 Pagination allows you to specify which page of 100 runes you'd like to return.
 
@@ -4836,7 +4820,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Returns details about a specific satoshi.  Requires index with `--index-sats` flag. 
+Returns details about a specific satoshi.  Requires index with `--index-sats` flag.
 
 ### Example
 
@@ -4956,3 +4940,9 @@ curl -s -H "Accept: application/json" \
   }
   ```
 </details>
+
+## Recursive Endpoints
+
+See [Recursion](../inscriptions/recursion.md) for an explanation of these.
+
+{{#include ../inscriptions/recursion.md:35:3306}}
