@@ -2037,7 +2037,9 @@ impl Index {
     let all_children = rtx
       .open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?
       .get(sequence_number)?;
+
     let child_count = all_children.len();
+
     let children = all_children
       .take(4)
       .map(|result| {
