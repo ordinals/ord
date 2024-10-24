@@ -1316,7 +1316,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Fetch details about specific inscription ID's.
+Fetch details for a list of inscription IDs.
 
 ### Example
 
