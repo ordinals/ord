@@ -32,6 +32,13 @@ When you're ready to get your hands dirty, a good place to start is with
 [inscriptions](guides/wallet.md), a curious species of digital artifact
 enabled by ordinal theory.
 
+
+Authors
+-------
+
+- [Casey Rodarmor](https://github.com/casey)
+- [Raph Japh](https://github.com/raphjaph)
+
 Links
 -----
 
