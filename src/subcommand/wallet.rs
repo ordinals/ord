@@ -23,6 +23,7 @@ pub mod runics;
 pub mod sats;
 pub mod send;
 mod shared_args;
+mod split;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
@@ -79,6 +80,8 @@ pub(crate) enum Subcommand {
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
   Send(send::Send),
+  #[command(about = "Split sats and runes")]
+  Split(split::Split),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
 }
@@ -123,6 +126,7 @@ impl WalletCommand {
       Subcommand::Runics => runics::run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
+      Subcommand::Split(split) => split.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
     }
   }
