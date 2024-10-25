@@ -6,7 +6,7 @@ pub(crate) struct Outputs {
   ranges: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize)]
 pub struct Output {
   pub output: OutPoint,
   #[serde(skip_serializing_if = "Option::is_none")]
