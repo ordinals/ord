@@ -9,7 +9,6 @@ repository = "https://github.com/ordinals/ord/crates/mockcore"
 
 [dependencies]
 base64 = "0.22.0"
-bip322 = "0.0.8"
 bitcoin = { version = "0.32.3", features = ["serde", "rand"] }
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"
