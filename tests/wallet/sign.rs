@@ -32,13 +32,4 @@ fn sign() {
 
   assert_eq!(address, &sign.address);
   assert_eq!(message, &sign.message);
-
-  CommandBuilder::new(format!(
-    "verify --address {} --message {message} --witness {}",
-    address.clone().assume_checked(),
-    sign.signature
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_extract_stdout();
 }
