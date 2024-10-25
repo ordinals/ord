@@ -135,8 +135,6 @@ fn outputs_includes_runes_and_inscriptions() {
     .ord(&ord)
     .run_and_deserialize_output::<Vec<Output>>();
 
-  dbg!(&output);
-
   assert!(output.contains(&Output {
     output: etched.output.rune.unwrap().location.unwrap(),
     address: None,
