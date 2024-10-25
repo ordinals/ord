@@ -1,7 +1,7 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.21.0"
+version = "0.21.1"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
@@ -18,12 +18,12 @@ maintainer = "The Ord Maintainers"
 members = [".", "crates/*"]
 
 [dependencies]
-anyhow = { version = "1.0.56", features = ["backtrace"] }
+anyhow = { version = "1.0.90", features = ["backtrace"] }
 async-trait = "0.1.72"
 axum = { version = "0.6.1", features = ["http2"] }
 axum-server = "0.5.0"
 base64 = "0.22.0"
-bip322 = { version = "0.0.8", path = "../bip322" }
+bip322 = "0.0.8"
 bip39 = "2.0.0"
 bitcoin = { version = "0.32.3", features = ["rand"] }
 bitcoincore-rpc = "0.19.0"
@@ -60,7 +60,7 @@ rustls = "0.22.0"
 rustls-acme = { version = "0.8.1", features = ["axum"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde-hex = "0.1.0"
-serde_json = { version = "1.0.81", features = ["preserve_order"] }
+serde_json = { version = "1.0.132", features = ["preserve_order"] }
 serde_with = "3.7.0"
 serde_yaml = "0.9.17"
 sha3 = "0.10.8"
