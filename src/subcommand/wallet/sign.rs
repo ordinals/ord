@@ -5,9 +5,9 @@ use {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
-  address: Address<NetworkUnchecked>,
-  message: String,
-  signature: String,
+  pub address: Address<NetworkUnchecked>,
+  pub message: String,
+  pub signature: String,
 }
 
 #[derive(Debug, Parser)]

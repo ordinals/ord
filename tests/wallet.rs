@@ -23,4 +23,5 @@ mod runics;
 mod sats;
 mod selection;
 mod send;
+mod sign;
 mod transactions;

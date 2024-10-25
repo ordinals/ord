@@ -83,7 +83,7 @@ pub(crate) enum Subcommand {
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
   Send(send::Send),
-  #[command(about = "Sign a BIP322 message with asset/address in wallet")]
+  #[command(about = "Sign a BIP322 message with address in wallet")]
   Sign(sign::Sign),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),

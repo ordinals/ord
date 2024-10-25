@@ -476,15 +476,28 @@ impl Api for Server {
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
-    _utxos: Option<Vec<SignRawTransactionInput>>,
+    utxos: Option<Vec<SignRawTransactionInput>>,
     sighash_type: Option<()>,
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
-    let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
-    for input in &mut transaction.input {
-      if input.witness.is_empty() {
-        input.witness = Witness::from_slice(&[&[0; 64]]);
+    let state = self.state();
+    let secret_key = state.keypair.secret_key();
+
+    let mut transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
+    if let Some(utxos) = utxos {
+      transaction = bip322::sign_full(
+        &Address::from_script(&utxos[0].script_pub_key, state.network).unwrap(),
+        "HelloWorld".as_bytes(),
+        bitcoin::key::PrivateKey::new(secret_key, state.network),
+      )
+      .unwrap();
+    } else {
+      for input in &mut transaction.input {
+        if input.witness.is_empty() {
+          input.witness = Witness::from_slice(&[&[0; 64]]);
+        }
       }
     }
 
