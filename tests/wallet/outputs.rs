@@ -136,8 +136,8 @@ fn outputs_includes_runes_and_inscriptions() {
     .run_and_deserialize_output::<Vec<Output>>();
 
   assert!(output.contains(&Output {
-    output: etched.output.rune.unwrap().location.unwrap(),
-    address: None,
+    output: etched.output.rune.clone().unwrap().location.unwrap(),
+    address: etched.output.rune.unwrap().destination,
     amount: 10000,
     inscriptions: Some(Vec::new()),
     runes: Some(
@@ -156,7 +156,7 @@ fn outputs_includes_runes_and_inscriptions() {
 
   assert!(output.contains(&Output {
     output: etched.output.inscriptions[0].location.outpoint,
-    address: None,
+    address: Some(etched.output.inscriptions[0].destination.clone()),
     amount: 10000,
     inscriptions: Some(vec![etched.output.inscriptions[0].id]),
     runes: Some(BTreeMap::new()),
