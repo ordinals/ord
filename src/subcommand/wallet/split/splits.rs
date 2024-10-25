@@ -31,7 +31,7 @@ impl Splits {
 
     ensure! {
       !unchecked.outputs.is_empty(),
-      "must provide at least one output",
+      "splits must contain at least one output",
     }
 
     let mut entries = BTreeMap::<Rune, (RuneEntry, RuneId)>::new();
