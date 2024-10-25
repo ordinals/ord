@@ -754,7 +754,7 @@ impl Api for Server {
         label: None,
         redeem_script: None,
         witness_script: None,
-        script_pub_key: ScriptBuf::new(),
+        script_pub_key: tx_out.script_pubkey.clone(),
         amount,
         confirmations: 0,
         spendable: true,
