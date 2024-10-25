@@ -45,7 +45,7 @@ pub(crate) struct WalletCommand {
 #[allow(clippy::large_enum_variant)]
 pub(crate) enum Subcommand {
   #[command(about = "Get wallet addresses")]
-  Addresses,
+  Addresses(addresses::Addresses),
   #[command(about = "Get wallet balance")]
   Balance,
   #[command(about = "Create inscriptions and runes")]
@@ -109,7 +109,7 @@ impl WalletCommand {
     )?;
 
     match self.subcommand {
-      Subcommand::Addresses => addresses::run(wallet),
+      Subcommand::Addresses(addresses) => addresses.run(wallet),
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Batch(batch) => batch.run(wallet),
       Subcommand::Burn(burn) => burn.run(wallet),

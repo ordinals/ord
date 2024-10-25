@@ -1,38 +1,38 @@
 use super::*;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Clone)]
 pub struct Output {
-  pub transaction: Txid,
-  pub confirmations: i32,
+  pub output: OutPoint,
+  pub amount: u64,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub inscriptions: Option<Vec<InscriptionId>>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub runes: Option<BTreeMap<SpacedRune, Decimal>>,
 }
 
-pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
-  let unspent_outputs = wallet.utxos();
+#[derive(Debug, Parser)]
+pub(crate) struct Addresses {
+  #[arg(short, long, help = "Only show a list of used addresses.")]
+  compact: bool,
+}
 
-  let mut addresses: BTreeMap<Address, api::AddressInfo> = BTreeMap::new();
+impl Addresses {
+  pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
+    let mut addresses: BTreeMap<Address, Vec<Output>> = BTreeMap::new();
 
-  let mut inscriptions = BTreeMap::new();
-  for (satpoint, satpoint_inscriptions) in wallet.inscriptions().iter() {
-    inscriptions
-      .entry(satpoint.outpoint)
-      .and_modify(|e: &mut Vec<_>| e.extend(satpoint_inscriptions))
-      .or_insert(satpoint_inscriptions.clone());
-  }
+    for (output, txout) in wallet.utxos() {
+      let address = wallet.chain().address_from_script(&txout.script_pubkey)?;
 
-  for (output, txout) in unspent_outputs {
-    let address = wallet.chain().address_from_script(&txout.script_pubkey)?;
-    let rune_balances = wallet.get_runes_balances_in_output(output)?;
+      let inscriptions = if wallet.has_inscription_index() {
+        Some(wallet.get_inscriptions_in_output(&output))
+      } else {
+        None
+      };
 
-    addresses
-      .entry(address)
-      .and_modify(|info: &mut api::AddressInfo| {
-        info.outputs.push(*output);
-        info
-          .inscriptions
-          .extend(inscriptions.get(output).cloned().unwrap_or_default());
-        info.sat_balance += txout.value.to_sat();
-        info.runes_balances.extend(
-          rune_balances
+      let runes = if wallet.has_rune_index() {
+        Some(
+          wallet
+            .get_runes_balances_in_output(output)?
             .iter()
             .map(|(rune, pile)| {
               (
@@ -41,31 +41,29 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
                   value: pile.amount,
                   scale: pile.divisibility,
                 },
-                pile.symbol,
               )
             })
-            .collect::<Vec<_>>(),
-        );
-      })
-      .or_insert(api::AddressInfo {
-        outputs: vec![*output],
-        inscriptions: inscriptions.get(output).cloned().unwrap_or_default(),
-        sat_balance: txout.value.to_sat(),
-        runes_balances: rune_balances
-          .iter()
-          .map(|(rune, pile)| {
-            (
-              *rune,
-              Decimal {
-                value: pile.amount,
-                scale: pile.divisibility,
-              },
-              pile.symbol,
-            )
-          })
-          .collect(),
-      });
-  }
+            .collect(),
+        )
+      } else {
+        None
+      };
 
-  Ok(Some(Box::new(addresses)))
+      let output = Output {
+        output: *output,
+        amount: txout.value.to_sat(),
+        inscriptions,
+        runes,
+      };
+
+      addresses
+        .entry(address)
+        .and_modify(|outputs: &mut Vec<Output>| {
+          outputs.push(output.clone());
+        })
+        .or_insert(vec![output]);
+    }
+
+    Ok(Some(Box::new(addresses)))
+  }
 }
