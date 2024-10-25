@@ -211,16 +211,16 @@ impl Send {
           *input_rune_balances.entry(spaced_rune.rune).or_default() += balance.amount;
 
           inputs.push(output);
-        }
-      }
 
-      if input_rune_balances
-        .get(&spaced_rune.rune)
-        .cloned()
-        .unwrap_or_default()
-        >= amount
-      {
-        break;
+          if input_rune_balances
+            .get(&spaced_rune.rune)
+            .cloned()
+            .unwrap_or_default()
+            >= amount
+          {
+            break;
+          }
+        }
       }
     }
 
@@ -229,6 +229,7 @@ impl Send {
       .cloned()
       .unwrap_or_default();
 
+    // todo: this is wrong, because we don't add all runes to the input rune balances
     let needs_runes_change_output = input_rune_balance > amount || input_rune_balances.len() > 1;
 
     ensure! {
