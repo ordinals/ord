@@ -21,6 +21,7 @@ fn get_sat_without_sat_index() {
   pretty_assert_eq!(
     sat_json,
     api::Sat {
+      address: None,
       number: 2099999997689999,
       decimal: "6929999.0".into(),
       degree: "5°209999′1007″0‴".into(),
@@ -54,11 +55,15 @@ fn get_sat_with_inscription_and_sat_index() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let sat_json: api::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let mut sat_json: api::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  assert_regex_match!(sat_json.address.unwrap(), r"bc1p.*");
+  sat_json.address = None;
 
   pretty_assert_eq!(
     sat_json,
     api::Sat {
+      address: None,
       number: 50 * COIN_VALUE,
       decimal: "1.0".into(),
       degree: "0°1′1″0‴".into(),
@@ -110,11 +115,15 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
 
   assert_eq!(response.status(), StatusCode::OK);
 
-  let sat_json: api::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let mut sat_json: api::Sat = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  assert_regex_match!(sat_json.address.unwrap(), r"bc1p.*");
+  sat_json.address = None;
 
   pretty_assert_eq!(
     sat_json,
     api::Sat {
+      address: None,
       number: 3 * 50 * COIN_VALUE + 1,
       decimal: "3.1".into(),
       degree: "0°3′3″1‴".into(),

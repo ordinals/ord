@@ -545,8 +545,29 @@ impl Server {
 
       let charms = sat.charms();
 
+      let output = satpoint.and_then(|sp| {
+        if sp.outpoint == unbound_outpoint() {
+          None
+        } else {
+          index
+            .get_transaction(sp.outpoint.txid)
+            .ok()
+            .flatten()
+            .and_then(|tx| tx.output.into_iter().nth(sp.outpoint.vout as usize))
+        }
+      });
+
+      let address = output.as_ref().and_then(|output| {
+        server_config
+          .chain
+          .address_from_script(&output.script_pubkey)
+          .ok()
+          .map(|address| address.to_string())
+      });
+
       Ok(if accept_json {
         Json(api::Sat {
+          address,
           number: sat.0,
           decimal: sat.decimal().to_string(),
           degree: sat.degree().to_string(),
@@ -566,6 +587,7 @@ impl Server {
         .into_response()
       } else {
         SatHtml {
+          address,
           sat,
           satpoint,
           blocktime,
