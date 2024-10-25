@@ -163,6 +163,7 @@ fn drain(core: &mockcore::Handle, ord: &TestServer) {
   pretty_assert_eq!(balance.cardinal, 0);
 }
 
+#[derive(Debug)]
 struct Etched {
   id: RuneId,
   output: Batch,
