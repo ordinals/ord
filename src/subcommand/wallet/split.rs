@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, splits::Splits};
 
 // todo:
 // - test that duplicate keys are an error
@@ -10,76 +10,12 @@ use super::*;
 // - how to make more efficient?
 //   - can omit runes, and add a `--all RUNE AMOUNT` argument, which will use a split
 //   - or do this if every output is a getting the same amount
+//
+// - integration tests:
+//   - requires rune index
+//   - inputs with inscriptions are not selected
 
-#[derive(Deserialize)]
-struct SplitfileUnchecked {
-  outputs: Vec<SplitOutputUnchecked>,
-}
-
-#[derive(Deserialize)]
-struct SplitOutputUnchecked {
-  address: Address<NetworkUnchecked>,
-  value: Amount,
-  runes: BTreeMap<SpacedRune, Decimal>,
-}
-
-struct Splitfile {
-  outputs: Vec<SplitOutput>,
-}
-
-struct SplitOutput {
-  address: Address,
-  value: Amount,
-  runes: BTreeMap<Rune, u128>,
-}
-
-impl Splitfile {
-  pub(crate) fn load(path: &Path, wallet: &Wallet) -> Result<(Self, BTreeMap<Rune, RuneId>)> {
-    let network = wallet.chain().network();
-
-    let unchecked: SplitfileUnchecked = serde_yaml::from_reader(File::open(path)?)?;
-
-    let mut entries = BTreeMap::<Rune, (RuneEntry, RuneId)>::new();
-
-    let mut outputs = Vec::new();
-
-    for output in unchecked.outputs {
-      let mut runes = BTreeMap::new();
-
-      for (spaced_rune, decimal) in output.runes {
-        let (entry, _id) = if let Some(entry) = entries.get(&spaced_rune.rune) {
-          entry
-        } else {
-          let (id, entry, _parent) = wallet
-            .get_rune(spaced_rune.rune)?
-            .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
-          entries.insert(spaced_rune.rune, (entry, id));
-          entries.get(&spaced_rune.rune).unwrap()
-        };
-
-        let amount = decimal.to_integer(entry.divisibility)?;
-
-        assert!(amount != 0);
-
-        runes.insert(spaced_rune.rune, amount);
-      }
-
-      outputs.push(SplitOutput {
-        address: output.address.require_network(network)?,
-        value: output.value,
-        runes,
-      });
-    }
-
-    Ok((
-      Self { outputs },
-      entries
-        .into_iter()
-        .map(|(rune, (_entry, id))| (rune, id))
-        .collect(),
-    ))
-  }
-}
+mod splits;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Split {
@@ -93,6 +29,11 @@ pub(crate) struct Split {
     value_name = "AMOUNT"
   )]
   pub(crate) postage: Option<Amount>,
+  #[arg(
+    long,
+    help = "Split outputs multiple inscriptions and rune defined in YAML <SPLIT_FILE>.",
+    value_name = "SPLIT_FILE"
+  )]
   pub(crate) splits: PathBuf,
 }
 
@@ -112,7 +53,7 @@ impl Split {
 
     wallet.lock_non_cardinal_outputs()?;
 
-    let (splitfile, ids) = Splitfile::load(&self.splits, &wallet)?;
+    let splits = Splits::load(&self.splits, &wallet)?;
 
     let inscribed_outputs = wallet
       .inscriptions()
@@ -130,16 +71,38 @@ impl Split {
             output,
             balance
               .into_iter()
-              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile))
+              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
               .collect(),
           )
         })
       })
-      .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, Pile>>>>()?;
+      .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, u128>>>>()?;
 
+    let unfunded_transaction =
+      Self::build_transaction(balances, wallet.get_change_address()?, &splits);
+
+    let unsigned_transaction = fund_raw_transaction(
+      wallet.bitcoin_client(),
+      self.fee_rate,
+      &unfunded_transaction,
+    )?;
+
+    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+
+    let (txid, psbt, fee) =
+      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
+
+    Ok(Some(Box::new(Output { txid, psbt, fee })))
+  }
+
+  fn build_transaction(
+    balances: BTreeMap<OutPoint, BTreeMap<Rune, u128>>,
+    change_address: Address,
+    splits: &Splits,
+  ) -> Transaction {
     let mut input_runes_required = BTreeMap::<Rune, u128>::new();
 
-    for output in &splitfile.outputs {
+    for output in &splits.outputs {
       for (rune, amount) in &output.runes {
         let required = input_runes_required.entry(*rune).or_default();
         *required = (*required).checked_add(*amount).unwrap();
@@ -153,9 +116,9 @@ impl Split {
     for (output, runes) in balances {
       for (rune, required) in &input_runes_required {
         if let Some(balance) = runes.get(rune) {
-          assert!(balance.amount > 0);
+          assert!(*balance > 0);
           for (rune, balance) in &runes {
-            *input_rune_balances.entry(*rune).or_default() += balance.amount;
+            *input_rune_balances.entry(*rune).or_default() += balance;
           }
           inputs.push(output);
           if input_rune_balances.get(rune).cloned().unwrap_or_default() >= *required {
@@ -184,10 +147,10 @@ impl Split {
 
     let base = if need_rune_change_output { 2 } else { 1 };
 
-    for (i, output) in splitfile.outputs.iter().enumerate() {
+    for (i, output) in splits.outputs.iter().enumerate() {
       for (rune, amount) in &output.runes {
         edicts.push(Edict {
-          id: *ids.get(rune).unwrap(),
+          id: *splits.rune_ids.get(rune).unwrap(),
           amount: *amount,
           output: (i + base).try_into().unwrap(),
         });
@@ -216,12 +179,12 @@ impl Split {
 
     if need_rune_change_output {
       output.push(TxOut {
-        script_pubkey: wallet.get_change_address()?.script_pubkey(),
+        script_pubkey: change_address.script_pubkey(),
         value: postage,
       });
     }
 
-    for split_output in splitfile.outputs {
+    for split_output in &splits.outputs {
       let script_pubkey = split_output.address.script_pubkey();
 
       if split_output.value < script_pubkey.minimal_non_dust() {
@@ -234,7 +197,7 @@ impl Split {
       });
     }
 
-    let unfunded_transaction = Transaction {
+    let tx = Transaction {
       version: Version(2),
       lock_time: LockTime::ZERO,
       input: inputs
@@ -249,28 +212,25 @@ impl Split {
       output,
     };
 
-    for output in &unfunded_transaction.output {
+    for output in &tx.output {
       if output.value < output.script_pubkey.minimal_non_dust() {
         todo!();
       }
     }
 
-    let unsigned_transaction = fund_raw_transaction(
-      wallet.bitcoin_client(),
-      self.fee_rate,
-      &unfunded_transaction,
-    )?;
-
-    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
-
     assert_eq!(
-      Runestone::decipher(&unsigned_transaction),
+      Runestone::decipher(&tx),
       Some(Artifact::Runestone(runestone)),
     );
 
-    let (txid, psbt, fee) =
-      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
-
-    Ok(Some(Box::new(Output { txid, psbt, fee })))
+    tx
   }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn foo() {}
 }
