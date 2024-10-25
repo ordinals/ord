@@ -18,7 +18,7 @@ struct SplitfileUnchecked {
 
 #[derive(Deserialize)]
 struct SplitOutputUnchecked {
-  address: Option<Address<NetworkUnchecked>>,
+  address: Address<NetworkUnchecked>,
   amount: Amount,
   runes: BTreeMap<SpacedRune, Decimal>,
 }
@@ -28,7 +28,7 @@ struct Splitfile {
 }
 
 struct SplitOutput {
-  address: Option<Address>,
+  address: Address,
   amount: Amount,
   runes: BTreeMap<Rune, u128>,
 }
@@ -68,10 +68,7 @@ impl Splitfile {
       }
 
       outputs.push(SplitOutput {
-        address: output
-          .address
-          .map(|address| address.require_network(network))
-          .transpose()?,
+        address: output.address.require_network(network)?,
         amount: output.amount,
         runes,
       });
@@ -97,7 +94,11 @@ pub(crate) struct Split {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct Output {}
+pub struct Output {
+  pub txid: Txid,
+  pub psbt: String,
+  pub fee: u64,
+}
 
 impl Split {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
@@ -193,44 +194,59 @@ impl Split {
       ..default()
     };
 
-    // let unfunded_transaction = Transaction {
-    //   version: Version(2),
-    //   lock_time: LockTime::ZERO,
-    //   input: inputs
-    //     .into_iter()
-    //     .map(|previous_output| TxIn {
-    //       previous_output,
-    //       script_sig: ScriptBuf::new(),
-    //       sequence: Sequence::MAX,
-    //       witness: Witness::new(),
-    //     })
-    //     .collect(),
-    //   output: if needs_runes_change_output {
-    //     vec![
-    //       TxOut {
-    //         script_pubkey: runestone.encipher(),
-    //         value: Amount::from_sat(0),
-    //       },
-    //       TxOut {
-    //         script_pubkey: wallet.get_change_address()?.script_pubkey(),
-    //         value: postage,
-    //       },
-    //       TxOut {
-    //         script_pubkey: destination.script_pubkey(),
-    //         value: postage,
-    //       },
-    //     ]
-    //   } else {
-    //     vec![TxOut {
-    //       script_pubkey: destination.script_pubkey(),
-    //       value: postage,
-    //     }]
-    //   },
-    // };
+    let mut output = Vec::new();
 
-    // todo:
-    // - figure out if we need a change output
+    output.push(TxOut {
+      script_pubkey: runestone.encipher(),
+      value: Amount::from_sat(0),
+    });
 
-    todo!()
+    let postage = Amount::from_sat(10000);
+
+    if need_rune_change_output {
+      output.push(TxOut {
+        script_pubkey: wallet.get_change_address()?.script_pubkey(),
+        value: postage,
+      });
+    }
+
+    for split_output in splitfile.outputs {
+      output.push(TxOut {
+        script_pubkey: split_output.address.into(),
+        value: split_output.amount,
+      });
+    }
+
+    let unfunded_transaction = Transaction {
+      version: Version(2),
+      lock_time: LockTime::ZERO,
+      input: inputs
+        .into_iter()
+        .map(|previous_output| TxIn {
+          previous_output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::MAX,
+          witness: Witness::new(),
+        })
+        .collect(),
+      output,
+    };
+
+    let unsigned_transaction = fund_raw_transaction(
+      wallet.bitcoin_client(),
+      self.fee_rate,
+      &unfunded_transaction,
+    )?;
+
+    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+
+    assert_eq!(
+      Runestone::decipher(&unsigned_transaction),
+      Some(Artifact::Runestone(runestone)),
+    );
+
+    let (txid, psbt, fee) = wallet.sign_transaction(unsigned_transaction, self.dry_run)?;
+
+    Ok(Some(Box::new(Output { txid, psbt, fee })))
   }
 }
