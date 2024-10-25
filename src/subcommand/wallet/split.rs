@@ -201,8 +201,14 @@ impl Split {
 
     let mut output = Vec::new();
 
+    let runestone_script_pubkey = runestone.encipher();
+
+    if runestone_script_pubkey.len() > 83 {
+      todo!();
+    }
+
     output.push(TxOut {
-      script_pubkey: runestone.encipher(),
+      script_pubkey: runestone_script_pubkey,
       value: Amount::from_sat(0),
     });
 
@@ -262,7 +268,8 @@ impl Split {
       Some(Artifact::Runestone(runestone)),
     );
 
-    let (txid, psbt, fee) = wallet.sign_transaction(unsigned_transaction, self.dry_run)?;
+    let (txid, psbt, fee) =
+      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
 
     Ok(Some(Box::new(Output { txid, psbt, fee })))
   }

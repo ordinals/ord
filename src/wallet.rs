@@ -742,7 +742,7 @@ impl Wallet {
     )
   }
 
-  pub(super) fn sign_transaction(
+  pub(super) fn sign_and_broadcast_transaction(
     &self,
     unsigned_transaction: Transaction,
     dry_run: bool,
