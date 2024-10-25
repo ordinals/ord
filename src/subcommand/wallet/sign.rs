@@ -7,14 +7,14 @@ use {
 pub struct Output {
   pub address: Address<NetworkUnchecked>,
   pub message: String,
-  pub signature: String,
+  pub witness: String,
 }
 
 #[derive(Debug, Parser)]
 pub(crate) struct Sign {
   #[arg(long, help = "Sign for <ADDRESS>.")]
   address: Address<NetworkUnchecked>,
-  #[arg(long, help = "Sign with <MESSAGE>.")]
+  #[arg(long, help = "Sign <MESSAGE>.")]
   message: String,
 }
 
@@ -47,7 +47,7 @@ impl Sign {
     Ok(Some(Box::new(Output {
       address: address.as_unchecked().clone(),
       message: self.message,
-      signature: general_purpose::STANDARD.encode(buffer),
+      witness: general_purpose::STANDARD.encode(buffer),
     })))
   }
 }
