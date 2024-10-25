@@ -59,8 +59,8 @@ impl State {
 
   pub(crate) fn new_address(&mut self, change: bool) -> Address {
     let secp256k1 = Secp256k1::new();
-    let key_pair = Keypair::new(&secp256k1, &mut rand::thread_rng());
-    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
+    let keypair = Keypair::new(&secp256k1, &mut rand::thread_rng());
+    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&keypair);
     let address = Address::p2tr(&secp256k1, public_key, None, self.network);
     if change {
       &mut self.change_addresses
