@@ -19,7 +19,7 @@ struct SplitfileUnchecked {
 #[derive(Deserialize)]
 struct SplitOutputUnchecked {
   address: Address<NetworkUnchecked>,
-  amount: Amount,
+  value: Amount,
   runes: BTreeMap<SpacedRune, Decimal>,
 }
 
@@ -29,20 +29,17 @@ struct Splitfile {
 
 struct SplitOutput {
   address: Address,
-  amount: Amount,
+  value: Amount,
   runes: BTreeMap<Rune, u128>,
 }
 
 impl Splitfile {
-  pub(crate) fn load(
-    path: &Path,
-    wallet: &Wallet,
-  ) -> Result<(Self, BTreeMap<Rune, (RuneId, RuneEntry)>)> {
+  pub(crate) fn load(path: &Path, wallet: &Wallet) -> Result<(Self, BTreeMap<Rune, RuneId>)> {
     let network = wallet.chain().network();
 
     let unchecked: SplitfileUnchecked = serde_yaml::from_reader(fs::File::open(path)?)?;
 
-    let mut entries = BTreeMap::<Rune, (RuneId, RuneEntry)>::new();
+    let mut entries = BTreeMap::<Rune, (RuneEntry, RuneId)>::new();
 
     let mut outputs = Vec::new();
 
@@ -50,13 +47,13 @@ impl Splitfile {
       let mut runes = BTreeMap::new();
 
       for (spaced_rune, decimal) in output.runes {
-        let (_id, entry) = if let Some(entry) = entries.get(&spaced_rune.rune) {
+        let (entry, _id) = if let Some(entry) = entries.get(&spaced_rune.rune) {
           entry
         } else {
           let (id, entry, _parent) = wallet
             .get_rune(spaced_rune.rune)?
             .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
-          entries.insert(spaced_rune.rune, (id, entry));
+          entries.insert(spaced_rune.rune, (entry, id));
           entries.get(&spaced_rune.rune).unwrap()
         };
 
@@ -69,12 +66,18 @@ impl Splitfile {
 
       outputs.push(SplitOutput {
         address: output.address.require_network(network)?,
-        amount: output.amount,
+        value: output.value,
         runes,
       });
     }
 
-    Ok((Self { outputs }, entries))
+    Ok((
+      Self { outputs },
+      entries
+        .into_iter()
+        .map(|(rune, (_entry, id))| (rune, id))
+        .collect(),
+    ))
   }
 }
 
@@ -182,7 +185,7 @@ impl Split {
     for (i, output) in splitfile.outputs.iter().enumerate() {
       for (rune, amount) in &output.runes {
         edicts.push(Edict {
-          id: ids.get(&rune).unwrap().0,
+          id: *ids.get(&rune).unwrap(),
           amount: *amount,
           output: (i + base).try_into().unwrap(),
         });
@@ -213,7 +216,7 @@ impl Split {
     for split_output in splitfile.outputs {
       output.push(TxOut {
         script_pubkey: split_output.address.into(),
-        value: split_output.amount,
+        value: split_output.value,
       });
     }
 
