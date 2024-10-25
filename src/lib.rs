@@ -65,7 +65,7 @@ use {
   snafu::{Backtrace, ErrorCompat, Snafu},
   std::{
     backtrace::BacktraceStatus,
-    cmp,
+    cmp::{self, Ordering},
     collections::{BTreeMap, BTreeSet, HashSet},
     env,
     ffi::OsString,

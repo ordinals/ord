@@ -207,19 +207,18 @@ impl Send {
 
     for (output, runes) in balances {
       if let Some(balance) = runes.get(&spaced_rune.rune) {
-        if balance.amount > 0 {
-          *input_rune_balances.entry(spaced_rune.rune).or_default() += balance.amount;
+        assert!(balance.amount > 0);
+        *input_rune_balances.entry(spaced_rune.rune).or_default() += balance.amount;
 
-          inputs.push(output);
+        inputs.push(output);
 
-          if input_rune_balances
-            .get(&spaced_rune.rune)
-            .cloned()
-            .unwrap_or_default()
-            >= amount
-          {
-            break;
-          }
+        if input_rune_balances
+          .get(&spaced_rune.rune)
+          .cloned()
+          .unwrap_or_default()
+          >= amount
+        {
+          break;
         }
       }
     }

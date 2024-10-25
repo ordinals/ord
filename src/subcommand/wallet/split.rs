@@ -152,15 +152,14 @@ impl Split {
 
     for (output, runes) in balances {
       for (rune, required) in &input_runes_required {
-        if let Some(balance) = runes.get(&rune) {
-          if balance.amount > 0 {
-            for (rune, balance) in &runes {
-              *input_rune_balances.entry(*rune).or_default() += balance.amount;
-            }
-            inputs.push(output);
-            if input_rune_balances.get(&rune).cloned().unwrap_or_default() >= *required {
-              break;
-            }
+        if let Some(balance) = runes.get(rune) {
+          assert!(balance.amount > 0);
+          for (rune, balance) in &runes {
+            *input_rune_balances.entry(*rune).or_default() += balance.amount;
+          }
+          inputs.push(output);
+          if input_rune_balances.get(rune).cloned().unwrap_or_default() >= *required {
+            break;
           }
         }
       }
@@ -168,13 +167,16 @@ impl Split {
 
     let mut need_rune_change_output = false;
 
-    for (rune, required) in &input_runes_required {
-      let balance = input_rune_balances.get(rune).copied().unwrap_or_default();
-
-      if balance < *required {
-        todo!("shortfall!");
-      } else if balance > *required {
-        need_rune_change_output = true;
+    for (rune, balance) in input_rune_balances {
+      let required = input_runes_required.get(&rune).copied().unwrap_or_default();
+      match balance.cmp(&required) {
+        Ordering::Less => {
+          todo!("shortfall!");
+        }
+        Ordering::Greater => {
+          need_rune_change_output = true;
+        }
+        Ordering::Equal => {}
       }
     }
 
@@ -185,7 +187,7 @@ impl Split {
     for (i, output) in splitfile.outputs.iter().enumerate() {
       for (rune, amount) in &output.runes {
         edicts.push(Edict {
-          id: *ids.get(&rune).unwrap(),
+          id: *ids.get(rune).unwrap(),
           amount: *amount,
           output: (i + base).try_into().unwrap(),
         });
@@ -214,8 +216,14 @@ impl Split {
     }
 
     for split_output in splitfile.outputs {
+      let script_pubkey = split_output.address.script_pubkey();
+
+      if split_output.value < script_pubkey.minimal_non_dust() {
+        todo!();
+      }
+
       output.push(TxOut {
-        script_pubkey: split_output.address.into(),
+        script_pubkey,
         value: split_output.value,
       });
     }
@@ -234,6 +242,12 @@ impl Split {
         .collect(),
       output,
     };
+
+    for output in &unfunded_transaction.output {
+      if output.value < output.script_pubkey.minimal_non_dust() {
+        todo!();
+      }
+    }
 
     let unsigned_transaction = fund_raw_transaction(
       wallet.bitcoin_client(),
