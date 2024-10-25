@@ -12,7 +12,7 @@ pub(crate) use {
   unindent::Unindent,
 };
 
-pub(crate) fn txid(n: u64) -> Txid {
+pub(crate) fn txid(n: u32) -> Txid {
   let hex = format!("{n:x}");
 
   if hex.is_empty() || hex.len() > 1 {
@@ -22,14 +22,17 @@ pub(crate) fn txid(n: u64) -> Txid {
   hex.repeat(64).parse().unwrap()
 }
 
-pub(crate) fn outpoint(n: u64) -> OutPoint {
-  format!("{}:{}", txid(n), n).parse().unwrap()
+pub(crate) fn outpoint(n: u32) -> OutPoint {
+  OutPoint {
+    txid: txid(n),
+    vout: n,
+  }
 }
 
-pub(crate) fn satpoint(n: u64, offset: u64) -> SatPoint {
+pub(crate) fn satpoint(n: u32, offset: u64) -> SatPoint {
   SatPoint {
-    outpoint: outpoint(n),
     offset,
+    outpoint: outpoint(n),
   }
 }
 

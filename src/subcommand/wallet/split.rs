@@ -14,6 +14,7 @@ use {super::*, splits::Splits};
 // - integration tests:
 //   - requires rune index
 //   - inputs with inscriptions are not selected
+//   - no outputs is an error
 
 mod splits;
 
@@ -232,5 +233,58 @@ mod tests {
   use super::*;
 
   #[test]
-  fn foo() {}
+  fn foo() {
+    let address = address();
+    let change_address = change(0);
+    let output = outpoint(0);
+    let rune = Rune(0);
+    let rune_id = RuneId { block: 1, tx: 1 };
+
+    let balances = [(output, [(rune, 1)].into())].into();
+
+    let splits = Splits {
+      outputs: vec![splits::Output {
+        address: address.clone(),
+        runes: [(rune, 1)].into(),
+        value: Amount::from_sat(1000),
+      }],
+      rune_ids: [(rune, rune_id)].into(),
+    };
+
+    let tx = Split::build_transaction(balances, change_address, &splits);
+
+    pretty_assert_eq!(
+      tx,
+      Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::MAX,
+          witness: Witness::new(),
+        }],
+        output: vec![
+          TxOut {
+            value: Amount::from_sat(0),
+            script_pubkey: Runestone {
+              edicts: vec![Edict {
+                id: rune_id,
+                amount: 1,
+                output: 1
+              }],
+              etching: None,
+              mint: None,
+              pointer: None,
+            }
+            .encipher()
+          },
+          TxOut {
+            script_pubkey: address.into(),
+            value: Amount::from_sat(1000),
+          }
+        ],
+      },
+    );
+  }
 }
