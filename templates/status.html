@@ -29,15 +29,15 @@
   <dt>unrecoverably reorged</dt>
   <dd>{{ self.unrecoverably_reorged }}</dd>
   <dt>address index</dt>
-  <dd>{{ self.address_index }}</dd>
+  <dd>{{ self.indices.addresses }}</dd>
   <dt>inscription index</dt>
-  <dd>{{ self.inscription_index }}</dd>
+  <dd>{{ self.indices.inscriptions }}</dd>
   <dt>rune index</dt>
-  <dd>{{ self.rune_index }}</dd>
+  <dd>{{ self.indices.runes }}</dd>
   <dt>sat index</dt>
-  <dd>{{ self.sat_index }}</dd>
+  <dd>{{ self.indices.sats }}</dd>
   <dt>transaction index</dt>
-  <dd>{{ self.transaction_index }}</dd>
+  <dd>{{ self.indices.transactions }}</dd>
   <dt>json api</dt>
   <dd>{{ self.json_api }}</dd>
 %% if !env!("GIT_BRANCH").is_empty() {

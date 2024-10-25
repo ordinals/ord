@@ -36,6 +36,7 @@ use {
   },
 };
 
+use crate::templates::status::Indices;
 pub use self::entry::RuneEntry;
 
 pub(crate) mod entry;
@@ -533,13 +534,18 @@ impl Index {
     let initial_sync_time = statistic(Statistic::InitialSyncTime)?;
 
     Ok(StatusHtml {
-      address_index: self.has_address_index(),
       blessed_inscriptions,
       chain: self.settings.chain(),
       cursed_inscriptions,
       height,
+      indices: Indices {
+        addresses: self.has_address_index(),
+        inscriptions: self.has_inscription_index(),
+        runes: self.has_rune_index(),
+        sats: self.has_sat_index(),
+        transactions: statistic(Statistic::IndexTransactions)? != 0,
+      },
       initial_sync_time: Duration::from_micros(initial_sync_time),
-      inscription_index: self.has_inscription_index(),
       inscriptions: blessed_inscriptions + cursed_inscriptions,
       json_api,
       lost_sats: statistic(Statistic::LostSats)?,
@@ -547,11 +553,8 @@ impl Index {
         self.settings.chain().network(),
         Height(next_height),
       ),
-      rune_index: self.has_rune_index(),
       runes: statistic(Statistic::Runes)?,
-      sat_index: self.has_sat_index(),
       started: self.started,
-      transaction_index: statistic(Statistic::IndexTransactions)? != 0,
       unrecoverably_reorged: self.unrecoverably_reorged.load(atomic::Ordering::Relaxed),
       uptime: (Utc::now() - self.started).to_std()?,
     })

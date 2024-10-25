@@ -1,7 +1,7 @@
 use {
   super::*,
   bitcoin::{BlockHash, ScriptBuf},
-  ord::{Envelope, Inscription},
+  ord::{Envelope, Inscription, templates::status::Indices},
 };
 
 #[test]
@@ -494,22 +494,24 @@ fn get_status() {
   pretty_assert_eq!(
     status_json,
     api::Status {
-      address_index: false,
       blessed_inscriptions: 1,
       chain: Chain::Regtest,
       cursed_inscriptions: 0,
       height: Some(3),
+      indices: Indices {
+        addresses: false,
+        inscriptions: true,
+        runes: true,
+        sats: true,
+        transactions: false,
+      },
       initial_sync_time: dummy_duration,
-      inscription_index: true,
       inscriptions: 1,
       json_api: true,
       lost_sats: 0,
       minimum_rune_for_next_block: Rune(99218849511960410),
-      rune_index: true,
       runes: 0,
-      sat_index: true,
       started: dummy_started,
-      transaction_index: false,
       unrecoverably_reorged: false,
       uptime: dummy_duration,
     }
