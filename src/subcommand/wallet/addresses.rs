@@ -24,7 +24,7 @@ impl Addresses {
       let address = wallet.chain().address_from_script(&txout.script_pubkey)?;
 
       let inscriptions = if wallet.has_inscription_index() {
-        Some(wallet.get_inscriptions_in_output(&output))
+        Some(wallet.get_inscriptions_in_output(output))
       } else {
         None
       };
@@ -64,6 +64,12 @@ impl Addresses {
         .or_insert(vec![output]);
     }
 
-    Ok(Some(Box::new(addresses)))
+    if self.compact {
+      Ok(Some(Box::new(
+        addresses.into_keys().collect::<Vec<Address>>(),
+      )))
+    } else {
+      Ok(Some(Box::new(addresses)))
+    }
   }
 }
