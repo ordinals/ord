@@ -51,10 +51,8 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
     addresses
       .entry(address.as_unchecked().clone())
-      .and_modify(|outputs: &mut Vec<Output>| {
-        outputs.push(output.clone());
-      })
-      .or_insert(vec![output]);
+      .or_default()
+      .push(output);
   }
 
   Ok(Some(Box::new(addresses)))
