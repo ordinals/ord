@@ -4,8 +4,8 @@ description = "Mock Bitcoin Core RPC server"
 version = "0.0.1"
 edition = "2021"
 license = "CC0-1.0"
-homepage = "https://github.com/ordinals/ord/crates/mockcore"
-repository = "https://github.com/ordinals/ord/crates/mockcore"
+homepage = "https://github.com/ordinals/ord/tree/master/crates/mockcore"
+repository = "https://github.com/ordinals/ord"
 
 [dependencies]
 base64 = "0.22.0"
