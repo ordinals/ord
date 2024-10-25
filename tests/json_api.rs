@@ -1,7 +1,7 @@
 use {
   super::*,
   bitcoin::{BlockHash, ScriptBuf},
-  ord::{Envelope, Inscription, templates::status::Indices},
+  ord::{templates::status::Indices, Envelope, Inscription},
 };
 
 #[test]
