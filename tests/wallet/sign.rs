@@ -31,6 +31,7 @@ fn sign() {
   .run_and_deserialize_output::<SignOutput>();
 
   assert_eq!(address, &sign.address);
+  assert_eq!(message, &sign.message);
 
   CommandBuilder::new(format!(
     "verify --address {} --message {message} --witness {}",

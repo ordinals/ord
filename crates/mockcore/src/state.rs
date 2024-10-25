@@ -13,7 +13,6 @@ pub struct State {
   pub descriptors: Vec<String>,
   pub fail_lock_unspent: bool,
   pub hashes: Vec<BlockHash>,
-  pub keypair: bitcoin::key::Keypair,
   pub loaded_wallets: BTreeSet<String>,
   pub locked: BTreeSet<OutPoint>,
   pub mempool: Vec<Transaction>,
@@ -38,16 +37,12 @@ impl State {
     hashes.push(genesis_block_hash);
     blocks.insert(genesis_block_hash, genesis_block);
 
-    let secp256k1 = Secp256k1::new();
-    let keypair = Keypair::new(&secp256k1, &mut rand::thread_rng());
-
     Self {
       blocks,
       change_addresses: Vec::new(),
       descriptors: Vec::new(),
       fail_lock_unspent,
       hashes,
-      keypair,
       loaded_wallets: BTreeSet::new(),
       locked: BTreeSet::new(),
       mempool: Vec::new(),
@@ -64,7 +59,8 @@ impl State {
 
   pub(crate) fn new_address(&mut self, change: bool) -> Address {
     let secp256k1 = Secp256k1::new();
-    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&self.keypair);
+    let keypair = Keypair::new(&secp256k1, &mut rand::thread_rng());
+    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&keypair);
     let address = Address::p2tr(&secp256k1, public_key, None, self.network);
     if change {
       &mut self.change_addresses
