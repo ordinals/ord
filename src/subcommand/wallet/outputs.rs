@@ -69,10 +69,10 @@ impl Outputs {
       };
 
       outputs.push(Output {
-        output: *output,
         address,
         amount: txout.value.to_sat(),
         inscriptions,
+        output: *output,
         runes,
         sat_ranges,
       });
