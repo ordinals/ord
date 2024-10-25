@@ -36,8 +36,8 @@ use {
   },
 };
 
-use crate::templates::status::Indices;
 pub use self::entry::RuneEntry;
+use crate::templates::status::Indices;
 
 pub(crate) mod entry;
 pub mod event;
