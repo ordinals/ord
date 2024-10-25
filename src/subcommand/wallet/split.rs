@@ -37,7 +37,7 @@ impl Splitfile {
   pub(crate) fn load(path: &Path, wallet: &Wallet) -> Result<(Self, BTreeMap<Rune, RuneId>)> {
     let network = wallet.chain().network();
 
-    let unchecked: SplitfileUnchecked = serde_yaml::from_reader(fs::File::open(path)?)?;
+    let unchecked: SplitfileUnchecked = serde_yaml::from_reader(File::open(path)?)?;
 
     let mut entries = BTreeMap::<Rune, (RuneEntry, RuneId)>::new();
 
