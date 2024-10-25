@@ -105,6 +105,7 @@ impl WalletConstructor {
     Ok(Wallet {
       bitcoin_client,
       database,
+      has_inscription_index: status.inscription_index,
       has_rune_index: status.rune_index,
       has_sat_index: status.sat_index,
       inscription_info,
