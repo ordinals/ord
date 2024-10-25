@@ -7,9 +7,9 @@ use super::*;
     .args(&["transaction", "witness"]))
 )]
 pub(crate) struct Verify {
-  #[arg(long, help = "Verify signature for <ADDRESS>.")]
+  #[arg(long, help = "Verify signature made by <ADDRESS>.")]
   address: Address<NetworkUnchecked>,
-  #[arg(long, help = "Verify signature for <MESSAGE>.")]
+  #[arg(long, help = "Verify signature over <MESSAGE>.")]
   message: String,
   #[arg(long, help = "Verify base64-encoded <WITNESS>.")]
   witness: Option<String>,
@@ -24,17 +24,17 @@ impl Verify {
         &self.address.assume_checked().to_string(),
         &self.message,
         &witness,
-      )
-      .map_or_else(|e| Err(e.into()), |_| Ok(None))
+      )?;
     } else if let Some(transaction) = self.transaction {
       bip322::verify_full_encoded(
         &self.address.assume_checked().to_string(),
         &self.message,
         &transaction,
-      )
-      .map_or_else(|e| Err(e.into()), |_| Ok(None))
+      )?;
     } else {
-      unreachable!()
+      unreachable!();
     }
+
+    Ok(None)
   }
 }
