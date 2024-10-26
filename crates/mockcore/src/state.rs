@@ -200,8 +200,28 @@ impl State {
     let mut total_value = 0;
     let mut input = Vec::new();
     for (height, tx, vout, witness) in template.inputs.iter() {
-      let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
-      total_value += tx.output[*vout].value.to_sat();
+      let block_hash = self
+        .hashes
+        .get(*height)
+        .ok_or_else(|| format!("invalid block height {height}"))
+        .unwrap();
+
+      let block = self.blocks.get(block_hash).unwrap();
+
+      let tx = block
+        .txdata
+        .get(*tx)
+        .ok_or_else(|| format!("invalid transaction index {tx}"))
+        .unwrap();
+
+      let tx_out = tx
+        .output
+        .get(*vout)
+        .ok_or_else(|| format!("invalid output index {vout}"))
+        .unwrap();
+
+      total_value += tx_out.value.to_sat();
+
       input.push(TxIn {
         previous_output: OutPoint::new(tx.compute_txid(), *vout as u32),
         script_sig: ScriptBuf::new(),

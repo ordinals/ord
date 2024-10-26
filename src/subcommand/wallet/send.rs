@@ -195,20 +195,22 @@ impl Send {
             output,
             balance
               .into_iter()
-              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile))
+              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
               .collect(),
           )
         })
       })
-      .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, Pile>>>>()?;
+      .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, u128>>>>()?;
 
     let mut inputs = Vec::new();
     let mut input_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
 
     for (output, runes) in balances {
       if let Some(balance) = runes.get(&spaced_rune.rune) {
-        if balance.amount > 0 {
-          *input_rune_balances.entry(spaced_rune.rune).or_default() += balance.amount;
+        if *balance > 0 {
+          for (rune, balance) in runes {
+            *input_rune_balances.entry(rune).or_default() += balance;
+          }
 
           inputs.push(output);
         }
