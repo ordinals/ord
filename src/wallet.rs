@@ -75,6 +75,7 @@ pub(crate) enum Maturity {
 pub(crate) struct Wallet {
   bitcoin_client: Client,
   database: Database,
+  has_inscription_index: bool,
   has_rune_index: bool,
   has_sat_index: bool,
   rpc_url: Url,
@@ -216,6 +217,10 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn get_inscriptions_in_output(&self, output: &OutPoint) -> Vec<InscriptionId> {
+    self.output_info.get(output).unwrap().inscriptions.clone()
+  }
+
   pub(crate) fn get_parent_info(&self, parents: &[InscriptionId]) -> Result<Vec<ParentInfo>> {
     let mut parent_info = Vec::new();
     for parent_id in parents {
@@ -304,6 +309,10 @@ impl Wallet {
         .context("could not get change addresses from wallet")?
         .require_network(self.chain().network())?,
     )
+  }
+
+  pub(crate) fn has_inscription_index(&self) -> bool {
+    self.has_inscription_index
   }
 
   pub(crate) fn has_sat_index(&self) -> bool {

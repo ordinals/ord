@@ -4,6 +4,7 @@ use {
   shared_args::SharedArgs,
 };
 
+pub mod addresses;
 pub mod balance;
 mod batch_command;
 pub mod burn;
@@ -23,6 +24,7 @@ pub mod runics;
 pub mod sats;
 pub mod send;
 mod shared_args;
+pub mod sign;
 mod split;
 pub mod transactions;
 
@@ -44,6 +46,8 @@ pub(crate) struct WalletCommand {
 #[derive(Debug, Parser)]
 #[allow(clippy::large_enum_variant)]
 pub(crate) enum Subcommand {
+  #[command(about = "Get wallet addresses")]
+  Addresses,
   #[command(about = "Get wallet balance")]
   Balance,
   #[command(about = "Create inscriptions and runes")]
@@ -80,6 +84,8 @@ pub(crate) enum Subcommand {
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
   Send(send::Send),
+  #[command(about = "Sign message")]
+  Sign(sign::Sign),
   #[command(about = "Split sats and runes")]
   Split(split::Split),
   #[command(about = "See wallet transactions")]
@@ -109,6 +115,7 @@ impl WalletCommand {
     )?;
 
     match self.subcommand {
+      Subcommand::Addresses => addresses::run(wallet),
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Batch(batch) => batch.run(wallet),
       Subcommand::Burn(burn) => burn.run(wallet),
@@ -126,6 +133,7 @@ impl WalletCommand {
       Subcommand::Runics => runics::run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
+      Subcommand::Sign(sign) => sign.run(wallet),
       Subcommand::Split(split) => split.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
     }

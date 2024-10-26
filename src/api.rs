@@ -93,6 +93,7 @@ pub struct ChildInscriptions {
 pub struct Inscription {
   pub address: Option<String>,
   pub charms: Vec<Charm>,
+  pub child_count: u64,
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
@@ -149,7 +150,7 @@ pub struct Inscriptions {
   pub page_index: u32,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,

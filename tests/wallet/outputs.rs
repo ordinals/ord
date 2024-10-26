@@ -94,3 +94,72 @@ fn outputs_includes_sat_ranges() {
     Some(vec!["5000000000-5001000000".to_string()])
   );
 }
+
+#[test]
+fn outputs_includes_runes_and_inscriptions() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let rune = Rune(RUNE);
+
+  let etched = batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 3,
+        premine: "1.111".parse().unwrap(),
+        rune: SpacedRune { rune, spacers: 1 },
+        supply: "2.222".parse().unwrap(),
+        symbol: '¢',
+        terms: Some(batch::Terms {
+          amount: "1.111".parse().unwrap(),
+          cap: 1,
+          ..default()
+        }),
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let output = CommandBuilder::new("--regtest --index-runes wallet outputs")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Vec<Output>>();
+
+  assert!(output.contains(&Output {
+    output: etched.output.rune.clone().unwrap().location.unwrap(),
+    address: etched.output.rune.unwrap().destination,
+    amount: 10000,
+    inscriptions: Some(Vec::new()),
+    runes: Some(
+      vec![(
+        SpacedRune { rune, spacers: 1 },
+        ord::decimal::Decimal {
+          value: 1111,
+          scale: 3,
+        }
+      )]
+      .into_iter()
+      .collect()
+    ),
+    sat_ranges: None,
+  }));
+
+  assert!(output.contains(&Output {
+    output: etched.output.inscriptions[0].location.outpoint,
+    address: Some(etched.output.inscriptions[0].destination.clone()),
+    amount: 10000,
+    inscriptions: Some(vec![etched.output.inscriptions[0].id]),
+    runes: Some(BTreeMap::new()),
+    sat_ranges: None,
+  }));
+}

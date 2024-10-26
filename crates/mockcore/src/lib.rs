@@ -294,6 +294,28 @@ impl Handle {
       .clone()
   }
 
+  #[track_caller]
+  pub fn tx_index(&self, txid: Txid) -> (usize, usize) {
+    let state = self.state();
+
+    for (block_hash, block) in &state.blocks {
+      for (t, tx) in block.txdata.iter().enumerate() {
+        if tx.compute_txid() == txid {
+          let b = state
+            .hashes
+            .iter()
+            .enumerate()
+            .find(|(_b, hash)| *hash == block_hash)
+            .unwrap()
+            .0;
+          return (b, t);
+        }
+      }
+    }
+
+    panic!("unknown transaction");
+  }
+
   pub fn mempool(&self) -> Vec<Transaction> {
     self.state().mempool().to_vec()
   }

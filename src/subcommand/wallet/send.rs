@@ -196,30 +196,33 @@ impl Send {
             output,
             balance
               .into_iter()
-              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile))
+              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
               .collect(),
           )
         })
       })
-      .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, Pile>>>>()?;
+      .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, u128>>>>()?;
 
     let mut inputs = Vec::new();
     let mut input_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
 
     for (output, runes) in balances {
       if let Some(balance) = runes.get(&spaced_rune.rune) {
-        assert!(balance.amount > 0);
-        *input_rune_balances.entry(spaced_rune.rune).or_default() += balance.amount;
+        if *balance > 0 {
+          for (rune, balance) in runes {
+            *input_rune_balances.entry(rune).or_default() += balance;
+          }
 
-        inputs.push(output);
+          inputs.push(output);
 
-        if input_rune_balances
-          .get(&spaced_rune.rune)
-          .cloned()
-          .unwrap_or_default()
-          >= amount
-        {
-          break;
+          if input_rune_balances
+            .get(&spaced_rune.rune)
+            .cloned()
+            .unwrap_or_default()
+            >= amount
+          {
+            break;
+          }
         }
       }
     }
