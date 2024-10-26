@@ -45,10 +45,10 @@ fn with_runes() {
   assert_eq!(
     output,
     Output {
-      runes: vec![
+      runes: [
         (
           SpacedRune::new(Rune(RUNE), 0),
-          vec![(
+          [(
             OutPoint {
               txid: a.output.reveal,
               vout: 1
@@ -59,12 +59,11 @@ fn with_runes() {
               symbol: Some('¢')
             },
           )]
-          .into_iter()
-          .collect()
+          .into()
         ),
         (
           SpacedRune::new(Rune(RUNE + 1), 0),
-          vec![(
+          [(
             OutPoint {
               txid: b.output.reveal,
               vout: 1
@@ -75,12 +74,10 @@ fn with_runes() {
               symbol: Some('¢')
             },
           )]
-          .into_iter()
-          .collect()
+          .into()
         ),
       ]
-      .into_iter()
-      .collect(),
+      .into()
     }
   );
 }
