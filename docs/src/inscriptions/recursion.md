@@ -50,10 +50,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockhash</b></code>
- </summary>
+  </summary>
 
 ### Description
 Latest block hash.
@@ -69,10 +69,10 @@ curl -s  \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockhash/&lt;HEIGHT&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 Block hash at given block height as JSON string.
@@ -88,10 +88,10 @@ curl -s  \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockheight</b></code>
- </summary>
+  </summary>
 
 ### Description
 Latest block height.
@@ -107,10 +107,10 @@ curl -s  \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockinfo/&lt;QUERY&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 Block info. `<QUERY>` may be a block height or block hash.
@@ -207,10 +207,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blocktime</b></code>
- </summary>
+  </summary>
 
 ### Description
 UNIX time stamp of latest block.
@@ -226,10 +226,10 @@ curl -s  \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The first 100 child inscription ids.
@@ -350,10 +350,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The set of 100 child inscription ids on `<PAGE>`.
@@ -474,10 +474,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
- </summary>
+  </summary>
 
 ### Description
 Details of the first 100 child inscriptions.
@@ -1796,10 +1796,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 Details of the set of 100 child inscriptions on &lt;PAGE&gt;.
@@ -3119,10 +3119,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 Undelegated content of an inscription.
@@ -3167,10 +3167,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/metadata/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 JSON string containing the hex-encoded CBOR metadata.
@@ -3186,10 +3186,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The first 100 parent inscription ids.
@@ -3211,10 +3211,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The set of 100 parent inscription ids on `<PAGE>`.
@@ -3234,10 +3234,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The first 100 inscription ids on a sat. Requires index with `--index-sats` flag.
@@ -3262,10 +3262,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The set of 100 inscription ids on `<PAGE>`. Requires index with `--index-sats` flag.
@@ -3297,10 +3297,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. Requires index with `--index-sats` flag.
