@@ -33,10 +33,10 @@ Recursion has a number of interesting use-cases:
 ## Endpoints
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/content/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The content of the inscription with `<INSCRIPTION_ID>`
