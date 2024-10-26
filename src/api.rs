@@ -93,6 +93,7 @@ pub struct ChildInscriptions {
 pub struct Inscription {
   pub address: Option<String>,
   pub charms: Vec<Charm>,
+  pub child_count: u64,
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
