@@ -56,7 +56,7 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-Latest block hash in JSON.
+Latest block hash.
 
 ### Example
 ```bash
@@ -2275,6 +2275,7 @@ curl -s -H "Accept: application/json" \
       "id": "b205c9d1dc054f24c13aeb886fba42d9dd0aac3cd9bdc4f034affc90f3a0bf3ci95",
       "number": 75750381,
       "output": "4b8472a729f7b73feaf1de84895641e62a8b1103818c1878e4da18a585cb1047:1",
+      "sat": null,
       "satpoint": "4b8472a729f7b73feaf1de84895641e62a8b1103818c1878e4da18a585cb1047:1:0",
       "timestamp": 1726292222
     },
