@@ -31,5 +31,35 @@ fn sign() {
   .run_and_deserialize_output::<SignOutput>();
 
   assert_eq!(address, &sign.address);
-  assert_eq!(message, &sign.message);
+  assert_eq!(message, &sign.message.unwrap());
+}
+
+#[test]
+fn sign_file() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let addresses = CommandBuilder::new("wallet addresses")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<BTreeMap<Address<NetworkUnchecked>, Vec<AddressesOutput>>>();
+
+  let address = addresses.first_key_value().unwrap().0;
+
+  let sign = CommandBuilder::new(format!(
+    "wallet sign --address {} --file hello.txt",
+    address.clone().assume_checked(),
+  ))
+  .write("hello.txt", "Hello World")
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<SignOutput>();
+
+  assert_eq!(address, &sign.address);
+  assert!(sign.message.is_none());
 }
