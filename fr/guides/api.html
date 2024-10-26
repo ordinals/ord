@@ -5095,10 +5095,10 @@
 <h2 id="recursive-endpoints"><a class="header" href="#recursive-endpoints">Recursive Endpoints</a></h2>
 <p>See <a href="../inscriptions/recursion.html">Recursion</a> for an explanation of these.</p>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/content/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-24"><a class="header" href="#description-24">Description</a></h3>
 <p>The content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code></p>
 <h3 id="exemple-25"><a class="header" href="#exemple-25">Exemple</a></h3>
@@ -5108,52 +5108,52 @@
 <p><i>no terminal output, just file creation</i></p>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockhash</b></code>
- </summary>
+  </summary>
 <h3 id="description-25"><a class="header" href="#description-25">Description</a></h3>
-<p>Latest block hash in text.</p>
+<p>Latest block hash.</p>
 <h3 id="exemple-26"><a class="header" href="#exemple-26">Exemple</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash
 </code></pre>
-<pre><code class="language-text">"00000000000000000002891b440944e0ce40b37b6ccaa138c280e9edfc319d5d"
+<pre><code class="language-json">"00000000000000000002891b440944e0ce40b37b6ccaa138c280e9edfc319d5d"
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockhash/&lt;HEIGHT&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-26"><a class="header" href="#description-26">Description</a></h3>
-<p>Block hash at given block height in text.</p>
+<p>Block hash at given block height as JSON string.</p>
 <h3 id="exemple-27"><a class="header" href="#exemple-27">Exemple</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash/840000
 </code></pre>
-<pre><code class="language-text">"0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5"
+<pre><code class="language-json">"0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5"
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockheight</b></code>
- </summary>
+  </summary>
 <h3 id="description-27"><a class="header" href="#description-27">Description</a></h3>
-<p>Latest block height in text.</p>
+<p>Latest block height.</p>
 <h3 id="exemple-28"><a class="header" href="#exemple-28">Exemple</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockheight
 </code></pre>
-<pre><code class="language-text">866393
+<pre><code class="language-json">866393
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockinfo/&lt;QUERY&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-28"><a class="header" href="#description-28">Description</a></h3>
 <p>Block info. <code>&lt;QUERY&gt;</code> may be a block height or block hash.</p>
 <h3 id="example-blockheight"><a class="header" href="#example-blockheight">Example (blockheight)</a></h3>
@@ -5243,24 +5243,24 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blocktime</b></code>
- </summary>
+  </summary>
 <h3 id="description-29"><a class="header" href="#description-29">Description</a></h3>
-<p>UNIX time stamp of latest block in text.</p>
+<p>UNIX time stamp of latest block.</p>
 <h3 id="exemple-29"><a class="header" href="#exemple-29">Exemple</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blocktime
 </code></pre>
-<pre><code class="language-text">1729362253
+<pre><code class="language-json">1729362253
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-30"><a class="header" href="#description-30">Description</a></h3>
 <p>The first 100 child inscription ids.</p>
 <h3 id="exemple-30"><a class="header" href="#exemple-30">Exemple</a></h3>
@@ -5376,10 +5376,10 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-31"><a class="header" href="#description-31">Description</a></h3>
 <p>The set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</p>
 <h3 id="exemple-31"><a class="header" href="#exemple-31">Exemple</a></h3>
@@ -5495,10 +5495,10 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
- </summary>
+  </summary>
 <h3 id="description-32"><a class="header" href="#description-32">Description</a></h3>
 <p>Details of the first 100 child inscriptions.</p>
 <h3 id="exemple-32"><a class="header" href="#exemple-32">Exemple</a></h3>
@@ -6812,10 +6812,10 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-33"><a class="header" href="#description-33">Description</a></h3>
 <p>Details of the set of 100 child inscriptions on &lt;PAGE&gt;.</p>
 <h3 id="exemple-33"><a class="header" href="#exemple-33">Exemple</a></h3>
@@ -8130,11 +8130,19 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</b></code>
+  </summary>
+<h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
+<p>Undelegated content of an inscription.</p>
+</details>
+<details>
+  <summary>
     <code>GET</code>
     <code><b>/r/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
+  </summary>
+<h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
 <p>Information about an inscription.</p>
 <h3 id="exemple-34"><a class="header" href="#exemple-34">Exemple</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -8161,11 +8169,11 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/metadata/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
+  </summary>
+<h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
 <p>JSON string containing the hex-encoded CBOR metadata.</p>
 <h3 id="exemple-35"><a class="header" href="#exemple-35">Exemple</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -8175,11 +8183,11 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
+  </summary>
+<h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
 <p>The first 100 parent inscription ids.</p>
 <h3 id="exemple-36"><a class="header" href="#exemple-36">Exemple</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -8195,11 +8203,11 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
- </summary>
-<h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
+  </summary>
+<h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
 <p>The set of 100 parent inscription ids on <code>&lt;PAGE&gt;</code>.</p>
 <h3 id="exemple-37"><a class="header" href="#exemple-37">Exemple</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -8213,11 +8221,11 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;</b></code>
- </summary>
-<h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
+  </summary>
+<h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
 <p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="exemple-38"><a class="header" href="#exemple-38">Exemple</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -8236,11 +8244,11 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/&lt;PAGE&gt;</b></code>
- </summary>
-<h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
+  </summary>
+<h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
 <p>The set of 100 inscription ids on <code>&lt;PAGE&gt;</code>. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="exemple-39"><a class="header" href="#exemple-39">Exemple</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -8266,21 +8274,12 @@
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;</b></code>
- </summary>
-<h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
+  </summary>
+<h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
 <p>The inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="exemple-40"><a class="header" href="#exemple-40">Exemple</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/r/sat/153899938226999/at/-1
-</code></pre>
-<pre><code class="language-json">{
-  "id": "488c32e4dfcdc0fa376c2c2af2d572a12f4d33d3245689d1a9f74167f1e14678i0"
-}
-</code></pre>
-</details>
 
                     </main>
 

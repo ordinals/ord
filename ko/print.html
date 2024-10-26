@@ -710,10 +710,10 @@ OP_ENDIF
 </ul>
 <h2 id="endpoints"><a class="header" href="#endpoints">Endpoints</a></h2>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/content/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description"><a class="header" href="#description">Description</a></h3>
 <p>The content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code></p>
 <h3 id="예제-3"><a class="header" href="#예제-3">예제</a></h3>
@@ -723,52 +723,52 @@ OP_ENDIF
 <p><i>no terminal output, just file creation</i></p>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockhash</b></code>
- </summary>
+  </summary>
 <h3 id="description-1"><a class="header" href="#description-1">Description</a></h3>
-<p>Latest block hash in text.</p>
+<p>Latest block hash.</p>
 <h3 id="예제-4"><a class="header" href="#예제-4">예제</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash
 </code></pre>
-<pre><code class="language-text">"00000000000000000002891b440944e0ce40b37b6ccaa138c280e9edfc319d5d"
+<pre><code class="language-json">"00000000000000000002891b440944e0ce40b37b6ccaa138c280e9edfc319d5d"
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockhash/&lt;HEIGHT&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-2"><a class="header" href="#description-2">Description</a></h3>
-<p>Block hash at given block height in text.</p>
+<p>Block hash at given block height as JSON string.</p>
 <h3 id="예제-5"><a class="header" href="#예제-5">예제</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash/840000
 </code></pre>
-<pre><code class="language-text">"0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5"
+<pre><code class="language-json">"0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5"
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockheight</b></code>
- </summary>
+  </summary>
 <h3 id="description-3"><a class="header" href="#description-3">Description</a></h3>
-<p>Latest block height in text.</p>
+<p>Latest block height.</p>
 <h3 id="예제-6"><a class="header" href="#예제-6">예제</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockheight
 </code></pre>
-<pre><code class="language-text">866393
+<pre><code class="language-json">866393
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockinfo/&lt;QUERY&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-4"><a class="header" href="#description-4">Description</a></h3>
 <p>Block info. <code>&lt;QUERY&gt;</code> may be a block height or block hash.</p>
 <h3 id="example-blockheight"><a class="header" href="#example-blockheight">Example (blockheight)</a></h3>
@@ -858,24 +858,24 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blocktime</b></code>
- </summary>
+  </summary>
 <h3 id="description-5"><a class="header" href="#description-5">Description</a></h3>
-<p>UNIX time stamp of latest block in text.</p>
+<p>UNIX time stamp of latest block.</p>
 <h3 id="예제-7"><a class="header" href="#예제-7">예제</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blocktime
 </code></pre>
-<pre><code class="language-text">1729362253
+<pre><code class="language-json">1729362253
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-6"><a class="header" href="#description-6">Description</a></h3>
 <p>The first 100 child inscription ids.</p>
 <h3 id="예제-8"><a class="header" href="#예제-8">예제</a></h3>
@@ -991,10 +991,10 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-7"><a class="header" href="#description-7">Description</a></h3>
 <p>The set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</p>
 <h3 id="예제-9"><a class="header" href="#예제-9">예제</a></h3>
@@ -1110,10 +1110,10 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
- </summary>
+  </summary>
 <h3 id="description-8"><a class="header" href="#description-8">Description</a></h3>
 <p>Details of the first 100 child inscriptions.</p>
 <h3 id="예제-10"><a class="header" href="#예제-10">예제</a></h3>
@@ -2427,10 +2427,10 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 <h3 id="description-9"><a class="header" href="#description-9">Description</a></h3>
 <p>Details of the set of 100 child inscriptions on &lt;PAGE&gt;.</p>
 <h3 id="예제-11"><a class="header" href="#예제-11">예제</a></h3>
@@ -3745,11 +3745,19 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</b></code>
+  </summary>
+<h3 id="description-10"><a class="header" href="#description-10">Description</a></h3>
+<p>Undelegated content of an inscription.</p>
+</details>
+<details>
+  <summary>
     <code>GET</code>
     <code><b>/r/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-10"><a class="header" href="#description-10">Description</a></h3>
+  </summary>
+<h3 id="description-11"><a class="header" href="#description-11">Description</a></h3>
 <p>Information about an inscription.</p>
 <h3 id="예제-12"><a class="header" href="#예제-12">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -3776,11 +3784,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/metadata/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-11"><a class="header" href="#description-11">Description</a></h3>
+  </summary>
+<h3 id="description-12"><a class="header" href="#description-12">Description</a></h3>
 <p>JSON string containing the hex-encoded CBOR metadata.</p>
 <h3 id="예제-13"><a class="header" href="#예제-13">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -3790,11 +3798,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-12"><a class="header" href="#description-12">Description</a></h3>
+  </summary>
+<h3 id="description-13"><a class="header" href="#description-13">Description</a></h3>
 <p>The first 100 parent inscription ids.</p>
 <h3 id="예제-14"><a class="header" href="#예제-14">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -3810,11 +3818,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
- </summary>
-<h3 id="description-13"><a class="header" href="#description-13">Description</a></h3>
+  </summary>
+<h3 id="description-14"><a class="header" href="#description-14">Description</a></h3>
 <p>The set of 100 parent inscription ids on <code>&lt;PAGE&gt;</code>.</p>
 <h3 id="예제-15"><a class="header" href="#예제-15">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -3828,11 +3836,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;</b></code>
- </summary>
-<h3 id="description-14"><a class="header" href="#description-14">Description</a></h3>
+  </summary>
+<h3 id="description-15"><a class="header" href="#description-15">Description</a></h3>
 <p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="예제-16"><a class="header" href="#예제-16">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -3851,11 +3859,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/&lt;PAGE&gt;</b></code>
- </summary>
-<h3 id="description-15"><a class="header" href="#description-15">Description</a></h3>
+  </summary>
+<h3 id="description-16"><a class="header" href="#description-16">Description</a></h3>
 <p>The set of 100 inscription ids on <code>&lt;PAGE&gt;</code>. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="예제-17"><a class="header" href="#예제-17">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -3881,11 +3889,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;</b></code>
- </summary>
-<h3 id="description-16"><a class="header" href="#description-16">Description</a></h3>
+  </summary>
+<h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
 <p>The inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="예제-18"><a class="header" href="#예제-18">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -4478,7 +4486,7 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/address/&lt;ADDRESS&gt;</b></code>
  </summary>
-<h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
+<h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
 <p>List all assets of an address. Requires index with <code>--index-addresses</code> flag.</p>
 <h3 id="예제-19"><a class="header" href="#예제-19">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -4551,7 +4559,7 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/block/&lt;BLOCKHASH&gt;</b></code>
   </summary>
-<h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
+<h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
 <p>Returns info about the specified block.</p>
 <h3 id="예제-20"><a class="header" href="#예제-20">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -4592,7 +4600,7 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/block/&lt;BLOCKHEIGHT&gt;</b></code>
   </summary>
-<h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
+<h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
 <p>Returns info about the specified block.</p>
 <h3 id="예제-21"><a class="header" href="#예제-21">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -4633,7 +4641,7 @@ OP_ENDIF
       <code>GET</code>
       <code><b>/blockcount</b></code>
    </summary>
-<h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
+<h3 id="description-21"><a class="header" href="#description-21">Description</a></h3>
 <p>Returns the height of the latest block.</p>
 <h3 id="예제-22"><a class="header" href="#예제-22">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -4647,7 +4655,7 @@ OP_ENDIF
       <code>GET</code>
       <code><b>/blockhash</b></code>
    </summary>
-<h3 id="description-21"><a class="header" href="#description-21">Description</a></h3>
+<h3 id="description-22"><a class="header" href="#description-22">Description</a></h3>
 <p>Returns blockhash for the latest block.</p>
 <h3 id="예제-23"><a class="header" href="#예제-23">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -4662,7 +4670,7 @@ OP_ENDIF
       <code><b>/blockhash/&lt;BLOCKHEIGHT&gt;</b></code>
       &emsp;&emsp;&emsp;
    </summary>
-<h3 id="description-22"><a class="header" href="#description-22">Description</a></h3>
+<h3 id="description-23"><a class="header" href="#description-23">Description</a></h3>
 <p>Returns blockhash of specified block.</p>
 <h3 id="예제-24"><a class="header" href="#예제-24">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -4676,7 +4684,7 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/blockheight</b></code>
   </summary>
-<h3 id="description-23"><a class="header" href="#description-23">Description</a></h3>
+<h3 id="description-24"><a class="header" href="#description-24">Description</a></h3>
 <p>Returns the height of the latest block.</p>
 <h3 id="예제-25"><a class="header" href="#예제-25">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -4690,7 +4698,7 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/blocks</b></code>
   </summary>
-<h3 id="description-24"><a class="header" href="#description-24">Description</a></h3>
+<h3 id="description-25"><a class="header" href="#description-25">Description</a></h3>
 <p>Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.</p>
 <h3 id="예제-26"><a class="header" href="#예제-26">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -4860,7 +4868,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/blocktime</b></code>
 </summary>
-<h3 id="description-25"><a class="header" href="#description-25">Description</a></h3>
+<h3 id="description-26"><a class="header" href="#description-26">Description</a></h3>
 <p>Returns the UNIX timestamp of when the latest block was mined.</p>
 <h3 id="예제-27"><a class="header" href="#예제-27">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -4874,7 +4882,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/decode/&lt;TRANSCATION_ID&gt;</b></code>
 </summary>
-<h3 id="description-26"><a class="header" href="#description-26">Description</a></h3>
+<h3 id="description-27"><a class="header" href="#description-27">Description</a></h3>
 <p>Decode a transaction, congruent to the <code>ord decode</code> command</p>
 <h3 id="예제-28"><a class="header" href="#예제-28">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -5716,7 +5724,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
 </summary>
-<h3 id="description-27"><a class="header" href="#description-27">Description</a></h3>
+<h3 id="description-28"><a class="header" href="#description-28">Description</a></h3>
 <p>Fetch details about a specific inscription by its ID.</p>
 <h3 id="예제-29"><a class="header" href="#예제-29">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" /
@@ -5753,7 +5761,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/inscription/&lt;INSCRIPTION_ID&gt;/&lt;CHILD&gt;</b></code>
 </summary>
-<h3 id="description-28"><a class="header" href="#description-28">Description</a></h3>
+<h3 id="description-29"><a class="header" href="#description-29">Description</a></h3>
 <p>Returns the inscription information for the specified child.</p>
 <h3 id="예제-30"><a class="header" href="#예제-30">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -5790,7 +5798,7 @@ OP_ENDIF
 <code>POST</code>
 <code><b>/inscriptions</b></code>
 </summary>
-<h3 id="description-29"><a class="header" href="#description-29">Description</a></h3>
+<h3 id="description-30"><a class="header" href="#description-30">Description</a></h3>
 <p>Fetch details for a list of inscription IDs.</p>
 <h3 id="예제-31"><a class="header" href="#예제-31">예제</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
@@ -5856,7 +5864,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/inscriptions</b></code>
 </summary>
-<h3 id="description-30"><a class="header" href="#description-30">Description</a></h3>
+<h3 id="description-31"><a class="header" href="#description-31">Description</a></h3>
 <p>Get a list of the latest 100 inscriptions.</p>
 <h3 id="예제-32"><a class="header" href="#예제-32">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -5975,7 +5983,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/inscriptions/&lt;PAGE&gt;</b></code>
 </summary>
-<h3 id="description-31"><a class="header" href="#description-31">Description</a></h3>
+<h3 id="description-32"><a class="header" href="#description-32">Description</a></h3>
 <p>Pagination allows you to choose which page of 100 inscriptions to return.</p>
 <h3 id="예제-33"><a class="header" href="#예제-33">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -6094,7 +6102,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/inscriptions/block/&lt;BLOCKHEIGHT&gt;</b></code>
 </summary>
-<h3 id="description-32"><a class="header" href="#description-32">Description</a></h3>
+<h3 id="description-33"><a class="header" href="#description-33">Description</a></h3>
 <p>Get inscriptions for a specific block.</p>
 <h3 id="예제-34"><a class="header" href="#예제-34">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -6114,7 +6122,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/install.sh</b></code>
 </summary>
-<h3 id="description-33"><a class="header" href="#description-33">Description</a></h3>
+<h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
 <p>Installs the latest pre-built binary of <code>ord</code></p>
 <h3 id="예제-35"><a class="header" href="#예제-35">예제</a></h3>
 <p>see <a href="guides/wallet.html#installing-ord">wallet.md</a></p>
@@ -6124,7 +6132,7 @@ OP_ENDIF
     <code>GET</code>
     <code><b>/output/&lt;OUTPOINT&gt;</b></code>
  </summary>
-<h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
+<h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
 <p>Returns information about a UTXO, including inscriptions within it.</p>
 <h3 id="예제-36"><a class="header" href="#예제-36">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -6148,7 +6156,7 @@ OP_ENDIF
     <code>POST</code>
     <code><b>/outputs</b></code>
  </summary>
-<h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
+<h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
 <p>List information from a list of outputs</p>
 <h3 id="예제-37"><a class="header" href="#예제-37">예제</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
@@ -6188,7 +6196,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/rune/&lt;RUNE&gt;</b></code>
 </summary>
-<h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
+<h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
 <p>Returns details about the specified rune. Requires index with <code>--index-runes</code> flag.</p>
 <h3 id="예제-38"><a class="header" href="#예제-38">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -6231,7 +6239,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/runes</b></code>
 </summary>
-<h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
+<h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
 <p>Returns details for last 100 inscribed runes.  Requires index with <code>--index-runes</code> flag.</p>
 <h3 id="예제-39"><a class="header" href="#예제-39">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -9207,7 +9215,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/sat/&lt;SAT&gt;</b></code>
 </summary>
-<h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
+<h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
 <p>Returns details about a specific satoshi.  Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="예제-41"><a class="header" href="#예제-41">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -9237,7 +9245,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/status</b></code>
 </summary>
-<h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
+<h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
 <p>Returns details about the server installation and index.</p>
 <h3 id="예제-42"><a class="header" href="#예제-42">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -9274,7 +9282,7 @@ OP_ENDIF
 <code>GET</code>
 <code><b>/tx/&lt;TRANSACTION_ID&gt;</b></code>
 </summary>
-<h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
+<h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
 <p>Returns details about the specified transaction.</p>
 <h3 id="예제-43"><a class="header" href="#예제-43">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -9313,11 +9321,11 @@ OP_ENDIF
 <h2 id="recursive-endpoints"><a class="header" href="#recursive-endpoints">Recursive Endpoints</a></h2>
 <p>See <a href="guides/../inscriptions/recursion.html">Recursion</a> for an explanation of these.</p>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/content/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
+  </summary>
+<h3 id="description-42"><a class="header" href="#description-42">Description</a></h3>
 <p>The content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code></p>
 <h3 id="예제-44"><a class="header" href="#예제-44">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -9326,53 +9334,53 @@ OP_ENDIF
 <p><i>no terminal output, just file creation</i></p>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockhash</b></code>
- </summary>
-<h3 id="description-42"><a class="header" href="#description-42">Description</a></h3>
-<p>Latest block hash in text.</p>
+  </summary>
+<h3 id="description-43"><a class="header" href="#description-43">Description</a></h3>
+<p>Latest block hash.</p>
 <h3 id="예제-45"><a class="header" href="#예제-45">예제</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash
 </code></pre>
-<pre><code class="language-text">"00000000000000000002891b440944e0ce40b37b6ccaa138c280e9edfc319d5d"
+<pre><code class="language-json">"00000000000000000002891b440944e0ce40b37b6ccaa138c280e9edfc319d5d"
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockhash/&lt;HEIGHT&gt;</b></code>
- </summary>
-<h3 id="description-43"><a class="header" href="#description-43">Description</a></h3>
-<p>Block hash at given block height in text.</p>
+  </summary>
+<h3 id="description-44"><a class="header" href="#description-44">Description</a></h3>
+<p>Block hash at given block height as JSON string.</p>
 <h3 id="예제-46"><a class="header" href="#예제-46">예제</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash/840000
 </code></pre>
-<pre><code class="language-text">"0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5"
+<pre><code class="language-json">"0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5"
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockheight</b></code>
- </summary>
-<h3 id="description-44"><a class="header" href="#description-44">Description</a></h3>
-<p>Latest block height in text.</p>
+  </summary>
+<h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
+<p>Latest block height.</p>
 <h3 id="예제-47"><a class="header" href="#예제-47">예제</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockheight
 </code></pre>
-<pre><code class="language-text">866393
+<pre><code class="language-json">866393
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockinfo/&lt;QUERY&gt;</b></code>
- </summary>
-<h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
+  </summary>
+<h3 id="description-46"><a class="header" href="#description-46">Description</a></h3>
 <p>Block info. <code>&lt;QUERY&gt;</code> may be a block height or block hash.</p>
 <h3 id="example-blockheight-1"><a class="header" href="#example-blockheight-1">Example (blockheight)</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -9461,25 +9469,25 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blocktime</b></code>
- </summary>
-<h3 id="description-46"><a class="header" href="#description-46">Description</a></h3>
-<p>UNIX time stamp of latest block in text.</p>
+  </summary>
+<h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
+<p>UNIX time stamp of latest block.</p>
 <h3 id="예제-48"><a class="header" href="#예제-48">예제</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blocktime
 </code></pre>
-<pre><code class="language-text">1729362253
+<pre><code class="language-json">1729362253
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
+  </summary>
+<h3 id="description-48"><a class="header" href="#description-48">Description</a></h3>
 <p>The first 100 child inscription ids.</p>
 <h3 id="예제-49"><a class="header" href="#예제-49">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -9594,11 +9602,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
- </summary>
-<h3 id="description-48"><a class="header" href="#description-48">Description</a></h3>
+  </summary>
+<h3 id="description-49"><a class="header" href="#description-49">Description</a></h3>
 <p>The set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</p>
 <h3 id="예제-50"><a class="header" href="#예제-50">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -9713,11 +9721,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
- </summary>
-<h3 id="description-49"><a class="header" href="#description-49">Description</a></h3>
+  </summary>
+<h3 id="description-50"><a class="header" href="#description-50">Description</a></h3>
 <p>Details of the first 100 child inscriptions.</p>
 <h3 id="예제-51"><a class="header" href="#예제-51">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -11030,11 +11038,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
- </summary>
-<h3 id="description-50"><a class="header" href="#description-50">Description</a></h3>
+  </summary>
+<h3 id="description-51"><a class="header" href="#description-51">Description</a></h3>
 <p>Details of the set of 100 child inscriptions on &lt;PAGE&gt;.</p>
 <h3 id="예제-52"><a class="header" href="#예제-52">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -12348,11 +12356,19 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</b></code>
+  </summary>
+<h3 id="description-52"><a class="header" href="#description-52">Description</a></h3>
+<p>Undelegated content of an inscription.</p>
+</details>
+<details>
+  <summary>
     <code>GET</code>
     <code><b>/r/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-51"><a class="header" href="#description-51">Description</a></h3>
+  </summary>
+<h3 id="description-53"><a class="header" href="#description-53">Description</a></h3>
 <p>Information about an inscription.</p>
 <h3 id="예제-53"><a class="header" href="#예제-53">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -12379,11 +12395,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/metadata/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-52"><a class="header" href="#description-52">Description</a></h3>
+  </summary>
+<h3 id="description-54"><a class="header" href="#description-54">Description</a></h3>
 <p>JSON string containing the hex-encoded CBOR metadata.</p>
 <h3 id="예제-54"><a class="header" href="#예제-54">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -12393,11 +12409,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
-<h3 id="description-53"><a class="header" href="#description-53">Description</a></h3>
+  </summary>
+<h3 id="description-55"><a class="header" href="#description-55">Description</a></h3>
 <p>The first 100 parent inscription ids.</p>
 <h3 id="예제-55"><a class="header" href="#예제-55">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -12413,11 +12429,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
- </summary>
-<h3 id="description-54"><a class="header" href="#description-54">Description</a></h3>
+  </summary>
+<h3 id="description-56"><a class="header" href="#description-56">Description</a></h3>
 <p>The set of 100 parent inscription ids on <code>&lt;PAGE&gt;</code>.</p>
 <h3 id="예제-56"><a class="header" href="#예제-56">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -12431,11 +12447,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;</b></code>
- </summary>
-<h3 id="description-55"><a class="header" href="#description-55">Description</a></h3>
+  </summary>
+<h3 id="description-57"><a class="header" href="#description-57">Description</a></h3>
 <p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="예제-57"><a class="header" href="#예제-57">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -12454,11 +12470,11 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/&lt;PAGE&gt;</b></code>
- </summary>
-<h3 id="description-56"><a class="header" href="#description-56">Description</a></h3>
+  </summary>
+<h3 id="description-58"><a class="header" href="#description-58">Description</a></h3>
 <p>The set of 100 inscription ids on <code>&lt;PAGE&gt;</code>. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="예제-58"><a class="header" href="#예제-58">예제</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
@@ -12484,21 +12500,12 @@ OP_ENDIF
 </code></pre>
 </details>
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;</b></code>
- </summary>
-<h3 id="description-57"><a class="header" href="#description-57">Description</a></h3>
+  </summary>
+<h3 id="description-59"><a class="header" href="#description-59">Description</a></h3>
 <p>The inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="예제-59"><a class="header" href="#예제-59">예제</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/r/sat/153899938226999/at/-1
-</code></pre>
-<pre><code class="language-json">{
-  "id": "488c32e4dfcdc0fa376c2c2af2d572a12f4d33d3245689d1a9f74167f1e14678i0"
-}
-</code></pre>
-</details>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="오디널-탐색기"><a class="header" href="#오디널-탐색기">오디널 탐색기</a></h1>
 <p>The <code>ord</code> binary includes a block explorer. We host an instance of the block explorer on mainnet at <a href="https://ordinals.com">ordinals.com</a>, on signet at <a href="https://signet.ordinals.com">signet.ordinals.com</a>, and on testnet at <a href="https://testnet.ordinals.com">testnet.ordinals.com</a>. As of version 0.16.0 the wallet needs <code>ord server</code> running in the background. This is analogous to how <code>bitcoin-cli</code> needs <code>bitcoind</code> running in the background.</p>
 <h3 id="탐색기-실행"><a class="header" href="#탐색기-실행">탐색기 실행</a></h3>
@@ -13205,7 +13212,7 @@ server_username: foo
 <p>Teleburn addresses are derived from inscription IDs. They have no corresponding private key, so assets sent to a teleburn address are burned. Currently, only Ethereum teleburn addresses are supported. Pull requests adding teleburn addresses for other chains are welcome.</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>Ethereum teleburn addresses are derived by taking the first 20 bytes of the SHA-256 hash of the inscription ID, serialized as 36 bytes, with the first 32 bytes containing the transaction ID, and the last four bytes containing big-endian inscription index, and interpreting it as an Ethereum address.</p>
-<h2 id="예제-60"><a class="header" href="#예제-60">예제</a></h2>
+<h2 id="예제-59"><a class="header" href="#예제-59">예제</a></h2>
 <p>The ENS domain name <a href="https://app.ens.domains/rodarmor.eth">rodarmor.eth</a>, was teleburned to <a href="https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0">inscription zero</a>.</p>
 <p>The inscription ID of inscription zero is <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
 <p>Passing <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code> to the teleburn command:</p>
@@ -13246,7 +13253,7 @@ $ord outputs
 </tbody></table>
 </div>
 <p>Regtest doesn't require downloading the blockchain since you create your own private blockchain, so indexing <code>ord</code> is almost instantaneous.</p>
-<h2 id="예제-61"><a class="header" href="#예제-61">예제</a></h2>
+<h2 id="예제-60"><a class="header" href="#예제-60">예제</a></h2>
 <p>Run <code>bitcoind</code> in regtest with:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
