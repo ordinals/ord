@@ -1744,12 +1744,14 @@ impl Server {
   }
 
   async fn charms() -> ServerResult {
-    let charms_map: HashMap<String, String> = Charm::ALL
-      .iter()
-      .map(|charm| (charm.to_string(), charm.icon().to_string()))
-      .collect();
+    let charms_map = serde_json::Map::from_iter(Charm::ALL.iter().map(|charm| {
+      (
+        charm.to_string(),
+        serde_json::Value::String(charm.icon().to_string()),
+      )
+    }));
 
-    Ok(Json(charms_map).into_response())
+    Ok(Json(serde_json::Value::Object(charms_map)).into_response())
   }
 
   async fn collections(
@@ -6251,20 +6253,26 @@ next
   fn charms_recursive() {
     let server = TestServer::new();
 
-    let charms_response = server.get_json::<HashMap<String, String>>("/r/charms");
+    let charms_response =
+      server.get_json::<serde_json::Map<String, serde_json::Value>>("/r/charms");
 
     assert!(!charms_response.is_empty());
 
     for charm in Charm::ALL {
       let icon = charm.icon().to_string();
       let name = charm.to_string();
-      assert_eq!(charms_response.get(&name), Some(&icon));
+      assert_eq!(
+        charms_response.get(&name).and_then(|v| v.as_str()),
+        Some(icon.as_str())
+      );
     }
 
     assert_eq!(charms_response.len(), Charm::ALL.len());
 
     for value in charms_response.values() {
-      assert!(Charm::ALL.iter().any(|c| c.icon() == value));
+      assert!(Charm::ALL
+        .iter()
+        .any(|c| c.icon() == value.as_str().unwrap()));
     }
   }
 
