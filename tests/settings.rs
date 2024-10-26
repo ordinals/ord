@@ -7,6 +7,7 @@ fn default() {
     .stdout_regex(
       r#"\{
   "bitcoin_data_dir": ".*(Bitcoin|bitcoin)",
+  "bitcoin_rpc_limit": 12,
   "bitcoin_rpc_password": null,
   "bitcoin_rpc_url": "127.0.0.1:8332",
   "bitcoin_rpc_username": null,
@@ -16,14 +17,14 @@ fn default() {
   "config_dir": null,
   "cookie_file": ".*\.cookie",
   "data_dir": ".*",
-  "first_inscription_height": 767430,
   "height_limit": null,
   "hidden": \[\],
+  "http_port": null,
   "index": ".*index\.redb",
+  "index_addresses": false,
   "index_cache_size": \d+,
   "index_runes": false,
   "index_sats": false,
-  "index_spent_sats": false,
   "index_transactions": false,
   "integration_test": false,
   "no_index_inscriptions": false,
@@ -62,7 +63,7 @@ fn config_invalid_error_message() {
   fs::write(&config, "foo").unwrap();
 
   CommandBuilder::new(format!("--config {} settings", config.to_str().unwrap()))
-    .stderr_regex("error: failed to deserialize config file `.*ord.yaml`\nbecause:.*")
+    .stderr_regex("error: failed to deserialize config file `.*ord.yaml`\n\nbecause:.*")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -74,7 +75,7 @@ fn config_not_found_error_message() {
   let config = tempdir.path().join("ord.yaml");
 
   CommandBuilder::new(format!("--config {} settings", config.to_str().unwrap()))
-    .stderr_regex("error: failed to open config file `.*ord.yaml`\nbecause:.*")
+    .stderr_regex("error: failed to open config file `.*ord.yaml`\n\nbecause:.*")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }

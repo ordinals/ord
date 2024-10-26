@@ -2,6 +2,7 @@ use {super::*, boilerplate::Boilerplate};
 
 pub(crate) use {
   crate::subcommand::server::ServerConfig,
+  address::AddressHtml,
   block::BlockHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
@@ -19,9 +20,7 @@ pub(crate) use {
     PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
-  range::RangeHtml,
   rare::RareTxt,
-  rune_balances::RuneBalancesHtml,
   sat::SatHtml,
 };
 
@@ -30,6 +29,7 @@ pub use {
   transaction::TransactionHtml,
 };
 
+pub mod address;
 pub mod block;
 pub mod blocks;
 mod children;
@@ -45,10 +45,8 @@ mod metadata;
 pub mod output;
 mod parents;
 mod preview;
-mod range;
 mod rare;
 pub mod rune;
-pub mod rune_balances;
 pub mod runes;
 pub mod sat;
 pub mod status;
@@ -78,7 +76,7 @@ where
 
   fn superscript(&self) -> String {
     if self.config.chain == Chain::Mainnet {
-      "alpha".into()
+      "beta".into()
     } else {
       self.config.chain.to_string()
     }
@@ -93,10 +91,6 @@ pub(crate) trait PageContent: Display + 'static {
     Self: Sized,
   {
     PageHtml::new(self, server_config)
-  }
-
-  fn preview_image_url(&self) -> Option<Trusted<String>> {
-    None
   }
 }
 
@@ -148,7 +142,7 @@ mod tests {
   <body>
   <header>
     <nav>
-      <a href=/ title=home>Ordinals<sup>alpha</sup></a>
+      <a href=/ title=home>Ordinals<sup>beta</sup></a>
       .*
       <a href=/clock title=clock>.*</a>
       <a href=/rare.txt title=rare>.*</a>
@@ -178,7 +172,7 @@ mod tests {
         index_sats: true,
         ..default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*"
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*"
     );
   }
 
@@ -192,7 +186,7 @@ mod tests {
         index_sats: false,
         ..default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
     );
   }
 

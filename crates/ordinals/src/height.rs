@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone, Debug, Display, FromStr, Ord, Eq, Serialize, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Display, FromStr)]
 pub struct Height(pub u32);
 
 impl Height {

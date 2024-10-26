@@ -5,7 +5,7 @@ The Runes reference implementation, `ord`, is the normative specification of
 the Runes protocol.
 
 Nothing you read here or elsewhere, aside from the code of `ord`, is a
-specification. This prose description of the runes protocol is provided as an
+specification. This prose description of the runes protocol is provided as a
 guide to the behavior of `ord`, and the code of `ord` itself should always be
 consulted to confirm the correctness of any prose description.
 
@@ -114,9 +114,12 @@ OP_13`. If deciphering fails, later matching outputs are not considered.
 
 #### Assembling the Payload Buffer
 
-The payload buffer is assembled by concatenating data pushes. If a non-data
-push opcode is encountered, the deciphered runestone is a cenotaph with no
-etching, mint, or edicts.
+The payload buffer is assembled by concatenating data pushes, after `OP_13`, in
+the matching script pubkey.
+
+Data pushes are opcodes 0 through 78 inclusive. If a non-data push opcode is
+encountered, i.e., any opcode equal to or greater than opcode 79, the
+deciphered runestone is a cenotaph with no etching, mint, or edicts.
 
 #### Decoding the Integer Sequence
 
@@ -189,10 +192,10 @@ And then delta encoded as:
 
 | block delta | TX delta | amount | output |
 |-------------|----------|--------|--------|
-| 10          | 5        | 100    | 1      |
-| 0           | 0        | 100    | 1      |
-| 0           | 2        | 100    | 1      |
-| 40          | 1        | 100    | 1      |
+| 10          | 5        | 5      | 1      |
+| 0           | 0        | 10     | 3      |
+| 0           | 2        | 1      | 8      |
+| 40          | 1        | 25     | 4      |
 
 If an edict output is greater than the number of outputs of the transaction, an
 edict rune ID is encountered with block zero and nonzero transaction index, or
@@ -244,7 +247,7 @@ Note that tags are grouped by parity, i.e., whether they are even or odd.
 Unrecognized odd tags are ignored. Unrecognized even tags produce a cenotaph.
 
 All unused tags are reserved for use by the protocol, may be assigned at any
-time, and must not be used.
+time, and should not be used.
 
 ##### Body
 
@@ -260,6 +263,7 @@ FLAG_VALUE`:
 enum Flag {
   Etching = 0,
   Terms = 1,
+  Turbo = 2,
   Cenotaph = 127,
 }
 ```
@@ -268,6 +272,10 @@ The `Etching` flag marks this transaction as containing an etching.
 
 The `Terms` flag marks this transaction's etching as having open mint terms.
 
+The `Turbo` flag marks this transaction's etching as opting into future
+protocol changes. These protocol changes may increase light client validation
+costs, or just be highly degenerate.
+
 The `Cenotaph` flag is unrecognized.
 
 If the value of the flags field after removing recognized flags is nonzero, the
@@ -275,10 +283,9 @@ runestone is a cenotaph.
 
 ##### Rune
 
-The `Rune` field contains the name of the rune being etched. If the `Eching`
-flag is set, but the `Rune` field is omitted, a reserved rune name is
-allocated, starting with `AAAAAAAAAAAAAAAAAAAAAAAAAAA` and increasing by one
-with each such reserved rune allocated.
+The `Rune` field contains the name of the rune being etched. If the `Etching`
+flag is set but the `Rune` field is omitted, a reserved rune name is
+allocated.
 
 ##### Premine
 
@@ -314,7 +321,8 @@ transaction.
 
 The `Pointer` field contains the index of the output to which runes unallocated
 by edicts should be transferred. If the `Pointer` field is absent, unallocated
-runes are transferred to the first non-`OP_RETURN` output.
+runes are transferred to the first non-`OP_RETURN` output. If the pointer is
+greater than the number of outputs, the runestone is a cenotaph.
 
 ##### Cenotaph
 
@@ -372,13 +380,13 @@ The `Nop` field is unrecognized.
 
 Cenotaphs have the following effects:
 
-- All runes input to a cenotaph are burned.
+- All runes input to a transaction containing a cenotaph are burned.
 
-- If the cenotaph is an etching, the etched rune has supply zero and is
-  unmintable.
+- If the runestone that produced the cenotaph contained an etching, the etched
+  rune has supply zero and is unmintable.
 
-- If the cenotaph is a mint, the mint counts against the mint cap and the
-  minted runes are burned.
+- If the runestone that produced the cenotaph is a mint, the mint counts
+  against the mint cap and the minted runes are burned.
 
 Cenotaphs may be created if a runestone contains an unrecognized even tag, an
 unrecognized flag, an edict with an output number greater than the number of
@@ -428,8 +436,19 @@ And so on and so on.
 
 Rune names `AAAAAAAAAAAAAAAAAAAAAAAAAAA` and above are reserved.
 
-`rune` may be omitted, in which case the first unallocated rune name, starting
-at `AAAAAAAAAAAAAAAAAAAAAAAAAAA` and increasing by one each time, is etched.
+If `rune` is omitted a reserved rune name is allocated as follows:
+
+```rust
+fn reserve(block: u64, tx: u32) -> Rune {
+  Rune(
+    6402364363415443603228541259936211926
+    + (u128::from(block) << 32 | u128::from(tx))
+  )
+}
+```
+
+`6402364363415443603228541259936211926` corresponds to the rune name
+`AAAAAAAAAAAAAAAAAAAAAAAAAAA`.
 
 If `rune` is present, it must be unlocked as of the block in which the etching
 appears.
@@ -462,7 +481,7 @@ If a valid commitment is not present, the etching is ignored.
 A runestone may mint a rune by including the rune's ID in the `Mint` field.
 
 If the mint is open, the mint amount is added to the unallocated runes in the
-transactions inputs. These runes may be transferred using edicts, and will
+transaction's inputs. These runes may be transferred using edicts, and will
 otherwise be transferred to the first non-`OP_RETURN` output, or the output
 designated by the `Pointer` field.
 
@@ -499,7 +518,7 @@ ID `0:0` is used to mean the rune being etched in this transaction, if any.
 An edict with `amount` zero allocates all remaining units of rune `id`.
 
 An edict with `output` equal to the number of transaction outputs allocates
-`amount` runes to each non-`OP_RETURN` output.
+`amount` runes to each non-`OP_RETURN` output in order.
 
 An edict with `amount` zero and `output` equal to the number of transaction
 outputs divides all unallocated units of rune `id` between each non-`OP_RETURN`

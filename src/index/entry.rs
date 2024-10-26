@@ -18,13 +18,24 @@ impl Entry for Header {
   }
 
   fn store(self) -> Self::Value {
-    let mut buffer = Cursor::new([0; 80]);
+    let mut buffer = [0; 80];
     let len = self
-      .consensus_encode(&mut buffer)
+      .consensus_encode(&mut buffer.as_mut_slice())
       .expect("in-memory writers don't error");
-    let buffer = buffer.into_inner();
     debug_assert_eq!(len, buffer.len());
     buffer
+  }
+}
+
+impl Entry for Rune {
+  type Value = u128;
+
+  fn load(value: Self::Value) -> Self {
+    Self(value)
+  }
+
+  fn store(self) -> Self::Value {
+    self.0
   }
 }
 
@@ -41,6 +52,7 @@ pub struct RuneEntry {
   pub symbol: Option<char>,
   pub terms: Option<Terms>,
   pub timestamp: u64,
+  pub turbo: bool,
 }
 
 impl RuneEntry {
@@ -73,6 +85,15 @@ impl RuneEntry {
   pub fn supply(&self) -> u128 {
     self.premine
       + self.mints
+        * self
+          .terms
+          .and_then(|terms| terms.amount)
+          .unwrap_or_default()
+  }
+
+  pub fn max_supply(&self) -> u128 {
+    self.premine
+      + self.terms.and_then(|terms| terms.cap).unwrap_or_default()
         * self
           .terms
           .and_then(|terms| terms.amount)
@@ -141,6 +162,7 @@ pub(super) type RuneEntryValue = (
   Option<char>,            // symbol
   Option<TermsEntryValue>, // terms
   u64,                     // timestamp
+  bool,                    // turbo
 );
 
 impl Default for RuneEntry {
@@ -157,6 +179,7 @@ impl Default for RuneEntry {
       symbol: None,
       terms: None,
       timestamp: 0,
+      turbo: false,
     }
   }
 }
@@ -177,6 +200,7 @@ impl Entry for RuneEntry {
       symbol,
       terms,
       timestamp,
+      turbo,
     ): RuneEntryValue,
   ) -> Self {
     Self {
@@ -208,6 +232,7 @@ impl Entry for RuneEntry {
         offset,
       }),
       timestamp,
+      turbo,
     }
   }
 
@@ -243,6 +268,7 @@ impl Entry for RuneEntry {
          }| (cap, height, amount, offset),
       ),
       self.timestamp,
+      self.turbo,
     )
   }
 }
@@ -262,16 +288,16 @@ impl Entry for RuneId {
 }
 
 #[derive(Debug, Eq, PartialEq, Clone)]
-pub(crate) struct InscriptionEntry {
-  pub(crate) charms: u16,
-  pub(crate) fee: u64,
-  pub(crate) height: u32,
-  pub(crate) id: InscriptionId,
-  pub(crate) inscription_number: i32,
-  pub(crate) parents: Vec<u32>,
-  pub(crate) sat: Option<Sat>,
-  pub(crate) sequence_number: u32,
-  pub(crate) timestamp: u32,
+pub struct InscriptionEntry {
+  pub charms: u16,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
+  pub inscription_number: i32,
+  pub parents: Vec<u32>,
+  pub sat: Option<Sat>,
+  pub sequence_number: u32,
+  pub timestamp: u32,
 }
 
 pub(crate) type InscriptionEntryValue = (
@@ -395,7 +421,7 @@ impl Entry for OutPoint {
   type Value = OutPointValue;
 
   fn load(value: Self::Value) -> Self {
-    Decodable::consensus_decode(&mut Cursor::new(value)).unwrap()
+    Decodable::consensus_decode(&mut bitcoin::io::Cursor::new(value)).unwrap()
   }
 
   fn store(self) -> Self::Value {
@@ -411,7 +437,7 @@ impl Entry for SatPoint {
   type Value = SatPointValue;
 
   fn load(value: Self::Value) -> Self {
-    Decodable::consensus_decode(&mut Cursor::new(value)).unwrap()
+    Decodable::consensus_decode(&mut bitcoin::io::Cursor::new(value)).unwrap()
   }
 
   fn store(self) -> Self::Value {
@@ -560,6 +586,7 @@ mod tests {
       },
       symbol: Some('a'),
       timestamp: 10,
+      turbo: true,
     };
 
     let value = (
@@ -577,6 +604,7 @@ mod tests {
       Some('a'),
       Some((Some(1), (Some(2), Some(3)), Some(4), (Some(5), Some(6)))),
       10,
+      true,
     );
 
     assert_eq!(entry.store(), value);

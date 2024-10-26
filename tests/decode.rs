@@ -1,8 +1,8 @@
 use {
   super::*,
   bitcoin::{
-    absolute::LockTime, consensus::Encodable, opcodes, script, ScriptBuf, Sequence, Transaction,
-    TxIn, TxOut, Witness,
+    absolute::LockTime, consensus::Encodable, opcodes, script, transaction::Version, ScriptBuf,
+    Sequence, Transaction, TxIn, TxOut, Witness,
   },
   ord::{
     subcommand::decode::{CompactInscription, CompactOutput, RawOutput},
@@ -28,7 +28,7 @@ fn transaction() -> Vec<u8> {
   witness.push([]);
 
   let transaction = Transaction {
-    version: 2,
+    version: Version(2),
     lock_time: LockTime::ZERO,
     input: vec![TxIn {
       previous_output: OutPoint::null(),
@@ -38,7 +38,7 @@ fn transaction() -> Vec<u8> {
     }],
     output: vec![TxOut {
       script_pubkey: Runestone::default().encipher(),
-      value: 0,
+      value: Amount::from_sat(0),
     }],
   };
 
@@ -67,7 +67,7 @@ fn from_file() {
         pushnum: false,
         stutter: false,
       }],
-      runestone: Some(Runestone::default()),
+      runestone: Some(Artifact::Runestone(Runestone::default())),
     },
   );
 }
@@ -90,25 +90,25 @@ fn from_stdin() {
         pushnum: false,
         stutter: false,
       }],
-      runestone: Some(Runestone::default()),
+      runestone: Some(Artifact::Runestone(Runestone::default())),
     },
   );
 }
 
 #[test]
 fn from_core() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
-  let ord_rpc_server = TestServer::spawn(&bitcoin_rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
-  let (_inscription, reveal) = inscribe(&bitcoin_rpc_server, &ord_rpc_server);
+  let (_inscription, reveal) = inscribe(&core, &ord);
 
   pretty_assert_eq!(
     CommandBuilder::new(format!("decode --txid {reveal}"))
-      .bitcoin_rpc_server(&bitcoin_rpc_server)
+      .core(&core)
       .run_and_deserialize_output::<RawOutput>(),
     RawOutput {
       inscriptions: vec![Envelope {
@@ -146,7 +146,7 @@ fn compact() {
         pointer: None,
         unrecognized_even_field: false,
       }],
-      runestone: Some(Runestone::default()),
+      runestone: Some(Artifact::Runestone(Runestone::default())),
     },
   );
 }

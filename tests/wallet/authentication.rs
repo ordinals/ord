@@ -2,31 +2,31 @@ use {super::*, ord::subcommand::wallet::balance::Output};
 
 #[test]
 fn authentication() {
-  let bitcoin_rpc_server = test_bitcoincore_rpc::spawn();
+  let core = mockcore::spawn();
 
-  let ord_rpc_server = TestServer::spawn_with_server_args(
-    &bitcoin_rpc_server,
+  let ord = TestServer::spawn_with_server_args(
+    &core,
     &["--server-username", "foo", "--server-password", "bar"],
     &[],
   );
 
-  create_wallet(&bitcoin_rpc_server, &ord_rpc_server);
+  create_wallet(&core, &ord);
 
   assert_eq!(
     CommandBuilder::new("--server-username foo --server-password bar wallet balance")
-      .bitcoin_rpc_server(&bitcoin_rpc_server)
-      .ord_rpc_server(&ord_rpc_server)
+      .core(&core)
+      .ord(&ord)
       .run_and_deserialize_output::<Output>()
       .cardinal,
     0
   );
 
-  bitcoin_rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   assert_eq!(
     CommandBuilder::new("--server-username foo --server-password bar wallet balance")
-      .bitcoin_rpc_server(&bitcoin_rpc_server)
-      .ord_rpc_server(&ord_rpc_server)
+      .core(&core)
+      .ord(&ord)
       .run_and_deserialize_output::<Output>(),
     Output {
       cardinal: 50 * COIN_VALUE,

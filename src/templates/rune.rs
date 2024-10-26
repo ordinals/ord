@@ -8,6 +8,28 @@ pub struct RuneHtml {
   pub parent: Option<InscriptionId>,
 }
 
+impl RuneHtml {
+  fn mint_progress(&self) -> Option<Decimal> {
+    if !self.mintable {
+      return None;
+    }
+
+    let cap = self.entry.terms?.cap?;
+
+    if cap == 0 {
+      return None;
+    }
+
+    let progress = self.entry.mints as f64 / cap as f64;
+
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    Some(Decimal {
+      value: (progress * 10000.0) as u128,
+      scale: 2,
+    })
+  }
+}
+
 impl PageContent for RuneHtml {
   fn title(&self) -> String {
     format!("Rune {}", self.entry.spaced_rune)
@@ -16,7 +38,7 @@ impl PageContent for RuneHtml {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, crate::runes::Rune};
+  use super::*;
 
   #[test]
   fn display() {
@@ -40,8 +62,9 @@ mod tests {
             rune: Rune(u128::MAX),
             spacers: 1
           },
-          symbol: Some('%'),
+          symbol: Some('@'),
           timestamp: 0,
+          turbo: true,
         },
         id: RuneId { block: 10, tx: 9 },
         mintable: true,
@@ -71,7 +94,7 @@ mod tests {
       <dt>end</dt>
       <dd><a href=/block/11>11</a></dd>
       <dt>amount</dt>
-      <dd>1.000000001 %</dd>
+      <dd>1.000000001 @</dd>
       <dt>mints</dt>
       <dd>100</dd>
       <dt>cap</dt>
@@ -80,18 +103,24 @@ mod tests {
       <dd>1</dd>
       <dt>mintable</dt>
       <dd>true</dd>
+      <dt>progress</dt>
+      <dd>99%</dd>
     </dl>
   </dd>
   <dt>supply</dt>
-  <dd>100.123456889\u{A0}%</dd>
+  <dd>100.123456889\u{A0}@</dd>
   <dt>premine</dt>
-  <dd>0.123456789\u{A0}%</dd>
+  <dd>0.123456789\u{A0}@</dd>
+  <dt>premine percentage</dt>
+  <dd>0.12%</dd>
   <dt>burned</dt>
-  <dd>123456789.123456789\u{A0}%</dd>
+  <dd>123456789.123456789\u{A0}@</dd>
   <dt>divisibility</dt>
   <dd>9</dd>
   <dt>symbol</dt>
-  <dd>%</dd>
+  <dd>@</dd>
+  <dt>turbo</dt>
+  <dd>true</dd>
   <dt>etching</dt>
   <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
   <dt>parent</dt>
@@ -120,6 +149,7 @@ mod tests {
           },
           symbol: Some('%'),
           timestamp: 0,
+          turbo: false,
         },
         id: RuneId { block: 10, tx: 9 },
         mintable: false,
@@ -129,6 +159,40 @@ mod tests {
 <dl>.*
   <dt>mint</dt>
   <dd>no</dd>
+.*</dl>
+"
+    );
+  }
+
+  #[test]
+  fn display_no_turbo() {
+    assert_regex_match!(
+      RuneHtml {
+        entry: RuneEntry {
+          block: 0,
+          burned: 123456789123456789,
+          terms: None,
+          divisibility: 9,
+          etching: Txid::all_zeros(),
+          mints: 0,
+          number: 25,
+          premine: 0,
+          spaced_rune: SpacedRune {
+            rune: Rune(u128::MAX),
+            spacers: 1
+          },
+          symbol: Some('%'),
+          timestamp: 0,
+          turbo: false,
+        },
+        id: RuneId { block: 10, tx: 9 },
+        mintable: false,
+        parent: None,
+      },
+      "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
+<dl>.*
+  <dt>turbo</dt>
+  <dd>false</dd>
 .*</dl>
 "
     );
@@ -158,6 +222,7 @@ mod tests {
           },
           symbol: Some('%'),
           timestamp: 0,
+          turbo: false,
         },
         id: RuneId { block: 10, tx: 9 },
         mintable: false,
@@ -186,6 +251,84 @@ mod tests {
   </dd>
 .*</dl>
 "
+    );
+  }
+
+  #[test]
+  fn mint_progress() {
+    assert_regex_match!(
+      RuneHtml {
+        entry: RuneEntry {
+          block: 0,
+          burned: 0,
+          divisibility: 0,
+          etching: Txid::all_zeros(),
+          mints: 5555,
+          terms: Some(Terms {
+            cap: Some(10000),
+            offset: (None, None),
+            height: (None, None),
+            amount: None,
+          }),
+          number: 0,
+          premine: 0,
+          spaced_rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0
+          },
+          symbol: None,
+          timestamp: 0,
+          turbo: false,
+        },
+        id: RuneId { block: 0, tx: 0 },
+        mintable: false,
+        parent: Some(InscriptionId {
+          txid: Txid::all_zeros(),
+          index: 0,
+        }),
+      },
+      ".*
+      <dt>mintable</dt>
+      <dd>false</dd>
+    </dl>.*"
+    );
+
+    assert_regex_match!(
+      RuneHtml {
+        entry: RuneEntry {
+          block: 0,
+          burned: 0,
+          divisibility: 0,
+          etching: Txid::all_zeros(),
+          mints: 5555,
+          terms: Some(Terms {
+            cap: Some(10000),
+            offset: (None, None),
+            height: (None, None),
+            amount: None,
+          }),
+          number: 0,
+          premine: 0,
+          spaced_rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0
+          },
+          symbol: None,
+          timestamp: 0,
+          turbo: false,
+        },
+        id: RuneId { block: 0, tx: 0 },
+        mintable: true,
+        parent: Some(InscriptionId {
+          txid: Txid::all_zeros(),
+          index: 0,
+        }),
+      },
+      ".*
+      <dt>mintable</dt>
+      <dd>true</dd>
+      <dt>progress</dt>
+      <dd>55.55%</dd>.*"
     );
   }
 }

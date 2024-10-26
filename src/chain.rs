@@ -14,12 +14,7 @@ pub enum Chain {
 
 impl Chain {
   pub(crate) fn network(self) -> Network {
-    match self {
-      Self::Mainnet => Network::Bitcoin,
-      Self::Testnet => Network::Testnet,
-      Self::Signet => Network::Signet,
-      Self::Regtest => Network::Regtest,
-    }
+    self.into()
   }
 
   pub(crate) fn default_rpc_port(self) -> u16 {
@@ -48,13 +43,7 @@ impl Chain {
   }
 
   pub(crate) fn first_rune_height(self) -> u32 {
-    SUBSIDY_HALVING_INTERVAL
-      * match self {
-        Self::Mainnet => 4,
-        Self::Regtest => 0,
-        Self::Signet => 0,
-        Self::Testnet => 12,
-      }
+    Rune::first_rune_height(self.into())
   }
 
   pub(crate) fn jubilee_height(self) -> u32 {
@@ -72,16 +61,13 @@ impl Chain {
 
   pub(crate) fn genesis_coinbase_outpoint(self) -> OutPoint {
     OutPoint {
-      txid: self.genesis_block().coinbase().unwrap().txid(),
+      txid: self.genesis_block().coinbase().unwrap().compute_txid(),
       vout: 0,
     }
   }
 
-  pub(crate) fn address_from_script(
-    self,
-    script: &Script,
-  ) -> Result<Address, bitcoin::address::Error> {
-    Address::from_script(script, self.network())
+  pub(crate) fn address_from_script(self, script: &Script) -> Result<Address, SnafuError> {
+    Address::from_script(script, self.network()).snafu_context(error::AddressConversion)
   }
 
   pub(crate) fn join_with_data_dir(self, data_dir: impl AsRef<Path>) -> PathBuf {
@@ -90,6 +76,17 @@ impl Chain {
       Self::Testnet => data_dir.as_ref().join("testnet3"),
       Self::Signet => data_dir.as_ref().join("signet"),
       Self::Regtest => data_dir.as_ref().join("regtest"),
+    }
+  }
+}
+
+impl From<Chain> for Network {
+  fn from(chain: Chain) -> Network {
+    match chain {
+      Chain::Mainnet => Network::Bitcoin,
+      Chain::Testnet => Network::Testnet,
+      Chain::Signet => Network::Signet,
+      Chain::Regtest => Network::Regtest,
     }
   }
 }
@@ -110,7 +107,7 @@ impl Display for Chain {
 }
 
 impl FromStr for Chain {
-  type Err = Error;
+  type Err = SnafuError;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     match s {
@@ -118,7 +115,9 @@ impl FromStr for Chain {
       "regtest" => Ok(Self::Regtest),
       "signet" => Ok(Self::Signet),
       "testnet" => Ok(Self::Testnet),
-      _ => bail!("invalid chain `{s}`"),
+      _ => Err(SnafuError::InvalidChain {
+        chain: s.to_string(),
+      }),
     }
   }
 }
@@ -135,7 +134,7 @@ mod tests {
     assert_eq!("testnet".parse::<Chain>().unwrap(), Chain::Testnet);
     assert_eq!(
       "foo".parse::<Chain>().unwrap_err().to_string(),
-      "invalid chain `foo`"
+      "Invalid chain `foo`"
     );
   }
 }

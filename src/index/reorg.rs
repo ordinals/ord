@@ -1,23 +1,23 @@
 use {super::*, updater::BlockData};
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum ReorgError {
+pub(crate) enum Error {
   Recoverable { height: u32, depth: u32 },
   Unrecoverable,
 }
 
-impl Display for ReorgError {
+impl Display for Error {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
-      ReorgError::Recoverable { height, depth } => {
+      Self::Recoverable { height, depth } => {
         write!(f, "{depth} block deep reorg detected at height {height}")
       }
-      ReorgError::Unrecoverable => write!(f, "unrecoverable reorg detected"),
+      Self::Unrecoverable => write!(f, "unrecoverable reorg detected"),
     }
   }
 }
 
-impl std::error::Error for ReorgError {}
+impl std::error::Error for Error {}
 
 const MAX_SAVEPOINTS: u32 = 2;
 const SAVEPOINT_INTERVAL: u32 = 10;
@@ -43,11 +43,11 @@ impl Reorg {
             .into_option()?;
 
           if index_block_hash == bitcoind_block_hash {
-            return Err(anyhow!(ReorgError::Recoverable { height, depth }));
+            return Err(anyhow!(reorg::Error::Recoverable { height, depth }));
           }
         }
 
-        Err(anyhow!(ReorgError::Unrecoverable))
+        Err(anyhow!(reorg::Error::Unrecoverable))
       }
       _ => Ok(()),
     }

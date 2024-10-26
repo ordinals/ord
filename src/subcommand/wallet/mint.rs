@@ -6,6 +6,13 @@ pub(crate) struct Mint {
   fee_rate: FeeRate,
   #[clap(long, help = "Mint <RUNE>. May contain `.` or `•`as spacers.")]
   rune: SpacedRune,
+  #[clap(
+    long,
+    help = "Include <AMOUNT> postage with mint output. [default: 10000sat]"
+  )]
+  postage: Option<Amount>,
+  #[clap(long, help = "Send minted runes to <DESTINATION>.")]
+  destination: Option<Address<NetworkUnchecked>>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -19,7 +26,7 @@ impl Mint {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     ensure!(
       wallet.has_rune_index(),
-      "`ord wallet etch` requires index created with `--index-runes` flag",
+      "`ord wallet mint` requires index created with `--index-runes` flag",
     );
 
     let rune = self.rune.rune;
@@ -32,11 +39,24 @@ impl Mint {
       bail!("rune {rune} has not been etched");
     };
 
+    let postage = self.postage.unwrap_or(TARGET_POSTAGE);
+
     let amount = rune_entry
-      .mintable(block_height)
+      .mintable(block_height + 1)
       .map_err(|err| anyhow!("rune {rune} {err}"))?;
 
-    let destination = wallet.get_change_address()?;
+    let chain = wallet.chain();
+
+    let destination = match self.destination {
+      Some(destination) => destination.require_network(chain.network())?,
+      None => wallet.get_change_address()?,
+    };
+
+    ensure!(
+      destination.script_pubkey().minimal_non_dust() <= postage,
+      "postage below dust limit of {}sat",
+      destination.script_pubkey().minimal_non_dust().to_sat()
+    );
 
     let runestone = Runestone {
       mint: Some(id),
@@ -52,17 +72,17 @@ impl Mint {
     );
 
     let unfunded_transaction = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: Vec::new(),
       output: vec![
         TxOut {
           script_pubkey,
-          value: 0,
+          value: Amount::from_sat(0),
         },
         TxOut {
           script_pubkey: destination.script_pubkey(),
-          value: TARGET_POSTAGE.to_sat(),
+          value: postage,
         },
       ],
     };
@@ -79,8 +99,8 @@ impl Mint {
     let signed_transaction = consensus::encode::deserialize(&signed_transaction)?;
 
     assert_eq!(
-      Runestone::from_transaction(&signed_transaction).unwrap(),
-      runestone,
+      Runestone::decipher(&signed_transaction),
+      Some(Artifact::Runestone(runestone)),
     );
 
     let transaction = bitcoin_client.send_raw_transaction(&signed_transaction)?;

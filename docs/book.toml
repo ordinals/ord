@@ -1,5 +1,6 @@
 [book]
 title = "Ordinal Theory Handbook"
+authors = ["Casey Rodarmor", "Raph Japh"]
 language = "en"
 src = "src"
 

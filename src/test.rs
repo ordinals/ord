@@ -2,40 +2,15 @@ pub(crate) use {
   super::*,
   bitcoin::{
     blockdata::script::{PushBytes, PushBytesBuf},
-    constants::COIN_VALUE,
-    WPubkeyHash,
+    opcodes, WPubkeyHash,
   },
+  mockcore::TransactionTemplate,
+  ordinals::COIN_VALUE,
   pretty_assertions::assert_eq as pretty_assert_eq,
   std::iter,
   tempfile::TempDir,
-  test_bitcoincore_rpc::TransactionTemplate,
   unindent::Unindent,
 };
-
-macro_rules! assert_regex_match {
-  ($value:expr, $pattern:expr $(,)?) => {
-    let regex = Regex::new(&format!("^(?s){}$", $pattern)).unwrap();
-    let string = $value.to_string();
-
-    if !regex.is_match(string.as_ref()) {
-      eprintln!("Regex did not match:");
-      pretty_assert_eq!(regex.as_str(), string);
-    }
-  };
-}
-
-macro_rules! assert_matches {
-  ($expression:expr, $( $pattern:pat_param )|+ $( if $guard:expr )? $(,)?) => {
-    match $expression {
-      $( $pattern )|+ $( if $guard )? => {}
-      left => panic!(
-        "assertion failed: (left ~= right)\n  left: `{:?}`\n right: `{}`",
-        left,
-        stringify!($($pattern)|+ $(if $guard)?)
-      ),
-    }
-  }
-}
 
 pub(crate) fn txid(n: u64) -> Txid {
   let hex = format!("{n:x}");
@@ -65,7 +40,11 @@ pub(crate) fn address() -> Address {
     .assume_checked()
 }
 
-pub(crate) fn recipient() -> Address {
+pub(crate) fn recipient() -> ScriptBuf {
+  recipient_address().script_pubkey()
+}
+
+pub(crate) fn recipient_address() -> Address {
   "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
     .parse::<Address<NetworkUnchecked>>()
     .unwrap()
@@ -96,7 +75,7 @@ pub(crate) fn tx_in(previous_output: OutPoint) -> TxIn {
 
 pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
   TxOut {
-    value,
+    value: Amount::from_sat(value),
     script_pubkey: address.script_pubkey(),
   }
 }
@@ -118,7 +97,11 @@ impl From<InscriptionTemplate> for Inscription {
 }
 
 pub(crate) fn inscription(content_type: &str, body: impl AsRef<[u8]>) -> Inscription {
-  Inscription::new(Some(content_type.into()), Some(body.as_ref().into()))
+  Inscription {
+    content_type: Some(content_type.into()),
+    body: Some(body.as_ref().into()),
+    ..default()
+  }
 }
 
 pub(crate) fn inscription_id(n: u32) -> InscriptionId {
@@ -129,10 +112,6 @@ pub(crate) fn inscription_id(n: u32) -> InscriptionId {
   }
 
   format!("{}i{n}", hex.repeat(64)).parse().unwrap()
-}
-
-pub(crate) fn rune_id(tx: u32) -> RuneId {
-  RuneId { block: 1, tx }
 }
 
 pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
@@ -153,7 +132,7 @@ pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
 
 pub(crate) fn default_address(chain: Chain) -> Address {
   Address::from_script(
-    &ScriptBuf::new_v0_p2wpkh(&WPubkeyHash::all_zeros()),
+    &ScriptBuf::new_p2wpkh(&WPubkeyHash::all_zeros()),
     chain.network(),
   )
   .unwrap()
