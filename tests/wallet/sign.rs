@@ -63,3 +63,63 @@ fn sign_file() {
   assert_eq!(address, &sign.address);
   assert!(sign.message.is_none());
 }
+
+#[test]
+fn sign_for_inscription() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, _reveal) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let addresses = CommandBuilder::new("wallet addresses")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<BTreeMap<Address<NetworkUnchecked>, Vec<AddressesOutput>>>();
+
+  let message = "HelloWorld";
+
+  let sign = CommandBuilder::new(format!(
+    "wallet sign --inscription-id {inscription} --message {message}",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<SignOutput>();
+
+  assert!(addresses.contains_key(&sign.address));
+  assert_eq!(message, &sign.message.unwrap());
+  assert_eq!(inscription, sign.inscription_id.unwrap());
+}
+
+#[test]
+fn sign_for_output() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let addresses = CommandBuilder::new("wallet addresses")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<BTreeMap<Address<NetworkUnchecked>, Vec<AddressesOutput>>>();
+
+  let output = addresses.first_key_value().unwrap().1[0].output;
+
+  let message = "HelloWorld";
+
+  let sign = CommandBuilder::new(format!("wallet sign --output {output} --message {message}",))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<SignOutput>();
+
+  assert!(addresses.contains_key(&sign.address));
+  assert_eq!(message, &sign.message.unwrap());
+  assert_eq!(output, sign.output.unwrap());
+}

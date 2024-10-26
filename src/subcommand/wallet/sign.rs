@@ -6,6 +6,11 @@ use {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Output {
   pub address: Address<NetworkUnchecked>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub inscription_id: Option<InscriptionId>,
+  #[serde(skip_serializing_if = "Option::is_none")]
+  pub output: Option<OutPoint>,
+  #[serde(skip_serializing_if = "Option::is_none")]
   pub message: Option<String>,
   pub witness: String,
 }
@@ -16,9 +21,18 @@ pub struct Output {
     .required(true)
     .args(&["message", "file"]))
 )]
+#[clap(group(
+  ArgGroup::new("signer")
+    .required(true)
+    .args(&["address", "inscription_id", "output"]))
+)]
 pub(crate) struct Sign {
   #[arg(long, help = "Sign for <ADDRESS>.")]
-  address: Address<NetworkUnchecked>,
+  address: Option<Address<NetworkUnchecked>>,
+  #[arg(long, help = "Sign for <INSCRIPTION>.")]
+  inscription_id: Option<InscriptionId>,
+  #[arg(long, help = "Sign for <UTXO>.")]
+  output: Option<OutPoint>,
   #[arg(long, help = "Sign <MESSAGE>.")]
   message: Option<String>,
   #[arg(long, help = "Sign <FILE>.")]
@@ -27,10 +41,30 @@ pub(crate) struct Sign {
 
 impl Sign {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let address = &self
-      .address
-      .clone()
-      .require_network(wallet.chain().network())?;
+    let address = if let Some(address) = &self.address {
+      address.clone().require_network(wallet.chain().network())?
+    } else if let Some(inscription_id) = &self.inscription_id {
+      Address::from_str(
+        &wallet
+          .inscription_info()
+          .get(&inscription_id)
+          .ok_or_else(|| anyhow!("inscription {inscription_id} not in wallet"))?
+          .address
+          .clone()
+          .ok_or_else(|| anyhow!("inscription {inscription_id} in an output without address"))?,
+      )?
+      .require_network(wallet.chain().network())?
+    } else if let Some(output) = self.output {
+      wallet.chain().address_from_script(
+        &wallet
+          .utxos()
+          .get(&output)
+          .ok_or_else(|| anyhow!("output {output} has no address"))?
+          .script_pubkey,
+      )?
+    } else {
+      unreachable!()
+    };
 
     let message = if let Some(message) = &self.message {
       message.as_bytes()
@@ -40,7 +74,7 @@ impl Sign {
       unreachable!()
     };
 
-    let to_spend = bip322::create_to_spend(address, message)?;
+    let to_spend = bip322::create_to_spend(&address, message)?;
 
     let to_sign = bip322::create_to_sign(&to_spend, None)?;
 
@@ -64,6 +98,8 @@ impl Sign {
 
     Ok(Some(Box::new(Output {
       address: address.as_unchecked().clone(),
+      inscription_id: self.inscription_id,
+      output: self.output,
       message: self.message.clone(),
       witness: general_purpose::STANDARD.encode(buffer),
     })))
