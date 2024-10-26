@@ -84,7 +84,7 @@ fn sign_for_inscription() {
   let message = "HelloWorld";
 
   let sign = CommandBuilder::new(format!(
-    "wallet sign --inscription-id {inscription} --message {message}",
+    "wallet sign --inscription {inscription} --message {message}",
   ))
   .core(&core)
   .ord(&ord)
@@ -92,7 +92,7 @@ fn sign_for_inscription() {
 
   assert!(addresses.contains_key(&sign.address));
   assert_eq!(message, &sign.message.unwrap());
-  assert_eq!(inscription, sign.inscription_id.unwrap());
+  assert_eq!(inscription, sign.inscription.unwrap());
 }
 
 #[test]

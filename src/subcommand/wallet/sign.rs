@@ -7,7 +7,7 @@ use {
 pub struct Output {
   pub address: Address<NetworkUnchecked>,
   #[serde(skip_serializing_if = "Option::is_none")]
-  pub inscription_id: Option<InscriptionId>,
+  pub inscription: Option<InscriptionId>,
   #[serde(skip_serializing_if = "Option::is_none")]
   pub output: Option<OutPoint>,
   #[serde(skip_serializing_if = "Option::is_none")]
@@ -24,13 +24,13 @@ pub struct Output {
 #[clap(group(
   ArgGroup::new("signer")
     .required(true)
-    .args(&["address", "inscription_id", "output"]))
+    .args(&["address", "inscription", "output"]))
 )]
 pub(crate) struct Sign {
   #[arg(long, help = "Sign for <ADDRESS>.")]
   address: Option<Address<NetworkUnchecked>>,
   #[arg(long, help = "Sign for <INSCRIPTION>.")]
-  inscription_id: Option<InscriptionId>,
+  inscription: Option<InscriptionId>,
   #[arg(long, help = "Sign for <UTXO>.")]
   output: Option<OutPoint>,
   #[arg(long, help = "Sign <MESSAGE>.")]
@@ -43,15 +43,15 @@ impl Sign {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
     let address = if let Some(address) = &self.address {
       address.clone().require_network(wallet.chain().network())?
-    } else if let Some(inscription_id) = &self.inscription_id {
+    } else if let Some(inscription) = &self.inscription {
       Address::from_str(
         &wallet
           .inscription_info()
-          .get(&inscription_id)
-          .ok_or_else(|| anyhow!("inscription {inscription_id} not in wallet"))?
+          .get(inscription)
+          .ok_or_else(|| anyhow!("inscription {inscription} not in wallet"))?
           .address
           .clone()
-          .ok_or_else(|| anyhow!("inscription {inscription_id} in an output without address"))?,
+          .ok_or_else(|| anyhow!("inscription {inscription} in an output without address"))?,
       )?
       .require_network(wallet.chain().network())?
     } else if let Some(output) = self.output {
@@ -98,7 +98,7 @@ impl Sign {
 
     Ok(Some(Box::new(Output {
       address: address.as_unchecked().clone(),
-      inscription_id: self.inscription_id,
+      inscription: self.inscription,
       output: self.output,
       message: self.message.clone(),
       witness: general_purpose::STANDARD.encode(buffer),
