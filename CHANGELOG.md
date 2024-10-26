@@ -1,6 +1,31 @@
 Changelog
 =========
 
+[0.21.2](https://github.com/ordinals/ord/releases/tag/0.21.2) - 2024-10-26
+--------------------------------------------------------------------------
+
+### Fixed
+- Create change output when inputs containing non-outgoing runes are selected (#4028)
+
+### Added
+- Show total child count (#4009)
+- Add `/r/undelegated-content/<INSCRIPTION_ID>` (#3932)
+- Add BIP322 `wallet sign` (#3988)
+- Add `wallet addresses` (#4005)
+- Show if JSON API is enabled on /status (#4014)
+
+### Changed
+- Only show rune mint progress during mint (#4013)
+- Change mint progress to `mints / terms.cap` (#4012)
+
+### Misc
+- Add more info to `wallet outputs` (#4019)
+- Add authors to Handbook (#4018)
+- Document POST method for /inscriptions (#4017)
+- Update JSON-API & Recursive documentation (#3984)
+- Remove pre-alpha warning from ord help (#4011)
+- Update Bitcoin Core install script (#4007)
+
 [0.21.1](https://github.com/ordinals/ord/releases/tag/0.21.1) - 2024-10-20
 --------------------------------------------------------------------------
 

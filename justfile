@@ -158,6 +158,9 @@ publish-tag-and-crate revision='master':
 outdated:
   cargo outdated --root-deps-only --workspace
 
+unused:
+  cargo +nightly udeps --workspace
+
 update-modern-normalize:
   curl \
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
