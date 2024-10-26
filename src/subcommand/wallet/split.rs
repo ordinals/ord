@@ -1,5 +1,8 @@
 use {super::*, splits::Splits};
 
+// todo:
+// - add an example splits.yaml
+//
 // - unit tests:
 //   - dust outputs are error
 //   - postage is used for change output
