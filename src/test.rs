@@ -2,10 +2,10 @@ pub(crate) use {
   super::*,
   bitcoin::{
     blockdata::script::{PushBytes, PushBytesBuf},
-    constants::COIN_VALUE,
     opcodes, WPubkeyHash,
   },
   mockcore::TransactionTemplate,
+  ordinals::COIN_VALUE,
   pretty_assertions::assert_eq as pretty_assert_eq,
   std::iter,
   tempfile::TempDir,
@@ -40,7 +40,11 @@ pub(crate) fn address() -> Address {
     .assume_checked()
 }
 
-pub(crate) fn recipient() -> Address {
+pub(crate) fn recipient() -> ScriptBuf {
+  recipient_address().script_pubkey()
+}
+
+pub(crate) fn recipient_address() -> Address {
   "tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz"
     .parse::<Address<NetworkUnchecked>>()
     .unwrap()
@@ -71,7 +75,7 @@ pub(crate) fn tx_in(previous_output: OutPoint) -> TxIn {
 
 pub(crate) fn tx_out(value: u64, address: Address) -> TxOut {
   TxOut {
-    value,
+    value: Amount::from_sat(value),
     script_pubkey: address.script_pubkey(),
   }
 }
@@ -128,7 +132,7 @@ pub(crate) fn envelope(payload: &[&[u8]]) -> Witness {
 
 pub(crate) fn default_address(chain: Chain) -> Address {
   Address::from_script(
-    &ScriptBuf::new_v0_p2wpkh(&WPubkeyHash::all_zeros()),
+    &ScriptBuf::new_p2wpkh(&WPubkeyHash::all_zeros()),
     chain.network(),
   )
   .unwrap()

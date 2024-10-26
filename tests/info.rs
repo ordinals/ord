@@ -27,7 +27,7 @@ fn json_with_satoshi_index() {
     \}
   \],
   "tree_height": \d+,
-  "utxos_indexed": 2
+  "utxos_indexed": 1
 \}
 "#,
     )
@@ -61,7 +61,7 @@ fn json_without_satoshi_index() {
     \}
   \],
   "tree_height": \d+,
-  "utxos_indexed": 0
+  "utxos_indexed": 1
 \}
 "#,
     )

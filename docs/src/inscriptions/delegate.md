@@ -37,4 +37,7 @@ OP_ENDIF
 Note that the value of tag `11` is decimal, not hex.
 
 The delegate field value uses the same encoding as the parent field. See
-[provenance](provenance.md) for more examples of inscription ID encodings;
+[provenance](provenance.md) for more examples of inscription ID encodings
+
+See
+[examples](examples.md#delegate) for on-chain examples of inscriptions that feature this functionality.

@@ -12,8 +12,8 @@ pub struct RawOutput {
   pub runestone: Option<Artifact>,
 }
 
-#[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
 #[serde_with::skip_serializing_none]
+#[derive(Serialize, Eq, PartialEq, Deserialize, Debug)]
 pub struct CompactInscription {
   pub body: Option<String>,
   pub content_encoding: Option<String>,
@@ -77,9 +77,9 @@ impl Decode {
         .bitcoin_rpc_client(None)?
         .get_raw_transaction(&txid, None)?
     } else if let Some(file) = self.file {
-      Transaction::consensus_decode(&mut fs::File::open(file)?)?
+      Transaction::consensus_decode(&mut io::BufReader::new(fs::File::open(file)?))?
     } else {
-      Transaction::consensus_decode(&mut io::stdin())?
+      Transaction::consensus_decode(&mut io::BufReader::new(io::stdin()))?
     };
 
     let inscriptions = ParsedEnvelope::from_transaction(&transaction);

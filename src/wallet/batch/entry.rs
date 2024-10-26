@@ -1,14 +1,15 @@
 use super::*;
 
+#[serde_with::skip_serializing_none]
 #[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Entry {
-  pub delegate: Option<InscriptionId>,
-  pub destination: Option<Address<NetworkUnchecked>>,
   pub file: Option<PathBuf>,
+  pub delegate: Option<InscriptionId>,
+  pub satpoint: Option<SatPoint>,
+  pub destination: Option<Address<NetworkUnchecked>>,
   pub metadata: Option<serde_yaml::Value>,
   pub metaprotocol: Option<String>,
-  pub satpoint: Option<SatPoint>,
 }
 
 impl Entry {
