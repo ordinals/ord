@@ -3131,10 +3131,10 @@ Undelegated content of an inscription.
 
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 Information about an inscription.
