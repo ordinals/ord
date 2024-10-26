@@ -228,6 +228,40 @@ curl -s  \
 <details>
   <summary>
     <code>GET</code>
+    <code><b>/r/charms</b></code>
+  </summary>
+
+### Description
+Latest charms.
+
+### Example
+```bash
+curl -s  \
+  http://0.0.0.0:80/r/charms
+```
+```json
+{
+  "coin": "🪙",
+  "uncommon": "🌱",
+  "rare": "🧿",
+  "epic": "🪻",
+  "legendary": "🌝",
+  "mythic": "🎃",
+  "nineball": "9️⃣",
+  "reinscription": "♻️",
+  "cursed": "👹",
+  "unbound": "🔓",
+  "lost": "🤔",
+  "vindicated": "❤️‍🔥",
+  "burned": "🔥"
+}
+```
+</details>
+
+
+<details>
+  <summary>
+    <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 
@@ -3332,6 +3366,7 @@ plain-text responses.
 - `/blockhash`: latest block hash.
 - `/blockhash/<HEIGHT>`: block hash at given block height.
 - `/blocktime`: UNIX time stamp of latest block.
+
 
 See
 [examples](examples.md#recursion) for on-chain examples of inscriptions that feature this functionality.
