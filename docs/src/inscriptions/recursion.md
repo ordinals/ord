@@ -3121,6 +3121,25 @@ curl -s -H "Accept: application/json" \
 <details>
  <summary>
     <code>GET</code>
+    <code><b>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</b></code>
+ </summary>
+
+### Description
+Content of the undelegated inscription.
+
+### Example
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/undelegated-content/
+```
+```json
+```
+</details>
+
+
+<details>
+ <summary>
+    <code>GET</code>
     <code><b>/r/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
  </summary>
 

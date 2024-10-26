@@ -236,7 +236,10 @@ impl Server {
           "/r/children/:inscription_id/inscriptions/:page",
           get(Self::child_inscriptions_recursive_paginated),
         )
-        .route("/r/delegator/:inscription_id", get(Self::content_delegator))
+        .route(
+          "/r/undelegated-content/:inscription_id",
+          get(Self::undelegated_content),
+        )
         .route("/r/metadata/:inscription_id", get(Self::metadata))
         .route("/r/parents/:inscription_id", get(Self::parents_recursive))
         .route(
@@ -1468,7 +1471,7 @@ impl Server {
     })
   }
 
-  async fn content_delegator(
+  async fn undelegated_content(
     Extension(index): Extension<Arc<Index>>,
     Extension(settings): Extension<Arc<Settings>>,
     Extension(server_config): Extension<Arc<ServerConfig>>,
@@ -6602,7 +6605,7 @@ next
   }
 
   #[test]
-  fn delegator_content() {
+  fn undelegated_content() {
     let server = TestServer::builder().chain(Chain::Regtest).build();
 
     server.mine_blocks(1);
@@ -6641,7 +6644,11 @@ next
 
     let id = InscriptionId { txid, index: 0 };
 
-    server.assert_response(format!("/r/delegator/{id}"), StatusCode::OK, "bar");
+    server.assert_response(
+      format!("/r/undelegated-content/{id}"),
+      StatusCode::OK,
+      "bar",
+    );
 
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
@@ -6664,7 +6671,11 @@ next
       index: 0,
     };
 
-    server.assert_response(format!("/r/delegator/{normal_id}"), StatusCode::OK, "baz");
+    server.assert_response(
+      format!("/r/undelegated-content/{normal_id}"),
+      StatusCode::OK,
+      "baz",
+    );
     server.assert_response(format!("/content/{normal_id}"), StatusCode::OK, "baz");
   }
 
