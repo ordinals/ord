@@ -229,7 +229,6 @@ impl Send {
       .cloned()
       .unwrap_or_default();
 
-    // todo: this is wrong, because we don't add all runes to the input rune balances
     let needs_runes_change_output = input_rune_balance > amount || input_rune_balances.len() > 1;
 
     ensure! {
