@@ -2,6 +2,7 @@ use {super::*, splits::Splits};
 
 // todo:
 // - add an example splits.yaml
+// - indicate if a change output was added
 //
 // - unit tests:
 //   - dust outputs are error
