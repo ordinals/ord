@@ -1,20 +1,23 @@
 use {super::*, splits::Splits};
 
-// todo:
-// - test that duplicate keys are an error
-// - select runes first, may contain for sats
-// - check for dust outputs
-// - separate checks and flags for:
-//   - runestone over 80 bytes
-//   - transaction over 400kwu
-// - how to make more efficient?
-//   - can omit runes, and add a `--all RUNE AMOUNT` argument, which will use a split
-//   - or do this if every output is a getting the same amount
+// - unit tests:
+//   - dust outputs are error
+//   - postage is used for change output
+//   - credits multiple runes when output containing multiple runes is selected
+//   - doesn't select more outputs than needed
+//   - doesn't select fewer outputs than needed
+//   - creates change output when non target runes are in selected inputs
+//   - creates change output when target runes are in selected inputs
+//   - edicts are correct
+//   - shoftfall error
 //
 // - integration tests:
 //   - requires rune index
 //   - inputs with inscriptions are not selected
 //   - no outputs is an error
+//   - duplicate keys is an error
+//   - tx over 400kwu is an error
+//   - mining transaction yields correct result
 
 mod splits;
 
@@ -79,8 +82,12 @@ impl Split {
       })
       .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, u128>>>>()?;
 
-    let unfunded_transaction =
-      Self::build_transaction(balances, wallet.get_change_address()?, &splits);
+    let unfunded_transaction = Self::build_transaction(
+      balances,
+      wallet.get_change_address()?,
+      self.postage.unwrap_or(TARGET_POSTAGE),
+      &splits,
+    );
 
     let unsigned_transaction = fund_raw_transaction(
       wallet.bitcoin_client(),
@@ -99,6 +106,7 @@ impl Split {
   fn build_transaction(
     balances: BTreeMap<OutPoint, BTreeMap<Rune, u128>>,
     change_address: Address,
+    postage: Amount,
     splits: &Splits,
   ) -> Transaction {
     let mut input_runes_required = BTreeMap::<Rune, u128>::new();
@@ -176,8 +184,6 @@ impl Split {
       value: Amount::from_sat(0),
     });
 
-    let postage = Amount::from_sat(10000);
-
     if need_rune_change_output {
       output.push(TxOut {
         script_pubkey: change_address.script_pubkey(),
@@ -187,14 +193,11 @@ impl Split {
 
     for split_output in &splits.outputs {
       let script_pubkey = split_output.address.script_pubkey();
-
-      if split_output.value < script_pubkey.minimal_non_dust() {
-        todo!();
-      }
-
+      let minimal_non_dust = script_pubkey.minimal_non_dust();
+      let value = split_output.value.unwrap_or(minimal_non_dust);
       output.push(TxOut {
         script_pubkey,
-        value: split_output.value,
+        value,
       });
     }
 
@@ -246,12 +249,12 @@ mod tests {
       outputs: vec![splits::Output {
         address: address.clone(),
         runes: [(rune, 1)].into(),
-        value: Amount::from_sat(1000),
+        value: Some(Amount::from_sat(1000)),
       }],
       rune_ids: [(rune, rune_id)].into(),
     };
 
-    let tx = Split::build_transaction(balances, change_address, &splits);
+    let tx = Split::build_transaction(balances, change_address, Amount::from_sat(1), &splits);
 
     pretty_assert_eq!(
       tx,

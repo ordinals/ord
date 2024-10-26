@@ -8,7 +8,7 @@ struct SplitsUnchecked {
 #[derive(Deserialize)]
 struct OutputUnchecked {
   address: Address<NetworkUnchecked>,
-  value: Amount,
+  value: Option<Amount>,
   runes: BTreeMap<SpacedRune, Decimal>,
 }
 
@@ -19,7 +19,7 @@ pub(crate) struct Splits {
 
 pub(crate) struct Output {
   pub(crate) address: Address,
-  pub(crate) value: Amount,
+  pub(crate) value: Option<Amount>,
   pub(crate) runes: BTreeMap<Rune, u128>,
 }
 
