@@ -1,8 +1,7 @@
-Recursion
-=========
+# Recursion
 
 An important exception to [sandboxing](../inscriptions.md#sandboxing) is
-recursion. Recursive endpoints are whitelisted endpoints that allow access to
+recursion. Recursive endpoints are whitelisted endpoints that allow access to1
 on-chain data, including the content of other inscriptions.
 
 Since changes to recursive endpoints might break inscriptions that rely on
@@ -3332,7 +3331,6 @@ plain-text responses.
 - `/blockhash`: latest block hash.
 - `/blockhash/<HEIGHT>`: block hash at given block height.
 - `/blocktime`: UNIX time stamp of latest block.
-
 
 See
 [examples](examples.md#recursion) for on-chain examples of inscriptions that feature this functionality.

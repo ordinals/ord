@@ -1746,7 +1746,7 @@ impl Server {
   async fn charms() -> ServerResult {
     let charms_map: HashMap<String, String> = Charm::ALL
       .iter()
-      .map(|charm| (charm.icon().to_string(), charm.to_string()))
+      .map(|charm| (charm.to_string(), charm.icon().to_string()))
       .collect();
 
     Ok(Json(charms_map).into_response())
@@ -6256,15 +6256,15 @@ next
     assert!(!charms_response.is_empty());
 
     for charm in Charm::ALL {
-      let icon = charm.icon();
+      let icon = charm.icon().to_string();
       let name = charm.to_string();
-      assert_eq!(charms_response.get(icon), Some(&name));
+      assert_eq!(charms_response.get(&name), Some(&icon));
     }
 
     assert_eq!(charms_response.len(), Charm::ALL.len());
 
     for value in charms_response.values() {
-      assert!(Charm::ALL.iter().any(|c| c.to_string() == *value));
+      assert!(Charm::ALL.iter().any(|c| c.icon() == value));
     }
   }
 
