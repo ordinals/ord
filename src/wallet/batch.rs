@@ -3,7 +3,7 @@ use {
   bitcoin::{
     blockdata::{opcodes, script},
     key::PrivateKey,
-    key::{TapTweak, TweakedKeyPair, TweakedPublicKey, UntweakedKeyPair},
+    key::{TapTweak, TweakedKeypair, TweakedPublicKey, UntweakedKeypair},
     policy::MAX_STANDARD_TX_WEIGHT,
     secp256k1::{self, constants::SCHNORR_SIGNATURE_SIZE, rand, Secp256k1, XOnlyPublicKey},
     sighash::{Prevouts, SighashCache, TapSighashType},
@@ -77,7 +77,7 @@ mod tests {
     let utxos = vec![(outpoint(1), tx_out(20000, address()))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
-    let reveal_address = recipient_as_address();
+    let reveal_address = recipient_address();
     let reveal_change = [commit_address, change(1)];
 
     let batch::Transactions {
@@ -113,8 +113,8 @@ mod tests {
     let fee = Amount::from_sat((1.0 * (reveal_tx.vsize() as f64)).ceil() as u64);
 
     assert_eq!(
-      reveal_tx.output[0].value,
-      20000 - fee.to_sat() - (20000 - commit_tx.output[0].value),
+      reveal_tx.output[0].value.to_sat(),
+      20000 - fee.to_sat() - (20000 - commit_tx.output[0].value.to_sat()),
     );
   }
 
@@ -123,7 +123,7 @@ mod tests {
     let utxos = vec![(outpoint(1), tx_out(20000, address()))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
-    let reveal_address = recipient_as_address();
+    let reveal_address = recipient_address();
     let reveal_change = [commit_address, change(1)];
 
     let batch::Transactions {
@@ -173,7 +173,7 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient_as_address();
+    let reveal_address = recipient_address();
 
     let error = batch::Plan {
       satpoint,
@@ -225,7 +225,7 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient_as_address();
+    let reveal_address = recipient_address();
 
     assert!(batch::Plan {
       satpoint,
@@ -270,7 +270,7 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient_as_address();
+    let reveal_address = recipient_address();
     let fee_rate = 3.3;
 
     let batch::Transactions {
@@ -314,7 +314,7 @@ mod tests {
       .reduce(|acc, i| acc + i)
       .unwrap();
 
-    assert_eq!(reveal_value, 20_000 - fee);
+    assert_eq!(reveal_value.to_sat(), 20_000 - fee);
 
     let fee = FeeRate::try_from(fee_rate)
       .unwrap()
@@ -322,8 +322,8 @@ mod tests {
       .to_sat();
 
     assert_eq!(
-      reveal_tx.output[0].value,
-      20_000 - fee - (20_000 - commit_tx.output[0].value),
+      reveal_tx.output[0].value.to_sat(),
+      20_000 - fee - (20_000 - commit_tx.output[0].value.to_sat()),
     );
   }
 
@@ -345,7 +345,7 @@ mod tests {
       },
       tx_out: TxOut {
         script_pubkey: change(0).script_pubkey(),
-        value: 10000,
+        value: Amount::from_sat(10000),
       },
     };
 
@@ -358,7 +358,7 @@ mod tests {
     .into();
 
     let commit_address = change(1);
-    let reveal_address = recipient_as_address();
+    let reveal_address = recipient_address();
     let fee_rate = 4.0;
 
     let batch::Transactions {
@@ -402,15 +402,14 @@ mod tests {
       .reduce(|acc, i| acc + i)
       .unwrap();
 
-    assert_eq!(reveal_value, 20_000 - fee);
+    assert_eq!(reveal_value.to_sat(), 20_000 - fee);
 
     let sig_vbytes = 16;
     let fee = FeeRate::try_from(fee_rate)
       .unwrap()
-      .fee(reveal_tx.vsize() + sig_vbytes)
-      .to_sat();
+      .fee(reveal_tx.vsize() + sig_vbytes);
 
-    assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value,);
+    assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value);
     assert_eq!(
       reveal_tx.output[0].script_pubkey,
       parent_info.destination.script_pubkey()
@@ -444,7 +443,7 @@ mod tests {
     let inscription = inscription("text/plain", "ord");
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient_as_address();
+    let reveal_address = recipient_address();
     let commit_fee_rate = 3.3;
     let fee_rate = 1.0;
 
@@ -489,7 +488,7 @@ mod tests {
       .reduce(|acc, i| acc + i)
       .unwrap();
 
-    assert_eq!(reveal_value, 20_000 - fee);
+    assert_eq!(reveal_value.to_sat(), 20_000 - fee);
 
     let fee = FeeRate::try_from(fee_rate)
       .unwrap()
@@ -497,8 +496,8 @@ mod tests {
       .to_sat();
 
     assert_eq!(
-      reveal_tx.output[0].value,
-      20_000 - fee - (20_000 - commit_tx.output[0].value),
+      reveal_tx.output[0].value.to_sat(),
+      20_000 - fee - (20_000 - commit_tx.output[0].value.to_sat()),
     );
   }
 
@@ -509,7 +508,7 @@ mod tests {
     let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient_as_address();
+    let reveal_address = recipient_address();
 
     let error = batch::Plan {
       satpoint,
@@ -550,7 +549,7 @@ mod tests {
     let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
     let satpoint = None;
     let commit_address = change(0);
-    let reveal_address = recipient_as_address();
+    let reveal_address = recipient_address();
 
     let batch::Transactions { reveal_tx, .. } = batch::Plan {
       satpoint,
@@ -576,7 +575,7 @@ mod tests {
     )
     .unwrap();
 
-    assert!(reveal_tx.size() >= MAX_STANDARD_TX_WEIGHT as usize);
+    assert!(reveal_tx.total_size() >= MAX_STANDARD_TX_WEIGHT as usize);
   }
 
   #[test]
@@ -597,7 +596,7 @@ mod tests {
       },
       tx_out: TxOut {
         script_pubkey: change(0).script_pubkey(),
-        value: 10000,
+        value: Amount::from_sat(10000),
       },
     };
 
@@ -605,7 +604,7 @@ mod tests {
     wallet_inscriptions.insert(parent_info.location, vec![parent]);
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient_as_address()];
+    let reveal_addresses = vec![recipient_address()];
 
     let inscriptions = vec![
       InscriptionTemplate {
@@ -667,12 +666,12 @@ mod tests {
       .reduce(|acc, i| acc + i)
       .unwrap();
 
-    assert_eq!(reveal_value, 50_000 - fee);
+    assert_eq!(reveal_value.to_sat(), 50_000 - fee);
 
     let sig_vbytes = 16;
-    let fee = fee_rate.fee(reveal_tx.vsize() + sig_vbytes).to_sat();
+    let fee = fee_rate.fee(reveal_tx.vsize() + sig_vbytes);
 
-    assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value,);
+    assert_eq!(fee, commit_tx.output[0].value - reveal_tx.output[1].value);
     assert_eq!(
       reveal_tx.output[0].script_pubkey,
       parent_info.destination.script_pubkey()
@@ -710,7 +709,7 @@ mod tests {
       },
       tx_out: TxOut {
         script_pubkey: change(0).script_pubkey(),
-        value: 10_000,
+        value: Amount::from_sat(10_000),
       },
     };
 
@@ -719,9 +718,9 @@ mod tests {
 
     let commit_address = change(1);
     let reveal_addresses = vec![
-      recipient_as_address(),
-      recipient_as_address(),
-      recipient_as_address(),
+      recipient_address(),
+      recipient_address(),
+      recipient_address(),
     ];
 
     let inscriptions = vec![
@@ -803,7 +802,7 @@ mod tests {
       .reduce(|acc, i| acc + i)
       .unwrap();
 
-    assert_eq!(reveal_value, 50_000 - fee);
+    assert_eq!(reveal_value.to_sat(), 50_000 - fee);
 
     assert_eq!(
       reveal_tx.output[0].script_pubkey,
@@ -838,7 +837,7 @@ mod tests {
       },
       tx_out: TxOut {
         script_pubkey: change(0).script_pubkey(),
-        value: 10000,
+        value: Amount::from_sat(10000),
       },
     };
 
@@ -864,7 +863,7 @@ mod tests {
     ];
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient_as_address()];
+    let reveal_addresses = vec![recipient_address()];
 
     let error = batch::Plan {
       satpoint: None,
@@ -915,7 +914,7 @@ mod tests {
       },
       tx_out: TxOut {
         script_pubkey: change(0).script_pubkey(),
-        value: 10000,
+        value: Amount::from_sat(10000),
       },
     };
 
@@ -941,7 +940,7 @@ mod tests {
     ];
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient_as_address(), recipient_as_address()];
+    let reveal_addresses = vec![recipient_address(), recipient_address()];
 
     let _ = batch::Plan {
       satpoint: None,
@@ -980,7 +979,7 @@ mod tests {
     ];
 
     let commit_address = change(1);
-    let reveal_addresses = vec![recipient_as_address()];
+    let reveal_addresses = vec![recipient_address()];
 
     let error = batch::Plan {
       satpoint: None,
@@ -1025,9 +1024,9 @@ mod tests {
 
     let commit_address = change(1);
     let reveal_addresses = vec![
-      recipient_as_address(),
-      recipient_as_address(),
-      recipient_as_address(),
+      recipient_address(),
+      recipient_address(),
+      recipient_address(),
     ];
 
     let inscriptions = vec![
@@ -1068,7 +1067,7 @@ mod tests {
     assert!(reveal_tx
       .output
       .iter()
-      .all(|output| output.value == TARGET_POSTAGE.to_sat()));
+      .all(|output| output.value == TARGET_POSTAGE));
   }
 
   #[test]
@@ -1089,7 +1088,7 @@ mod tests {
       },
       tx_out: TxOut {
         script_pubkey: change(0).script_pubkey(),
-        value: 10000,
+        value: Amount::from_sat(10000),
       },
     };
 
@@ -1098,9 +1097,9 @@ mod tests {
 
     let commit_address = change(1);
     let reveal_addresses = vec![
-      recipient_as_address(),
-      recipient_as_address(),
-      recipient_as_address(),
+      recipient_address(),
+      recipient_address(),
+      recipient_address(),
     ];
 
     let inscriptions = vec![
@@ -1176,7 +1175,7 @@ mod tests {
       .reduce(|acc, i| acc + i)
       .unwrap();
 
-    assert_eq!(reveal_value, 50_000 - fee);
+    assert_eq!(reveal_value.to_sat(), 50_000 - fee);
 
     assert_eq!(
       reveal_tx.output[0].script_pubkey,

@@ -149,7 +149,7 @@ pub struct Inscriptions {
   pub page_index: u32,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
@@ -185,7 +185,7 @@ impl Output {
       script_pubkey: tx_out.script_pubkey,
       spent,
       transaction: outpoint.txid,
-      value: tx_out.value,
+      value: tx_out.value.to_sat(),
     }
   }
 }

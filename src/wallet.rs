@@ -4,7 +4,7 @@ use {
   batch::ParentInfo,
   bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
-    bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
+    bip32::{ChildNumber, DerivationPath, Fingerprint, Xpriv},
     psbt::Psbt,
   },
   bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
@@ -75,6 +75,7 @@ pub(crate) enum Maturity {
 pub(crate) struct Wallet {
   bitcoin_client: Client,
   database: Database,
+  has_inscription_index: bool,
   has_rune_index: bool,
   has_sat_index: bool,
   rpc_url: Url,
@@ -216,6 +217,10 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn get_inscriptions_in_output(&self, output: &OutPoint) -> Vec<InscriptionId> {
+    self.output_info.get(output).unwrap().inscriptions.clone()
+  }
+
   pub(crate) fn get_parent_info(&self, parents: &[InscriptionId]) -> Result<Vec<ParentInfo>> {
     let mut parent_info = Vec::new();
     for parent_id in parents {
@@ -304,6 +309,10 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn has_inscription_index(&self) -> bool {
+    self.has_inscription_index
+  }
+
   pub(crate) fn has_sat_index(&self) -> bool {
     self.has_sat_index
   }
@@ -334,13 +343,13 @@ impl Wallet {
     Ok(
       if let Some(commit_tx) = self
         .bitcoin_client()
-        .get_transaction(&commit.txid(), Some(true))
+        .get_transaction(&commit.compute_txid(), Some(true))
         .into_option()?
       {
         let current_confirmations = u32::try_from(commit_tx.info.confirmations)?;
         if self
           .bitcoin_client()
-          .get_tx_out(&commit.txid(), 0, Some(true))?
+          .get_tx_out(&commit.compute_txid(), 0, Some(true))?
           .is_none()
         {
           Maturity::CommitSpent(commit_tx.info.txid)
@@ -367,7 +376,7 @@ impl Wallet {
     eprintln!(
       "Waiting for rune {} commitment {} to mature…",
       rune,
-      entry.commit.txid()
+      entry.commit.compute_txid()
     );
 
     let mut pending_confirmations: u32 = Runestone::COMMIT_CONFIRMATIONS.into();
@@ -417,7 +426,7 @@ impl Wallet {
       Err(err) => {
         return Err(anyhow!(
           "Failed to send reveal transaction: {err}\nCommit tx {} will be recovered once mined",
-          entry.commit.txid()
+          entry.commit.compute_txid()
         ))
       }
     };
@@ -497,7 +506,7 @@ impl Wallet {
 
     let secp = Secp256k1::new();
 
-    let master_private_key = ExtendedPrivKey::new_master(network, &seed)?;
+    let master_private_key = Xpriv::new_master(network, &seed)?;
 
     let fingerprint = master_private_key.fingerprint(&secp);
 
@@ -529,7 +538,7 @@ impl Wallet {
     settings: &Settings,
     secp: &Secp256k1<All>,
     origin: (Fingerprint, DerivationPath),
-    derived_private_key: ExtendedPrivKey,
+    derived_private_key: Xpriv,
     change: bool,
   ) -> Result {
     let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
@@ -543,7 +552,7 @@ impl Wallet {
 
     let public_key = secret_key.to_public(secp)?;
 
-    let mut key_map = HashMap::new();
+    let mut key_map = BTreeMap::new();
     key_map.insert(public_key.clone(), secret_key);
 
     let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
@@ -759,7 +768,7 @@ impl Wallet {
         )?
         .psbt;
 
-      (unsigned_transaction.txid(), psbt)
+      (unsigned_transaction.compute_txid(), psbt)
     } else {
       let psbt = self
         .bitcoin_client()
@@ -789,11 +798,11 @@ impl Wallet {
       let Some(txout) = unspent_outputs.get(&txin.previous_output) else {
         panic!("input {} not found in utxos", txin.previous_output);
       };
-      fee += txout.value;
+      fee += txout.value.to_sat();
     }
 
     for txout in unsigned_transaction.output.iter() {
-      fee = fee.checked_sub(txout.value).unwrap();
+      fee = fee.checked_sub(txout.value.to_sat()).unwrap();
     }
 
     Ok((txid, psbt, fee))
