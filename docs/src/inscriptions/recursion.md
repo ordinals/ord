@@ -3125,15 +3125,8 @@ curl -s -H "Accept: application/json" \
  </summary>
 
 ### Description
-Content of the undelegated inscription.
+Undelegated content of an inscription.
 
-### Example
-```bash
-curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/r/undelegated-content/
-```
-```json
-```
 </details>
 
 
