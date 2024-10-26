@@ -33,10 +33,10 @@ Recursion has a number of interesting use-cases:
 ## Endpoints
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/content/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The content of the inscription with `<INSCRIPTION_ID>`
@@ -50,67 +50,67 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockhash</b></code>
- </summary>
+  </summary>
 
 ### Description
-Latest block hash in text.
+Latest block hash.
 
 ### Example
 ```bash
 curl -s  \
   http://0.0.0.0:80/r/blockhash
 ```
-```text
+```json
 "00000000000000000002891b440944e0ce40b37b6ccaa138c280e9edfc319d5d"
 ```
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockhash/&lt;HEIGHT&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
-Block hash at given block height in text.
+Block hash at given block height as JSON string.
 
 ### Example
 ```bash
 curl -s  \
   http://0.0.0.0:80/r/blockhash/840000
 ```
-```text
+```json
 "0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5"
 ```
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockheight</b></code>
- </summary>
+  </summary>
 
 ### Description
-Latest block height in text.
+Latest block height.
 
 ### Example
 ```bash
 curl -s  \
   http://0.0.0.0:80/r/blockheight
 ```
-```text
+```json
 866393
 ```
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blockinfo/&lt;QUERY&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 Block info. `<QUERY>` may be a block height or block hash.
@@ -207,29 +207,29 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/blocktime</b></code>
- </summary>
+  </summary>
 
 ### Description
-UNIX time stamp of latest block in text.
+UNIX time stamp of latest block.
 
 ### Example
 ```bash
 curl -s  \
   http://0.0.0.0:80/r/blocktime
 ```
-```text
+```json
 1729362253
 ```
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The first 100 child inscription ids.
@@ -350,10 +350,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The set of 100 child inscription ids on `<PAGE>`.
@@ -474,10 +474,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
- </summary>
+  </summary>
 
 ### Description
 Details of the first 100 child inscriptions.
@@ -1796,10 +1796,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 Details of the set of 100 child inscriptions on &lt;PAGE&gt;.
@@ -3119,10 +3119,22 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</b></code>
+  </summary>
+
+### Description
+Undelegated content of an inscription.
+
+</details>
+
+
+<details>
+  <summary>
     <code>GET</code>
     <code><b>/r/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 Information about an inscription.
@@ -3155,10 +3167,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/metadata/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 JSON string containing the hex-encoded CBOR metadata.
@@ -3174,10 +3186,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The first 100 parent inscription ids.
@@ -3199,10 +3211,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The set of 100 parent inscription ids on `<PAGE>`.
@@ -3222,10 +3234,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The first 100 inscription ids on a sat. Requires index with `--index-sats` flag.
@@ -3250,10 +3262,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/&lt;PAGE&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The set of 100 inscription ids on `<PAGE>`. Requires index with `--index-sats` flag.
@@ -3285,10 +3297,10 @@ curl -s -H "Accept: application/json" \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 The inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. Requires index with `--index-sats` flag.
