@@ -1,7 +1,8 @@
-# Recursion
+Recursion
+=========
 
 An important exception to [sandboxing](../inscriptions.md#sandboxing) is
-recursion. Recursive endpoints are whitelisted endpoints that allow access to1
+recursion. Recursive endpoints are whitelisted endpoints that allow access to
 on-chain data, including the content of other inscriptions.
 
 Since changes to recursive endpoints might break inscriptions that rely on
