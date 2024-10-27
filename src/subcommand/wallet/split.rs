@@ -328,9 +328,7 @@ mod tests {
   use super::*;
 
   // todo:
-  // - decimals use correct divisibility
-  // - postage may not be dust
-  // - output values may not be zero
+  // - decimals in splitfile are respected
   // - credits multiple runes when output containing multiple runes is selected
   // - doesn't select more outputs than needed
   // - doesn't select fewer outputs than needed
