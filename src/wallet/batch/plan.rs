@@ -9,7 +9,7 @@ pub struct Plan {
   pub(crate) mode: Mode,
   pub(crate) no_backup: bool,
   pub(crate) no_limit: bool,
-  pub(crate) parent_info: Option<ParentInfo>,
+  pub(crate) parent_info: Vec<ParentInfo>,
   pub(crate) postages: Vec<Amount>,
   pub(crate) reinscribe: bool,
   pub(crate) reveal_fee_rate: FeeRate,
@@ -28,7 +28,7 @@ impl Default for Plan {
       mode: Mode::SharedOutput,
       no_backup: false,
       no_limit: false,
-      parent_info: None,
+      parent_info: Vec::new(),
       postages: vec![Amount::from_sat(10_000)],
       reinscribe: false,
       reveal_fee_rate: 1.0.try_into().unwrap(),
@@ -78,9 +78,9 @@ impl Plan {
       let reveal_psbt = Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone()))?;
 
       return Ok(Some(Box::new(self.output(
-        commit_tx.txid(),
+        commit_tx.compute_txid(),
         Some(commit_psbt),
-        reveal_tx.txid(),
+        reveal_tx.compute_txid(),
         false,
         Some(base64::engine::general_purpose::STANDARD.encode(reveal_psbt.serialize())),
         total_fees,
@@ -102,11 +102,11 @@ impl Plan {
           .iter()
           .enumerate()
           .map(|(vout, output)| SignRawTransactionInput {
-            txid: commit_tx.txid(),
+            txid: commit_tx.compute_txid(),
             vout: vout.try_into().unwrap(),
             script_pub_key: output.script_pubkey.clone(),
             redeem_script: None,
-            amount: Some(Amount::from_sat(output.value)),
+            amount: Some(output.value),
           })
           .collect::<Vec<SignRawTransactionInput>>(),
       ),
@@ -142,9 +142,9 @@ impl Plan {
         &commit,
         &reveal,
         self.output(
-          commit.txid(),
+          commit.compute_txid(),
           None,
-          reveal.txid(),
+          reveal.compute_txid(),
           false,
           None,
           total_fees,
@@ -206,19 +206,9 @@ impl Plan {
       let index = u32::try_from(i).unwrap();
 
       let vout = match self.mode {
-        Mode::SharedOutput | Mode::SameSat => {
-          if self.parent_info.is_some() {
-            1
-          } else {
-            0
-          }
-        }
+        Mode::SharedOutput | Mode::SameSat => self.parent_info.len().try_into().unwrap(),
         Mode::SeparateOutputs | Mode::SatPoints => {
-          if self.parent_info.is_some() {
-            index + 1
-          } else {
-            index
-          }
+          index + u32::try_from(self.parent_info.len()).unwrap()
         }
       };
 
@@ -252,7 +242,7 @@ impl Plan {
       commit,
       commit_psbt,
       inscriptions: inscriptions_output,
-      parent: self.parent_info.clone().map(|info| info.id),
+      parents: self.parent_info.iter().map(|info| info.id).collect(),
       reveal,
       reveal_broadcast,
       reveal_psbt,
@@ -271,10 +261,15 @@ impl Plan {
     commit_change: [Address; 2],
     reveal_change: Address,
   ) -> Result<Transactions> {
-    if let Some(parent_info) = &self.parent_info {
-      for inscription in &self.inscriptions {
-        assert_eq!(inscription.parents(), vec![parent_info.id]);
-      }
+    for inscription in &self.inscriptions {
+      assert_eq!(
+        inscription.parents(),
+        self
+          .parent_info
+          .iter()
+          .map(|info| info.id)
+          .collect::<Vec<InscriptionId>>()
+      );
     }
 
     match self.mode {
@@ -327,7 +322,7 @@ impl Plan {
       utxos
         .iter()
         .find(|(outpoint, txout)| {
-          txout.value > 0
+          txout.value.to_sat() > 0
             && !inscribed_utxos.contains(outpoint)
             && !locked_utxos.contains(outpoint)
             && !runic_utxos.contains(outpoint)
@@ -369,7 +364,7 @@ impl Plan {
     }
 
     let secp256k1 = Secp256k1::new();
-    let key_pair = UntweakedKeyPair::new(&secp256k1, &mut rand::thread_rng());
+    let key_pair = UntweakedKeypair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
 
     let reveal_script = Inscription::append_batch_reveal_script(
@@ -391,17 +386,17 @@ impl Plan {
 
     let commit_tx_address = Address::p2tr_tweaked(taproot_spend_info.output_key(), chain.network());
 
-    let total_postage = self.postages.iter().map(|amount| amount.to_sat()).sum();
+    let total_postage = self.postages.clone().into_iter().sum();
 
     let mut reveal_inputs = Vec::new();
     let mut reveal_outputs = Vec::new();
 
-    if let Some(ParentInfo {
+    for ParentInfo {
       location,
       id: _,
       destination,
       tx_out,
-    }) = self.parent_info.clone()
+    } in &self.parent_info
     {
       reveal_inputs.push(location.outpoint);
       reveal_outputs.push(TxOut {
@@ -422,7 +417,7 @@ impl Plan {
       reveal_outputs.push(TxOut {
         script_pubkey: destination.script_pubkey(),
         value: match self.mode {
-          Mode::SeparateOutputs | Mode::SatPoints => self.postages[i].to_sat(),
+          Mode::SeparateOutputs | Mode::SatPoints => self.postages[i],
           Mode::SharedOutput | Mode::SameSat => total_postage,
         },
       });
@@ -443,7 +438,7 @@ impl Plan {
 
         reveal_outputs.push(TxOut {
           script_pubkey: reveal_change.into(),
-          value: TARGET_POSTAGE.to_sat(),
+          value: TARGET_POSTAGE,
         });
 
         vout = Some(output);
@@ -495,7 +490,7 @@ impl Plan {
 
       reveal_outputs.push(TxOut {
         script_pubkey,
-        value: 0,
+        value: Amount::from_sat(0),
       });
 
       rune = Some((destination, etching.rune, vout));
@@ -505,7 +500,7 @@ impl Plan {
       runestone = None;
     }
 
-    let commit_input = usize::from(self.parent_info.is_some()) + self.reveal_satpoints.len();
+    let commit_input = self.parent_info.len() + self.reveal_satpoints.len();
 
     let (_reveal_tx, reveal_fee) = Self::build_reveal_transaction(
       commit_input,
@@ -520,7 +515,7 @@ impl Plan {
     let mut target_value = reveal_fee;
 
     if self.mode != Mode::SatPoints {
-      target_value += Amount::from_sat(total_postage);
+      target_value += total_postage;
     }
 
     if premine > 0 {
@@ -533,10 +528,11 @@ impl Plan {
       utxos.clone(),
       locked_utxos.clone(),
       runic_utxos,
-      commit_tx_address.clone(),
+      commit_tx_address.script_pubkey(),
       commit_change,
       self.commit_fee_rate,
       Target::Value(target_value),
+      chain.network(),
     )
     .build_transaction()?;
 
@@ -548,7 +544,7 @@ impl Plan {
       .expect("should find sat commit/inscription output");
 
     reveal_inputs[commit_input] = OutPoint {
-      txid: unsigned_commit_tx.txid(),
+      txid: unsigned_commit_tx.compute_txid(),
       vout: vout.try_into().unwrap(),
     };
 
@@ -564,15 +560,15 @@ impl Plan {
 
     for output in reveal_tx.output.iter() {
       ensure!(
-        output.value >= output.script_pubkey.dust_value().to_sat(),
+        output.value >= output.script_pubkey.minimal_non_dust(),
         "commit transaction output would be dust"
       );
     }
 
     let mut prevouts = Vec::new();
 
-    if let Some(parent_info) = self.parent_info.clone() {
-      prevouts.push(parent_info.tx_out);
+    for parent_info in &self.parent_info {
+      prevouts.push(parent_info.tx_out.clone());
     }
 
     if self.mode == Mode::SatPoints {
@@ -594,8 +590,8 @@ impl Plan {
       )
       .expect("signature hash should compute");
 
-    let sig = secp256k1.sign_schnorr(
-      &secp256k1::Message::from_slice(sighash.as_ref())
+    let signature = secp256k1.sign_schnorr(
+      &secp256k1::Message::from_digest_slice(sighash.as_ref())
         .expect("should be cryptographically secure hash"),
       &key_pair,
     );
@@ -606,8 +602,8 @@ impl Plan {
 
     witness.push(
       Signature {
-        sig,
-        hash_ty: TapSighashType::Default,
+        signature,
+        sighash_type: TapSighashType::Default,
       }
       .to_vec(),
     );
@@ -659,7 +655,7 @@ impl Plan {
     let rune = rune.map(|(destination, rune, vout)| RuneInfo {
       destination: destination.map(|destination| uncheck(&destination)),
       location: vout.map(|vout| OutPoint {
-        txid: reveal_tx.txid(),
+        txid: reveal_tx.compute_txid(),
         vout,
       }),
       rune,
@@ -675,7 +671,7 @@ impl Plan {
     })
   }
 
-  fn backup_recovery_key(wallet: &Wallet, recovery_key_pair: TweakedKeyPair) -> Result {
+  fn backup_recovery_key(wallet: &Wallet, recovery_key_pair: TweakedKeypair) -> Result {
     let recovery_private_key = PrivateKey::new(
       recovery_key_pair.to_inner().secret_key(),
       wallet.chain().network(),
@@ -687,15 +683,19 @@ impl Plan {
 
     let response = wallet
       .bitcoin_client()
-      .import_descriptors(vec![ImportDescriptors {
-        descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
+      .import_descriptors(ImportDescriptors {
+        descriptor: format!(
+          "rawtr({})#{}",
+          recovery_private_key.to_wif(),
+          info.checksum.unwrap_or_default()
+        ),
         timestamp: Timestamp::Now,
         active: Some(false),
         range: None,
         next_index: None,
         internal: Some(false),
         label: Some("commit tx recovery key".to_string()),
-      }])?;
+      })?;
 
     for result in response {
       if !result.success {
@@ -731,7 +731,7 @@ impl Plan {
         .collect(),
       output,
       lock_time: LockTime::ZERO,
-      version: 2,
+      version: Version(2),
     };
 
     let fee = {
@@ -762,8 +762,9 @@ impl Plan {
     tx.input
       .iter()
       .map(|txin| utxos.get(&txin.previous_output).unwrap().value)
-      .sum::<u64>()
-      .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<u64>())
+      .sum::<Amount>()
+      .checked_sub(tx.output.iter().map(|txout| txout.value).sum::<Amount>())
       .unwrap()
+      .to_sat()
   }
 }

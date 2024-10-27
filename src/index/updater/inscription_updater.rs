@@ -67,14 +67,18 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     output_utxo_entries: &mut [UtxoEntryBuf],
     utxo_cache: &mut HashMap<OutPoint, UtxoEntryBuf>,
     index: &Index,
-    input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
+    input_sat_ranges: Option<&Vec<&[u8]>>,
   ) -> Result {
     let mut floating_inscriptions = Vec::new();
     let mut id_counter = 0;
     let mut inscribed_offsets = BTreeMap::new();
     let jubilant = self.height >= index.settings.chain().jubilee_height();
     let mut total_input_value = 0;
-    let total_output_value = tx.output.iter().map(|txout| txout.value).sum::<u64>();
+    let total_output_value = tx
+      .output
+      .iter()
+      .map(|txout| txout.value.to_sat())
+      .sum::<u64>();
 
     let envelopes = ParsedEnvelope::from_transaction(tx);
     let has_new_inscriptions = !envelopes.is_empty();
@@ -272,7 +276,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     let mut new_locations = Vec::new();
     let mut output_value = 0;
     for (vout, txout) in tx.output.iter().enumerate() {
-      let end = output_value + txout.value;
+      let end = output_value + txout.value.to_sat();
 
       while let Some(flotsam) = inscriptions.peek() {
         if flotsam.offset >= end {
@@ -340,14 +344,15 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     }
   }
 
-  fn calculate_sat(
-    input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
-    input_offset: u64,
-  ) -> Option<Sat> {
+  fn calculate_sat(input_sat_ranges: Option<&Vec<&[u8]>>, input_offset: u64) -> Option<Sat> {
     let input_sat_ranges = input_sat_ranges?;
 
     let mut offset = 0;
-    for (start, end) in input_sat_ranges {
+    for chunk in input_sat_ranges
+      .iter()
+      .flat_map(|slice| slice.chunks_exact(11))
+    {
+      let (start, end) = SatRange::load(chunk.try_into().unwrap());
       let size = end - start;
       if offset + size > input_offset {
         let n = start + input_offset - offset;
@@ -361,7 +366,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
 
   fn update_inscription_location(
     &mut self,
-    input_sat_ranges: Option<&VecDeque<(u64, u64)>>,
+    input_sat_ranges: Option<&Vec<&[u8]>>,
     flotsam: Flotsam,
     new_satpoint: SatPoint,
     op_return: bool,

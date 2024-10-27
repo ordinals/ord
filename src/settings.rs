@@ -14,7 +14,6 @@ pub struct Settings {
   config_dir: Option<PathBuf>,
   cookie_file: Option<PathBuf>,
   data_dir: Option<PathBuf>,
-  first_inscription_height: Option<u32>,
   height_limit: Option<u32>,
   hidden: Option<HashSet<InscriptionId>>,
   http_port: Option<u16>,
@@ -120,9 +119,6 @@ impl Settings {
       config_dir: self.config_dir.or(source.config_dir),
       cookie_file: self.cookie_file.or(source.cookie_file),
       data_dir: self.data_dir.or(source.data_dir),
-      first_inscription_height: self
-        .first_inscription_height
-        .or(source.first_inscription_height),
       height_limit: self.height_limit.or(source.height_limit),
       hidden: Some(
         self
@@ -166,7 +162,6 @@ impl Settings {
       config_dir: options.config_dir,
       cookie_file: options.cookie_file,
       data_dir: options.data_dir,
-      first_inscription_height: options.first_inscription_height,
       height_limit: options.height_limit,
       hidden: None,
       http_port: None,
@@ -255,7 +250,6 @@ impl Settings {
       config_dir: get_path("CONFIG_DIR"),
       cookie_file: get_path("COOKIE_FILE"),
       data_dir: get_path("DATA_DIR"),
-      first_inscription_height: get_u32("FIRST_INSCRIPTION_HEIGHT")?,
       height_limit: get_u32("HEIGHT_LIMIT")?,
       hidden: inscriptions("HIDDEN")?,
       http_port: get_u16("HTTP_PORT")?,
@@ -286,7 +280,6 @@ impl Settings {
       config_dir: None,
       cookie_file: None,
       data_dir: Some(dir.into()),
-      first_inscription_height: None,
       height_limit: None,
       hidden: None,
       http_port: None,
@@ -354,13 +347,6 @@ impl Settings {
       config_dir: None,
       cookie_file: Some(cookie_file),
       data_dir: Some(data_dir),
-      first_inscription_height: Some(if self.integration_test {
-        0
-      } else {
-        self
-          .first_inscription_height
-          .unwrap_or_else(|| chain.first_inscription_height())
-      }),
       height_limit: self.height_limit,
       hidden: self.hidden,
       http_port: self.http_port,
@@ -410,13 +396,13 @@ impl Settings {
 
     let bitcoin_credentials = self.bitcoin_credentials()?;
 
-    log::info!(
+    log::trace!(
       "Connecting to Bitcoin Core at {}",
       self.bitcoin_rpc_url(None)
     );
 
     if let Auth::CookieFile(cookie_file) = &bitcoin_credentials {
-      log::info!(
+      log::trace!(
         "Using credentials from cookie file at `{}`",
         cookie_file.display()
       );
@@ -428,16 +414,24 @@ impl Settings {
       );
     }
 
-    let client = Client::new(&rpc_url, bitcoin_credentials)
-      .with_context(|| format!("failed to connect to Bitcoin Core RPC at `{rpc_url}`"))?;
+    let client = Client::new(&rpc_url, bitcoin_credentials.clone()).with_context(|| {
+      format!(
+        "failed to connect to Bitcoin Core RPC at `{rpc_url}` with {}",
+        match bitcoin_credentials {
+          Auth::None => "no credentials".into(),
+          Auth::UserPass(_, _) => "username and password".into(),
+          Auth::CookieFile(cookie_file) => format!("cookie file at {}", cookie_file.display()),
+        }
+      )
+    })?;
 
     let mut checks = 0;
     let rpc_chain = loop {
       match client.get_blockchain_info() {
         Ok(blockchain_info) => {
-          break match blockchain_info.chain.as_str() {
-            "main" => Chain::Mainnet,
-            "test" => Chain::Testnet,
+          break match blockchain_info.chain.to_string().as_str() {
+            "bitcoin" => Chain::Mainnet,
+            "testnet" => Chain::Testnet,
             "regtest" => Chain::Regtest,
             "signet" => Chain::Signet,
             other => bail!("Bitcoin RPC server on unknown chain: {other}"),
@@ -508,7 +502,11 @@ impl Settings {
   }
 
   pub fn first_inscription_height(&self) -> u32 {
-    self.first_inscription_height.unwrap()
+    if self.integration_test {
+      0
+    } else {
+      self.chain.unwrap().first_inscription_height()
+    }
   }
 
   pub fn first_rune_height(&self) -> u32 {
@@ -1013,7 +1011,6 @@ mod tests {
       ("CONFIG_DIR", "config dir"),
       ("COOKIE_FILE", "cookie file"),
       ("DATA_DIR", "/data/dir"),
-      ("FIRST_INSCRIPTION_HEIGHT", "2"),
       ("HEIGHT_LIMIT", "3"),
       ("HIDDEN", "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0"),
     ("HTTP_PORT", "8080"),
@@ -1047,7 +1044,6 @@ mod tests {
         config_dir: Some("config dir".into()),
         cookie_file: Some("cookie file".into()),
         data_dir: Some("/data/dir".into()),
-        first_inscription_height: Some(2),
         height_limit: Some(3),
         hidden: Some(
           vec![
@@ -1094,7 +1090,6 @@ mod tests {
           "--config-dir=config dir",
           "--cookie-file=cookie file",
           "--datadir=/data/dir",
-          "--first-inscription-height=2",
           "--height-limit=3",
           "--index-addresses",
           "--index-cache-size=4",
@@ -1121,7 +1116,6 @@ mod tests {
         config_dir: Some("config dir".into()),
         cookie_file: Some("cookie file".into()),
         data_dir: Some("/data/dir".into()),
-        first_inscription_height: Some(2),
         height_limit: Some(3),
         hidden: None,
         http_port: None,

@@ -4,6 +4,7 @@ use super::*;
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
   pub(crate) charms: u16,
+  pub(crate) child_count: u64,
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) fee: u64,
   pub(crate) height: u32,
@@ -68,7 +69,7 @@ mod tests {
           <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
-          <dd class=monospace>1{64}:1:0</dd>
+          <dd><a class=monospace href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
           <dt>output</dt>
           <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
@@ -193,7 +194,7 @@ mod tests {
         <dl>
           .*
           <dt>location</dt>
-          <dd class=monospace>0{64}:0:0</dd>
+          <dd><a class=monospace href=/satpoint/0{64}:0:0>0{64}:0:0</a></dd>
           <dt>output</dt>
           <dd><a class=monospace href=/output/0{64}:0>0{64}:0</a></dd>
           .*
@@ -251,7 +252,7 @@ mod tests {
           <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
-          <dd class=monospace>1{64}:1:0</dd>
+          <dd><a class=monospace href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
           <dt>output</dt>
           <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
@@ -268,6 +269,7 @@ mod tests {
   fn with_children() {
     assert_regex_match!(
       InscriptionHtml {
+        child_count: 2,
         children: vec![inscription_id(2), inscription_id(3)],
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -291,7 +293,7 @@ mod tests {
               <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
             </div>
             <div class=center>
-              <a href=/children/1{64}i1>all</a>
+              <a href=/children/1{64}i1>all \\(2\\)</a>
             </div>
           </dd>
           <dt>id</dt>
@@ -313,7 +315,7 @@ mod tests {
           <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
-          <dd class=monospace>1{64}:1:0</dd>
+          <dd><a class=monospace href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
           <dt>output</dt>
           <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
@@ -330,6 +332,7 @@ mod tests {
   fn with_paginated_children() {
     assert_regex_match!(
       InscriptionHtml {
+        child_count: 1,
         children: vec![inscription_id(2)],
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -352,7 +355,7 @@ mod tests {
               <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
             </div>
             <div class=center>
-              <a href=/children/1{64}i1>all</a>
+              <a href=/children/1{64}i1>all \\(1\\)</a>
             </div>
           </dd>
           <dt>id</dt>
@@ -374,7 +377,7 @@ mod tests {
           <dt>reveal transaction</dt>
           <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
-          <dd class=monospace>1{64}:1:0</dd>
+          <dd><a class=monospace href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
           <dt>output</dt>
           <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>

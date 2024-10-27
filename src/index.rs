@@ -50,7 +50,7 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 28;
+const SCHEMA_VERSION: u64 = 29;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
@@ -170,6 +170,15 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
         bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
       Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError {
+          code: -5, message, ..
+        },
+      )))
+        if message.starts_with("No such mempool or blockchain transaction") =>
+      {
+        Ok(None)
+      }
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
         bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
       )))
         if message.ends_with("not found") =>
@@ -186,7 +195,6 @@ pub struct Index {
   database: Database,
   durability: redb::Durability,
   event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
-  first_inscription_height: u32,
   genesis_block_coinbase_transaction: Transaction,
   genesis_block_coinbase_txid: Txid,
   height_limit: Option<u32>,
@@ -198,6 +206,7 @@ pub struct Index {
   path: PathBuf,
   settings: Settings,
   started: DateTime<Utc>,
+  first_index_height: u32,
   unrecoverably_reorged: AtomicBool,
 }
 
@@ -420,13 +429,23 @@ impl Index {
     let genesis_block_coinbase_transaction =
       settings.chain().genesis_block().coinbase().unwrap().clone();
 
+    let first_index_height = if index_sats || index_addresses {
+      0
+    } else if index_inscriptions {
+      settings.first_inscription_height()
+    } else if index_runes {
+      settings.first_rune_height()
+    } else {
+      u32::MAX
+    };
+
     Ok(Self {
-      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
+      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.compute_txid(),
       client,
       database,
       durability,
       event_sender,
-      first_inscription_height: settings.first_inscription_height(),
+      first_index_height,
       genesis_block_coinbase_transaction,
       height_limit: settings.height_limit(),
       index_addresses,
@@ -439,6 +458,10 @@ impl Index {
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
     })
+  }
+
+  pub fn have_full_utxo_index(&self) -> bool {
+    self.first_index_height == 0
   }
 
   /// Unlike normal outpoints, which are added to index on creation and removed
@@ -482,7 +505,7 @@ impl Index {
     self.index_sats
   }
 
-  pub fn status(&self) -> Result<StatusHtml> {
+  pub fn status(&self, json_api: bool) -> Result<StatusHtml> {
     let rtx = self.database.begin_read()?;
 
     let statistic_to_count = rtx.open_table(STATISTIC_TO_COUNT)?;
@@ -518,6 +541,7 @@ impl Index {
       initial_sync_time: Duration::from_micros(initial_sync_time),
       inscription_index: self.has_inscription_index(),
       inscriptions: blessed_inscriptions + cursed_inscriptions,
+      json_api,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
         self.settings.chain().network(),
@@ -1708,7 +1732,7 @@ impl Index {
     Ok(
       outpoint != OutPoint::null()
         && outpoint != self.settings.chain().genesis_coinbase_outpoint()
-        && if self.index_sats {
+        && if self.have_full_utxo_index() {
           self
             .database
             .begin_read()?
@@ -2041,9 +2065,13 @@ impl Index {
       .get(sequence_number + 1)?
       .map(|guard| InscriptionEntry::load(guard.value()).id);
 
-    let children = rtx
+    let all_children = rtx
       .open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?
-      .get(sequence_number)?
+      .get(sequence_number)?;
+
+    let child_count = all_children.len();
+
+    let children = all_children
       .take(4)
       .map(|result| {
         result
@@ -2114,6 +2142,7 @@ impl Index {
           })
           .map(|address| address.to_string()),
         charms: Charm::charms(charms),
+        child_count,
         children,
         content_length: inscription.content_length(),
         content_type: inscription.content_type().map(|s| s.to_string()),
@@ -2129,7 +2158,7 @@ impl Index {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp.into()).timestamp(),
-        value: output.as_ref().map(|o| o.value),
+        value: output.as_ref().map(|o| o.value.to_sat()),
       },
       output,
       inscription,
@@ -2351,7 +2380,7 @@ impl Index {
       indexed = true;
 
       TxOut {
-        value,
+        value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
       }
     } else {
@@ -2451,9 +2480,7 @@ mod tests {
     }
 
     {
-      let context = Context::builder()
-        .arg("--first-inscription-height=3")
-        .build();
+      let context = Context::builder().chain(Chain::Mainnet).build();
       context.mine_blocks(1);
       let txid = context.core.broadcast_tx(template);
       let inscription_id = InscriptionId { txid, index: 0 };
@@ -2538,7 +2565,7 @@ mod tests {
   #[test]
   fn list_second_coinbase_transaction() {
     let context = Context::builder().arg("--index-sats").build();
-    let txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       &[(50 * COIN_VALUE, 100 * COIN_VALUE)],
@@ -2606,7 +2633,7 @@ mod tests {
       ..default()
     };
     let txid = context.core.broadcast_tx(fee_paying_tx);
-    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -2646,7 +2673,7 @@ mod tests {
     context.core.broadcast_tx(first_fee_paying_tx);
     context.core.broadcast_tx(second_fee_paying_tx);
 
-    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
     assert_eq!(
       context
@@ -2718,7 +2745,7 @@ mod tests {
       ..default()
     });
     context.mine_blocks(1);
-    let txid = context.core.tx(1, 0).txid();
+    let txid = context.core.tx(1, 0).compute_txid();
     assert_matches!(context.index.list(OutPoint::new(txid, 0)).unwrap(), None);
   }
 
@@ -2776,7 +2803,7 @@ mod tests {
       context.index.find(Sat(50 * COIN_VALUE)).unwrap().unwrap(),
       SatPoint {
         outpoint: OutPoint {
-          txid: tx.txid(),
+          txid: tx.compute_txid(),
           vout: 0,
         },
         offset: 0,
@@ -3041,53 +3068,6 @@ mod tests {
   }
 
   #[test]
-  fn missing_inputs_are_fetched_from_bitcoin_core() {
-    for args in [
-      ["--first-inscription-height", "2"].as_slice(),
-      ["--first-inscription-height", "2", "--index-sats"].as_slice(),
-    ] {
-      let context = Context::builder().args(args).build();
-      context.mine_blocks(1);
-
-      let txid = context.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
-        ..default()
-      });
-      let inscription_id = InscriptionId { txid, index: 0 };
-
-      context.mine_blocks(1);
-
-      context.index.assert_inscription_location(
-        inscription_id,
-        SatPoint {
-          outpoint: OutPoint { txid, vout: 0 },
-          offset: 0,
-        },
-        Some(50 * COIN_VALUE),
-      );
-
-      let send_txid = context.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(2, 0, 0, Default::default()), (2, 1, 0, Default::default())],
-        ..default()
-      });
-
-      context.mine_blocks(1);
-
-      context.index.assert_inscription_location(
-        inscription_id,
-        SatPoint {
-          outpoint: OutPoint {
-            txid: send_txid,
-            vout: 0,
-          },
-          offset: 50 * COIN_VALUE,
-        },
-        Some(50 * COIN_VALUE),
-      );
-    }
-  }
-
-  #[test]
   fn one_input_fee_spent_inscriptions_are_tracked_correctly() {
     for context in Context::configurations() {
       context.mine_blocks(1);
@@ -3106,7 +3086,7 @@ mod tests {
         ..default()
       });
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -3141,7 +3121,7 @@ mod tests {
         ..default()
       });
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -3169,7 +3149,7 @@ mod tests {
       });
       let inscription_id = InscriptionId { txid, index: 0 };
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -3262,9 +3242,7 @@ mod tests {
 
   #[test]
   fn lost_sats_are_tracked_correctly() {
-    let context = Context::builder()
-      .args(["--index-sats", "--first-inscription-height", "10"])
-      .build();
+    let context = Context::builder().args(["--index-sats"]).build();
     assert_eq!(context.index.statistic(Statistic::LostSats), 0);
 
     context.mine_blocks(1);
@@ -3291,9 +3269,7 @@ mod tests {
 
   #[test]
   fn lost_sat_ranges_are_tracked_correctly() {
-    let context = Context::builder()
-      .args(["--index-sats", "--first-inscription-height", "10"])
-      .build();
+    let context = Context::builder().args(["--index-sats"]).build();
 
     let null_ranges = || {
       context
@@ -5975,7 +5951,7 @@ mod tests {
         inscription_id,
         SatPoint {
           outpoint: OutPoint {
-            txid: blocks[0].txdata[0].txid(),
+            txid: blocks[0].txdata[0].compute_txid(),
             vout: 0,
           },
           offset: 50 * COIN_VALUE,
@@ -6006,7 +5982,7 @@ mod tests {
         inscription_id,
         SatPoint {
           outpoint: OutPoint {
-            txid: blocks[0].txdata[0].txid(),
+            txid: blocks[0].txdata[0].compute_txid(),
             vout: 0,
           },
           offset: 50 * COIN_VALUE,
@@ -6254,7 +6230,7 @@ mod tests {
     assert!(!context
       .index
       .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6269,7 +6245,7 @@ mod tests {
     assert!(context
       .index
       .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6294,7 +6270,7 @@ mod tests {
     assert!(context
       .index
       .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6302,7 +6278,7 @@ mod tests {
     assert!(!context
       .index
       .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 1,
       })
       .unwrap());
@@ -6343,7 +6319,7 @@ mod tests {
       .unwrap();
 
     let first_address_second_output = OutPoint {
-      txid: transaction.txid(),
+      txid: transaction.compute_txid(),
       vout: 1,
     };
 
@@ -6351,7 +6327,7 @@ mod tests {
       context.index.get_address_info(&first_address).unwrap(),
       [
         OutPoint {
-          txid: transaction.txid(),
+          txid: transaction.compute_txid(),
           vout: 0
         },
         first_address_second_output
@@ -6383,7 +6359,7 @@ mod tests {
     assert_eq!(
       context.index.get_address_info(&second_address).unwrap(),
       [OutPoint {
-        txid: transaction.txid(),
+        txid: transaction.compute_txid(),
         vout: 0
       }]
     );
@@ -6735,17 +6711,5 @@ mod tests {
     // good error messages in older versions, the schema statistic key must be
     // zero
     assert_eq!(Statistic::Schema.key(), 0);
-  }
-
-  #[test]
-  fn reminder_to_update_utxo_entry_type_name() {
-    // This test will break when the schema version is updated, and is a
-    // reminder to fix the type name in `impl redb::Value for &UtxoEntry`.
-    //
-    // The type name should be changed from `ord::index::utxo_entry::UtxoValue`
-    // to `ord::UtxoEntry`. I think it's probably best if we just name types
-    // `ord::NAME`, instead of including the full path, since the full path
-    // will change if we reorganize the code.
-    assert_eq!(SCHEMA_VERSION, 28);
   }
 }

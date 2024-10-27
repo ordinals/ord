@@ -4,19 +4,18 @@ use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bitcoin::{
     address::{Address, NetworkUnchecked},
-    blockdata::constants::COIN_VALUE,
-    Network, OutPoint, Sequence, Txid, Witness,
+    Amount, Network, OutPoint, Sequence, Txid, Witness,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   mockcore::TransactionTemplate,
   ord::{
-    api, chain::Chain, decimal::Decimal, outgoing::Outgoing, subcommand::runes::RuneInfo,
-    wallet::batch, InscriptionId, RuneEntry,
+    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, wallet::batch,
+    wallet::ListDescriptorsResult, InscriptionId, RuneEntry,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
+    COIN_VALUE,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
@@ -69,6 +68,7 @@ mod settings;
 mod subsidy;
 mod supply;
 mod traits;
+mod verify;
 mod version;
 mod wallet;
 
@@ -99,23 +99,37 @@ fn sats(
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::sats::OutputRare>>()
 }
 
-fn inscribe(core: &mockcore::Handle, ord: &TestServer) -> (InscriptionId, Txid) {
+fn inscribe_with_postage(
+  core: &mockcore::Handle,
+  ord: &TestServer,
+  postage: Option<u64>,
+) -> (InscriptionId, Txid) {
   core.mine_blocks(1);
 
-  let output = CommandBuilder::new(format!(
+  let mut command_str = format!(
     "--chain {} wallet inscribe --fee-rate 1 --file foo.txt",
     core.network()
-  ))
-  .write("foo.txt", "FOO")
-  .core(core)
-  .ord(ord)
-  .run_and_deserialize_output::<Batch>();
+  );
+
+  if let Some(postage_value) = postage {
+    command_str.push_str(&format!(" --postage {}sat", postage_value));
+  }
+
+  let output = CommandBuilder::new(command_str)
+    .write("foo.txt", "FOO")
+    .core(core)
+    .ord(ord)
+    .run_and_deserialize_output::<Batch>();
 
   core.mine_blocks(1);
 
   assert_eq!(output.inscriptions.len(), 1);
 
   (output.inscriptions[0].id, output.reveal)
+}
+
+fn inscribe(core: &mockcore::Handle, ord: &TestServer) -> (InscriptionId, Txid) {
+  inscribe_with_postage(core, ord, None)
 }
 
 fn drain(core: &mockcore::Handle, ord: &TestServer) {
@@ -313,6 +327,11 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     mint_definition.push("<dt>mintable</dt>".into());
     mint_definition.push(format!("<dd>{mintable}</dd>"));
 
+    if mintable {
+      mint_definition.push("<dt>progress</dt>".into());
+      mint_definition.push("<dd>0%</dd>".into());
+    }
+
     mint_definition.push("</dl>".into());
     mint_definition.push("</dd>".into());
   } else {
@@ -320,14 +339,6 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   }
 
   let RuneId { block, tx } = id;
-
-  let supply_int = supply.to_integer(divisibility).unwrap();
-  let premine_int = premine.to_integer(divisibility).unwrap();
-
-  let mint_progress = Decimal {
-    value: ((premine_int as f64 / supply_int as f64) * 10000.0) as u128,
-    scale: 2,
-  };
 
   ord.assert_response_regex(
     format!("/rune/{rune}"),
@@ -342,8 +353,6 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   {}
   <dt>supply</dt>
   <dd>{premine} {symbol}</dd>
-  <dt>mint progress</dt>
-  <dd>{mint_progress}%</dd>
   <dt>premine</dt>
   <dd>{premine} {symbol}</dd>
   <dt>premine percentage</dt>

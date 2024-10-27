@@ -1,12 +1,13 @@
 use {
   super::*,
-  crate::wallet::{batch, wallet_constructor::WalletConstructor, Wallet},
-  bitcoincore_rpc::bitcoincore_rpc_json::ListDescriptorsResult,
+  crate::wallet::{batch, wallet_constructor::WalletConstructor, ListDescriptorsResult, Wallet},
   shared_args::SharedArgs,
 };
 
+pub mod addresses;
 pub mod balance;
 mod batch_command;
+pub mod burn;
 pub mod cardinals;
 pub mod create;
 pub mod dump;
@@ -23,6 +24,7 @@ pub mod runics;
 pub mod sats;
 pub mod send;
 mod shared_args;
+pub mod sign;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
@@ -43,10 +45,14 @@ pub(crate) struct WalletCommand {
 #[derive(Debug, Parser)]
 #[allow(clippy::large_enum_variant)]
 pub(crate) enum Subcommand {
+  #[command(about = "Get wallet addresses")]
+  Addresses,
   #[command(about = "Get wallet balance")]
   Balance,
   #[command(about = "Create inscriptions and runes")]
   Batch(batch_command::Batch),
+  #[command(about = "Burn an inscription")]
+  Burn(burn::Burn),
   #[command(about = "List unspent cardinal outputs in wallet")]
   Cardinals,
   #[command(about = "Create new wallet")]
@@ -77,6 +83,8 @@ pub(crate) enum Subcommand {
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
   Send(send::Send),
+  #[command(about = "Sign message")]
+  Sign(sign::Sign),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
 }
@@ -104,8 +112,10 @@ impl WalletCommand {
     )?;
 
     match self.subcommand {
+      Subcommand::Addresses => addresses::run(wallet),
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Batch(batch) => batch.run(wallet),
+      Subcommand::Burn(burn) => burn.run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),
       Subcommand::Create(_) | Subcommand::Restore(_) => unreachable!(),
       Subcommand::Dump => dump::run(wallet),
@@ -120,6 +130,7 @@ impl WalletCommand {
       Subcommand::Runics => runics::run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
+      Subcommand::Sign(sign) => sign.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
     }
   }

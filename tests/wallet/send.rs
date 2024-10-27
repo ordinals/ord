@@ -22,7 +22,7 @@ fn inscriptions_can_be_sent() {
   .stdout_regex(r".*")
   .run_and_deserialize_output::<Send>();
 
-  let txid = core.mempool()[0].txid();
+  let txid = core.mempool()[0].compute_txid();
   assert_eq!(txid, output.txid);
 
   core.mine_blocks(1);
@@ -39,7 +39,7 @@ fn inscriptions_can_be_sent() {
   <dd>text/plain;charset=utf-8</dd>
   .*
   <dt>location</dt>
-  <dd class=monospace>{send_txid}:0:0</dd>
+  <dd><a class=monospace href=/satpoint/{send_txid}:0:0>{send_txid}:0:0</a></dd>
   .*
 </dl>
 .*",
@@ -55,7 +55,7 @@ fn send_unknown_inscription() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv {txid}i0"
@@ -94,9 +94,7 @@ fn send_inscribed_inscription() {
 
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
-    format!(
-      ".*<h1>Inscription 0</h1>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
-    ),
+    format!(".*<h1>Inscription 0</h1>.*<dt>location</dt>.*{send_txid}:0:0</a></dd>.*",),
   );
 }
 
@@ -155,7 +153,7 @@ fn send_inscription_by_sat() {
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      ".*<h1>Inscription 0</h1>.*<dt>address</dt>.*<dd class=monospace><a href=/address/{address}>{address}</a></dd>.*<dt>location</dt>.*<dd class=monospace>{send_txid}:0:0</dd>.*",
+      ".*<h1>Inscription 0</h1>.*<dt>address</dt>.*<dd class=monospace><a href=/address/{address}>{address}</a></dd>.*<dt>location</dt>.*<dd><a class=monospace href=/satpoint/{send_txid}:0:0>{send_txid}:0:0</a></dd>.*",
     ),
   );
 }
@@ -166,7 +164,7 @@ fn send_on_mainnnet_works_with_wallet_named_foo() {
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   CommandBuilder::new("wallet --name foo create")
     .core(&core)
@@ -189,7 +187,7 @@ fn send_addresses_must_be_valid_for_network() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks_with_subsidy(1, 1_000)[0].txdata[0].txid();
+  let txid = core.mine_blocks_with_subsidy(1, 1_000)[0].txdata[0].compute_txid();
 
   CommandBuilder::new(format!(
     "wallet send --fee-rate 1 tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz {txid}:0:0"
@@ -197,7 +195,7 @@ fn send_addresses_must_be_valid_for_network() {
   .core(&core)
     .ord(&ord)
   .expected_stderr(
-    "error: address tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz belongs to network testnet which is different from required bitcoin\n",
+    "error: validation error\n\nbecause:\n- address tb1q6en7qjxgw4ev8xwx94pzdry6a6ky7wlfeqzunz is not valid on bitcoin\n",
   )
   .expected_exit_code(1)
   .run_and_extract_stdout();
@@ -211,7 +209,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].txid();
+  let txid = core.mine_blocks_with_subsidy(1, 1_000_000)[0].txdata[0].compute_txid();
 
   let output = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
@@ -220,7 +218,7 @@ fn send_on_mainnnet_works_with_wallet_named_ord() {
   .ord(&ord)
   .run_and_deserialize_output::<Send>();
 
-  assert_eq!(core.mempool()[0].txid(), output.txid);
+  assert_eq!(core.mempool()[0].compute_txid(), output.txid);
 }
 
 #[test]
@@ -231,7 +229,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks_with_subsidy(1, 10_000)[0].txdata[0].txid();
+  let txid = core.mine_blocks_with_subsidy(1, 10_000)[0].txdata[0].compute_txid();
   CommandBuilder::new(format!(
     "wallet inscribe --satpoint {txid}:0:0 --file degenerate.png --fee-rate 0"
   ))
@@ -240,7 +238,7 @@ fn send_does_not_use_inscribed_sats_as_cardinal_utxos() {
   .ord(&ord)
   .run_and_deserialize_output::<Batch>();
 
-  let txid = core.mine_blocks_with_subsidy(1, 100)[0].txdata[0].txid();
+  let txid = core.mine_blocks_with_subsidy(1, 100)[0].txdata[0].compute_txid();
   CommandBuilder::new(format!(
     "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0"
   ))
@@ -364,9 +362,9 @@ inscriptions:
       indexed: true,
       runes: BTreeMap::new(),
       sat_ranges: Some(vec![(5_000_000_000, 5_000_030_000)]),
-      script_pubkey: destination.payload.script_pubkey().to_asm_string(),
+      script_pubkey: destination.assume_checked_ref().script_pubkey(),
       spent: false,
-      transaction: reveal_txid.to_string(),
+      transaction: reveal_txid,
       value: 30_000,
     }
   );
@@ -457,19 +455,16 @@ fn send_btc_with_fee_rate() {
 
   let tx = &core.mempool()[0];
 
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
 
   for output in &tx.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx.vsize() as f64;
 
   assert!(f64::abs(fee_rate - 13.3) < 0.1);
 
@@ -481,7 +476,7 @@ fn send_btc_with_fee_rate() {
       .assume_checked()
   );
 
-  assert_eq!(tx.output[0].value, 2 * COIN_VALUE);
+  assert_eq!(tx.output[0].value.to_sat(), 2 * COIN_VALUE);
 }
 
 #[test]
@@ -545,18 +540,15 @@ fn wallet_send_with_fee_rate() {
   .run_and_deserialize_output::<Send>();
 
   let tx = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &tx.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
 }
@@ -606,21 +598,18 @@ fn wallet_send_with_fee_rate_and_target_postage() {
   .run_and_deserialize_output::<Send>();
 
   let tx = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &tx.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
-  pretty_assert_eq!(tx.output[0].value, 77_000);
+  pretty_assert_eq!(tx.output[0].value.to_sat(), 77_000);
 }
 
 #[test]
@@ -632,7 +621,7 @@ fn send_btc_does_not_send_locked_utxos() {
   create_wallet(&core, &ord);
 
   let coinbase_tx = &core.mine_blocks(1)[0].txdata[0];
-  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let outpoint = OutPoint::new(coinbase_tx.compute_txid(), 0);
 
   core.lock(outpoint);
 
@@ -690,7 +679,7 @@ fn sending_rune_that_has_not_been_etched_is_an_error() {
   create_wallet(&core, &ord);
 
   let coinbase_tx = &core.mine_blocks(1)[0].txdata[0];
-  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let outpoint = OutPoint::new(coinbase_tx.compute_txid(), 0);
 
   core.lock(outpoint);
 
@@ -816,8 +805,8 @@ fn sending_rune_with_change_works() {
 
   let tx = core.tx_by_id(output.txid);
 
-  assert_eq!(tx.output[1].value, 1234);
-  assert_eq!(tx.output[2].value, 1234);
+  assert_eq!(tx.output[1].value.to_sat(), 1234);
+  assert_eq!(tx.output[2].value.to_sat(), 1234);
 
   let balances = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)
@@ -827,9 +816,9 @@ fn sending_rune_with_change_works() {
   pretty_assert_eq!(
     balances,
     ord::subcommand::balances::Output {
-      runes: vec![(
+      runes: [(
         SpacedRune::new(Rune(RUNE), 0),
-        vec![
+        [
           (
             OutPoint {
               txid: output.txid,
@@ -853,11 +842,155 @@ fn sending_rune_with_change_works() {
             },
           )
         ]
-        .into_iter()
-        .collect()
+        .into()
       )]
-      .into_iter()
-      .collect(),
+      .into()
+    }
+  );
+}
+
+#[test]
+fn sending_rune_creates_change_output_for_non_outgoing_runes() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let a = etch(&core, &ord, Rune(RUNE));
+  let b = etch(&core, &ord, Rune(RUNE + 1));
+
+  let (a_block, a_tx) = core.tx_index(a.output.reveal);
+  let (b_block, b_tx) = core.tx_index(b.output.reveal);
+
+  core.mine_blocks(1);
+
+  let address = CommandBuilder::new("--regtest wallet receive")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
+    .addresses
+    .into_iter()
+    .next()
+    .unwrap();
+
+  let merge = core.broadcast_tx(TransactionTemplate {
+    inputs: &[(a_block, a_tx, 1, default()), (b_block, b_tx, 1, default())],
+    recipient: Some(address.require_network(Network::Regtest).unwrap()),
+    ..default()
+  });
+
+  core.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  pretty_assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: [
+        (
+          SpacedRune::new(Rune(RUNE), 0),
+          [(
+            OutPoint {
+              txid: merge,
+              vout: 0
+            },
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        ),
+        (
+          SpacedRune::new(Rune(RUNE + 1), 0),
+          [(
+            OutPoint {
+              txid: merge,
+              vout: 0
+            },
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        ),
+      ]
+      .into()
+    }
+  );
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+    .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  pretty_assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: [
+        (
+          SpacedRune::new(Rune(RUNE), 0),
+          [(
+            OutPoint {
+              txid: output.txid,
+              vout: 2
+            },
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        ),
+        (
+          SpacedRune::new(Rune(RUNE + 1), 0),
+          [(
+            OutPoint {
+              txid: output.txid,
+              vout: 1
+            },
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        )
+      ]
+      .into()
+    }
+  );
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest --index-runes wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 84999960160,
+      ordinal: 20000,
+      runes: Some([(SpacedRune::new(Rune(RUNE + 1), 0), "1000".parse().unwrap())].into()),
+      runic: Some(10000),
+      total: 84999990160,
     }
   );
 }

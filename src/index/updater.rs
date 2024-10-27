@@ -24,7 +24,7 @@ impl From<Block> for BlockData {
         .txdata
         .into_iter()
         .map(|transaction| {
-          let txid = transaction.txid();
+          let txid = transaction.compute_txid();
           (transaction, txid)
         })
         .collect(),
@@ -71,7 +71,7 @@ impl<'index> Updater<'index> {
       Some(progress_bar)
     };
 
-    let rx = Self::fetch_blocks_from(self.index, self.height, self.index.index_sats)?;
+    let rx = Self::fetch_blocks_from(self.index, self.height)?;
 
     let (mut output_sender, mut txout_receiver) = Self::spawn_fetcher(self.index)?;
 
@@ -153,15 +153,14 @@ impl<'index> Updater<'index> {
   fn fetch_blocks_from(
     index: &Index,
     mut height: u32,
-    index_sats: bool,
   ) -> Result<std::sync::mpsc::Receiver<BlockData>> {
     let (tx, rx) = std::sync::mpsc::sync_channel(32);
+
+    let first_index_height = index.first_index_height;
 
     let height_limit = index.height_limit;
 
     let client = index.settings.bitcoin_rpc_client(None)?;
-
-    let first_inscription_height = index.first_inscription_height;
 
     thread::spawn(move || loop {
       if let Some(height_limit) = height_limit {
@@ -170,7 +169,7 @@ impl<'index> Updater<'index> {
         }
       }
 
-      match Self::get_block_with_retries(&client, height, index_sats, first_inscription_height) {
+      match Self::get_block_with_retries(&client, height, first_index_height) {
         Ok(Some(block)) => {
           if let Err(err) = tx.send(block.into()) {
             log::info!("Block receiver disconnected: {err}");
@@ -192,8 +191,7 @@ impl<'index> Updater<'index> {
   fn get_block_with_retries(
     client: &Client,
     height: u32,
-    index_sats: bool,
-    first_inscription_height: u32,
+    first_index_height: u32,
   ) -> Result<Option<Block>> {
     let mut errors = 0;
     loop {
@@ -203,7 +201,7 @@ impl<'index> Updater<'index> {
         .and_then(|option| {
           option
             .map(|hash| {
-              if index_sats || height >= first_inscription_height {
+              if height >= first_index_height {
                 Ok(client.get_block(&hash)?)
               } else {
                 Ok(Block {
@@ -425,8 +423,8 @@ impl<'index> Updater<'index> {
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
 
-    let index_inscriptions =
-      self.height >= self.index.first_inscription_height && self.index.index_inscriptions;
+    let index_inscriptions = self.height >= self.index.settings.first_inscription_height()
+      && self.index.index_inscriptions;
 
     // If the receiver still has inputs something went wrong in the last
     // block and we shouldn't recover from this and commit the last block
@@ -437,7 +435,7 @@ impl<'index> Updater<'index> {
       );
     }
 
-    if !self.index.index_sats {
+    if !self.index.have_full_utxo_index() {
       // Send all missing input outpoints to be fetched
       let txids = block
         .txdata
@@ -521,13 +519,14 @@ impl<'index> Updater<'index> {
       unbound_inscriptions,
     };
 
-    let mut coinbase_inputs = VecDeque::new();
+    let mut coinbase_inputs = Vec::new();
+    let mut lost_sat_ranges = Vec::new();
 
     if self.index.index_sats {
       let h = Height(self.height);
       if h.subsidy() > 0 {
         let start = h.starting_sat();
-        coinbase_inputs.push_front((start.n(), (start + h.subsidy()).n()));
+        coinbase_inputs.extend(SatRange::store((start.n(), (start + h.subsidy()).n())));
         self.sat_ranges_since_flush += 1;
       }
     }
@@ -562,7 +561,7 @@ impl<'index> Updater<'index> {
 
               entry.value().to_buf()
             } else {
-              assert!(!self.index.index_sats);
+              assert!(!self.index.have_full_utxo_index());
               let txout = txout_receiver.blocking_recv().map_err(|err| {
                 anyhow!(
                   "failed to get transaction for {}: {err}",
@@ -571,7 +570,7 @@ impl<'index> Updater<'index> {
               })?;
 
               let mut entry = UtxoEntryBuf::new();
-              entry.push_value(txout.value, self.index);
+              entry.push_value(txout.value.to_sat(), self.index);
               if self.index.index_addresses {
                 entry.push_script_pubkey(txout.script_pubkey.as_bytes(), self.index);
               }
@@ -595,76 +594,38 @@ impl<'index> Updater<'index> {
         .map(|_| UtxoEntryBuf::new())
         .collect::<Vec<UtxoEntryBuf>>();
 
-      let mut orig_input_sat_ranges = None;
+      let input_sat_ranges;
       if self.index.index_sats {
-        let mut input_sat_ranges;
+        let leftover_sat_ranges;
 
         if tx_offset == 0 {
-          // We use mem::take() because the borrow checker isn't smart enough
-          // to realize that coinbase_inputs won't be used again.
-          input_sat_ranges = mem::take(&mut coinbase_inputs);
+          input_sat_ranges = Some(vec![coinbase_inputs.as_slice()]);
+          leftover_sat_ranges = &mut lost_sat_ranges;
         } else {
-          input_sat_ranges = VecDeque::new();
-
-          for input_utxo_entry in &input_utxo_entries {
-            for chunk in input_utxo_entry.sat_ranges().chunks_exact(11) {
-              input_sat_ranges.push_back(SatRange::load(chunk.try_into().unwrap()));
-            }
-          }
+          input_sat_ranges = Some(
+            input_utxo_entries
+              .iter()
+              .map(|entry| entry.sat_ranges())
+              .collect(),
+          );
+          leftover_sat_ranges = &mut coinbase_inputs;
         }
-
-        orig_input_sat_ranges = Some(input_sat_ranges.clone());
 
         self.index_transaction_sats(
           tx,
           *txid,
           &mut sat_to_satpoint,
           &mut output_utxo_entries,
-          &mut input_sat_ranges,
+          input_sat_ranges.as_ref().unwrap(),
+          leftover_sat_ranges,
           sat_ranges_written,
           outputs_in_block,
         )?;
-
-        if tx_offset == 0 {
-          if !input_sat_ranges.is_empty() {
-            // Note that the lost-sats outpoint is special, because (unlike real
-            // outputs) it gets written to more than once.  commit() will merge
-            // our new entry with any existing one.
-            let utxo_entry = utxo_cache
-              .entry(OutPoint::null())
-              .or_insert(UtxoEntryBuf::empty(self.index));
-
-            let mut lost_sat_ranges = Vec::new();
-            for (start, end) in input_sat_ranges {
-              if !Sat(start).common() {
-                sat_to_satpoint.insert(
-                  &start,
-                  &SatPoint {
-                    outpoint: OutPoint::null(),
-                    offset: lost_sats,
-                  }
-                  .store(),
-                )?;
-              }
-
-              lost_sat_ranges.extend_from_slice(&(start, end).store());
-              lost_sats += end - start;
-            }
-
-            let mut new_utxo_entry = UtxoEntryBuf::new();
-            new_utxo_entry.push_sat_ranges(&lost_sat_ranges, self.index);
-            if self.index.index_addresses {
-              new_utxo_entry.push_script_pubkey(&[], self.index);
-            }
-
-            *utxo_entry = UtxoEntryBuf::merged(utxo_entry, &new_utxo_entry, self.index);
-          }
-        } else {
-          coinbase_inputs.extend(input_sat_ranges);
-        }
       } else {
+        input_sat_ranges = None;
+
         for (vout, txout) in tx.output.iter().enumerate() {
-          output_utxo_entries[vout].push_value(txout.value, self.index);
+          output_utxo_entries[vout].push_value(txout.value.to_sat(), self.index);
         }
       }
 
@@ -680,7 +641,7 @@ impl<'index> Updater<'index> {
           &mut output_utxo_entries,
           utxo_cache,
           self.index,
-          orig_input_sat_ranges.as_ref(),
+          input_sat_ranges.as_ref(),
         )?;
       }
 
@@ -693,6 +654,39 @@ impl<'index> Updater<'index> {
     if index_inscriptions {
       height_to_last_sequence_number
         .insert(&self.height, inscription_updater.next_sequence_number)?;
+    }
+
+    if !lost_sat_ranges.is_empty() {
+      // Note that the lost-sats outpoint is special, because (unlike real
+      // outputs) it gets written to more than once.  commit() will merge
+      // our new entry with any existing one.
+      let utxo_entry = utxo_cache
+        .entry(OutPoint::null())
+        .or_insert(UtxoEntryBuf::empty(self.index));
+
+      for chunk in lost_sat_ranges.chunks_exact(11) {
+        let (start, end) = SatRange::load(chunk.try_into().unwrap());
+        if !Sat(start).common() {
+          sat_to_satpoint.insert(
+            &start,
+            &SatPoint {
+              outpoint: OutPoint::null(),
+              offset: lost_sats,
+            }
+            .store(),
+          )?;
+        }
+
+        lost_sats += end - start;
+      }
+
+      let mut new_utxo_entry = UtxoEntryBuf::new();
+      new_utxo_entry.push_sat_ranges(&lost_sat_ranges, self.index);
+      if self.index.index_addresses {
+        new_utxo_entry.push_script_pubkey(&[], self.index);
+      }
+
+      *utxo_entry = UtxoEntryBuf::merged(utxo_entry, &new_utxo_entry, self.index);
     }
 
     statistic_to_count.insert(
@@ -738,29 +732,50 @@ impl<'index> Updater<'index> {
     txid: Txid,
     sat_to_satpoint: &mut Table<u64, &SatPointValue>,
     output_utxo_entries: &mut [UtxoEntryBuf],
-    input_sat_ranges: &mut VecDeque<(u64, u64)>,
+    input_sat_ranges: &[&[u8]],
+    leftover_sat_ranges: &mut Vec<u8>,
     sat_ranges_written: &mut u64,
     outputs_traversed: &mut u64,
   ) -> Result {
+    let mut pending_input_sat_range = None;
+    let mut input_sat_ranges_iter = input_sat_ranges
+      .iter()
+      .flat_map(|slice| slice.chunks_exact(11));
+
+    // Preallocate our temporary array, sized to hold the combined
+    // sat ranges from our inputs.  We'll never need more than that
+    // for a single output, even if we end up splitting some ranges.
+    let mut sats = Vec::with_capacity(
+      input_sat_ranges
+        .iter()
+        .map(|slice| slice.len())
+        .sum::<usize>(),
+    );
+
     for (vout, output) in tx.output.iter().enumerate() {
       let outpoint = OutPoint {
         vout: vout.try_into().unwrap(),
         txid,
       };
-      let mut sats = Vec::new();
 
-      let mut remaining = output.value;
+      let mut remaining = output.value.to_sat();
       while remaining > 0 {
-        let range = input_sat_ranges
-          .pop_front()
-          .ok_or_else(|| anyhow!("insufficient inputs for transaction outputs"))?;
+        let range = pending_input_sat_range.take().unwrap_or_else(|| {
+          SatRange::load(
+            input_sat_ranges_iter
+              .next()
+              .expect("insufficient inputs for transaction outputs")
+              .try_into()
+              .unwrap(),
+          )
+        });
 
         if !Sat(range.0).common() {
           sat_to_satpoint.insert(
             &range.0,
             &SatPoint {
               outpoint,
-              offset: output.value - remaining,
+              offset: output.value.to_sat() - remaining,
             }
             .store(),
           )?;
@@ -771,7 +786,7 @@ impl<'index> Updater<'index> {
         let assigned = if count > remaining {
           self.sat_ranges_since_flush += 1;
           let middle = range.0 + remaining;
-          input_sat_ranges.push_front((middle, range.1));
+          pending_input_sat_range = Some((middle, range.1));
           (range.0, middle)
         } else {
           range
@@ -787,7 +802,13 @@ impl<'index> Updater<'index> {
       *outputs_traversed += 1;
 
       output_utxo_entries[vout].push_sat_ranges(&sats, self.index);
+      sats.clear();
     }
+
+    if let Some(range) = pending_input_sat_range {
+      leftover_sat_ranges.extend(&range.store());
+    }
+    leftover_sat_ranges.extend(input_sat_ranges_iter.flatten());
 
     Ok(())
   }
