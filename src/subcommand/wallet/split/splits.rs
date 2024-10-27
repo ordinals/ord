@@ -14,7 +14,7 @@ struct OutputUnchecked {
 
 pub(crate) struct Splits {
   pub(crate) outputs: Vec<Output>,
-  pub(crate) rune_ids: BTreeMap<Rune, RuneId>,
+  pub(crate) rune_info: BTreeMap<Rune, RuneInfo>,
 }
 
 pub(crate) struct Output {
@@ -23,13 +23,20 @@ pub(crate) struct Output {
   pub(crate) runes: BTreeMap<Rune, u128>,
 }
 
+#[derive(Clone, Copy)]
+pub(crate) struct RuneInfo {
+  pub(crate) divisibility: u8,
+  pub(crate) id: RuneId,
+  pub(crate) symbol: Option<char>,
+}
+
 impl Splits {
   pub(crate) fn load(path: &Path, wallet: &Wallet) -> Result<Self> {
     let network = wallet.chain().network();
 
     let unchecked: SplitsUnchecked = serde_yaml::from_reader(File::open(path)?)?;
 
-    let mut entries = BTreeMap::<Rune, (RuneEntry, RuneId)>::new();
+    let mut rune_info = BTreeMap::<Rune, RuneInfo>::new();
 
     let mut outputs = Vec::new();
 
@@ -37,17 +44,24 @@ impl Splits {
       let mut runes = BTreeMap::new();
 
       for (spaced_rune, decimal) in output.runes {
-        let (entry, _id) = if let Some(entry) = entries.get(&spaced_rune.rune) {
-          entry
+        let info = if let Some(info) = rune_info.get(&spaced_rune.rune) {
+          info
         } else {
           let (id, entry, _parent) = wallet
             .get_rune(spaced_rune.rune)?
             .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
-          entries.insert(spaced_rune.rune, (entry, id));
-          entries.get(&spaced_rune.rune).unwrap()
+          rune_info.insert(
+            spaced_rune.rune,
+            RuneInfo {
+              id,
+              divisibility: entry.divisibility,
+              symbol: entry.symbol,
+            },
+          );
+          rune_info.get(&spaced_rune.rune).unwrap()
         };
 
-        let amount = decimal.to_integer(entry.divisibility)?;
+        let amount = decimal.to_integer(info.divisibility)?;
 
         assert!(amount != 0);
 
@@ -61,12 +75,6 @@ impl Splits {
       });
     }
 
-    Ok(Self {
-      outputs,
-      rune_ids: entries
-        .into_iter()
-        .map(|(rune, (_entry, id))| (rune, id))
-        .collect(),
-    })
+    Ok(Self { outputs, rune_info })
   }
 }

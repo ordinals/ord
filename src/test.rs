@@ -12,6 +12,10 @@ pub(crate) use {
   unindent::Unindent,
 };
 
+pub(crate) fn rune_id(tx: u32) -> RuneId {
+  RuneId { block: 1, tx }
+}
+
 pub(crate) fn txid(n: u32) -> Txid {
   let hex = format!("{n:x}");
 
