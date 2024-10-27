@@ -17,7 +17,6 @@ use {super::*, splits::RuneInfo, splits::Splits};
 
 #[derive(Debug, PartialEq)]
 enum Error {
-  NoOutputs,
   DustOutput {
     value: Amount,
     threshold: Amount,
@@ -27,6 +26,7 @@ enum Error {
     value: Amount,
     threshold: Amount,
   },
+  NoOutputs,
   Shortfall {
     rune: SpacedRune,
     have: Pile,
@@ -41,7 +41,6 @@ enum Error {
 impl Display for Error {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
-      Self::NoOutputs => write!(f, "split file must contain at least one output"),
       Self::DustOutput {
         value,
         threshold,
@@ -53,6 +52,7 @@ impl Display for Error {
       Self::DustPostage { value, threshold } => {
         write!(f, "postage value {value} below dust threshold {threshold}")
       }
+      Self::NoOutputs => write!(f, "split file must contain at least one output"),
       Self::Shortfall { rune, have, need } => {
         write!(f, "wallet contains {have} of {rune} but need {need}")
       }
