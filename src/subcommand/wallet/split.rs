@@ -4,6 +4,7 @@ use {super::*, splits::RuneInfo, splits::Splits};
 // - add an example splits.yaml
 // - indicate if a change output was added
 // - make this command unstable?
+// - test w/mm
 //
 // - integration tests:
 //   - requires rune index
