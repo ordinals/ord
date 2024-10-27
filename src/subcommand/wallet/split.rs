@@ -17,15 +17,23 @@ use {super::*, splits::RuneInfo, splits::Splits};
 #[derive(Debug, PartialEq)]
 enum Error {
   NoOutputs,
-  Dust {
+  DustOutput {
     value: Amount,
     threshold: Amount,
     output: usize,
   },
+  DustPostage {
+    value: Amount,
+    threshold: Amount,
+  },
   Shortfall {
-    rune: Rune,
+    rune: SpacedRune,
     have: Pile,
     need: Pile,
+  },
+  ZeroValue {
+    output: usize,
+    rune: SpacedRune,
   },
 }
 
@@ -33,7 +41,7 @@ impl Display for Error {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self {
       Self::NoOutputs => write!(f, "split file must contain at least one output"),
-      Self::Dust {
+      Self::DustOutput {
         value,
         threshold,
         output,
@@ -41,8 +49,14 @@ impl Display for Error {
         f,
         "output {output} value {value} below dust threshold {threshold}"
       ),
+      Self::DustPostage { value, threshold } => {
+        write!(f, "postage value {value} below dust threshold {threshold}")
+      }
       Self::Shortfall { rune, have, need } => {
         write!(f, "wallet contains {have} of {rune} but need {need}")
+      }
+      Self::ZeroValue { output, rune } => {
+        write!(f, "output {output} has zero value for rune {rune}")
       }
     }
   }
@@ -144,12 +158,31 @@ impl Split {
       return Err(Error::NoOutputs);
     }
 
+    let postage = postage.unwrap_or(TARGET_POSTAGE);
+
+    let change_script_pubkey = change_address.script_pubkey();
+
+    let change_dust_threshold = change_script_pubkey.minimal_non_dust();
+
+    if postage < change_script_pubkey.minimal_non_dust() {
+      return Err(Error::DustPostage {
+        value: postage,
+        threshold: change_dust_threshold,
+      });
+    }
+
     let mut input_runes_required = BTreeMap::<Rune, u128>::new();
 
-    for output in &splits.outputs {
-      for (rune, amount) in &output.runes {
-        let required = input_runes_required.entry(*rune).or_default();
-        *required = (*required).checked_add(*amount).unwrap();
+    for (i, output) in splits.outputs.iter().enumerate() {
+      for (&rune, &amount) in &output.runes {
+        if amount == 0 {
+          return Err(Error::ZeroValue {
+            rune: splits.rune_info[&rune].spaced_rune,
+            output: i,
+          });
+        }
+        let required = input_runes_required.entry(rune).or_default();
+        *required = (*required).checked_add(amount).unwrap();
       }
     }
 
@@ -184,7 +217,7 @@ impl Split {
       if have < need {
         let info = splits.rune_info[&rune];
         return Err(Error::Shortfall {
-          rune,
+          rune: info.spaced_rune,
           have: Pile {
             amount: have,
             divisibility: info.divisibility,
@@ -240,8 +273,8 @@ impl Split {
 
     if need_rune_change_output {
       output.push(TxOut {
-        script_pubkey: change_address.script_pubkey(),
-        value: postage.unwrap_or(TARGET_POSTAGE),
+        script_pubkey: change_script_pubkey,
+        value: postage,
       });
     }
 
@@ -250,7 +283,7 @@ impl Split {
       let threshold = script_pubkey.minimal_non_dust();
       let value = split_output.value.unwrap_or(threshold);
       if value < threshold {
-        return Err(Error::Dust {
+        return Err(Error::DustOutput {
           output: i,
           threshold,
           value,
@@ -295,14 +328,14 @@ mod tests {
   use super::*;
 
   // todo:
-  // - postage is used for change output
   // - decimals use correct divisibility
-  // - target_postage is used if postage is omitted
+  // - postage may not be dust
+  // - output values may not be zero
   // - credits multiple runes when output containing multiple runes is selected
   // - doesn't select more outputs than needed
   // - doesn't select fewer outputs than needed
   // - edicts are correct
-  // - shoftfall error
+  // - oversize op_return is an error
 
   #[test]
   fn splits_must_have_at_least_one_output() {
@@ -318,6 +351,112 @@ mod tests {
       )
       .unwrap_err(),
       Error::NoOutputs,
+    );
+  }
+
+  #[test]
+  fn postage_may_not_be_dust() {
+    assert_eq!(
+      Split::build_transaction(
+        BTreeMap::new(),
+        &change(0),
+        Some(Amount::from_sat(100)),
+        &Splits {
+          outputs: vec![splits::Output {
+            address: address(),
+            runes: [(Rune(0), 1000)].into(),
+            value: Some(Amount::from_sat(1000)),
+          }],
+          rune_info: BTreeMap::new(),
+        },
+      )
+      .unwrap_err(),
+      Error::DustPostage {
+        value: Amount::from_sat(100),
+        threshold: Amount::from_sat(294),
+      },
+    );
+  }
+
+  #[test]
+  fn output_rune_value_may_not_be_zero() {
+    assert_eq!(
+      Split::build_transaction(
+        BTreeMap::new(),
+        &change(0),
+        None,
+        &Splits {
+          outputs: vec![splits::Output {
+            address: address(),
+            runes: [(Rune(0), 0)].into(),
+            value: Some(Amount::from_sat(1000)),
+          }],
+          rune_info: [(
+            Rune(0),
+            RuneInfo {
+              id: RuneId { block: 1, tx: 1 },
+              divisibility: 10,
+              symbol: Some('@'),
+              spaced_rune: SpacedRune {
+                rune: Rune(0),
+                spacers: 1,
+              },
+            },
+          )]
+          .into()
+        },
+      )
+      .unwrap_err(),
+      Error::ZeroValue {
+        output: 0,
+        rune: SpacedRune {
+          rune: Rune(0),
+          spacers: 1,
+        },
+      },
+    );
+
+    assert_eq!(
+      Split::build_transaction(
+        BTreeMap::new(),
+        &change(0),
+        None,
+        &Splits {
+          outputs: vec![
+            splits::Output {
+              address: address(),
+              runes: [(Rune(0), 100)].into(),
+              value: Some(Amount::from_sat(1000)),
+            },
+            splits::Output {
+              address: address(),
+              runes: [(Rune(0), 0)].into(),
+              value: Some(Amount::from_sat(1000)),
+            },
+          ],
+          rune_info: [(
+            Rune(0),
+            RuneInfo {
+              id: RuneId { block: 1, tx: 1 },
+              divisibility: 10,
+              symbol: Some('@'),
+              spaced_rune: SpacedRune {
+                rune: Rune(0),
+                spacers: 10,
+              },
+            },
+          )]
+          .into()
+        },
+      )
+      .unwrap_err(),
+      Error::ZeroValue {
+        output: 1,
+        rune: SpacedRune {
+          rune: Rune(0),
+          spacers: 10,
+        },
+      },
     );
   }
 
@@ -340,14 +479,21 @@ mod tests {
               id: RuneId { block: 1, tx: 1 },
               divisibility: 10,
               symbol: Some('@'),
-            }
+              spaced_rune: SpacedRune {
+                rune: Rune(0),
+                spacers: 2,
+              },
+            },
           )]
           .into(),
         },
       )
       .unwrap_err(),
       Error::Shortfall {
-        rune: Rune(0),
+        rune: SpacedRune {
+          rune: Rune(0),
+          spacers: 2
+        },
         have: Pile {
           amount: 0,
           divisibility: 10,
@@ -378,14 +524,21 @@ mod tests {
               id: RuneId { block: 1, tx: 1 },
               divisibility: 2,
               symbol: Some('x'),
-            }
+              spaced_rune: SpacedRune {
+                rune: Rune(0),
+                spacers: 1
+              },
+            },
           )]
           .into()
         },
       )
       .unwrap_err(),
       Error::Shortfall {
-        rune: Rune(0),
+        rune: SpacedRune {
+          rune: Rune(0),
+          spacers: 1,
+        },
         have: Pile {
           amount: 1000,
           divisibility: 2,
@@ -419,13 +572,17 @@ mod tests {
               id: RuneId { block: 1, tx: 1 },
               divisibility: 0,
               symbol: None,
-            }
+              spaced_rune: SpacedRune {
+                rune: Rune(0),
+                spacers: 0,
+              },
+            },
           )]
           .into(),
         },
       )
       .unwrap_err(),
-      Error::Dust {
+      Error::DustOutput {
         value: Amount::from_sat(1),
         threshold: Amount::from_sat(294),
         output: 0,
@@ -456,13 +613,17 @@ mod tests {
               id: RuneId { block: 1, tx: 1 },
               divisibility: 0,
               symbol: None,
-            }
+              spaced_rune: SpacedRune {
+                rune: Rune(0),
+                spacers: 0,
+              },
+            },
           )]
           .into()
         },
       )
       .unwrap_err(),
-      Error::Dust {
+      Error::DustOutput {
         value: Amount::from_sat(10),
         threshold: Amount::from_sat(294),
         output: 1,
@@ -491,6 +652,10 @@ mod tests {
           id,
           divisibility: 0,
           symbol: None,
+          spaced_rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0,
+          },
         },
       )]
       .into(),
@@ -534,7 +699,7 @@ mod tests {
   }
 
   #[test]
-  fn one_output_with_change_for_outgoing_rune() {
+  fn one_output_with_change_for_outgoing_rune_with_default_postage() {
     let address = address();
     let output = outpoint(0);
     let rune = Rune(0);
@@ -555,6 +720,10 @@ mod tests {
           id,
           divisibility: 0,
           symbol: None,
+          spaced_rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0,
+          },
         },
       )]
       .into(),
@@ -602,6 +771,79 @@ mod tests {
   }
 
   #[test]
+  fn one_output_with_change_for_outgoing_rune_with_non_default_postage() {
+    let address = address();
+    let output = outpoint(0);
+    let rune = Rune(0);
+    let id = RuneId { block: 1, tx: 1 };
+    let change = change(0);
+
+    let balances = [(output, [(rune, 2000)].into())].into();
+
+    let splits = Splits {
+      outputs: vec![splits::Output {
+        address: address.clone(),
+        runes: [(rune, 1000)].into(),
+        value: None,
+      }],
+      rune_info: [(
+        rune,
+        RuneInfo {
+          id,
+          divisibility: 0,
+          symbol: None,
+          spaced_rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0,
+          },
+        },
+      )]
+      .into(),
+    };
+
+    let tx =
+      Split::build_transaction(balances, &change, Some(Amount::from_sat(500)), &splits).unwrap();
+
+    pretty_assert_eq!(
+      tx,
+      Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::MAX,
+          witness: Witness::new(),
+        }],
+        output: vec![
+          TxOut {
+            value: Amount::from_sat(0),
+            script_pubkey: Runestone {
+              edicts: vec![Edict {
+                id,
+                amount: 1000,
+                output: 2
+              }],
+              etching: None,
+              mint: None,
+              pointer: None,
+            }
+            .encipher()
+          },
+          TxOut {
+            script_pubkey: change.into(),
+            value: Amount::from_sat(500),
+          },
+          TxOut {
+            script_pubkey: address.into(),
+            value: Amount::from_sat(294),
+          }
+        ],
+      },
+    );
+  }
+
+  #[test]
   fn one_output_with_change_for_non_outgoing_rune() {
     let address = address();
     let output = outpoint(0);
@@ -621,6 +863,10 @@ mod tests {
           id: rune_id(0),
           divisibility: 0,
           symbol: None,
+          spaced_rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0,
+          },
         },
       )]
       .into(),
@@ -691,6 +937,10 @@ mod tests {
           id,
           divisibility: 0,
           symbol: None,
+          spaced_rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0,
+          },
         },
       )]
       .into(),

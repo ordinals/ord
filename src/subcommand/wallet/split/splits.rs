@@ -27,6 +27,7 @@ pub(crate) struct Output {
 pub(crate) struct RuneInfo {
   pub(crate) divisibility: u8,
   pub(crate) id: RuneId,
+  pub(crate) spaced_rune: SpacedRune,
   pub(crate) symbol: Option<char>,
 }
 
@@ -53,8 +54,9 @@ impl Splits {
           rune_info.insert(
             spaced_rune.rune,
             RuneInfo {
-              id,
               divisibility: entry.divisibility,
+              id,
+              spaced_rune: entry.spaced_rune,
               symbol: entry.symbol,
             },
           );
