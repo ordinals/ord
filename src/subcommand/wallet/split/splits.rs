@@ -29,11 +29,6 @@ impl Splits {
 
     let unchecked: SplitsUnchecked = serde_yaml::from_reader(File::open(path)?)?;
 
-    ensure! {
-      !unchecked.outputs.is_empty(),
-      "splits must contain at least one output",
-    }
-
     let mut entries = BTreeMap::<Rune, (RuneEntry, RuneId)>::new();
 
     let mut outputs = Vec::new();

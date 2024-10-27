@@ -3,26 +3,44 @@ use {super::*, splits::Splits};
 // todo:
 // - add an example splits.yaml
 // - indicate if a change output was added
-//
-// - unit tests:
-//   - dust outputs are error
-//   - postage is used for change output
-//   - target_postage is used if postage is omitted
-//   - credits multiple runes when output containing multiple runes is selected
-//   - doesn't select more outputs than needed
-//   - doesn't select fewer outputs than needed
-//   - creates change output when non target runes are in selected inputs
-//   - creates change output when target runes are in selected inputs
-//   - edicts are correct
-//   - shoftfall error
+// - make this command unstable?
 //
 // - integration tests:
 //   - requires rune index
 //   - inputs with inscriptions are not selected
+//   - un etched runes is an error
 //   - no outputs is an error
 //   - duplicate keys is an error
 //   - tx over 400kwu is an error
 //   - mining transaction yields correct result
+
+#[derive(Debug, PartialEq)]
+enum Error {
+  NoOutputs,
+  Dust {
+    value: Amount,
+    threshold: Amount,
+    output: usize,
+  },
+}
+
+impl Display for Error {
+  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+    match self {
+      Self::NoOutputs => write!(f, "split file must contain at least one output"),
+      Self::Dust {
+        value,
+        threshold,
+        output,
+      } => write!(
+        f,
+        "output {output} value {value} below dust threshold {threshold}"
+      ),
+    }
+  }
+}
+
+impl std::error::Error for Error {}
 
 mod splits;
 
@@ -34,7 +52,7 @@ pub(crate) struct Split {
   fee_rate: FeeRate,
   #[arg(
     long,
-    help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]",
+    help = "Include <AMOUNT> postage with change output. [default: 10000 sat]",
     value_name = "AMOUNT"
   )]
   pub(crate) postage: Option<Amount>,
@@ -89,10 +107,10 @@ impl Split {
 
     let unfunded_transaction = Self::build_transaction(
       balances,
-      wallet.get_change_address()?,
-      self.postage.unwrap_or(TARGET_POSTAGE),
+      &wallet.get_change_address()?,
+      self.postage,
       &splits,
-    );
+    )?;
 
     let unsigned_transaction = fund_raw_transaction(
       wallet.bitcoin_client(),
@@ -110,10 +128,14 @@ impl Split {
 
   fn build_transaction(
     balances: BTreeMap<OutPoint, BTreeMap<Rune, u128>>,
-    change_address: Address,
-    postage: Amount,
+    change_address: &Address,
+    postage: Option<Amount>,
     splits: &Splits,
-  ) -> Transaction {
+  ) -> Result<Transaction, Error> {
+    if splits.outputs.is_empty() {
+      return Err(Error::NoOutputs);
+    }
+
     let mut input_runes_required = BTreeMap::<Rune, u128>::new();
 
     for output in &splits.outputs {
@@ -192,14 +214,21 @@ impl Split {
     if need_rune_change_output {
       output.push(TxOut {
         script_pubkey: change_address.script_pubkey(),
-        value: postage,
+        value: postage.unwrap_or(TARGET_POSTAGE),
       });
     }
 
-    for split_output in &splits.outputs {
+    for (i, split_output) in splits.outputs.iter().enumerate() {
       let script_pubkey = split_output.address.script_pubkey();
-      let minimal_non_dust = script_pubkey.minimal_non_dust();
-      let value = split_output.value.unwrap_or(minimal_non_dust);
+      let threshold = script_pubkey.minimal_non_dust();
+      let value = split_output.value.unwrap_or(threshold);
+      if value < threshold {
+        return Err(Error::Dust {
+          output: i,
+          threshold,
+          value,
+        });
+      }
       output.push(TxOut {
         script_pubkey,
         value,
@@ -222,9 +251,7 @@ impl Split {
     };
 
     for output in &tx.output {
-      if output.value < output.script_pubkey.minimal_non_dust() {
-        todo!();
-      }
+      assert!(output.value >= output.script_pubkey.minimal_non_dust());
     }
 
     assert_eq!(
@@ -232,7 +259,7 @@ impl Split {
       Some(Artifact::Runestone(runestone)),
     );
 
-    tx
+    Ok(tx)
   }
 }
 
@@ -240,26 +267,107 @@ impl Split {
 mod tests {
   use super::*;
 
+  // todo:
+  // - postage is used for change output
+  // - target_postage is used if postage is omitted
+  // - credits multiple runes when output containing multiple runes is selected
+  // - doesn't select more outputs than needed
+  // - doesn't select fewer outputs than needed
+  // - creates change output when non target runes are in selected inputs
+  // - creates change output when target runes are in selected inputs
+  // - edicts are correct
+  // - shoftfall error
+
   #[test]
-  fn foo() {
+  fn splits_must_have_at_least_one_output() {
+    assert_eq!(
+      Split::build_transaction(
+        BTreeMap::new(),
+        &change(0),
+        None,
+        &Splits {
+          outputs: Vec::new(),
+          rune_ids: BTreeMap::new(),
+        },
+      )
+      .unwrap_err(),
+      Error::NoOutputs,
+    );
+  }
+
+  #[test]
+  fn split_output_values_may_not_be_dust() {
+    assert_eq!(
+      Split::build_transaction(
+        BTreeMap::new(),
+        &change(0),
+        None,
+        &Splits {
+          outputs: vec![splits::Output {
+            address: address(),
+            runes: [(Rune(0), 1000)].into(),
+            value: Some(Amount::from_sat(1)),
+          }],
+          rune_ids: [(Rune(0), RuneId { block: 1, tx: 1 })].into(),
+        },
+      )
+      .unwrap_err(),
+      Error::Dust {
+        value: Amount::from_sat(1),
+        threshold: Amount::from_sat(294),
+        output: 0,
+      }
+    );
+
+    assert_eq!(
+      Split::build_transaction(
+        BTreeMap::new(),
+        &change(0),
+        None,
+        &Splits {
+          outputs: vec![
+            splits::Output {
+              address: address(),
+              runes: [(Rune(0), 1000)].into(),
+              value: Some(Amount::from_sat(1000)),
+            },
+            splits::Output {
+              address: address(),
+              runes: [(Rune(0), 1000)].into(),
+              value: Some(Amount::from_sat(10)),
+            },
+          ],
+          rune_ids: [(Rune(0), RuneId { block: 1, tx: 1 })].into(),
+        },
+      )
+      .unwrap_err(),
+      Error::Dust {
+        value: Amount::from_sat(10),
+        threshold: Amount::from_sat(294),
+        output: 1,
+      }
+    );
+  }
+
+  #[test]
+  fn one_output_no_change() {
     let address = address();
-    let change_address = change(0);
     let output = outpoint(0);
     let rune = Rune(0);
-    let rune_id = RuneId { block: 1, tx: 1 };
+    let id = RuneId { block: 1, tx: 1 };
 
-    let balances = [(output, [(rune, 1)].into())].into();
+    let balances = [(output, [(rune, 1000)].into())].into();
 
     let splits = Splits {
       outputs: vec![splits::Output {
         address: address.clone(),
-        runes: [(rune, 1)].into(),
-        value: Some(Amount::from_sat(1000)),
+        runes: [(rune, 1000)].into(),
+        value: None,
       }],
-      rune_ids: [(rune, rune_id)].into(),
+      rune_ids: [(rune, id)].into(),
     };
 
-    let tx = Split::build_transaction(balances, change_address, Amount::from_sat(1), &splits);
+    let tx = Split::build_transaction(balances, &change(0), None, &splits).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -277,8 +385,8 @@ mod tests {
             value: Amount::from_sat(0),
             script_pubkey: Runestone {
               edicts: vec![Edict {
-                id: rune_id,
-                amount: 1,
+                id,
+                amount: 1000,
                 output: 1
               }],
               etching: None,
@@ -289,7 +397,125 @@ mod tests {
           },
           TxOut {
             script_pubkey: address.into(),
-            value: Amount::from_sat(1000),
+            value: Amount::from_sat(294),
+          }
+        ],
+      },
+    );
+  }
+
+  #[test]
+  fn one_output_with_change() {
+    let address = address();
+    let output = outpoint(0);
+    let rune = Rune(0);
+    let id = RuneId { block: 1, tx: 1 };
+    let change = change(0);
+
+    let balances = [(output, [(rune, 2000)].into())].into();
+
+    let splits = Splits {
+      outputs: vec![splits::Output {
+        address: address.clone(),
+        runes: [(rune, 1000)].into(),
+        value: None,
+      }],
+      rune_ids: [(rune, id)].into(),
+    };
+
+    let tx = Split::build_transaction(balances, &change, None, &splits).unwrap();
+
+    pretty_assert_eq!(
+      tx,
+      Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::MAX,
+          witness: Witness::new(),
+        }],
+        output: vec![
+          TxOut {
+            value: Amount::from_sat(0),
+            script_pubkey: Runestone {
+              edicts: vec![Edict {
+                id,
+                amount: 1000,
+                output: 2
+              }],
+              etching: None,
+              mint: None,
+              pointer: None,
+            }
+            .encipher()
+          },
+          TxOut {
+            script_pubkey: change.into(),
+            value: TARGET_POSTAGE,
+          },
+          TxOut {
+            script_pubkey: address.into(),
+            value: Amount::from_sat(294),
+          }
+        ],
+      },
+    );
+  }
+
+  #[test]
+  fn outputs_without_value_use_correct_dust_amount() {
+    let address = "bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297"
+      .parse::<Address<NetworkUnchecked>>()
+      .unwrap()
+      .assume_checked();
+    let output = outpoint(0);
+    let rune = Rune(0);
+    let id = RuneId { block: 1, tx: 1 };
+
+    let balances = [(output, [(rune, 1000)].into())].into();
+
+    let splits = Splits {
+      outputs: vec![splits::Output {
+        address: address.clone(),
+        runes: [(rune, 1000)].into(),
+        value: None,
+      }],
+      rune_ids: [(rune, id)].into(),
+    };
+
+    let tx = Split::build_transaction(balances, &change(0), None, &splits).unwrap();
+
+    pretty_assert_eq!(
+      tx,
+      Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::MAX,
+          witness: Witness::new(),
+        }],
+        output: vec![
+          TxOut {
+            value: Amount::from_sat(0),
+            script_pubkey: Runestone {
+              edicts: vec![Edict {
+                id,
+                amount: 1000,
+                output: 1
+              }],
+              etching: None,
+              mint: None,
+              pointer: None,
+            }
+            .encipher()
+          },
+          TxOut {
+            script_pubkey: address.into(),
+            value: Amount::from_sat(330),
           }
         ],
       },
