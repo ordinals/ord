@@ -13,6 +13,7 @@ use {super::*, splits::RuneInfo, splits::Splits};
 //   - duplicate keys is an error
 //   - tx over 400kwu is an error
 //   - mining transaction yields correct result
+//   - decimals in splitfile are respected
 
 #[derive(Debug, PartialEq)]
 enum Error {
@@ -328,7 +329,6 @@ mod tests {
   use super::*;
 
   // todo:
-  // - decimals in splitfile are respected
   // - credits multiple runes when output containing multiple runes is selected
   // - doesn't select more outputs than needed
   // - doesn't select fewer outputs than needed
