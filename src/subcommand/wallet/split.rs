@@ -335,6 +335,8 @@ mod tests {
   // - doesn't select fewer outputs than needed
   // - edicts are correct
   // - oversize op_return is an error
+  // - multiple outputs
+  // - output with multiple runes
 
   #[test]
   fn splits_must_have_at_least_one_output() {
