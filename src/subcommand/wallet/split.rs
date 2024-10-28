@@ -4,7 +4,6 @@ const OP_RETURN_MAXIMUM_STANDARD_SIZE: usize = 83;
 
 // todo:
 // - add an example splits.yaml
-// - indicate if a change output was added
 // - test w/mm
 //
 // - integration tests:
