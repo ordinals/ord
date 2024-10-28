@@ -17,6 +17,7 @@ use super::*;
 // - excess bitcoin in inputs is returned to wallet
 // - oversize op return allowed with flag
 // - unrecognized fields are forbidden
+//   - all types
 
 #[test]
 fn requires_rune_index() {
