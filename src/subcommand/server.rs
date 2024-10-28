@@ -515,12 +515,16 @@ impl Server {
         "rune"
       } else if re::OUTPOINT.is_match(&path) {
         "output"
+      } else if re::SATPOINT.is_match(&path) {
+        "satpoint"
       } else if re::HASH.is_match(&path) {
         if index.block_header(path.parse().unwrap())?.is_some() {
           "block"
         } else {
           "tx"
         }
+      } else if re::ADDRESS.is_match(&path) {
+        "address"
       } else {
         return Ok(StatusCode::NOT_FOUND.into_response());
       };
@@ -2945,12 +2949,28 @@ mod tests {
       "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     );
     server.assert_redirect(
-      "/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+      "/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0",
+      "/satpoint/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0",
+    );
+    server.assert_redirect(
+      "/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
       "/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
     );
     server.assert_redirect(
-      "/search/0000000000000000000000000000000000000000000000000000000000000000",
-      "/tx/0000000000000000000000000000000000000000000000000000000000000000",
+      "/000000000000000000000000000000000000000000000000000000000000000f",
+      "/tx/000000000000000000000000000000000000000000000000000000000000000f",
+    );
+    server.assert_redirect(
+      "/bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297",
+      "/address/bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297",
+    );
+    server.assert_redirect(
+      "/bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
+      "/address/bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
+    );
+    server.assert_redirect(
+      "/1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+      "/address/1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
     );
 
     server.assert_response_regex("/hello", StatusCode::NOT_FOUND, "");
