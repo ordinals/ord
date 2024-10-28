@@ -205,8 +205,6 @@ impl Split {
           continue;
         };
 
-        assert!(*balance > 0);
-
         for (rune, balance) in &runes {
           *input_rune_balances.entry(*rune).or_default() += balance;
         }
