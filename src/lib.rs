@@ -29,7 +29,6 @@ use {
     settings::Settings,
     subcommand::{OutputFormat, Subcommand, SubcommandResult},
     tally::Tally,
-    wallet::SignAndBroadcastTransactionOptions,
   },
   anyhow::{anyhow, bail, ensure, Context, Error},
   bip39::Mnemonic,

@@ -82,10 +82,9 @@ pub(crate) struct Split {
   #[arg(
     long,
     alias = "nolimit",
-    help = "Allow transactions larger than MAX_STANDARD_TX_WEIGHT of 400,000 weight units, and \
-    OP_RETURNs greater than 83 bytes. Transactions over this limit are currently nonstandard and \
-    will not be relayed by bitcoind in its default configuration. Do not use this flag unless you \
-    understand the implications."
+    help = "Allow OP_RETURN greater than 83 bytes. Transactions over this limit are nonstandard \
+    and will not be relayed by bitcoind in its default configuration. Do not use this flag unless \
+    you understand the implications."
   )]
   pub(crate) no_limit: bool,
 }
@@ -147,13 +146,8 @@ impl Split {
 
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 
-    let (txid, psbt, fee) = wallet.sign_and_broadcast_transaction(
-      SignAndBroadcastTransactionOptions {
-        dry_run: self.dry_run,
-        no_limit: self.no_limit,
-      },
-      unsigned_transaction,
-    )?;
+    let (txid, psbt, fee) =
+      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
 
     Ok(Some(Box::new(Output { txid, psbt, fee })))
   }
