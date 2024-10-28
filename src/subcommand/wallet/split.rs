@@ -330,12 +330,11 @@ mod tests {
 
   // todo:
   // - credits multiple runes when output containing multiple runes is selected
-  // - doesn't select more outputs than needed
-  // - doesn't select fewer outputs than needed
   // - edicts are correct
   // - oversize op_return is an error
   // - multiple outputs
   // - output with multiple runes
+  // - excess bitcoin in inputs is returned to wallet
 
   #[test]
   fn splits_must_have_at_least_one_output() {
@@ -977,6 +976,155 @@ mod tests {
           TxOut {
             script_pubkey: address.into(),
             value: Amount::from_sat(330),
+          }
+        ],
+      },
+    );
+  }
+
+  #[test]
+  fn excessive_inputs_are_not_selected() {
+    let address = address();
+    let output = outpoint(0);
+    let rune = Rune(0);
+    let id = RuneId { block: 1, tx: 1 };
+
+    let balances = [
+      (output, [(rune, 1000)].into()),
+      (outpoint(1), [(rune, 1000)].into()),
+    ]
+    .into();
+
+    let splits = Splits {
+      outputs: vec![splits::Output {
+        address: address.clone(),
+        runes: [(rune, 1000)].into(),
+        value: None,
+      }],
+      rune_info: [(
+        rune,
+        RuneInfo {
+          id,
+          divisibility: 0,
+          symbol: None,
+          spaced_rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0,
+          },
+        },
+      )]
+      .into(),
+    };
+
+    let tx = Split::build_transaction(balances, &change(0), None, &splits).unwrap();
+
+    pretty_assert_eq!(
+      tx,
+      Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::MAX,
+          witness: Witness::new(),
+        }],
+        output: vec![
+          TxOut {
+            value: Amount::from_sat(0),
+            script_pubkey: Runestone {
+              edicts: vec![Edict {
+                id,
+                amount: 1000,
+                output: 1
+              }],
+              etching: None,
+              mint: None,
+              pointer: None,
+            }
+            .encipher()
+          },
+          TxOut {
+            script_pubkey: address.into(),
+            value: Amount::from_sat(294),
+          }
+        ],
+      },
+    );
+  }
+
+  #[test]
+  fn multiple_inputs_may_be_selected() {
+    let address = address();
+    let rune = Rune(0);
+    let id = RuneId { block: 1, tx: 1 };
+
+    let balances = [
+      (outpoint(0), [(rune, 1000)].into()),
+      (outpoint(1), [(rune, 1000)].into()),
+    ]
+    .into();
+
+    let splits = Splits {
+      outputs: vec![splits::Output {
+        address: address.clone(),
+        runes: [(rune, 2000)].into(),
+        value: None,
+      }],
+      rune_info: [(
+        rune,
+        RuneInfo {
+          id,
+          divisibility: 0,
+          symbol: None,
+          spaced_rune: SpacedRune {
+            rune: Rune(0),
+            spacers: 0,
+          },
+        },
+      )]
+      .into(),
+    };
+
+    let tx = Split::build_transaction(balances, &change(0), None, &splits).unwrap();
+
+    pretty_assert_eq!(
+      tx,
+      Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: vec![
+          TxIn {
+            previous_output: outpoint(0),
+            script_sig: ScriptBuf::new(),
+            sequence: Sequence::MAX,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: outpoint(1),
+            script_sig: ScriptBuf::new(),
+            sequence: Sequence::MAX,
+            witness: Witness::new(),
+          },
+        ],
+        output: vec![
+          TxOut {
+            value: Amount::from_sat(0),
+            script_pubkey: Runestone {
+              edicts: vec![Edict {
+                id,
+                amount: 2000,
+                output: 1
+              }],
+              etching: None,
+              mint: None,
+              pointer: None,
+            }
+            .encipher()
+          },
+          TxOut {
+            script_pubkey: address.into(),
+            value: Amount::from_sat(294),
           }
         ],
       },
