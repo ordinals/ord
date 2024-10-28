@@ -1,22 +1,8 @@
-use {super::*, splitfile::RuneInfo, splitfile::Splitfile};
+use {super::*, splitfile::Splitfile};
 
 mod splitfile;
 
 const MAX_STANDARD_OP_RETURN_SIZE: usize = 83;
-
-// todo:
-// - test w/mm
-//
-// integration tests:
-// - requires rune index
-// - inputs with inscriptions are not selected
-// - un etched runes is an error
-// - duplicate keys is an error
-// - tx over 400kwu is an error
-// - mining transaction yields correct result
-// - decimals in splitfile are respected
-// - excess bitcoin in inputs is returned to wallet
-// - oversize op return allowed with flag
 
 #[derive(Debug, PartialEq)]
 enum Error {
@@ -349,7 +335,7 @@ impl Split {
 
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {super::*, splitfile::RuneInfo};
 
   #[test]
   fn splits_must_have_at_least_one_output() {

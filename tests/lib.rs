@@ -80,6 +80,7 @@ type Create = ord::subcommand::wallet::create::Output;
 type Inscriptions = Vec<ord::subcommand::wallet::inscriptions::Output>;
 type Send = ord::subcommand::wallet::send::Output;
 type Supply = ord::subcommand::supply::Output;
+type Split = ord::subcommand::wallet::split::Output;
 
 fn create_wallet(core: &mockcore::Handle, ord: &TestServer) {
   CommandBuilder::new(format!("--chain {} wallet create", core.network()))

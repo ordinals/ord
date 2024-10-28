@@ -25,7 +25,7 @@ pub mod sats;
 pub mod send;
 mod shared_args;
 pub mod sign;
-mod split;
+pub mod split;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
