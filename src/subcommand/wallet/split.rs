@@ -2,21 +2,21 @@ use {super::*, splitfile::RuneInfo, splitfile::Splitfile};
 
 mod splitfile;
 
-const OP_RETURN_MAXIMUM_STANDARD_SIZE: usize = 83;
+const MAX_STANDARD_OP_RETURN_SIZE: usize = 83;
 
 // todo:
 // - test w/mm
 //
-// - integration tests:
-//   - requires rune index
-//   - inputs with inscriptions are not selected
-//   - un etched runes is an error
-//   - duplicate keys is an error
-//   - tx over 400kwu is an error
-//   - mining transaction yields correct result
-//   - decimals in splitfile are respected
-//   - excess bitcoin in inputs is returned to wallet
-//   - oversize op return allowed with flag
+// integration tests:
+// - requires rune index
+// - inputs with inscriptions are not selected
+// - un etched runes is an error
+// - duplicate keys is an error
+// - tx over 400kwu is an error
+// - mining transaction yields correct result
+// - decimals in splitfile are respected
+// - excess bitcoin in inputs is returned to wallet
+// - oversize op return allowed with flag
 
 #[derive(Debug, PartialEq)]
 enum Error {
@@ -61,7 +61,7 @@ impl Display for Error {
       Self::NoOutputs => write!(f, "split file must contain at least one output"),
       Self::RunestoneSize { size } => write!(
         f,
-        "runestone size {size} over maximum standard OP_RETURN size {OP_RETURN_MAXIMUM_STANDARD_SIZE}"
+        "runestone size {size} over maximum standard OP_RETURN size {MAX_STANDARD_OP_RETURN_SIZE}"
       ),
       Self::Shortfall { rune, have, need } => {
         write!(f, "wallet contains {have} of {rune} but need {need}")
@@ -159,8 +159,13 @@ impl Split {
 
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 
-    let (txid, psbt, fee) =
-      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
+    let (txid, psbt, fee) = wallet.sign_and_broadcast_transaction(
+      SignAndBroadcastTransactionOptions {
+        dry_run: self.dry_run,
+        no_limit: self.no_limit,
+      },
+      unsigned_transaction,
+    )?;
 
     Ok(Some(Box::new(Output { txid, psbt, fee })))
   }
@@ -281,7 +286,7 @@ impl Split {
     let runestone_script_pubkey = runestone.encipher();
     let size = runestone_script_pubkey.len();
 
-    if !no_runestone_limit && size > OP_RETURN_MAXIMUM_STANDARD_SIZE {
+    if !no_runestone_limit && size > MAX_STANDARD_OP_RETURN_SIZE {
       return Err(Error::RunestoneSize { size });
     }
 

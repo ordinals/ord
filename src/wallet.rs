@@ -72,6 +72,11 @@ pub(crate) enum Maturity {
   Mature,
 }
 
+pub(crate) struct SignAndBroadcastTransactionOptions {
+  pub(crate) dry_run: bool,
+  pub(crate) no_limit: bool,
+}
+
 pub(crate) struct Wallet {
   bitcoin_client: Client,
   database: Database,
@@ -753,12 +758,12 @@ impl Wallet {
 
   pub(super) fn sign_and_broadcast_transaction(
     &self,
+    options: SignAndBroadcastTransactionOptions,
     unsigned_transaction: Transaction,
-    dry_run: bool,
   ) -> Result<(Txid, String, u64)> {
     let unspent_outputs = self.utxos();
 
-    let (txid, psbt) = if dry_run {
+    let (txid, psbt) = if options.dry_run {
       let psbt = self
         .bitcoin_client()
         .wallet_process_psbt(
@@ -788,6 +793,15 @@ impl Wallet {
         .finalize_psbt(&psbt, None)?
         .hex
         .ok_or_else(|| anyhow!("unable to sign transaction"))?;
+
+      let transaction = Transaction::consensus_decode(&mut bitcoin::io::Cursor::new(&signed_tx))
+        .context("unable to decode signed trnasaction")?;
+
+      if !options.no_limit
+        && transaction.weight() > bitcoin::Weight::from_wu(MAX_STANDARD_TX_WEIGHT.into())
+      {
+        todo!()
+      }
 
       (
         self.bitcoin_client().send_raw_transaction(&signed_tx)?,

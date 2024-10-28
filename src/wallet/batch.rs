@@ -4,7 +4,6 @@ use {
     blockdata::{opcodes, script},
     key::PrivateKey,
     key::{TapTweak, TweakedKeypair, TweakedPublicKey, UntweakedKeypair},
-    policy::MAX_STANDARD_TX_WEIGHT,
     secp256k1::{self, constants::SCHNORR_SIGNATURE_SIZE, rand, Secp256k1, XOnlyPublicKey},
     sighash::{Prevouts, SighashCache, TapSighashType},
     taproot::Signature,
