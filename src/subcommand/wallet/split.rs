@@ -201,9 +201,9 @@ impl Split {
           continue;
         }
 
-        let Some(balance) = runes.get(rune) else {
+        if runes.get(rune).copied().unwrap_or_default() == 0 {
           continue;
-        };
+        }
 
         for (rune, balance) in &runes {
           *input_rune_balances.entry(*rune).or_default() += balance;
