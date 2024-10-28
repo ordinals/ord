@@ -1,18 +1,18 @@
 use super::*;
 
 #[derive(Deserialize)]
-struct SplitsUnchecked {
+struct SplitfileUnchecked {
   outputs: Vec<OutputUnchecked>,
 }
 
 #[derive(Deserialize)]
 struct OutputUnchecked {
   address: Address<NetworkUnchecked>,
-  value: Option<Amount>,
+  value: Option<DeserializeFromStr<Amount>>,
   runes: BTreeMap<SpacedRune, Decimal>,
 }
 
-pub(crate) struct Splits {
+pub(crate) struct Splitfile {
   pub(crate) outputs: Vec<Output>,
   pub(crate) rune_info: BTreeMap<Rune, RuneInfo>,
 }
@@ -31,11 +31,11 @@ pub(crate) struct RuneInfo {
   pub(crate) symbol: Option<char>,
 }
 
-impl Splits {
+impl Splitfile {
   pub(crate) fn load(path: &Path, wallet: &Wallet) -> Result<Self> {
     let network = wallet.chain().network();
 
-    let unchecked: SplitsUnchecked = serde_yaml::from_reader(File::open(path)?)?;
+    let unchecked = Self::load_unchecked(path)?;
 
     let mut rune_info = BTreeMap::<Rune, RuneInfo>::new();
 
@@ -72,11 +72,25 @@ impl Splits {
 
       outputs.push(Output {
         address: output.address.require_network(network)?,
-        value: output.value,
+        value: output.value.map(|DeserializeFromStr(value)| value),
         runes,
       });
     }
 
     Ok(Self { outputs, rune_info })
+  }
+
+  fn load_unchecked(path: &Path) -> Result<SplitfileUnchecked> {
+    Ok(serde_yaml::from_reader(File::open(path)?)?)
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn example_split_file_is_valid() {
+    Splitfile::load_unchecked("splits.yaml".as_ref()).unwrap();
   }
 }

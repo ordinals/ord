@@ -1,4 +1,6 @@
-use {super::*, splits::RuneInfo, splits::Splits};
+use {super::*, splitfile::RuneInfo, splitfile::Splitfile};
+
+mod splitfile;
 
 const OP_RETURN_MAXIMUM_STANDARD_SIZE: usize = 83;
 
@@ -10,7 +12,6 @@ const OP_RETURN_MAXIMUM_STANDARD_SIZE: usize = 83;
 //   - requires rune index
 //   - inputs with inscriptions are not selected
 //   - un etched runes is an error
-//   - no outputs is an error
 //   - duplicate keys is an error
 //   - tx over 400kwu is an error
 //   - mining transaction yields correct result
@@ -75,8 +76,6 @@ impl Display for Error {
 
 impl std::error::Error for Error {}
 
-mod splits;
-
 #[derive(Debug, Parser)]
 pub(crate) struct Split {
   #[arg(long, help = "Don't sign or broadcast transaction")]
@@ -97,6 +96,11 @@ pub(crate) struct Split {
   pub(crate) splits: PathBuf,
   #[arg(long, help = "Allow runestones over standard size limit.")]
   pub(crate) no_runestone_limit: bool,
+  #[arg(
+    long,
+    help = "Allow transaction larger than MAX_STANDARD_TX_WEIGHT of 400,000 weight units."
+  )]
+  pub(crate) no_limit: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -115,7 +119,7 @@ impl Split {
 
     wallet.lock_non_cardinal_outputs()?;
 
-    let splits = Splits::load(&self.splits, &wallet)?;
+    let splits = Splitfile::load(&self.splits, &wallet)?;
 
     let inscribed_outputs = wallet
       .inscriptions()
@@ -167,7 +171,7 @@ impl Split {
     balances: BTreeMap<OutPoint, BTreeMap<Rune, u128>>,
     change_address: &Address,
     postage: Option<Amount>,
-    splits: &Splits,
+    splits: &Splitfile,
   ) -> Result<Transaction, Error> {
     if splits.outputs.is_empty() {
       return Err(Error::NoOutputs);
@@ -351,7 +355,7 @@ mod tests {
         BTreeMap::new(),
         &change(0),
         None,
-        &Splits {
+        &Splitfile {
           outputs: Vec::new(),
           rune_info: BTreeMap::new(),
         },
@@ -369,8 +373,8 @@ mod tests {
         BTreeMap::new(),
         &change(0),
         Some(Amount::from_sat(100)),
-        &Splits {
-          outputs: vec![splits::Output {
+        &Splitfile {
+          outputs: vec![splitfile::Output {
             address: address(0),
             runes: [(Rune(0), 1000)].into(),
             value: Some(Amount::from_sat(1000)),
@@ -394,8 +398,8 @@ mod tests {
         BTreeMap::new(),
         &change(0),
         None,
-        &Splits {
-          outputs: vec![splits::Output {
+        &Splitfile {
+          outputs: vec![splitfile::Output {
             address: address(0),
             runes: [(Rune(0), 0)].into(),
             value: Some(Amount::from_sat(1000)),
@@ -431,14 +435,14 @@ mod tests {
         BTreeMap::new(),
         &change(0),
         None,
-        &Splits {
+        &Splitfile {
           outputs: vec![
-            splits::Output {
+            splitfile::Output {
               address: address(0),
               runes: [(Rune(0), 100)].into(),
               value: Some(Amount::from_sat(1000)),
             },
-            splits::Output {
+            splitfile::Output {
               address: address(0),
               runes: [(Rune(0), 0)].into(),
               value: Some(Amount::from_sat(1000)),
@@ -478,8 +482,8 @@ mod tests {
         BTreeMap::new(),
         &change(0),
         None,
-        &Splits {
-          outputs: vec![splits::Output {
+        &Splitfile {
+          outputs: vec![splitfile::Output {
             address: address(0),
             runes: [(Rune(0), 1000)].into(),
             value: Some(Amount::from_sat(1000)),
@@ -524,8 +528,8 @@ mod tests {
         [(outpoint(0), [(Rune(0), 1000)].into())].into(),
         &change(0),
         None,
-        &Splits {
-          outputs: vec![splits::Output {
+        &Splitfile {
+          outputs: vec![splitfile::Output {
             address: address(0),
             runes: [(Rune(0), 2000)].into(),
             value: Some(Amount::from_sat(1000)),
@@ -573,8 +577,8 @@ mod tests {
         [(outpoint(0), [(Rune(0), 1000)].into())].into(),
         &change(0),
         None,
-        &Splits {
-          outputs: vec![splits::Output {
+        &Splitfile {
+          outputs: vec![splitfile::Output {
             address: address(0),
             runes: [(Rune(0), 1000)].into(),
             value: Some(Amount::from_sat(1)),
@@ -608,14 +612,14 @@ mod tests {
         [(outpoint(0), [(Rune(0), 2000)].into())].into(),
         &change(0),
         None,
-        &Splits {
+        &Splitfile {
           outputs: vec![
-            splits::Output {
+            splitfile::Output {
               address: address(0),
               runes: [(Rune(0), 1000)].into(),
               value: Some(Amount::from_sat(1000)),
             },
-            splits::Output {
+            splitfile::Output {
               address: address(0),
               runes: [(Rune(0), 1000)].into(),
               value: Some(Amount::from_sat(10)),
@@ -654,8 +658,8 @@ mod tests {
 
     let balances = [(output, [(rune, 1000)].into())].into();
 
-    let splits = Splits {
-      outputs: vec![splits::Output {
+    let splits = Splitfile {
+      outputs: vec![splitfile::Output {
         address: address.clone(),
         runes: [(rune, 1000)].into(),
         value: None,
@@ -722,8 +726,8 @@ mod tests {
 
     let balances = [(output, [(rune, 2000)].into())].into();
 
-    let splits = Splits {
-      outputs: vec![splits::Output {
+    let splits = Splitfile {
+      outputs: vec![splitfile::Output {
         address: address.clone(),
         runes: [(rune, 1000)].into(),
         value: None,
@@ -794,8 +798,8 @@ mod tests {
 
     let balances = [(output, [(rune, 2000)].into())].into();
 
-    let splits = Splits {
-      outputs: vec![splits::Output {
+    let splits = Splitfile {
+      outputs: vec![splitfile::Output {
         address: address.clone(),
         runes: [(rune, 1000)].into(),
         value: None,
@@ -871,8 +875,8 @@ mod tests {
 
     let balances = [(output, [(Rune(0), 1000), (Rune(1), 1000)].into())].into();
 
-    let splits = Splits {
-      outputs: vec![splits::Output {
+    let splits = Splitfile {
+      outputs: vec![splitfile::Output {
         address: address.clone(),
         runes: [(Rune(0), 1000)].into(),
         value: None,
@@ -945,8 +949,8 @@ mod tests {
 
     let balances = [(output, [(rune, 1000)].into())].into();
 
-    let splits = Splits {
-      outputs: vec![splits::Output {
+    let splits = Splitfile {
+      outputs: vec![splitfile::Output {
         address: address.clone(),
         runes: [(rune, 1000)].into(),
         value: None,
@@ -1016,8 +1020,8 @@ mod tests {
     ]
     .into();
 
-    let splits = Splits {
-      outputs: vec![splits::Output {
+    let splits = Splitfile {
+      outputs: vec![splitfile::Output {
         address: address.clone(),
         runes: [(rune, 1000)].into(),
         value: None,
@@ -1086,8 +1090,8 @@ mod tests {
     ]
     .into();
 
-    let splits = Splits {
-      outputs: vec![splits::Output {
+    let splits = Splitfile {
+      outputs: vec![splitfile::Output {
         address: address.clone(),
         runes: [(rune, 2000)].into(),
         value: None,
@@ -1160,14 +1164,14 @@ mod tests {
 
     let balances = [(output, [(rune, 1000)].into())].into();
 
-    let splits = Splits {
+    let splits = Splitfile {
       outputs: vec![
-        splits::Output {
+        splitfile::Output {
           address: address(0),
           runes: [(rune, 500)].into(),
           value: None,
         },
-        splits::Output {
+        splitfile::Output {
           address: address(1),
           runes: [(rune, 500)].into(),
           value: None,
@@ -1246,8 +1250,8 @@ mod tests {
     ]
     .into();
 
-    let splits = Splits {
-      outputs: vec![splits::Output {
+    let splits = Splitfile {
+      outputs: vec![splitfile::Output {
         address: address.clone(),
         runes: [(Rune(0), 1000), (Rune(1), 2000)].into(),
         value: None,
@@ -1337,9 +1341,9 @@ mod tests {
   fn oversize_op_return_is_an_error() {
     let balances = [(outpoint(0), [(Rune(0), 10_000_000_000)].into())].into();
 
-    let splits = Splits {
+    let splits = Splitfile {
       outputs: (0..10)
-        .map(|i| splits::Output {
+        .map(|i| splitfile::Output {
           address: address(i).clone(),
           runes: [(Rune(0), 1_000_000_000)].into(),
           value: None,
@@ -1370,9 +1374,9 @@ mod tests {
   fn oversize_op_return_is_allowed_with_flag() {
     let balances = [(outpoint(0), [(Rune(0), 10_000_000_000)].into())].into();
 
-    let splits = Splits {
+    let splits = Splitfile {
       outputs: (0..10)
-        .map(|i| splits::Output {
+        .map(|i| splitfile::Output {
           address: address(i).clone(),
           runes: [(Rune(0), 1_000_000_000)].into(),
           value: None,
