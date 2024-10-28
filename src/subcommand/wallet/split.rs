@@ -99,7 +99,7 @@ impl Split {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     ensure!(
       wallet.has_rune_index(),
-      "`ord wallet split` requires index created with `--index-runes` flag",
+      "`ord wallet split` requires index created with `--index-runes`",
     );
 
     wallet.lock_non_cardinal_outputs()?;
