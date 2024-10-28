@@ -1,11 +1,13 @@
 use super::*;
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct SplitfileUnchecked {
   outputs: Vec<OutputUnchecked>,
 }
 
 #[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
 struct OutputUnchecked {
   address: Address<NetworkUnchecked>,
   value: Option<DeserializeFromStr<Amount>>,
