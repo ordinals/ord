@@ -5,7 +5,6 @@ mod splitfile;
 const OP_RETURN_MAXIMUM_STANDARD_SIZE: usize = 83;
 
 // todo:
-// - add an example splits.yaml
 // - test w/mm
 //
 // - integration tests:
