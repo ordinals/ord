@@ -86,7 +86,7 @@ pub(crate) enum Subcommand {
   Send(send::Send),
   #[command(about = "Sign message")]
   Sign(sign::Sign),
-  #[command(about = "Split sats and runes")]
+  #[command(about = "Split outputs")]
   Split(split::Split),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
