@@ -12,6 +12,7 @@ outputs:
   value: 10 sat
   runes:
     UNCOMMON•GOODS: 1234
+    GRIEF•WAGE: 5000000
 - address: 3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy
   runes:
     HELLO•WORLD: 22.5
