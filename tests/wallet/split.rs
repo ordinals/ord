@@ -1,15 +1,5 @@
 use super::*;
 
-// todo:
-// - finish integration tests
-// - review: any missing tests?
-// - test w/mm
-// - merge
-//
-// integration tests:
-// - tx over 400kwu is an error, allowed with flag
-// - oversize op return is an error, allowed with flag
-
 #[test]
 fn requires_rune_index() {
   let core = mockcore::spawn();
@@ -206,6 +196,93 @@ outputs:
         ]
         .into()
       ),]
+      .into(),
+    }
+  );
+}
+
+#[test]
+fn oversize_op_returns_are_allowed_with_flag() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let rune = Rune(RUNE);
+
+  let spaced_rune = SpacedRune { rune, spacers: 1 };
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        supply: "10000000000".parse().unwrap(),
+        divisibility: 0,
+        terms: None,
+        premine: "10000000000".parse().unwrap(),
+        rune: SpacedRune { rune, spacers: 1 },
+        symbol: '¢',
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let mut splitfile = String::from("outputs:\n");
+
+  for _ in 0..10 {
+    splitfile.push_str(
+      "\n- address: bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw
+  runes:
+    AAAAAAAAAAAAA: 1000000000",
+    );
+  }
+
+  CommandBuilder::new("--regtest wallet split --fee-rate 0 --splits splits.yaml")
+    .core(&core)
+    .ord(&ord)
+    .write("splits.yaml", &splitfile)
+    .expected_stderr("error: runestone size 85 over maximum standard OP_RETURN size 83\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+
+  let output =
+    CommandBuilder::new("--regtest wallet split --fee-rate 0 --splits splits.yaml --no-limit")
+      .core(&core)
+      .ord(&ord)
+      .write("splits.yaml", &splitfile)
+      .run_and_deserialize_output::<Split>();
+
+  core.mine_blocks(1);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest --index-runes balances")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balances>(),
+    Balances {
+      runes: [(
+        spaced_rune,
+        (0..10)
+          .map(|i| (
+            OutPoint {
+              txid: output.txid,
+              vout: 1 + i,
+            },
+            Pile {
+              amount: 1000000000,
+              divisibility: 0,
+              symbol: Some('¢'),
+            }
+          ),)
+          .collect()
+      )]
       .into(),
     }
   );

@@ -79,11 +79,13 @@ pub(crate) struct Split {
     value_name = "SPLIT_FILE"
   )]
   pub(crate) splits: PathBuf,
-  #[arg(long, help = "Allow runestones over standard size limit.")]
-  pub(crate) no_runestone_limit: bool,
   #[arg(
     long,
-    help = "Allow transaction larger than MAX_STANDARD_TX_WEIGHT of 400,000 weight units."
+    alias = "nolimit",
+    help = "Allow transactions larger than MAX_STANDARD_TX_WEIGHT of 400,000 weight units, and \
+    OP_RETURNs greater than 83 bytes. Transactions over this limit are currently nonstandard and \
+    will not be relayed by bitcoind in its default configuration. Do not use this flag unless you \
+    understand the implications."
   )]
   pub(crate) no_limit: bool,
 }
@@ -130,7 +132,7 @@ impl Split {
       .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, u128>>>>()?;
 
     let unfunded_transaction = Self::build_transaction(
-      self.no_runestone_limit,
+      self.no_limit,
       balances,
       &wallet.get_change_address()?,
       self.postage,
