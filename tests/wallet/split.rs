@@ -9,7 +9,6 @@ use super::*;
 // integration tests:
 // - inputs with inscriptions are not selected
 // - un etched runes is an error
-// - duplicate keys is an error
 // - tx over 400kwu is an error
 // - oversize tx allowed with flag
 // - mining transaction yields correct result
