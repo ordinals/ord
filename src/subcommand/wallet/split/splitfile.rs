@@ -67,8 +67,6 @@ impl Splitfile {
 
         let amount = decimal.to_integer(info.divisibility)?;
 
-        assert!(amount != 0);
-
         runes.insert(spaced_rune.rune, amount);
       }
 
