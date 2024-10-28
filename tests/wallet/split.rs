@@ -7,10 +7,8 @@ use super::*;
 // - merge
 //
 // integration tests:
-// - inputs with inscriptions are not selected
 // - tx over 400kwu is an error, allowed with flag
 // - oversize op return is an error, allowed with flag
-// - excess bitcoin in inputs is returned to wallet
 
 #[test]
 fn requires_rune_index() {
