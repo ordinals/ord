@@ -85,7 +85,7 @@ outputs:
 }
 
 #[test]
-fn single_output_with_change() {
+fn simple_split() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
@@ -130,21 +130,25 @@ fn single_output_with_change() {
     }
   );
 
-  let output = CommandBuilder::new("--regtest wallet split --fee-rate 1 --splits splits.yaml")
-    .core(&core)
-    .ord(&ord)
-    .write(
-      "splits.yaml",
-      format!(
-        "
+  let output = CommandBuilder::new(
+    "--regtest wallet split --fee-rate 10 --postage 666sat --splits splits.yaml",
+  )
+  .core(&core)
+  .ord(&ord)
+  .write(
+    "splits.yaml",
+    format!(
+      "
 outputs:
 - address: bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw
   runes:
     {spaced_rune}: 50.1
 "
-      ),
-    )
-    .run_and_deserialize_output::<Split>();
+    ),
+  )
+  .run_and_deserialize_output::<Split>();
+
+  assert_eq!(output.fee, 2030);
 
   core.mine_blocks_with_subsidy(1, 0);
 
@@ -154,9 +158,9 @@ outputs:
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 7 * 50 * COIN_VALUE - 20000 - 294,
+      cardinal: 7 * 50 * COIN_VALUE - 10960,
       ordinal: 10000,
-      runic: Some(10000),
+      runic: Some(666),
       runes: Some([(spaced_rune, "49.9".parse().unwrap())].into()),
       total: 7 * 50 * COIN_VALUE - 294,
     }
