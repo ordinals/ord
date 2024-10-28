@@ -1,7 +1,10 @@
 use super::*;
 
 // todo:
+// - finish integration tests
+// - review: any missing tests?
 // - test w/mm
+// - merge
 //
 // integration tests:
 // - inputs with inscriptions are not selected
