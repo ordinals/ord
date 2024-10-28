@@ -11,6 +11,7 @@ use super::*;
 // - un etched runes is an error
 // - duplicate keys is an error
 // - tx over 400kwu is an error
+// - oversize tx allowed with flag
 // - mining transaction yields correct result
 // - decimals in splitfile are respected
 // - excess bitcoin in inputs is returned to wallet
