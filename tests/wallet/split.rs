@@ -8,13 +8,9 @@ use super::*;
 //
 // integration tests:
 // - inputs with inscriptions are not selected
-// - un etched runes is an error
-// - tx over 400kwu is an error
-// - oversize tx allowed with flag
-// - mining transaction yields correct result
-// - decimals in splitfile are respected
+// - tx over 400kwu is an error, allowed with flag
+// - oversize op return is an error, allowed with flag
 // - excess bitcoin in inputs is returned to wallet
-// - oversize op return allowed with flag
 
 #[test]
 fn requires_rune_index() {
@@ -69,4 +65,150 @@ outputs:
     .stderr_regex(r"error: outputs\[0\]: unknown field `foo`.*")
     .expected_exit_code(1)
     .run_and_extract_stdout();
+}
+
+#[test]
+fn cannot_split_un_etched_runes() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let rune = Rune(RUNE);
+
+  CommandBuilder::new("--regtest wallet split --fee-rate 1 --splits splits.yaml")
+    .core(&core)
+    .ord(&ord)
+    .write(
+      "splits.yaml",
+      format!(
+        "
+outputs:
+- address: bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw
+  runes:
+    {rune}: 500
+"
+      ),
+    )
+    .expected_stderr("error: rune `AAAAAAAAAAAAA` has not been etched\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn single_output_with_change() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let rune = Rune(RUNE);
+  let spaced_rune = SpacedRune { rune, spacers: 1 };
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        supply: "100.0".parse().unwrap(),
+        divisibility: 1,
+        terms: None,
+        premine: "100.0".parse().unwrap(),
+        rune: SpacedRune { rune, spacers: 1 },
+        symbol: '¢',
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 7 * 50 * COIN_VALUE - 20000,
+      ordinal: 10000,
+      runic: Some(10000),
+      runes: Some([(spaced_rune, "100.0".parse().unwrap())].into()),
+      total: 7 * 50 * COIN_VALUE,
+    }
+  );
+
+  let output = CommandBuilder::new("--regtest wallet split --fee-rate 1 --splits splits.yaml")
+    .core(&core)
+    .ord(&ord)
+    .write(
+      "splits.yaml",
+      format!(
+        "
+outputs:
+- address: bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw
+  runes:
+    {spaced_rune}: 50.1
+"
+      ),
+    )
+    .run_and_deserialize_output::<Split>();
+
+  core.mine_blocks_with_subsidy(1, 0);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 7 * 50 * COIN_VALUE - 20000 - 294,
+      ordinal: 10000,
+      runic: Some(10000),
+      runes: Some([(spaced_rune, "49.9".parse().unwrap())].into()),
+      total: 7 * 50 * COIN_VALUE - 294,
+    }
+  );
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest --index-runes balances")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balances>(),
+    Balances {
+      runes: [(
+        spaced_rune,
+        [
+          (
+            OutPoint {
+              txid: output.txid,
+              vout: 1
+            },
+            Pile {
+              amount: 499,
+              divisibility: 1,
+              symbol: Some('¢'),
+            }
+          ),
+          (
+            OutPoint {
+              txid: output.txid,
+              vout: 2
+            },
+            Pile {
+              amount: 501,
+              divisibility: 1,
+              symbol: Some('¢'),
+            }
+          )
+        ]
+        .into()
+      ),]
+      .into(),
+    }
+  );
 }
