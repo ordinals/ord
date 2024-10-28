@@ -6,7 +6,7 @@
 #
 # address: output recipient bitcoin address
 # value: output bitcoin value (optional, defaults to minimal-non dust value for `address`)
-# runes: output rune value map (values respect divisibility)
+# runes: output rune value map (values respect rune divisibility)
 outputs:
 - address: bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297
   value: 10 sat
