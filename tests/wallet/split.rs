@@ -16,6 +16,7 @@ use super::*;
 // - decimals in splitfile are respected
 // - excess bitcoin in inputs is returned to wallet
 // - oversize op return allowed with flag
+// - unrecognized fields are forbidden
 
 #[test]
 fn requires_rune_index() {
