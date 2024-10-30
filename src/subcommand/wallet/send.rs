@@ -73,7 +73,8 @@ impl Send {
       )?,
     };
 
-    let (txid, psbt, fee) = wallet.sign_transaction(unsigned_transaction, self.dry_run)?;
+    let (txid, psbt, fee) =
+      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
 
     Ok(Some(Box::new(Output {
       txid,
@@ -213,16 +214,16 @@ impl Send {
           }
 
           inputs.push(output);
-        }
-      }
 
-      if input_rune_balances
-        .get(&spaced_rune.rune)
-        .cloned()
-        .unwrap_or_default()
-        >= amount
-      {
-        break;
+          if input_rune_balances
+            .get(&spaced_rune.rune)
+            .cloned()
+            .unwrap_or_default()
+            >= amount
+          {
+            break;
+          }
+        }
       }
     }
 

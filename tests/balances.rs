@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::balances::Output};
+use super::*;
 
 #[test]
 fn flag_is_required() {
@@ -17,11 +17,11 @@ fn no_runes() {
 
   let output = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)
-    .run_and_deserialize_output::<Output>();
+    .run_and_deserialize_output::<Balances>();
 
   assert_eq!(
     output,
-    Output {
+    Balances {
       runes: BTreeMap::new()
     }
   );
@@ -40,11 +40,11 @@ fn with_runes() {
 
   let output = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)
-    .run_and_deserialize_output::<Output>();
+    .run_and_deserialize_output::<Balances>();
 
   assert_eq!(
     output,
-    Output {
+    Balances {
       runes: [
         (
           SpacedRune::new(Rune(RUNE), 0),

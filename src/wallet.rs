@@ -290,9 +290,11 @@ impl Wallet {
       )
       .send()?;
 
-    if !response.status().is_success() {
+    if response.status() == StatusCode::NOT_FOUND {
       return Ok(None);
     }
+
+    let response = response.error_for_status()?;
 
     let rune_json: api::Rune = serde_json::from_str(&response.text()?)?;
 
@@ -749,7 +751,7 @@ impl Wallet {
     )
   }
 
-  pub(super) fn sign_transaction(
+  pub(super) fn sign_and_broadcast_transaction(
     &self,
     unsigned_transaction: Transaction,
     dry_run: bool,

@@ -90,7 +90,7 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         id: inscription_id(1),
         number: 1,
-        output: Some(tx_out(1, address())),
+        output: Some(tx_out(1, address(0))),
         satpoint: satpoint(1, 0),
         ..default()
       },
@@ -122,7 +122,7 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         id: inscription_id(1),
         number: 1,
-        output: Some(tx_out(1, address())),
+        output: Some(tx_out(1, address(0))),
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
         ..default()
@@ -154,7 +154,7 @@ mod tests {
         id: inscription_id(2),
         next: Some(inscription_id(3)),
         number: 1,
-        output: Some(tx_out(1, address())),
+        output: Some(tx_out(1, address(0))),
         previous: Some(inscription_id(1)),
         satpoint: satpoint(1, 0),
         ..default()
@@ -180,7 +180,7 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         id: inscription_id(2),
         number: -1,
-        output: Some(tx_out(1, address())),
+        output: Some(tx_out(1, address(0))),
         satpoint: SatPoint {
           outpoint: unbound_outpoint(),
           offset: 0

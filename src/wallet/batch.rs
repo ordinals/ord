@@ -4,7 +4,6 @@ use {
     blockdata::{opcodes, script},
     key::PrivateKey,
     key::{TapTweak, TweakedKeypair, TweakedPublicKey, UntweakedKeypair},
-    policy::MAX_STANDARD_TX_WEIGHT,
     secp256k1::{self, constants::SCHNORR_SIGNATURE_SIZE, rand, Secp256k1, XOnlyPublicKey},
     sighash::{Prevouts, SighashCache, TapSighashType},
     taproot::Signature,
@@ -74,7 +73,7 @@ mod tests {
 
   #[test]
   fn reveal_transaction_pays_fee() {
-    let utxos = vec![(outpoint(1), tx_out(20000, address()))];
+    let utxos = vec![(outpoint(1), tx_out(20000, address(0)))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
     let reveal_address = recipient_address();
@@ -120,7 +119,7 @@ mod tests {
 
   #[test]
   fn inscribe_transactions_opt_in_to_rbf() {
-    let utxos = vec![(outpoint(1), tx_out(20000, address()))];
+    let utxos = vec![(outpoint(1), tx_out(20000, address(0)))];
     let inscription = inscription("text/plain", "ord");
     let commit_address = change(0);
     let reveal_address = recipient_address();
@@ -160,7 +159,7 @@ mod tests {
 
   #[test]
   fn inscribe_with_no_satpoint_and_no_cardinal_utxos() {
-    let utxos = vec![(outpoint(1), tx_out(1000, address()))];
+    let utxos = vec![(outpoint(1), tx_out(1000, address(0)))];
     let mut inscriptions = BTreeMap::new();
     inscriptions.insert(
       SatPoint {
@@ -210,8 +209,8 @@ mod tests {
   #[test]
   fn inscribe_with_no_satpoint_and_enough_cardinal_utxos() {
     let utxos = vec![
-      (outpoint(1), tx_out(20_000, address())),
-      (outpoint(2), tx_out(20_000, address())),
+      (outpoint(1), tx_out(20_000, address(0))),
+      (outpoint(2), tx_out(20_000, address(0))),
     ];
     let mut inscriptions = BTreeMap::new();
     inscriptions.insert(
@@ -255,8 +254,8 @@ mod tests {
   #[test]
   fn inscribe_with_custom_fee_rate() {
     let utxos = vec![
-      (outpoint(1), tx_out(10_000, address())),
-      (outpoint(2), tx_out(20_000, address())),
+      (outpoint(1), tx_out(10_000, address(0))),
+      (outpoint(2), tx_out(20_000, address(0))),
     ];
     let mut inscriptions = BTreeMap::new();
     inscriptions.insert(
@@ -330,8 +329,8 @@ mod tests {
   #[test]
   fn inscribe_with_parent() {
     let utxos = vec![
-      (outpoint(1), tx_out(10_000, address())),
-      (outpoint(2), tx_out(20_000, address())),
+      (outpoint(1), tx_out(10_000, address(0))),
+      (outpoint(2), tx_out(20_000, address(0))),
     ];
 
     let mut inscriptions = BTreeMap::new();
@@ -428,8 +427,8 @@ mod tests {
   #[test]
   fn inscribe_with_commit_fee_rate() {
     let utxos = vec![
-      (outpoint(1), tx_out(10_000, address())),
-      (outpoint(2), tx_out(20_000, address())),
+      (outpoint(1), tx_out(10_000, address(0))),
+      (outpoint(2), tx_out(20_000, address(0))),
     ];
     let mut inscriptions = BTreeMap::new();
     inscriptions.insert(
@@ -503,7 +502,7 @@ mod tests {
 
   #[test]
   fn inscribe_over_max_standard_tx_weight() {
-    let utxos = vec![(outpoint(1), tx_out(50 * COIN_VALUE, address()))];
+    let utxos = vec![(outpoint(1), tx_out(50 * COIN_VALUE, address(0)))];
 
     let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
     let satpoint = None;
@@ -544,7 +543,7 @@ mod tests {
 
   #[test]
   fn inscribe_with_no_max_standard_tx_weight() {
-    let utxos = vec![(outpoint(1), tx_out(50 * COIN_VALUE, address()))];
+    let utxos = vec![(outpoint(1), tx_out(50 * COIN_VALUE, address(0)))];
 
     let inscription = inscription("text/plain", [0; MAX_STANDARD_TX_WEIGHT as usize]);
     let satpoint = None;
@@ -581,8 +580,8 @@ mod tests {
   #[test]
   fn batch_inscribe_with_parent() {
     let utxos = vec![
-      (outpoint(1), tx_out(10_000, address())),
-      (outpoint(2), tx_out(50_000, address())),
+      (outpoint(1), tx_out(10_000, address(0))),
+      (outpoint(2), tx_out(50_000, address(0))),
     ];
 
     let parent = inscription_id(1);
@@ -690,12 +689,12 @@ mod tests {
   #[test]
   fn batch_inscribe_satpoints_with_parent() {
     let utxos = vec![
-      (outpoint(1), tx_out(1_111, address())),
-      (outpoint(2), tx_out(2_222, address())),
-      (outpoint(3), tx_out(3_333, address())),
-      (outpoint(4), tx_out(10_000, address())),
-      (outpoint(5), tx_out(50_000, address())),
-      (outpoint(6), tx_out(60_000, address())),
+      (outpoint(1), tx_out(1_111, address(0))),
+      (outpoint(2), tx_out(2_222, address(0))),
+      (outpoint(3), tx_out(3_333, address(0))),
+      (outpoint(4), tx_out(10_000, address(0))),
+      (outpoint(5), tx_out(50_000, address(0))),
+      (outpoint(6), tx_out(60_000, address(0))),
     ];
 
     let parent = inscription_id(1);
@@ -822,8 +821,8 @@ mod tests {
   #[test]
   fn batch_inscribe_with_parent_not_enough_cardinals_utxos_fails() {
     let utxos = vec![
-      (outpoint(1), tx_out(10_000, address())),
-      (outpoint(2), tx_out(20_000, address())),
+      (outpoint(1), tx_out(10_000, address(0))),
+      (outpoint(2), tx_out(20_000, address(0))),
     ];
 
     let parent = inscription_id(1);
@@ -899,8 +898,8 @@ mod tests {
   #[should_panic(expected = "invariant: shared-output has only one destination")]
   fn batch_inscribe_with_inconsistent_reveal_addresses_panics() {
     let utxos = vec![
-      (outpoint(1), tx_out(10_000, address())),
-      (outpoint(2), tx_out(80_000, address())),
+      (outpoint(1), tx_out(10_000, address(0))),
+      (outpoint(2), tx_out(80_000, address(0))),
     ];
 
     let parent = inscription_id(1);
@@ -968,7 +967,7 @@ mod tests {
 
   #[test]
   fn batch_inscribe_over_max_standard_tx_weight() {
-    let utxos = vec![(outpoint(1), tx_out(50 * COIN_VALUE, address()))];
+    let utxos = vec![(outpoint(1), tx_out(50 * COIN_VALUE, address(0)))];
 
     let wallet_inscriptions = BTreeMap::new();
 
@@ -1016,8 +1015,8 @@ mod tests {
   #[test]
   fn batch_inscribe_into_separate_outputs() {
     let utxos = vec![
-      (outpoint(1), tx_out(10_000, address())),
-      (outpoint(2), tx_out(80_000, address())),
+      (outpoint(1), tx_out(10_000, address(0))),
+      (outpoint(2), tx_out(80_000, address(0))),
     ];
 
     let wallet_inscriptions = BTreeMap::new();
@@ -1073,8 +1072,8 @@ mod tests {
   #[test]
   fn batch_inscribe_into_separate_outputs_with_parent() {
     let utxos = vec![
-      (outpoint(1), tx_out(10_000, address())),
-      (outpoint(2), tx_out(50_000, address())),
+      (outpoint(1), tx_out(10_000, address(0))),
+      (outpoint(2), tx_out(50_000, address(0))),
     ];
 
     let parent = inscription_id(1);
