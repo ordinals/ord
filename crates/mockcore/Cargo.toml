@@ -9,11 +9,13 @@ repository = "https://github.com/ordinals/ord"
 
 [dependencies]
 base64 = "0.22.0"
-bitcoin = { version = "0.32.3", features = ["serde", "rand"] }
+bip322 = "0.0.8"
+bitcoin = { version = "0.32.4", features = ["serde", "rand"] }
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"
 jsonrpc-derive = "18.0.0"
 jsonrpc-http-server = "18.0.0"
+miniscript = "12.2.0"
 ord-bitcoincore-rpc = "0.19.0"
 reqwest = { version = "0.12.8", features = ["blocking"] }
 serde = { version = "1.0.137", features = ["derive"] }
