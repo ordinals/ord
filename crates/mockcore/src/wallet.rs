@@ -1,5 +1,3 @@
-use bitcoin::key::TapTweak;
-
 use super::*;
 
 #[derive(Debug)]
@@ -8,7 +6,7 @@ pub struct Wallet {
   master_key: Xpriv,
   network: Network,
   next_index: u32,
-  secp: Secp256k1<bitcoin::secp256k1::All>,
+  secp: Secp256k1<secp256k1::All>,
 }
 
 impl Wallet {

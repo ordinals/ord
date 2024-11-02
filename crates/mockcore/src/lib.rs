@@ -11,7 +11,7 @@ use {
     consensus::encode::{deserialize, serialize},
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
-    key::{Keypair, Secp256k1, XOnlyPublicKey},
+    key::{Keypair, Secp256k1, TapTweak, XOnlyPublicKey},
     locktime::absolute::LockTime,
     pow::CompactTarget,
     secp256k1::{
