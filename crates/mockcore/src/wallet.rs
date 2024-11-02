@@ -51,6 +51,7 @@ impl Wallet {
     let address = Address::from_script(&to_spend_input.script_pub_key, self.network).unwrap();
     let path = self.address_paths.get(&address).unwrap();
     let derivation_path = DerivationPath::from_str(path).unwrap();
+
     let private_key = self
       .master_key
       .derive_priv(&self.secp, &derivation_path)
