@@ -494,6 +494,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bip322"
+version = "0.0.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f05fd969833f0181470a254c9aed7389537f3fe6068bc8d7bcd9afef1cc7a049"
+dependencies = [
+ "base64 0.22.1",
+ "bitcoin",
+ "snafu",
+]
+
+[[package]]
 name = "bip39"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2156,7 +2167,7 @@ name = "mockcore"
 version = "0.0.1"
 dependencies = [
  "base64 0.22.1",
- "bip322",
+ "bip322 0.0.9",
  "bitcoin",
  "hex",
  "jsonrpc-core",
@@ -2406,7 +2417,7 @@ dependencies = [
  "axum",
  "axum-server",
  "base64 0.22.1",
- "bip322",
+ "bip322 0.0.8",
  "bip39",
  "bitcoin",
  "bitcoincore-rpc",

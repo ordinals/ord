@@ -481,13 +481,15 @@ impl Api for Server {
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
-    let state = self.state();
-
     let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
-    for input in &mut transaction.input {
+    let transaction_clone = transaction.clone();
+    for (i, input) in transaction.input.iter_mut().enumerate() {
       if input.witness.is_empty() {
-        if let Some(utxos) = utxos {
-          todo!();
+        if let Some(utxos) = utxos.clone() {
+          input.witness = self
+            .state()
+            .wallet
+            .sign_bip322(&utxos[i].clone(), &transaction_clone);
         } else {
           input.witness = Witness::from_slice(&[&[0; 64]]);
         }
