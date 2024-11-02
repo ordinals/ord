@@ -484,16 +484,16 @@ impl Api for Server {
     let state = self.state();
 
     let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
-    let transaction_clone = transaction.clone();
-    for (i, input) in transaction.input.iter_mut().enumerate() {
+
+    if let Some(utxos) = utxos.clone() {
+      transaction.input[0].witness = state
+        .wallet
+        .sign_bip322(utxos[0].clone(), transaction.clone());
+    }
+
+    for input in transaction.input.iter_mut() {
       if input.witness.is_empty() {
-        if let Some(utxos) = utxos.clone() {
-          input.witness = state
-            .wallet
-            .sign_bip322(&utxos[i].clone(), &transaction_clone);
-        } else {
-          input.witness = Witness::from_slice(&[&[0; 64]]);
-        }
+        input.witness = Witness::from_slice(&[&[0; 64]]);
       }
     }
 

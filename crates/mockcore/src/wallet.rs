@@ -45,8 +45,8 @@ impl Wallet {
 
   pub fn sign_bip322(
     &self,
-    to_spend_input: &SignRawTransactionInput,
-    to_sign: &Transaction,
+    to_spend_input: SignRawTransactionInput,
+    to_sign: Transaction,
   ) -> Witness {
     let address = Address::from_script(&to_spend_input.script_pub_key, self.network).unwrap();
     let path = self.address_paths.get(&address).unwrap();
@@ -61,7 +61,7 @@ impl Wallet {
 
     let sighash_type = TapSighashType::All;
 
-    let mut sighash_cache = SighashCache::new(to_sign.clone());
+    let mut sighash_cache = SighashCache::new(to_sign);
 
     let sighash = sighash_cache
       .taproot_key_spend_signature_hash(
