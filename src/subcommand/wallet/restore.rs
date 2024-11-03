@@ -45,6 +45,7 @@ impl Restore {
           name,
           settings,
           mnemonic.to_seed(self.passphrase.unwrap_or_default()),
+          bitcoincore_rpc::json::Timestamp::Time(0),
         )?;
       }
     }

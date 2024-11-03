@@ -331,11 +331,16 @@ impl Handle {
   }
 
   pub fn descriptors(&self) -> Vec<String> {
-    self.state().descriptors.clone()
+    self
+      .state()
+      .descriptors
+      .iter()
+      .map(|(descriptor, _timestamp)| descriptor.clone())
+      .collect()
   }
 
   pub fn import_descriptor(&self, desc: String) {
-    self.state().descriptors.push(desc);
+    self.state().descriptors.push((desc, Timestamp::Now));
   }
 
   pub fn lock(&self, output: OutPoint) {

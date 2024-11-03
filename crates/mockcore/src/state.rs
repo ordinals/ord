@@ -3,7 +3,7 @@ use super::*;
 #[derive(Debug)]
 pub struct State {
   pub blocks: BTreeMap<BlockHash, Block>,
-  pub descriptors: Vec<String>,
+  pub descriptors: Vec<(String, bitcoincore_rpc::json::Timestamp)>,
   pub fail_lock_unspent: bool,
   pub hashes: Vec<BlockHash>,
   pub loaded_wallets: BTreeSet<String>,
