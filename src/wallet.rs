@@ -7,7 +7,7 @@ use {
     bip32::{ChildNumber, DerivationPath, Fingerprint, Xpriv},
     psbt::Psbt,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
+  bitcoincore_rpc::json::ImportDescriptors,
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   index::entry::Entry,
@@ -495,7 +495,12 @@ impl Wallet {
     Ok(())
   }
 
-  pub(crate) fn initialize(name: String, settings: &Settings, seed: [u8; 64]) -> Result {
+  pub(crate) fn initialize(
+    name: String,
+    settings: &Settings,
+    seed: [u8; 64],
+    timestamp: bitcoincore_rpc::json::Timestamp,
+  ) -> Result {
     Self::check_version(settings.bitcoin_rpc_client(None)?)?.create_wallet(
       &name,
       None,
@@ -529,6 +534,7 @@ impl Wallet {
         (fingerprint, derivation_path.clone()),
         derived_private_key,
         change,
+        timestamp,
       )?;
     }
 
@@ -542,6 +548,7 @@ impl Wallet {
     origin: (Fingerprint, DerivationPath),
     derived_private_key: Xpriv,
     change: bool,
+    timestamp: bitcoincore_rpc::json::Timestamp,
   ) -> Result {
     let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
       origin: Some(origin),
@@ -563,7 +570,7 @@ impl Wallet {
       .bitcoin_rpc_client(Some(name.clone()))?
       .import_descriptors(ImportDescriptors {
         descriptor: descriptor.to_string_with_secret(&key_map),
-        timestamp: Timestamp::Now,
+        timestamp,
         active: Some(true),
         range: None,
         next_index: None,

@@ -26,7 +26,12 @@ impl Create {
 
     let mnemonic = Mnemonic::from_entropy(&entropy)?;
 
-    Wallet::initialize(name, settings, mnemonic.to_seed(&self.passphrase))?;
+    Wallet::initialize(
+      name,
+      settings,
+      mnemonic.to_seed(&self.passphrase),
+      bitcoincore_rpc::json::Timestamp::Now,
+    )?;
 
     Ok(Some(Box::new(Output {
       mnemonic,

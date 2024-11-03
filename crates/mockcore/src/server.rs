@@ -803,10 +803,11 @@ impl Api for Server {
     &self,
     req: Vec<ImportDescriptors>,
   ) -> Result<Vec<ImportMultiResult>, jsonrpc_core::Error> {
-    self
-      .state()
-      .descriptors
-      .extend(req.into_iter().map(|params| params.descriptor));
+    self.state().descriptors.extend(
+      req
+        .into_iter()
+        .map(|params| (params.descriptor, params.timestamp)),
+    );
 
     Ok(vec![ImportMultiResult {
       success: true,
@@ -901,9 +902,9 @@ impl Api for Server {
         .state()
         .descriptors
         .iter()
-        .map(|desc| Descriptor {
+        .map(|(desc, timestamp)| Descriptor {
           desc: desc.to_string(),
-          timestamp: Timestamp::Now,
+          timestamp: *timestamp,
           active: true,
           internal: None,
           range: None,
