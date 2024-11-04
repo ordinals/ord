@@ -35,8 +35,7 @@ impl InscriptionHtml {
       return None;
     }
 
-    let Some(Ok(script::Instruction::PushBytes(metadata))) =
-      script_pubkey.instructions().skip(1).next()
+    let Some(Ok(script::Instruction::PushBytes(metadata))) = script_pubkey.instructions().nth(1)
     else {
       return None;
     };
