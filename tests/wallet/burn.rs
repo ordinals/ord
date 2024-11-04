@@ -32,6 +32,8 @@ fn inscriptions_can_be_burned() {
   <dd>
     <span title=burned>🔥</span>
   </dd>
+  <dt>value</dt>
+  <dd>9922</dd>
   .*
   <dt>content length</dt>
   <dd>3 bytes</dd>
@@ -210,5 +212,138 @@ fn cannot_burn_with_excess_postage() {
   .ord(&ord)
   .expected_stderr("error: Postage may not exceed 0.00010000 BTC\n")
   .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn json_metadata_can_be_included_when_burning() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "wallet burn --fee-rate 1 {inscription} --json-metadata metadata.json"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .write("metadata.json", r#"{"foo": "bar", "baz": 1}"#)
+  .stdout_regex(r".*")
+  .run_and_deserialize_output::<Send>();
+
+  let txid = core.mempool()[0].compute_txid();
+  assert_eq!(txid, output.txid);
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{inscription}"),
+    ".*<h1>Inscription 0</h1>.*<dl>.*
+  <dt>charms</dt>
+  <dd>
+    <span title=burned>🔥</span>
+  </dd>
+  <dt>burn metadata</dt>
+  <dd>
+    <dl><dt>foo</dt><dd>bar</dd><dt>baz</dt><dd>1</dd></dl>
+  </dd>
+  <dt>value</dt>
+  <dd>9907</dd>
+  .*
+  <dt>content length</dt>
+  <dd>3 bytes</dd>
+  <dt>content type</dt>
+  <dd>text/plain;charset=utf-8</dd>
+  .*
+</dl>
+.*",
+  );
+}
+
+#[test]
+fn cbor_metadata_can_be_included_when_burning() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "wallet burn --fee-rate 1 {inscription} --cbor-metadata metadata.cbor"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .write(
+    "metadata.cbor",
+    [
+      0xA2, 0x63, b'f', b'o', b'o', 0x63, b'b', b'a', b'r', 0x63, b'b', b'a', b'z', 0x01,
+    ],
+  )
+  .stdout_regex(r".*")
+  .run_and_deserialize_output::<Send>();
+
+  let txid = core.mempool()[0].compute_txid();
+  assert_eq!(txid, output.txid);
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{inscription}"),
+    ".*<h1>Inscription 0</h1>.*<dl>.*
+  <dt>charms</dt>
+  <dd>
+    <span title=burned>🔥</span>
+  </dd>
+  <dt>burn metadata</dt>
+  <dd>
+    <dl><dt>foo</dt><dd>bar</dd><dt>baz</dt><dd>1</dd></dl>
+  </dd>
+  <dt>value</dt>
+  <dd>9907</dd>
+  .*
+  <dt>content length</dt>
+  <dd>3 bytes</dd>
+  <dt>content type</dt>
+  <dd>text/plain;charset=utf-8</dd>
+  .*
+</dl>
+.*",
+  );
+}
+
+#[test]
+fn cbor_and_json_metadata_flags_conflict() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "wallet burn --fee-rate 1 {inscription} --cbor-metadata foo --json-metadata bar"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stderr_regex("error: the argument '--cbor-metadata <CBOR_METADATA>' cannot be used with '--json-metadata <JSON_METADATA>'.*")
+  .expected_exit_code(2)
   .run_and_extract_stdout();
 }
