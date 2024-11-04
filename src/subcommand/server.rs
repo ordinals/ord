@@ -5,12 +5,15 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
-  crate::templates::{
-    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
-    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
-    PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
+  crate::{
+    index::signal::Signal,
+    templates::{
+      AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
+      InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
+      PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+      PreviewVideoHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
+    },
   },
   axum::{
     body,
@@ -56,6 +59,12 @@ enum SpawnConfig {
 #[derive(Deserialize)]
 struct Search {
   query: String,
+}
+
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
+struct UtxoSignal {
+  outpoint: OutPoint,
+  signal: Signal,
 }
 
 #[derive(RustEmbed)]
@@ -157,6 +166,7 @@ impl Server {
         decompress: self.decompress,
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
+        index_signals: index.has_signal_index(),
         json_api_enabled: !self.disable_json_api,
         proxy: self.proxy.clone(),
       });
@@ -263,6 +273,9 @@ impl Server {
         .route("/satpoint/:satpoint", get(Self::satpoint))
         .route("/search", get(Self::search_by_query))
         .route("/search/*query", get(Self::search_by_path))
+        .route("/signal", post(Self::signal))
+        .route("/signals", get(Self::signals))
+        .route("/signal/:outpoint", get(Self::get_signal))
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/:txid", get(Self::transaction))
@@ -1162,6 +1175,64 @@ impl Server {
       } else {
         Ok(Redirect::to(&format!("/sat/{query}")))
       }
+    })
+  }
+
+  async fn signal(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Json(utxo_signal): Json<UtxoSignal>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json && server_config.index_signals {
+        let Some(address) = index
+          .get_output_info(utxo_signal.outpoint)?
+          .and_then(|(a, _)| a.address)
+        else {
+          return Ok(StatusCode::NOT_FOUND.into_response());
+        };
+
+        let message = utxo_signal.signal.message.clone();
+        let signature = utxo_signal.signal.signature.clone();
+
+        if bip322::verify_simple(&address.assume_checked(), message.as_slice(), signature).is_ok() {
+          Json(index.set_signal(utxo_signal.outpoint, utxo_signal.signal)?).into_response()
+        } else {
+          StatusCode::FORBIDDEN.into_response()
+        }
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
+    })
+  }
+
+  async fn signals(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json && server_config.index_signals {
+        Json(index.get_all_signals()?).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
+    })
+  }
+
+  async fn get_signal(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json && server_config.index_signals {
+        Json(index.get_signal(outpoint)?).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
     })
   }
 
