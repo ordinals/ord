@@ -2,10 +2,22 @@ use {super::*, bitcoin::opcodes};
 
 #[derive(Debug, Parser)]
 pub struct Burn {
+  #[arg(
+    long,
+    help = "Include CBOR in file at <METADATA> in OP_RETURN.",
+    conflicts_with = "json_metadata"
+  )]
+  pub(crate) cbor_metadata: Option<PathBuf>,
   #[arg(long, help = "Don't sign or broadcast transaction.")]
   dry_run: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB.")]
   fee_rate: FeeRate,
+  #[arg(
+    long,
+    help = "Include JSON in file at <METADATA> converted to CBOR in OP_RETURN.",
+    conflicts_with = "cbor_metadata"
+  )]
+  pub(crate) json_metadata: Option<PathBuf>,
   #[arg(
     long,
     help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]",
@@ -22,6 +34,8 @@ impl Burn {
       .get(&self.inscription)
       .ok_or_else(|| anyhow!("inscription {} not found", self.inscription))?
       .clone();
+
+    let metadata = WalletCommand::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
     let Some(value) = inscription_info.value else {
       bail!("Cannot burn unbound inscription");
@@ -42,6 +56,7 @@ impl Burn {
       inscription_info.satpoint,
       self.postage,
       self.fee_rate,
+      metadata,
     )?;
 
     let (txid, psbt, fee) =
@@ -60,6 +75,7 @@ impl Burn {
     satpoint: SatPoint,
     postage: Option<Amount>,
     fee_rate: FeeRate,
+    metadata: Option<Vec<u8>>,
   ) -> Result<Transaction> {
     let runic_outputs = wallet.get_runic_outputs()?;
 
@@ -72,9 +88,16 @@ impl Burn {
 
     let postage = postage.map(Target::ExactPostage).unwrap_or(Target::Postage);
 
-    let script_pubkey = script::Builder::new()
-      .push_opcode(opcodes::all::OP_RETURN)
-      .into_script();
+    let mut builder = script::Builder::new().push_opcode(opcodes::all::OP_RETURN);
+
+    if let Some(metadata) = metadata {
+      for chunk in metadata.chunks(u32::MAX.try_into().unwrap()) {
+        let push: &script::PushBytes = chunk.try_into().unwrap();
+        builder = builder.push_slice(push);
+      }
+    }
+
+    let script_pubkey = builder.into_script();
 
     Ok(
       TransactionBuilder::new(
