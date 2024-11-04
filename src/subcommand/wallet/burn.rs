@@ -91,13 +91,15 @@ impl Burn {
     let mut builder = script::Builder::new().push_opcode(opcodes::all::OP_RETURN);
 
     if let Some(metadata) = metadata {
-      for chunk in metadata.chunks(u32::MAX.try_into().unwrap()) {
-        let push: &script::PushBytes = chunk.try_into().unwrap();
-        builder = builder.push_slice(push);
-      }
+      let push: &script::PushBytes = metadata.as_slice().try_into().with_context(|| {
+        format!(
+          "metadata length {} over maximum {}",
+          metadata.len(),
+          u32::MAX
+        )
+      })?;
+      builder = builder.push_slice(push);
     }
-
-    let script_pubkey = builder.into_script();
 
     Ok(
       TransactionBuilder::new(
@@ -106,7 +108,7 @@ impl Burn {
         wallet.utxos().clone(),
         wallet.locked_utxos().clone().into_keys().collect(),
         runic_outputs,
-        script_pubkey,
+        builder.into_script(),
         change,
         fee_rate,
         postage,

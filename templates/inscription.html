@@ -61,11 +61,16 @@
     {{ Trusted(MetadataHtml(&metadata)) }}
   </dd>
 %% }
-%% if let Some(output) = &self.output {
-%% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
+%% if let Some(burn_metadata) = self.burn_metadata() {
+  <dt>burn metadata</dt>
+  <dd>
+    {{ Trusted(MetadataHtml(&burn_metadata)) }}
+  </dd>
+%% } else if let Some(output) = &self.output {
+%%   if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
   <dt>address</dt>
   <dd class=monospace><a href=/address/{{address}}>{{ address }}</a></dd>
-%% }
+%%   }
   <dt>value</dt>
   <dd>{{ output.value.to_sat() }}</dd>
 %% }

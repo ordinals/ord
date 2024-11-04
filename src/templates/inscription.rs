@@ -27,6 +27,24 @@ impl PageContent for InscriptionHtml {
   }
 }
 
+impl InscriptionHtml {
+  pub fn burn_metadata(&self) -> Option<Value> {
+    let script_pubkey = &self.output.as_ref()?.script_pubkey;
+
+    if !script_pubkey.is_op_return() {
+      return None;
+    }
+
+    let Some(Ok(script::Instruction::PushBytes(metadata))) =
+      script_pubkey.instructions().skip(1).next()
+    else {
+      return None;
+    };
+
+    ciborium::from_reader(Cursor::new(metadata)).ok()
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
