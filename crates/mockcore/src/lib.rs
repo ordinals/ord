@@ -5,15 +5,19 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     amount::SignedAmount,
+    bip32::{ChildNumber, DerivationPath, Xpriv},
     block::Header,
     blockdata::{script, transaction::Version},
     consensus::encode::{deserialize, serialize},
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
+    key::{Keypair, Secp256k1, TapTweak, XOnlyPublicKey},
     locktime::absolute::LockTime,
     pow::CompactTarget,
-    Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
-    Wtxid,
+    secp256k1::{self, rand},
+    sighash::{self, SighashCache, TapSighashType},
+    Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
+    WPubkeyHash, Witness, Wtxid,
   },
   bitcoincore_rpc::json::{
     Bip125Replaceable, CreateRawTransactionInput, EstimateMode, FeeRatePercentiles,
@@ -40,6 +44,7 @@ use {
     time::Duration,
   },
   tempfile::TempDir,
+  wallet::Wallet,
 };
 
 const COIN_VALUE: u64 = 100_000_000;
@@ -47,6 +52,7 @@ const COIN_VALUE: u64 = 100_000_000;
 mod api;
 mod server;
 mod state;
+mod wallet;
 
 #[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
 pub struct Descriptor {
