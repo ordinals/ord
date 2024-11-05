@@ -490,7 +490,7 @@ impl Api for Server {
       }
     }
 
-    for input in transaction.input.iter_mut() {
+    for input in &mut transaction.input {
       if input.witness.is_empty() {
         input.witness = Witness::from_slice(&[&[0; 64]]);
       }
