@@ -6,7 +6,8 @@ pub(crate) struct Batch {
   shared: SharedArgs,
   #[arg(
     long,
-    help = "Inscribe multiple inscriptions and rune defined in YAML <BATCH_FILE>."
+    help = "Inscribe multiple inscriptions and rune defined in YAML <BATCH_FILE>.",
+    value_name = "BATCH_FILE"
   )]
   pub(crate) batch: PathBuf,
 }

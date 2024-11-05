@@ -4,6 +4,7 @@ use super::*;
 pub(crate) struct InscriptionHtml {
   pub(crate) chain: Chain,
   pub(crate) charms: u16,
+  pub(crate) child_count: u64,
   pub(crate) children: Vec<InscriptionId>,
   pub(crate) fee: u64,
   pub(crate) height: u32,
@@ -89,7 +90,7 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         id: inscription_id(1),
         number: 1,
-        output: Some(tx_out(1, address())),
+        output: Some(tx_out(1, address(0))),
         satpoint: satpoint(1, 0),
         ..default()
       },
@@ -121,7 +122,7 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         id: inscription_id(1),
         number: 1,
-        output: Some(tx_out(1, address())),
+        output: Some(tx_out(1, address(0))),
         sat: Some(Sat(1)),
         satpoint: satpoint(1, 0),
         ..default()
@@ -153,7 +154,7 @@ mod tests {
         id: inscription_id(2),
         next: Some(inscription_id(3)),
         number: 1,
-        output: Some(tx_out(1, address())),
+        output: Some(tx_out(1, address(0))),
         previous: Some(inscription_id(1)),
         satpoint: satpoint(1, 0),
         ..default()
@@ -179,7 +180,7 @@ mod tests {
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
         id: inscription_id(2),
         number: -1,
-        output: Some(tx_out(1, address())),
+        output: Some(tx_out(1, address(0))),
         satpoint: SatPoint {
           outpoint: unbound_outpoint(),
           offset: 0
@@ -268,6 +269,7 @@ mod tests {
   fn with_children() {
     assert_regex_match!(
       InscriptionHtml {
+        child_count: 2,
         children: vec![inscription_id(2), inscription_id(3)],
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -291,7 +293,7 @@ mod tests {
               <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
             </div>
             <div class=center>
-              <a href=/children/1{64}i1>all</a>
+              <a href=/children/1{64}i1>all \\(2\\)</a>
             </div>
           </dd>
           <dt>id</dt>
@@ -330,6 +332,7 @@ mod tests {
   fn with_paginated_children() {
     assert_regex_match!(
       InscriptionHtml {
+        child_count: 1,
         children: vec![inscription_id(2)],
         fee: 1,
         inscription: inscription("text/plain;charset=utf-8", "HELLOWORLD"),
@@ -352,7 +355,7 @@ mod tests {
               <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
             </div>
             <div class=center>
-              <a href=/children/1{64}i1>all</a>
+              <a href=/children/1{64}i1>all \\(1\\)</a>
             </div>
           </dd>
           <dt>id</dt>

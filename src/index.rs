@@ -505,7 +505,7 @@ impl Index {
     self.index_sats
   }
 
-  pub fn status(&self) -> Result<StatusHtml> {
+  pub fn status(&self, json_api: bool) -> Result<StatusHtml> {
     let rtx = self.database.begin_read()?;
 
     let statistic_to_count = rtx.open_table(STATISTIC_TO_COUNT)?;
@@ -541,6 +541,7 @@ impl Index {
       initial_sync_time: Duration::from_micros(initial_sync_time),
       inscription_index: self.has_inscription_index(),
       inscriptions: blessed_inscriptions + cursed_inscriptions,
+      json_api,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
         self.settings.chain().network(),
@@ -683,7 +684,7 @@ impl Index {
   }
 
   pub fn export(&self, filename: &String, include_addresses: bool) -> Result {
-    let mut writer = BufWriter::new(fs::File::create(filename)?);
+    let mut writer = BufWriter::new(File::create(filename)?);
     let rtx = self.database.begin_read()?;
 
     let blocks_indexed = rtx
@@ -2033,9 +2034,13 @@ impl Index {
       .get(sequence_number + 1)?
       .map(|guard| InscriptionEntry::load(guard.value()).id);
 
-    let children = rtx
+    let all_children = rtx
       .open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?
-      .get(sequence_number)?
+      .get(sequence_number)?;
+
+    let child_count = all_children.len();
+
+    let children = all_children
       .take(4)
       .map(|result| {
         result
@@ -2106,6 +2111,7 @@ impl Index {
           })
           .map(|address| address.to_string()),
         charms: Charm::charms(charms),
+        child_count,
         children,
         content_length: inscription.content_length(),
         content_type: inscription.content_type().map(|s| s.to_string()),

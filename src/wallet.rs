@@ -7,7 +7,7 @@ use {
     bip32::{ChildNumber, DerivationPath, Fingerprint, Xpriv},
     psbt::Psbt,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
+  bitcoincore_rpc::json::ImportDescriptors,
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   index::entry::Entry,
@@ -75,6 +75,7 @@ pub(crate) enum Maturity {
 pub(crate) struct Wallet {
   bitcoin_client: Client,
   database: Database,
+  has_inscription_index: bool,
   has_rune_index: bool,
   has_sat_index: bool,
   rpc_url: Url,
@@ -216,6 +217,10 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn get_inscriptions_in_output(&self, output: &OutPoint) -> Vec<InscriptionId> {
+    self.output_info.get(output).unwrap().inscriptions.clone()
+  }
+
   pub(crate) fn get_parent_info(&self, parents: &[InscriptionId]) -> Result<Vec<ParentInfo>> {
     let mut parent_info = Vec::new();
     for parent_id in parents {
@@ -285,9 +290,11 @@ impl Wallet {
       )
       .send()?;
 
-    if !response.status().is_success() {
+    if response.status() == StatusCode::NOT_FOUND {
       return Ok(None);
     }
+
+    let response = response.error_for_status()?;
 
     let rune_json: api::Rune = serde_json::from_str(&response.text()?)?;
 
@@ -302,6 +309,10 @@ impl Wallet {
         .context("could not get change addresses from wallet")?
         .require_network(self.chain().network())?,
     )
+  }
+
+  pub(crate) fn has_inscription_index(&self) -> bool {
+    self.has_inscription_index
   }
 
   pub(crate) fn has_sat_index(&self) -> bool {
@@ -484,7 +495,12 @@ impl Wallet {
     Ok(())
   }
 
-  pub(crate) fn initialize(name: String, settings: &Settings, seed: [u8; 64]) -> Result {
+  pub(crate) fn initialize(
+    name: String,
+    settings: &Settings,
+    seed: [u8; 64],
+    timestamp: bitcoincore_rpc::json::Timestamp,
+  ) -> Result {
     Self::check_version(settings.bitcoin_rpc_client(None)?)?.create_wallet(
       &name,
       None,
@@ -518,6 +534,7 @@ impl Wallet {
         (fingerprint, derivation_path.clone()),
         derived_private_key,
         change,
+        timestamp,
       )?;
     }
 
@@ -531,6 +548,7 @@ impl Wallet {
     origin: (Fingerprint, DerivationPath),
     derived_private_key: Xpriv,
     change: bool,
+    timestamp: bitcoincore_rpc::json::Timestamp,
   ) -> Result {
     let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
       origin: Some(origin),
@@ -552,7 +570,7 @@ impl Wallet {
       .bitcoin_rpc_client(Some(name.clone()))?
       .import_descriptors(ImportDescriptors {
         descriptor: descriptor.to_string_with_secret(&key_map),
-        timestamp: Timestamp::Now,
+        timestamp,
         active: Some(true),
         range: None,
         next_index: None,
@@ -740,7 +758,7 @@ impl Wallet {
     )
   }
 
-  pub(super) fn sign_transaction(
+  pub(super) fn sign_and_broadcast_transaction(
     &self,
     unsigned_transaction: Transaction,
     dry_run: bool,

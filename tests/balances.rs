@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::balances::Output};
+use super::*;
 
 #[test]
 fn flag_is_required() {
@@ -17,11 +17,11 @@ fn no_runes() {
 
   let output = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)
-    .run_and_deserialize_output::<Output>();
+    .run_and_deserialize_output::<Balances>();
 
   assert_eq!(
     output,
-    Output {
+    Balances {
       runes: BTreeMap::new()
     }
   );
@@ -40,15 +40,15 @@ fn with_runes() {
 
   let output = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)
-    .run_and_deserialize_output::<Output>();
+    .run_and_deserialize_output::<Balances>();
 
   assert_eq!(
     output,
-    Output {
-      runes: vec![
+    Balances {
+      runes: [
         (
           SpacedRune::new(Rune(RUNE), 0),
-          vec![(
+          [(
             OutPoint {
               txid: a.output.reveal,
               vout: 1
@@ -59,12 +59,11 @@ fn with_runes() {
               symbol: Some('¢')
             },
           )]
-          .into_iter()
-          .collect()
+          .into()
         ),
         (
           SpacedRune::new(Rune(RUNE + 1), 0),
-          vec![(
+          [(
             OutPoint {
               txid: b.output.reveal,
               vout: 1
@@ -75,12 +74,10 @@ fn with_runes() {
               symbol: Some('¢')
             },
           )]
-          .into_iter()
-          .collect()
+          .into()
         ),
       ]
-      .into_iter()
-      .collect(),
+      .into()
     }
   );
 }

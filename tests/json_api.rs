@@ -159,6 +159,7 @@ fn get_inscription() {
     api::Inscription {
       address: None,
       charms: vec![Charm::Coin, Charm::Uncommon],
+      child_count: 0,
       children: Vec::new(),
       content_length: Some(3),
       content_type: Some("text/plain;charset=utf-8".to_string()),
@@ -656,6 +657,7 @@ fn get_status() {
       initial_sync_time: dummy_duration,
       inscription_index: true,
       inscriptions: 1,
+      json_api: true,
       lost_sats: 0,
       minimum_rune_for_next_block: Rune(99218849511960410),
       rune_index: true,
