@@ -3169,6 +3169,48 @@ curl -s -H "Accept: application/json" \
 <details>
   <summary>
     <code>GET</code>
+    <code><b>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</b></code>
+  </summary>
+
+### Description
+Undelegated content of an inscription.
+
+</details>
+
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/output/&lt;OUTPUT_ID&gt;</b></code>
+  </summary>
+
+### Description
+Information about an output.
+
+### Example
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
+```
+```json
+{
+  "address": "04678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5f",
+  "indexed": true,
+  "value": 5000000000,
+  "inscriptions": [],
+  "runes": {},
+  "sat_ranges": [
+    [0, 5000000000]
+  ],
+  "spent": false,
+  "transaction": "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b"
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
     <code><b>/r/metadata/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 
