@@ -61,6 +61,7 @@ impl State {
       &mut self.receive_addresses
     }
     .push(address.clone());
+
     address
   }
 
