@@ -110,7 +110,7 @@ impl Inscribe {
       Ok(Some(cbor))
     } else if let Some(path) = json {
       let value: serde_json::Value =
-        serde_json::from_reader(fs::File::open(path)?).context("failed to parse JSON metadata")?;
+        serde_json::from_reader(File::open(path)?).context("failed to parse JSON metadata")?;
       let mut cbor = Vec::new();
       ciborium::into_writer(&value, &mut cbor)?;
 

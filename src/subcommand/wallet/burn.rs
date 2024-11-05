@@ -44,7 +44,8 @@ impl Burn {
       self.fee_rate,
     )?;
 
-    let (txid, psbt, fee) = wallet.sign_transaction(unsigned_transaction, self.dry_run)?;
+    let (txid, psbt, fee) =
+      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
 
     Ok(Some(Box::new(send::Output {
       txid,

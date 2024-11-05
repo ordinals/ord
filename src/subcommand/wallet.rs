@@ -25,6 +25,7 @@ pub mod sats;
 pub mod send;
 mod shared_args;
 pub mod sign;
+pub mod split;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
@@ -85,6 +86,8 @@ pub(crate) enum Subcommand {
   Send(send::Send),
   #[command(about = "Sign message")]
   Sign(sign::Sign),
+  #[command(about = "Split outputs")]
+  Split(split::Split),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
 }
@@ -131,6 +134,7 @@ impl WalletCommand {
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
       Subcommand::Sign(sign) => sign.run(wallet),
+      Subcommand::Split(split) => split.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
     }
   }
