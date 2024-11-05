@@ -211,6 +211,7 @@ impl Server {
           get(Self::parents_paginated),
         )
         .route("/preview/:inscription_id", get(Self::preview))
+        .route("/r/output/:output", get(Self::output_recursive))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
           "/r/blockhash/:height",
@@ -616,6 +617,21 @@ impl Server {
         .into_response()
       })
     })
+  }
+
+  async fn output_recursive(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult {
+    let accept_json = AcceptJson(true);
+    Self::output(
+        Extension(server_config),
+        Extension(index),
+        Path(outpoint),
+        accept_json,
+    )
+    .await
   }
 
   async fn satpoint(
