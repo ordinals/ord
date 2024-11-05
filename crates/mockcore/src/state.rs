@@ -31,10 +31,6 @@ impl State {
     hashes.push(genesis_block_hash);
     blocks.insert(genesis_block_hash, genesis_block);
 
-    let mut seed = [0u8; 32];
-    rand::thread_rng().fill_bytes(&mut seed);
-    let wallet = Wallet::new(network, &seed);
-
     Self {
       blocks,
       change_addresses: Vec::new(),
@@ -52,7 +48,7 @@ impl State {
       utxos: BTreeMap::new(),
       version,
       wallets: BTreeSet::new(),
-      wallet,
+      wallet: Wallet::new(network),
     }
   }
 

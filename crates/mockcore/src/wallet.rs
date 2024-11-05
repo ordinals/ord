@@ -2,31 +2,42 @@ use super::*;
 
 #[derive(Debug)]
 pub struct Wallet {
-  address_paths: HashMap<Address, String>,
+  address_indices: HashMap<Address, u32>,
   master_key: Xpriv,
   network: Network,
   next_index: u32,
   secp: Secp256k1<secp256k1::All>,
+  derivation_path: DerivationPath,
 }
 
 impl Wallet {
-  pub fn new(network: Network, seed: &[u8]) -> Self {
+  pub fn new(network: Network) -> Self {
+    let derivation_path = DerivationPath::master()
+      .child(ChildNumber::Hardened { index: 86 })
+      .child(ChildNumber::Hardened { index: 0 })
+      .child(ChildNumber::Hardened { index: 0 })
+      .child(ChildNumber::Normal { index: 0 });
+
     Self {
-      master_key: Xpriv::new_master(network, seed).unwrap(),
-      secp: Secp256k1::new(),
+      address_indices: HashMap::new(),
+      master_key: Xpriv::new_master(network, &[]).unwrap(),
       network,
       next_index: 0,
-      address_paths: HashMap::new(),
+      secp: Secp256k1::new(),
+      derivation_path,
     }
   }
 
   pub fn new_address(&mut self) -> Address {
-    let path = format!("m/86'/0'/0'/0/{}", self.next_index);
     let address = {
-      let derivation_path = DerivationPath::from_str(&path).unwrap();
       let derived_key = self
         .master_key
-        .derive_priv(&self.secp, &derivation_path)
+        .derive_priv(
+          &self.secp,
+          &self.derivation_path.child(ChildNumber::Normal {
+            index: self.next_index,
+          }),
+        )
         .unwrap();
 
       let keypair = derived_key.to_keypair(&self.secp);
@@ -37,7 +48,9 @@ impl Wallet {
       Address::from_script(&script, self.network).unwrap()
     };
 
-    self.address_paths.insert(address.clone(), path);
+    self
+      .address_indices
+      .insert(address.clone(), self.next_index);
     self.next_index += 1;
 
     address
@@ -49,8 +62,8 @@ impl Wallet {
     to_sign: &Transaction,
   ) -> Witness {
     let address = Address::from_script(&to_spend_input.script_pub_key, self.network).unwrap();
-    let path = self.address_paths.get(&address).unwrap();
-    let derivation_path = DerivationPath::from_str(path).unwrap();
+    let index = self.address_indices[&address];
+    let derivation_path = self.derivation_path.child(ChildNumber::Normal { index });
 
     let private_key = self
       .master_key

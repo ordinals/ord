@@ -5,7 +5,7 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     amount::SignedAmount,
-    bip32::{DerivationPath, Xpriv},
+    bip32::{ChildNumber, DerivationPath, Xpriv},
     block::Header,
     blockdata::{script, transaction::Version},
     consensus::encode::{deserialize, serialize},
@@ -14,10 +14,7 @@ use {
     key::{Keypair, Secp256k1, TapTweak, XOnlyPublicKey},
     locktime::absolute::LockTime,
     pow::CompactTarget,
-    secp256k1::{
-      self,
-      rand::{self, RngCore},
-    },
+    secp256k1::{self, rand},
     sighash::{self, SighashCache, TapSighashType},
     Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
     WPubkeyHash, Witness, Wtxid,
@@ -42,7 +39,6 @@ use {
     collections::{BTreeMap, BTreeSet, HashMap},
     fs,
     path::PathBuf,
-    str::FromStr,
     sync::{Arc, Mutex, MutexGuard},
     thread,
     time::Duration,
