@@ -483,11 +483,10 @@ impl Api for Server {
 
     let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
 
-    // This is a hack to figure out if we should sign for a BIP322 input
-    if let Some(utxos) = utxos.clone() {
-      let input = utxos[0].clone();
-      if input.amount == Some(Amount::ZERO) {
-        transaction.input[0].witness = self.state().wallet.sign_bip322(input, transaction.clone());
+    if let Some(utxos) = &utxos {
+      // sign for zero-value UTXOs produced by `ord wallet sign`
+      if utxos[0].amount == Some(Amount::ZERO) {
+        transaction.input[0].witness = self.state().wallet.sign_bip322(&utxos[0], &transaction);
       }
     }
 
