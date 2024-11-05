@@ -5,15 +5,19 @@ use {
   bitcoin::{
     address::{Address, NetworkUnchecked},
     amount::SignedAmount,
+    bip32::{ChildNumber, DerivationPath, Xpriv},
     block::Header,
     blockdata::{script, transaction::Version},
     consensus::encode::{deserialize, serialize},
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
+    key::{Keypair, Secp256k1, TapTweak, XOnlyPublicKey},
     locktime::absolute::LockTime,
     pow::CompactTarget,
-    Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
-    Wtxid,
+    secp256k1::{self, rand},
+    sighash::{self, SighashCache, TapSighashType},
+    Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
+    WPubkeyHash, Witness, Wtxid,
   },
   bitcoincore_rpc::json::{
     Bip125Replaceable, CreateRawTransactionInput, EstimateMode, FeeRatePercentiles,
@@ -40,6 +44,7 @@ use {
     time::Duration,
   },
   tempfile::TempDir,
+  wallet::Wallet,
 };
 
 const COIN_VALUE: u64 = 100_000_000;
@@ -47,6 +52,7 @@ const COIN_VALUE: u64 = 100_000_000;
 mod api;
 mod server;
 mod state;
+mod wallet;
 
 #[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
 pub struct Descriptor {
@@ -294,16 +300,43 @@ impl Handle {
       .clone()
   }
 
+  #[track_caller]
+  pub fn tx_index(&self, txid: Txid) -> (usize, usize) {
+    let state = self.state();
+
+    for (block_hash, block) in &state.blocks {
+      for (t, tx) in block.txdata.iter().enumerate() {
+        if tx.compute_txid() == txid {
+          let b = state
+            .hashes
+            .iter()
+            .enumerate()
+            .find(|(_b, hash)| *hash == block_hash)
+            .unwrap()
+            .0;
+          return (b, t);
+        }
+      }
+    }
+
+    panic!("unknown transaction");
+  }
+
   pub fn mempool(&self) -> Vec<Transaction> {
     self.state().mempool().to_vec()
   }
 
   pub fn descriptors(&self) -> Vec<String> {
-    self.state().descriptors.clone()
+    self
+      .state()
+      .descriptors
+      .iter()
+      .map(|(descriptor, _timestamp)| descriptor.clone())
+      .collect()
   }
 
   pub fn import_descriptor(&self, desc: String) {
-    self.state().descriptors.push(desc);
+    self.state().descriptors.push((desc, Timestamp::Now));
   }
 
   pub fn lock(&self, output: OutPoint) {

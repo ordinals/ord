@@ -75,10 +75,12 @@ mod wallet;
 const RUNE: u128 = 99246114928149462;
 
 type Balance = ord::subcommand::wallet::balance::Output;
+type Balances = ord::subcommand::balances::Output;
 type Batch = ord::wallet::batch::Output;
 type Create = ord::subcommand::wallet::create::Output;
 type Inscriptions = Vec<ord::subcommand::wallet::inscriptions::Output>;
 type Send = ord::subcommand::wallet::send::Output;
+type Split = ord::subcommand::wallet::split::Output;
 type Supply = ord::subcommand::supply::Output;
 
 fn create_wallet(core: &mockcore::Handle, ord: &TestServer) {

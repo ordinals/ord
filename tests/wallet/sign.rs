@@ -62,6 +62,15 @@ fn sign_file() {
 
   assert_eq!(address, &sign.address);
   assert!(sign.message.is_none());
+
+  CommandBuilder::new(format!(
+    "verify --address {} --message {message} --witness {}",
+    address.clone().assume_checked(),
+    sign.witness,
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_extract_stdout();
 }
 
 #[test]
