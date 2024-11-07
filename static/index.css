@@ -115,8 +115,6 @@ ol, ul {
 }
 
 .block-list {
-  font-family: monospace, monospace;
-  list-style-position: inside;
   white-space: nowrap;
 }
 
@@ -267,4 +265,8 @@ a.mythic {
 .icon {
   height: 1rem;
   width: 1rem;
+}
+
+[data-original]:not(a) {
+  user-select: all;
 }
