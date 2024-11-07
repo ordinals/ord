@@ -141,6 +141,9 @@ ol, ul {
 
 .collapse {
   font-family: monospace, monospace;
+}
+
+.collapse:not(a) {
   user-select: all;
 }
 
