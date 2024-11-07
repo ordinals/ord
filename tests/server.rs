@@ -250,7 +250,7 @@ fn inscription_page() {
   <dt>id</dt>
   <dd class=monospace>{inscription}</dd>
   <dt>address</dt>
-  <dd class=monospace><a href=/address/bc1.*>bc1.*</a></dd>
+  <dd><a class=monospace href=/address/bc1.*>bc1.*</a></dd>
   <dt>value</dt>
   <dd>10000</dd>
   <dt>preview</dt>
@@ -276,7 +276,7 @@ fn inscription_page() {
   <dt>offset</dt>
   <dd>0</dd>
   <dt>ethereum teleburn address</dt>
-  <dd>{ethereum_teleburn_address}</dd>
+  <dd class=monospace>{ethereum_teleburn_address}</dd>
 </dl>.*",
     ),
   );
@@ -380,7 +380,7 @@ fn inscription_page_after_send() {
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace><a href=/address/bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</a></dd>.*<dt>location</dt>\s*<dd><a class=monospace href=/satpoint/{txid}:0:0>{txid}:0:0</a></dd>.*",
+      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd><a class=monospace href=/address/bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</a></dd>.*<dt>location</dt>\s*<dd><a class=monospace href=/satpoint/{txid}:0:0>{txid}:0:0</a></dd>.*",
     ),
   )
 }
