@@ -16,12 +16,12 @@ pub struct Output {
 }
 
 #[derive(Debug, Parser)]
-#[clap(group(
+#[clap(
+group(
   ArgGroup::new("input")
     .required(true)
-    .args(&["message", "file"]))
-)]
-#[clap(group(
+    .args(&["message", "file"])),
+group(
   ArgGroup::new("signer")
     .required(true)
     .args(&["address", "inscription", "output"]))
@@ -35,7 +35,7 @@ pub(crate) struct Sign {
   output: Option<OutPoint>,
   #[arg(long, help = "Sign <MESSAGE>.")]
   message: Option<String>,
-  #[arg(long, help = "Sign <FILE>.")]
+  #[arg(long, help = "Sign contents of <FILE>.")]
   file: Option<PathBuf>,
 }
 

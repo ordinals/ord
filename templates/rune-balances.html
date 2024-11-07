@@ -11,8 +11,8 @@
       <table>
 %% for (outpoint, balance) in balances {
         <tr>
-          <td class=monospace>
-            <a href=/output/{{ outpoint }}>{{ outpoint }}</a>
+          <td>
+            <a class=monospace href=/output/{{ outpoint }}>{{ outpoint }}</a>
           </td>
           <td class=monospace>
             {{ balance }}

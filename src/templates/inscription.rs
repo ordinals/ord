@@ -75,7 +75,7 @@ mod tests {
           <dt>offset</dt>
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
-          <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+          <dd class=monospace>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
@@ -104,7 +104,7 @@ mod tests {
         <dl>
           .*
           <dt>address</dt>
-          <dd class=monospace><a href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>
+          <dd><a class=monospace href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>
           <dt>value</dt>
           <dd>1</dd>
           .*
@@ -258,7 +258,7 @@ mod tests {
           <dt>offset</dt>
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
-          <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+          <dd class=monospace>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
 "
       .unindent()
@@ -321,7 +321,7 @@ mod tests {
           <dt>offset</dt>
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
-          <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+          <dd class=monospace>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
@@ -383,7 +383,7 @@ mod tests {
           <dt>offset</dt>
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
-          <dd>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+          <dd class=monospace>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()

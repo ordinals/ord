@@ -4,12 +4,12 @@ use {
 };
 
 #[derive(Debug, Parser)]
-#[clap(group(
+#[clap(
+group(
   ArgGroup::new("input")
     .required(true)
-    .args(&["message", "file"]))
-)]
-#[clap(group(
+    .args(&["message", "file"])),
+group(
   ArgGroup::new("signature")
     .required(true)
     .args(&["transaction", "witness"]))
@@ -19,7 +19,7 @@ pub(crate) struct Verify {
   address: Address<NetworkUnchecked>,
   #[arg(long, help = "Verify signature over <MESSAGE>.")]
   message: Option<String>,
-  #[arg(long, help = "Verify signature over <FILE>.")]
+  #[arg(long, help = "Verify signature over contents of <FILE>.")]
   file: Option<PathBuf>,
   #[arg(long, help = "Verify base64-encoded <WITNESS>.")]
   witness: Option<String>,
