@@ -139,6 +139,10 @@ ol, ul {
   text-align: center;
 }
 
+.collapse {
+  font-family: monospace, monospace;
+}
+
 .monospace {
   font-family: monospace, monospace;
 }

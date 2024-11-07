@@ -87,7 +87,7 @@ mod tests {
   #[test]
   fn test_outputs_rendering() {
     let address_html = setup();
-    let expected_pattern = r#".*<dt>outputs</dt>\n\s*<dd>\n\s*<ul>\n\s*<li><a class=monospace href=/output/1{64}:1>1{64}:1</a></li>\n\s*<li><a class=monospace href=/output/2{64}:2>2{64}:2</a></li>\n\s*</ul>\n\s*</dd>.*"#;
+    let expected_pattern = r#".*<dt>outputs</dt>\n\s*<dd>\n\s*<ul>\n\s*<li><a class=collapse href=/output/1{64}:1>1{64}:1</a></li>\n\s*<li><a class=collapse href=/output/2{64}:2>2{64}:2</a></li>\n\s*</ul>\n\s*</dd>.*"#;
     assert_regex_match!(address_html, expected_pattern);
   }
 }

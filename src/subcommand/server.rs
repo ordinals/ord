@@ -3242,9 +3242,9 @@ mod tests {
   <dt>turbo</dt>
   <dd>true</dd>
   <dt>etching</dt>
-  <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
   <dt>parent</dt>
-  <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
+  <dd><a class=collapse href=/inscription/{txid}i0>{txid}i0</a></dd>
 </dl>
 .*"
       ),
@@ -3689,7 +3689,7 @@ mod tests {
   <dd>.*</dd>
   <dt>git commit</dt>
   <dd>
-    <a class=monospace href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
+    <a class=collapse href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
       [[:xdigit:]]{40}
     </a>
   </dd>
@@ -3842,7 +3842,7 @@ mod tests {
 <dl>
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
-  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
   <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
@@ -3864,7 +3864,7 @@ mod tests {
 <dl>
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
-  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
   <dt>spent</dt><dd>false</dd>
 </dl>.*"
       ),
@@ -3887,7 +3887,7 @@ mod tests {
 <dl>
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace></dd>
-  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
   <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
@@ -3935,8 +3935,8 @@ mod tests {
       format!(
         ".*<dl>
   <dt>id</dt>
-  <dd class=monospace>{inscription_id}</dd>.*<dt>output</dt>
-  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
+  <dd class=collapse>{inscription_id}</dd>.*<dt>output</dt>
+  <dd><a class=collapse href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
       ),
     );
 
@@ -4057,7 +4057,7 @@ mod tests {
     test_server.assert_response_regex(
       "/blocks",
       StatusCode::OK,
-      ".*<ol start=96 reversed class=block-list>\n(  <li><a class=monospace href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
+      ".*<ol start=96 reversed class=block-list>\n(  <li><a class=collapse href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
     );
   }
 
@@ -4155,12 +4155,12 @@ mod tests {
 </dl>
 <h2>1 Input</h2>
 <ul>
-  <li><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
+  <li><a class=collapse href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
 </ul>
 <h2>1 Output</h2>
 <ul class=monospace>
   <li>
-    <a href=/output/{txid}:0 class=monospace>
+    <a href=/output/{txid}:0 class=collapse>
       {txid}:0
     </a>
     <dl>
@@ -5492,7 +5492,7 @@ next
       format!(
         ".*<title>Inscription 1</title>.*
 .*<dt>id</dt>
-.*<dd class=monospace>{child0}</dd>.*"
+.*<dd class=collapse>{child0}</dd>.*"
       ),
     );
 
@@ -5507,7 +5507,7 @@ next
       format!(
         ".*<title>Inscription -1</title>.*
 .*<dt>id</dt>
-.*<dd class=monospace>{child1}</dd>.*"
+.*<dd class=collapse>{child1}</dd>.*"
       ),
     );
   }
@@ -5668,7 +5668,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{inscription_id}</dd>.*"
+  <dd class=collapse>{inscription_id}</dd>.*"
       ),
     );
     server.assert_response_regex(
@@ -5678,7 +5678,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{inscription_id}</dd>.*"
+  <dd class=collapse>{inscription_id}</dd>.*"
       ),
     );
 
@@ -5689,7 +5689,7 @@ next
         ".*<h1>Inscription -1</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{cursed_inscription_id}</dd>.*"
+  <dd class=collapse>{cursed_inscription_id}</dd>.*"
       ),
     )
   }
@@ -5720,7 +5720,7 @@ next
         ".*<h1>Inscription -1</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>
     <span title=cursed>👹</span>
@@ -5759,7 +5759,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   .*
   <dt>value</dt>
   .*
@@ -5795,7 +5795,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>.*<span title=coin>🪙</span>.*</dd>
   .*
@@ -5831,7 +5831,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>.*<span title=uncommon>🌱</span>.*</dd>
   .*
@@ -5867,7 +5867,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>.*<span title=nineball>9️⃣</span>.*</dd>
   .*
@@ -5907,7 +5907,7 @@ next
         ".*<h1>Inscription -1</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>
     <span title=reinscription>♻️</span>
@@ -5971,7 +5971,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   .*
   <dt>value</dt>
   .*
@@ -6032,7 +6032,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   .*
   <dt>value</dt>
   .*
@@ -6082,7 +6082,7 @@ next
         ".*<h1>Inscription -1</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>
     <span title=cursed>👹</span>
@@ -6118,7 +6118,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   .*
   <dt>value</dt>
   <dd>5000000000</dd>
@@ -6144,7 +6144,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>
     <span title=lost>🤔</span>
@@ -6603,7 +6603,7 @@ next
         ".*<h1>Inscription 1</h1>.*
         <dl>
           <dt>id</dt>
-          <dd class=monospace>{id}</dd>
+          <dd class=collapse>{id}</dd>
           .*
           <dt>delegate</dt>
           <dd><a href=/inscription/{delegate}>{delegate}</a></dd>

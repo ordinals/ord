@@ -51,7 +51,7 @@ mod tests {
         </div>
         <dl>
           <dt>id</dt>
-          <dd class=monospace>1{64}i1</dd>
+          <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -67,15 +67,15 @@ mod tests {
           <dt>fee</dt>
           <dd>1</dd>
           <dt>reveal transaction</dt>
-          <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
+          <dd><a class=collapse href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
-          <dd><a class=monospace href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
+          <dd><a class=collapse href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
           <dt>output</dt>
-          <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
+          <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
-          <dd class=monospace>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+          <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
@@ -104,7 +104,7 @@ mod tests {
         <dl>
           .*
           <dt>address</dt>
-          <dd><a class=monospace href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>
+          <dd><a class=collapse href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>
           <dt>value</dt>
           <dd>1</dd>
           .*
@@ -194,9 +194,9 @@ mod tests {
         <dl>
           .*
           <dt>location</dt>
-          <dd><a class=monospace href=/satpoint/0{64}:0:0>0{64}:0:0</a></dd>
+          <dd><a class=collapse href=/satpoint/0{64}:0:0>0{64}:0:0</a></dd>
           <dt>output</dt>
-          <dd><a class=monospace href=/output/0{64}:0>0{64}:0</a></dd>
+          <dd><a class=collapse href=/output/0{64}:0>0{64}:0</a></dd>
           .*
         </dl>
       "
@@ -234,7 +234,7 @@ mod tests {
             </div>
           </dd>
           <dt>id</dt>
-          <dd class=monospace>1{64}i1</dd>
+          <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -250,15 +250,15 @@ mod tests {
           <dt>fee</dt>
           <dd>1</dd>
           <dt>reveal transaction</dt>
-          <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
+          <dd><a class=collapse href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
-          <dd><a class=monospace href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
+          <dd><a class=collapse href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
           <dt>output</dt>
-          <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
+          <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
-          <dd class=monospace>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+          <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
 "
       .unindent()
@@ -297,7 +297,7 @@ mod tests {
             </div>
           </dd>
           <dt>id</dt>
-          <dd class=monospace>1{64}i1</dd>
+          <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -313,15 +313,15 @@ mod tests {
           <dt>fee</dt>
           <dd>1</dd>
           <dt>reveal transaction</dt>
-          <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
+          <dd><a class=collapse href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
-          <dd><a class=monospace href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
+          <dd><a class=collapse href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
           <dt>output</dt>
-          <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
+          <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
-          <dd class=monospace>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+          <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
@@ -359,7 +359,7 @@ mod tests {
             </div>
           </dd>
           <dt>id</dt>
-          <dd class=monospace>1{64}i1</dd>
+          <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
           <dt>content</dt>
@@ -375,15 +375,15 @@ mod tests {
           <dt>fee</dt>
           <dd>1</dd>
           <dt>reveal transaction</dt>
-          <dd><a class=monospace href=/tx/1{64}>1{64}</a></dd>
+          <dd><a class=collapse href=/tx/1{64}>1{64}</a></dd>
           <dt>location</dt>
-          <dd><a class=monospace href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
+          <dd><a class=collapse href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>
           <dt>output</dt>
-          <dd><a class=monospace href=/output/1{64}:1>1{64}:1</a></dd>
+          <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
           <dt>ethereum teleburn address</dt>
-          <dd class=monospace>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+          <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
