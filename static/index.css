@@ -141,6 +141,7 @@ ol, ul {
 
 .collapse {
   font-family: monospace, monospace;
+  user-select: all;
 }
 
 .monospace {
@@ -269,8 +270,4 @@ a.mythic {
 .icon {
   height: 1rem;
   width: 1rem;
-}
-
-[data-original]:not(a) {
-  user-select: all;
 }
