@@ -36,14 +36,13 @@ addEventListener("DOMContentLoaded", () => {
 
   let collapse = document.getElementsByClassName('collapse');
 
-  for (let node of collapse) {
-    node.dataset.original = node.textContent.trim();
-  }
-
   let context = document.createElement('canvas').getContext('2d');
 
   function resize() {
     for (let node of collapse) {
+      if (!('original' in node.dataset)) {
+        node.dataset.original = node.textContent.trim();
+      }
       let original = node.dataset.original;
       let length = original.length;
       let width = node.clientWidth;
