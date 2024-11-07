@@ -41,9 +41,9 @@ next
 </div>
 %% }
 <h2>{{"Transaction".tally(self.block.txdata.len())}}</h2>
-<ul class=monospace>
+<ul>
 %% for tx in &self.block.txdata {
 %% let txid = tx.txid();
-  <li><a href=/tx/{{txid}}>{{txid}}</a></li>
+  <li><a class=monospace href=/tx/{{txid}}>{{txid}}</a></li>
 %% }
 </ul>

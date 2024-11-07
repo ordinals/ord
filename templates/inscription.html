@@ -64,7 +64,7 @@
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
   <dt>address</dt>
-  <dd class=monospace><a href=/address/{{address}}>{{ address }}</a></dd>
+  <dd><a class=monospace href=/address/{{address}}>{{ address }}</a></dd>
 %% }
   <dt>value</dt>
   <dd>{{ output.value.to_sat() }}</dd>
@@ -116,5 +116,5 @@
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
   <dt>ethereum teleburn address</dt>
-  <dd>{{ teleburn::Ethereum::from(self.id) }}</dd>
+  <dd class=monospace>{{ teleburn::Ethereum::from(self.id) }}</dd>
 </dl>

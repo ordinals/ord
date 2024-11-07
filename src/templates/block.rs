@@ -73,8 +73,8 @@ mod tests {
         <div class=thumbnails>
         </div>
         <h2>1 Transaction</h2>
-        <ul class=monospace>
-          <li><a href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
+        <ul>
+          <li><a class=monospace href=/tx/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>
         </ul>
       "
       .unindent()
