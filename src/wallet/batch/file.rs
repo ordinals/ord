@@ -36,7 +36,7 @@ impl File {
 
     if sat_or_satpoint {
       ensure!(
-        batchfile.mode == Mode::SameSat,
+        batchfile.mode != Mode::SameSat,
         "neither `sat` nor `satpoint` can be set in `same-sat` mode",
       );
     }
