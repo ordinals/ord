@@ -21,7 +21,7 @@ pub(crate) struct Sign {
   address: Address<NetworkUnchecked>,
   #[arg(long, help = "Sign <MESSAGE>.")]
   message: Option<String>,
-  #[arg(long, help = "Sign <FILE>.")]
+  #[arg(long, help = "Sign contents of <FILE>.")]
   file: Option<PathBuf>,
 }
 
