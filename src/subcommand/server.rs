@@ -3689,7 +3689,7 @@ mod tests {
   <dd>.*</dd>
   <dt>git commit</dt>
   <dd>
-    <a href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
+    <a class=monospace href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
       [[:xdigit:]]{40}
     </a>
   </dd>
@@ -4057,7 +4057,7 @@ mod tests {
     test_server.assert_response_regex(
       "/blocks",
       StatusCode::OK,
-      ".*<ol start=96 reversed class=block-list>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
+      ".*<ol start=96 reversed class=block-list>\n(  <li><a class=monospace href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
     );
   }
 
