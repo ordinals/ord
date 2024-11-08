@@ -44,7 +44,7 @@
   <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>
 %% }
   <dt>id</dt>
-  <dd class=monospace>{{ self.id }}</dd>
+  <dd class=collapse>{{ self.id }}</dd>
 %% if self.charms != 0 {
   <dt>charms</dt>
   <dd>
@@ -64,7 +64,7 @@
 %% if let Some(output) = &self.output {
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey ) {
   <dt>address</dt>
-  <dd><a class=monospace href=/address/{{address}}>{{ address }}</a></dd>
+  <dd><a class=collapse href=/address/{{address}}>{{ address }}</a></dd>
 %% }
   <dt>value</dt>
   <dd>{{ output.value.to_sat() }}</dd>
@@ -108,13 +108,13 @@
   <dt>fee</dt>
   <dd>{{ self.fee }}</dd>
   <dt>reveal transaction</dt>
-  <dd><a class=monospace href=/tx/{{ self.id.txid }}>{{ self.id.txid }}</a></dd>
+  <dd><a class=collapse href=/tx/{{ self.id.txid }}>{{ self.id.txid }}</a></dd>
   <dt>location</dt>
-  <dd><a class=monospace href=/satpoint/{{ self.satpoint }}>{{ self.satpoint }}</a></dd>
+  <dd><a class=collapse href=/satpoint/{{ self.satpoint }}>{{ self.satpoint }}</a></dd>
   <dt>output</dt>
-  <dd><a class=monospace href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
+  <dd><a class=collapse href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
   <dt>ethereum teleburn address</dt>
-  <dd class=monospace>{{ teleburn::Ethereum::from(self.id) }}</dd>
+  <dd class=collapse>{{ teleburn::Ethereum::from(self.id) }}</dd>
 </dl>

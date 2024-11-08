@@ -139,6 +139,14 @@ ol, ul {
   text-align: center;
 }
 
+.collapse {
+  font-family: monospace, monospace;
+}
+
+.collapse:not(a) {
+  user-select: all;
+}
+
 .monospace {
   font-family: monospace, monospace;
 }
@@ -265,8 +273,4 @@ a.mythic {
 .icon {
   height: 1rem;
   width: 1rem;
-}
-
-[data-original]:not(a) {
-  user-select: all;
 }

@@ -368,9 +368,9 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   <dt>turbo</dt>
   <dd>{turbo}</dd>
   <dt>etching</dt>
-  <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
+  <dd><a class=collapse href=/tx/{reveal}>{reveal}</a></dd>
   <dt>parent</dt>
-  <dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>
+  <dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>
 .*",
       mint_definition.join("\\s+"),
     ),
