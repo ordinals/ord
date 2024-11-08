@@ -54,6 +54,29 @@ enum SpawnConfig {
 }
 
 #[derive(Deserialize)]
+pub(crate) struct OutputsQuery {
+  cardinal: Option<bool>,
+  inscribed: Option<bool>,
+  runic: Option<bool>,
+}
+
+impl OutputsQuery {
+  fn validate(&self) -> Result<(bool, bool, bool)> {
+    let filters = [
+      self.cardinal.unwrap_or(false),
+      self.inscribed.unwrap_or(false),
+      self.runic.unwrap_or(false),
+    ];
+
+    if filters.iter().map(|&x| x as usize).sum::<usize>() <= 1 {
+      Ok((filters[0], filters[1], filters[2]))
+    } else {
+      Err(anyhow!("Only one query parameter can be set at a time"))
+    }
+  }
+}
+
+#[derive(Deserialize)]
 struct Search {
   query: String,
 }
@@ -205,6 +228,7 @@ impl Server {
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/outputs", post(Self::outputs))
+        .route("/outputs/:address", get(Self::outputs_address))
         .route("/parents/:inscription_id", get(Self::parents))
         .route(
           "/parents/:inscription_id/:page",
@@ -657,6 +681,60 @@ impl Server {
       Ok(if accept_json {
         let mut response = Vec::new();
         for outpoint in outputs {
+          let (output_info, _) = index
+            .get_output_info(outpoint)?
+            .ok_or_not_found(|| format!("output {outpoint}"))?;
+
+          response.push(output_info);
+        }
+        Json(response).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
+    })
+  }
+
+  async fn outputs_address(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Path(address): Path<Address<NetworkUnchecked>>,
+    Query(query): Query<OutputsQuery>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        let filter = query.validate()?;
+
+        let address = address
+          .require_network(server_config.chain.network())
+          .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+        let outputs = index.get_address_info(&address)?;
+
+        let filtered: Vec<OutPoint> = outputs
+          .into_iter()
+          .filter(|output| {
+            let inscribed = index
+              .get_inscriptions_on_output_with_satpoints(*output)
+              .map(|inscriptions| !inscriptions.is_empty())
+              .unwrap_or(false);
+
+            let runic = index
+              .get_rune_balances_for_output(*output)
+              .map(|runes| !runes.is_empty())
+              .unwrap_or(false);
+
+            match filter {
+              (true, _, _) => !inscribed && !runic,
+              (_, true, _) => inscribed,
+              (_, _, true) => runic,
+              (false, false, false) => true,
+            }
+          })
+          .collect();
+
+        let mut response = Vec::new();
+        for outpoint in filtered {
           let (output_info, _) = index
             .get_output_info(outpoint)?
             .ok_or_not_found(|| format!("output {outpoint}"))?;
