@@ -1866,13 +1866,280 @@ Get all UTXOs for an &lt;ADDRESS&gt;
 ### Example
 
 ```bash
-curl -s -X GET \
+curl -s \
   -H "Accept: application/json" \
-  http://0.0.0.0:80/outputs/bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf \
-  -d type=cardinal
+  http://0.0.0.0:80/outputs/bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf\?type=cardinal
 ```
 ```json
-
+[
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "0ab5f271786279b07fcf2abba628a25393f7c7d2ebe7763f69c0cc2616166002:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        180764665173096,
+        180764665319961
+      ],
+      [
+        1270110255166739,
+        1270110255173122
+      ],
+      [
+        1644488886231429,
+        1644488886240710
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "0ab5f271786279b07fcf2abba628a25393f7c7d2ebe7763f69c0cc2616166002",
+    "value": 162529
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "05958cf1d8829908b31f8f06648e7431530ec0b3c23161edde96cc12d1569e0c:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        1282935330091037,
+        1282935330111037
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "05958cf1d8829908b31f8f06648e7431530ec0b3c23161edde96cc12d1569e0c",
+    "value": 20000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "1bfba6407887dde06908522314c08b11f41178c685d769491af2ff832a43cf1e:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        1638658743854326,
+        1638658743864326
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "1bfba6407887dde06908522314c08b11f41178c685d769491af2ff832a43cf1e",
+    "value": 10000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "f2eec8cde7f5918083a0ba5f33d7a2fa2166715453a8b607cb2e8e383bc54924:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        1939624408631788,
+        1939624408636788
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "f2eec8cde7f5918083a0ba5f33d7a2fa2166715453a8b607cb2e8e383bc54924",
+    "value": 5000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "48498fbe507554997e9cc0bd0589ef5fcd4b4247bc5b2e4bbf03c7bd80203536:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        717840972185696,
+        717840972205696
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "48498fbe507554997e9cc0bd0589ef5fcd4b4247bc5b2e4bbf03c7bd80203536",
+    "value": 20000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "f93ef7c817f047789fea67445a0aa71a591a94978fc461d26446ea18eba4c04e:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        1653676972430614,
+        1653676972440614
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "f93ef7c817f047789fea67445a0aa71a591a94978fc461d26446ea18eba4c04e",
+    "value": 10000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "f322c41aabf4cedce739d1004dadf7520119be35d80aeba147da949f44b4a864:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        583288620839811,
+        583288620840411
+      ],
+      [
+        1573706199681212,
+        1573706199690612
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "f322c41aabf4cedce739d1004dadf7520119be35d80aeba147da949f44b4a864",
+    "value": 10000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "841227f14e7abbf180a2066f1e0b60b704ac45ae8b85cf6bca09f78aa3b2cf7f:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        1597011131774167,
+        1597011131781678
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "841227f14e7abbf180a2066f1e0b60b704ac45ae8b85cf6bca09f78aa3b2cf7f",
+    "value": 7511
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "9fad7c1ee8d5d80a7728a9b46a0b9492b0a24d3036af521b5c166008a7bbc491:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        1625885894144184,
+        1625885894154184
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "9fad7c1ee8d5d80a7728a9b46a0b9492b0a24d3036af521b5c166008a7bbc491",
+    "value": 10000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "0035990b8f0ced715172e94fad0e9a46bf392310b96cbfb2c50f77b383e74096:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        577060628702527,
+        577060628712527
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "0035990b8f0ced715172e94fad0e9a46bf392310b96cbfb2c50f77b383e74096",
+    "value": 10000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "ee84ebece5724e798c3f3fec6335641a4d70750713e55ebcdd8df875273cefa8:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        577060628712527,
+        577060628722527
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "ee84ebece5724e798c3f3fec6335641a4d70750713e55ebcdd8df875273cefa8",
+    "value": 10000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "bb78958b6ab18ffcfe0f2aceb64fc0f94bf7215cd99dcada2ffc36a4df1e62b0:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        1901145610689130,
+        1901145610690130
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "bb78958b6ab18ffcfe0f2aceb64fc0f94bf7215cd99dcada2ffc36a4df1e62b0",
+    "value": 1000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "1410c612867f1a998ce9b53875dc978af942e0ed83d27d981e8276f4a3c60db4:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        1128389246878244,
+        1128389246978244
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "1410c612867f1a998ce9b53875dc978af942e0ed83d27d981e8276f4a3c60db4",
+    "value": 100000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "4b26b2f1b6c5e2bc9b357e7e6a0745fa43795d622318cf2c77993394e11e30bb:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        1473651158466228,
+        1473651158624228
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "4b26b2f1b6c5e2bc9b357e7e6a0745fa43795d622318cf2c77993394e11e30bb",
+    "value": 158000
+  },
+  {
+    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "15b3fb3e8cf38a92ad5d1584eec1cba74a6e16b620836ff99feb42bc0a4facbb:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        577060628732527,
+        577060628742527
+      ]
+    ],
+    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "spent": false,
+    "transaction": "15b3fb3e8cf38a92ad5d1584eec1cba74a6e16b620836ff99feb42bc0a4facbb",
+    "value": 10000
+  }
+]
 ```
 </details>
 
@@ -1924,7 +2191,7 @@ curl -s -H "Accept: application/json" \
     "mintable": true,
     "parent": null
   }
-  ```
+```
 </details>
 
 <details>
