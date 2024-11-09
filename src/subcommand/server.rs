@@ -427,8 +427,6 @@ impl Server {
   fn acme_domains(&self) -> Result<Vec<String>> {
     if !self.acme_domain.is_empty() {
       Ok(self.acme_domain.clone())
-    } else if cfg!(test) {
-      Ok(vec!["ordinals.com".into()])
     } else {
       Ok(vec![
         System::host_name().ok_or(anyhow!("no hostname found"))?
@@ -2495,6 +2493,7 @@ mod tests {
         content,
         Arc::new(ServerConfig {
           chain: Chain::Regtest,
+          domain: Some(System::host_name().unwrap()),
           ..ServerConfig::default()
         }),
       )
