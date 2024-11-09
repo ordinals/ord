@@ -55,7 +55,8 @@ enum SpawnConfig {
 
 #[derive(Deserialize)]
 pub(crate) struct OutputsQuery {
-  pub(crate) r#type: Option<Type>,
+  #[serde(rename = "type")]
+  pub(crate) ty: Option<Type>,
 }
 
 #[derive(Clone, Copy, Deserialize, Default)]
@@ -701,7 +702,7 @@ impl Server {
       }
 
       Ok(if accept_json {
-        let utxo_type = query.r#type.unwrap_or_default();
+        let utxo_type = query.ty.unwrap_or_default();
 
         let address = address
           .require_network(server_config.chain.network())
