@@ -56,22 +56,33 @@ enum SpawnConfig {
 #[derive(Deserialize)]
 pub(crate) struct OutputsQuery {
   cardinal: Option<bool>,
-  inscribed: Option<bool>,
+  ordinal: Option<bool>,
   runic: Option<bool>,
 }
 
-impl OutputsQuery {
-  fn validate(&self) -> Result<(bool, bool, bool)> {
-    let filters = [
-      self.cardinal.unwrap_or(false),
-      self.inscribed.unwrap_or(false),
-      self.runic.unwrap_or(false),
-    ];
+#[derive(Clone, Copy)]
+enum Utxo {
+  Any,
+  Cardinal,
+  Ordinal,
+  Runic,
+}
 
-    if filters.iter().map(|&x| x as usize).sum::<usize>() <= 1 {
-      Ok((filters[0], filters[1], filters[2]))
-    } else {
-      Err(anyhow!("Only one query parameter can be set at a time"))
+impl OutputsQuery {
+  fn validate(&self) -> Result<Utxo> {
+    let filters = [
+      (self.cardinal, Utxo::Cardinal),
+      (self.ordinal, Utxo::Ordinal),
+      (self.runic, Utxo::Runic),
+    ]
+    .into_iter()
+    .filter_map(|(opt, utxo)| opt.filter(|&b| b).map(|_| utxo))
+    .collect::<Vec<_>>();
+
+    match filters.len() {
+      0 => Ok(Utxo::Any),
+      1 => Ok(filters[0]),
+      _ => Err(anyhow!("Only one or none query parameters can be set")),
     }
   }
 }
@@ -703,7 +714,7 @@ impl Server {
   ) -> ServerResult {
     task::block_in_place(|| {
       Ok(if accept_json {
-        let filter = query.validate()?;
+        let utxo_type = query.validate()?;
 
         let address = address
           .require_network(server_config.chain.network())
@@ -724,11 +735,11 @@ impl Server {
               .map(|runes| !runes.is_empty())
               .unwrap_or(false);
 
-            match filter {
-              (true, _, _) => !inscribed && !runic,
-              (_, true, _) => inscribed,
-              (_, _, true) => runic,
-              (false, false, false) => true,
+            match utxo_type {
+              Utxo::Any => true,
+              Utxo::Cardinal => !inscribed && !runic,
+              Utxo::Ordinal => inscribed,
+              Utxo::Runic => runic,
             }
           })
           .collect();
