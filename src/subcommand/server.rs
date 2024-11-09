@@ -2494,7 +2494,7 @@ mod tests {
         Arc::new(ServerConfig {
           chain: Chain::Regtest,
           domain: Some(System::host_name().unwrap()),
-          ..ServerConfig::default()
+          ..Default::default()
         }),
       )
       .to_string();
