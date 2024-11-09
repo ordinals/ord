@@ -484,7 +484,7 @@ impl Plan {
 
       ensure!(
         self.no_limit || script_pubkey.len() <= MAX_STANDARD_OP_RETURN_SIZE,
-        "runestone greater than maximum OP_RETURN size: {} > {} ",
+        "runestone greater than maximum OP_RETURN size: {} > {}",
         script_pubkey.len(),
         MAX_STANDARD_OP_RETURN_SIZE,
       );
