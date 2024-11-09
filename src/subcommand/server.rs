@@ -727,27 +727,25 @@ impl Server {
 
       let outputs = index.get_address_info(&address)?;
 
-      let filtered: Vec<OutPoint> = outputs
-        .into_iter()
-        .filter(|output| {
-          let inscribed = index
-            .get_inscriptions_on_output_with_satpoints(*output)
-            .map(|inscriptions| !inscriptions.is_empty())
-            .unwrap_or(false);
+      let mut filtered = Vec::new();
+      for output in outputs.into_iter() {
+        let inscribed = !index
+          .get_inscriptions_on_output_with_satpoints(output)?
+          .is_empty();
 
-          let runic = index
-            .get_rune_balances_for_output(*output)
-            .map(|runes| !runes.is_empty())
-            .unwrap_or(false);
+        let runic = !index.get_rune_balances_for_output(output)?.is_empty();
 
-          match output_type {
-            OutputType::Any => true,
-            OutputType::Cardinal => !inscribed && !runic,
-            OutputType::Inscribed => inscribed,
-            OutputType::Runic => runic,
-          }
-        })
-        .collect();
+        let include = match output_type {
+          OutputType::Any => true,
+          OutputType::Cardinal => !inscribed && !runic,
+          OutputType::Inscribed => inscribed,
+          OutputType::Runic => runic,
+        };
+
+        if include {
+          filtered.push(output);
+        }
+      }
 
       let mut response = Vec::new();
       for outpoint in filtered {
