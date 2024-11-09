@@ -4,20 +4,30 @@ use {super::*, bitcoin::opcodes};
 pub struct Burn {
   #[arg(
     long,
-    help = "Include CBOR in file at <METADATA> in OP_RETURN.",
-    conflicts_with = "json_metadata"
+    conflicts_with = "json_metadata",
+    help = "Include CBOR from <PATH> in OP_RETURN.",
+    value_name = "PATH"
   )]
-  pub(crate) cbor_metadata: Option<PathBuf>,
+  cbor_metadata: Option<PathBuf>,
   #[arg(long, help = "Don't sign or broadcast transaction.")]
   dry_run: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB.")]
   fee_rate: FeeRate,
   #[arg(
     long,
-    help = "Include JSON in file at <METADATA> converted to CBOR in OP_RETURN.",
-    conflicts_with = "cbor_metadata"
+    help = "Include JSON from <PATH> converted to CBOR in OP_RETURN.",
+    conflicts_with = "cbor_metadata",
+    value_name = "PATH"
   )]
-  pub(crate) json_metadata: Option<PathBuf>,
+  json_metadata: Option<PathBuf>,
+  #[arg(
+    long,
+    alias = "nolimit",
+    help = "Allow OP_RETURN greater than 83 bytes. Transactions over this limit are nonstandard \
+    and will not be relayed by bitcoind in its default configuration. Do not use this flag unless \
+    you understand the implications."
+  )]
+  no_limit: bool,
   #[arg(
     long,
     help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]",
@@ -41,8 +51,10 @@ impl Burn {
       bail!("Cannot burn unbound inscription");
     };
 
+    let value = Amount::from_sat(value);
+
     ensure! {
-      value <= TARGET_POSTAGE.to_sat(),
+      value <= TARGET_POSTAGE,
       "Cannot burn inscription contained in UTXO exceeding {TARGET_POSTAGE}",
     }
 
@@ -51,12 +63,34 @@ impl Burn {
       "Postage may not exceed {TARGET_POSTAGE}",
     }
 
+    let mut builder = script::Builder::new().push_opcode(opcodes::all::OP_RETURN);
+
+    if let Some(metadata) = metadata {
+      let push: &script::PushBytes = metadata.as_slice().try_into().with_context(|| {
+        format!(
+          "metadata length {} over maximum {}",
+          metadata.len(),
+          u32::MAX
+        )
+      })?;
+      builder = builder.push_slice(push);
+    }
+
+    let script_pubkey = builder.into_script();
+
+    ensure!(
+      self.no_limit || script_pubkey.len() <= MAX_STANDARD_OP_RETURN_SIZE,
+      "OP_RETURN with metadata larger than maximum: {} > {}",
+      script_pubkey.len(),
+      MAX_STANDARD_OP_RETURN_SIZE,
+    );
+
     let unsigned_transaction = Self::create_unsigned_burn_transaction(
       &wallet,
       inscription_info.satpoint,
       self.postage,
       self.fee_rate,
-      metadata,
+      script_pubkey,
     )?;
 
     let (txid, psbt, fee) =
@@ -75,7 +109,7 @@ impl Burn {
     satpoint: SatPoint,
     postage: Option<Amount>,
     fee_rate: FeeRate,
-    metadata: Option<Vec<u8>>,
+    script_pubkey: ScriptBuf,
   ) -> Result<Transaction> {
     let runic_outputs = wallet.get_runic_outputs()?;
 
@@ -88,19 +122,6 @@ impl Burn {
 
     let postage = postage.map(Target::ExactPostage).unwrap_or(Target::Postage);
 
-    let mut builder = script::Builder::new().push_opcode(opcodes::all::OP_RETURN);
-
-    if let Some(metadata) = metadata {
-      let push: &script::PushBytes = metadata.as_slice().try_into().with_context(|| {
-        format!(
-          "metadata length {} over maximum {}",
-          metadata.len(),
-          u32::MAX
-        )
-      })?;
-      builder = builder.push_slice(push);
-    }
-
     Ok(
       TransactionBuilder::new(
         satpoint,
@@ -108,7 +129,7 @@ impl Burn {
         wallet.utxos().clone(),
         wallet.locked_utxos().clone().into_keys().collect(),
         runic_outputs,
-        builder.into_script(),
+        script_pubkey,
         change,
         fee_rate,
         postage,

@@ -343,7 +343,34 @@ fn cbor_and_json_metadata_flags_conflict() {
   ))
   .core(&core)
   .ord(&ord)
-  .stderr_regex("error: the argument '--cbor-metadata <CBOR_METADATA>' cannot be used with '--json-metadata <JSON_METADATA>'.*")
+  .stderr_regex(
+    "error: the argument '--cbor-metadata <PATH>' cannot be used with '--json-metadata <PATH>'.*",
+  )
   .expected_exit_code(2)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn oversize_metadata_requires_no_limit_flag() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "wallet burn --fee-rate 1 {inscription} --json-metadata metadata.json"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .write("metadata.json", format!("\"{}\"", "0".repeat(79)))
+  .stderr_regex("error: OP_RETURN with metadata larger than maximum: 84 > 83\n")
+  .expected_exit_code(1)
   .run_and_extract_stdout();
 }
