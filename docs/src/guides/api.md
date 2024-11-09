@@ -1869,6 +1869,7 @@ Get UTXOs held by &lt;ADDRESS&gt;.
 curl -s -H "Accept: application/json" \
   "http://0.0.0.0:80/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
 ```
+
 ```json
 [
   {
