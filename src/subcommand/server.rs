@@ -76,8 +76,8 @@ impl OutputsQuery {
       (self.runic, Utxo::Runic),
     ]
     .into_iter()
-    .filter_map(|(opt, utxo)| opt.filter(|&b| b).map(|_| utxo))
-    .collect::<Vec<_>>();
+    .filter_map(|(param, utxo_type)| matches!(param, Some(true)).then_some(utxo_type))
+    .collect::<Vec<Utxo>>();
 
     match filters.len() {
       0 => Ok(Utxo::Any),
