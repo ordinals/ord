@@ -1842,6 +1842,42 @@ curl -s -X POST \
 </details>
 
 <details>
+ <summary>
+    <code>GET</code>
+    <code><b>/outputs/&lt;ADDRESS&gt;</b></code>
+ </summary>
+
+### Description
+
+Get all UTXOs for an &lt;ADDRESS&gt;
+
+### Query Parameters (optional)
+
+#### `type`
+
+`any`: UTXOs containing any type of asset
+
+`cardinal`: UTXOs containing only BTC
+
+`ordinal`: UTXOs containing inscriptions
+
+`runic`: UTXOs containing runes
+
+### Example
+
+```bash
+curl -s -X GET \
+  -H "Accept: application/json" \
+  http://0.0.0.0:80/outputs/bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf \
+  -d type=cardinal
+```
+```json
+
+```
+</details>
+
+
+<details>
 <summary>
 <code>GET</code>
 <code><b>/rune/&lt;RUNE&gt;</b></code>

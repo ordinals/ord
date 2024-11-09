@@ -55,36 +55,17 @@ enum SpawnConfig {
 
 #[derive(Deserialize)]
 pub(crate) struct OutputsQuery {
-  cardinal: Option<bool>,
-  ordinal: Option<bool>,
-  runic: Option<bool>,
+  pub(crate) r#type: Option<Type>,
 }
 
-#[derive(Clone, Copy)]
-enum Utxo {
+#[derive(Clone, Copy, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub(crate) enum Type {
+  #[default]
   Any,
   Cardinal,
   Ordinal,
   Runic,
-}
-
-impl OutputsQuery {
-  fn validate(&self) -> Result<Utxo> {
-    let filters = [
-      (self.cardinal, Utxo::Cardinal),
-      (self.ordinal, Utxo::Ordinal),
-      (self.runic, Utxo::Runic),
-    ]
-    .into_iter()
-    .filter_map(|(param, utxo_type)| matches!(param, Some(true)).then_some(utxo_type))
-    .collect::<Vec<Utxo>>();
-
-    match filters.len() {
-      0 => Ok(Utxo::Any),
-      1 => Ok(filters[0]),
-      _ => Err(anyhow!("Only one or none query parameters can be set")),
-    }
-  }
 }
 
 #[derive(Deserialize)]
@@ -713,8 +694,14 @@ impl Server {
     Query(query): Query<OutputsQuery>,
   ) -> ServerResult {
     task::block_in_place(|| {
+      if !index.has_address_index() {
+        return Err(ServerError::NotFound(
+          "this server has no address index".to_string(),
+        ));
+      }
+
       Ok(if accept_json {
-        let utxo_type = query.validate()?;
+        let utxo_type = query.r#type.unwrap_or_default();
 
         let address = address
           .require_network(server_config.chain.network())
@@ -736,10 +723,10 @@ impl Server {
               .unwrap_or(false);
 
             match utxo_type {
-              Utxo::Any => true,
-              Utxo::Cardinal => !inscribed && !runic,
-              Utxo::Ordinal => inscribed,
-              Utxo::Runic => runic,
+              Type::Any => true,
+              Type::Cardinal => !inscribed && !runic,
+              Type::Ordinal => inscribed,
+              Type::Runic => runic,
             }
           })
           .collect();
