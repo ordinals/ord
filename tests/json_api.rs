@@ -691,7 +691,7 @@ fn get_decode_tx() {
 }
 
 #[test]
-fn address_cardinals_ordinals_runes_api() {
+fn outputs_address() {
   let core = mockcore::builder().network(Network::Regtest).build();
   let ord =
     TestServer::spawn_with_args(&core, &["--index-runes", "--index-addresses", "--regtest"]);
@@ -840,4 +840,28 @@ fn address_cardinals_ordinals_runes_api() {
       value: 9901,
     }]
   );
+
+  let any: Vec<api::Output> = serde_json::from_str(
+    &ord
+      .json_request(format!("/outputs/{}?type=any", address))
+      .text()
+      .unwrap(),
+  )
+  .unwrap();
+
+  let default: Vec<api::Output> = serde_json::from_str(
+    &ord
+      .json_request(format!("/outputs/{}", address))
+      .text()
+      .unwrap(),
+  )
+  .unwrap();
+
+  assert_eq!(any.len(), 3);
+  assert!(any.iter().any(|output| output.runes.len() == 1));
+  assert!(any.iter().any(|output| output.inscriptions.len() == 1));
+  assert!(any
+    .iter()
+    .any(|output| output.inscriptions.len() == 0 && output.runes.len() == 0));
+  assert_eq!(any, default);
 }
