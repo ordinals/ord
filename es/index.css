@@ -1,3 +1,7 @@
+table {
+  float: left;
+}
+
 #language-list {
   left: auto;
   right: 10px;

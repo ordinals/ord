@@ -29,7 +29,7 @@
         <link rel="stylesheet" href="../ayu-highlight.css">
 
         <!-- Custom theme stylesheets -->
-        <link rel="stylesheet" href="../language-picker.css">
+        <link rel="stylesheet" href="../index.css">
 
     </head>
     <body class="sidebar-visible no-js">
@@ -282,7 +282,7 @@
     <code><b>/content/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 <h3 id="description"><a class="header" href="#description">Description</a></h3>
-<p>The content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code></p>
+<p>The content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code>.</p>
 <h3 id="उदाहरण"><a class="header" href="#उदाहरण">उदाहरण</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 &gt; skull.jpg
@@ -2004,7 +2004,8 @@
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions/9
 </code></pre>
-<pre><code class="language-json{">  "children": [
+<pre><code class="language-json">{
+  "children": [
     {
       "charms": [
         "vindicated"
