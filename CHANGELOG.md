@@ -1,6 +1,28 @@
 Changelog
 =========
 
+[0.21.3](https://github.com/ordinals/ord/releases/tag/0.21.3) - 2024-11-09
+--------------------------------------------------------------------------
+
+### Added
+- Get output information by address (#4056)
+- Allow including metadata when burning inscriptions (#4045)
+- BIP322 sign file (#4026)
+- Add `ord wallet split` command for splitting utxos (#4030)
+- Allow fallback for satpoints and addresses (#4033)
+
+### Changed
+- Do not chunk runestone data pushes (#4036)
+- Rescan wallet on restore (#4041)
+
+### Misc
+- Add assert_html function (#4058)
+- Identify collapsible nodes with class=collapse (#4055)
+- Collapse long strings in HTML (#4053)
+- Add simple taproot HD wallet to mockcore (#4038)
+- Hide image preview and thumbnail scrollbars (#4042)
+- Un-pin redb dependency and update to 2.2.0 (#4032)
+
 [0.21.2](https://github.com/ordinals/ord/releases/tag/0.21.2) - 2024-10-26
 --------------------------------------------------------------------------
 
