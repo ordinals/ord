@@ -243,27 +243,45 @@ fn json_metadata_can_be_included_when_burning() {
 
   core.mine_blocks(1);
 
-  ord.assert_response_regex(
+  let script_pubkey = script::Builder::new()
+    .push_opcode(opcodes::all::OP_RETURN)
+    .push_slice(
+      <&script::PushBytes>::try_from(&[
+        0xA2, 0x63, b'f', b'o', b'o', 0x63, b'b', b'a', b'r', 0x63, b'b', b'a', b'z', 0x01,
+      ])
+      .unwrap(),
+    )
+    .into_script();
+
+  ord.assert_html(
     format!("/inscription/{inscription}"),
-    ".*<h1>Inscription 0</h1>.*<dl>.*
-  <dt>charms</dt>
-  <dd>
-    <span title=burned>🔥</span>
-  </dd>
-  <dt>burn metadata</dt>
-  <dd>
-    <dl><dt>foo</dt><dd>bar</dd><dt>baz</dt><dd>1</dd></dl>
-  </dd>
-  <dt>value</dt>
-  <dd>9907</dd>
-  .*
-  <dt>content length</dt>
-  <dd>3 bytes</dd>
-  <dt>content type</dt>
-  <dd>text/plain;charset=utf-8</dd>
-  .*
-</dl>
-.*",
+    Chain::Mainnet,
+    InscriptionHtml {
+      charms: Charm::Burned.flag(),
+      fee: 138,
+      id: inscription,
+      output: Some(TxOut {
+        value: Amount::from_sat(9907),
+        script_pubkey,
+      }),
+      height: 3,
+      inscription: Inscription {
+        content_type: Some("text/plain;charset=utf-8".as_bytes().into()),
+        body: Some("foo".as_bytes().into()),
+        ..default()
+      },
+      satpoint: SatPoint {
+        outpoint: OutPoint {
+          txid: output.txid,
+          vout: 0,
+        },
+        offset: 0,
+      },
+      timestamp: "1970-01-01 00:00:03+00:00"
+        .parse::<DateTime<Utc>>()
+        .unwrap(),
+      ..default()
+    },
   );
 }
 
@@ -281,17 +299,16 @@ fn cbor_metadata_can_be_included_when_burning() {
 
   core.mine_blocks(1);
 
+  let metadata = [
+    0xA2, 0x63, b'f', b'o', b'o', 0x63, b'b', b'a', b'r', 0x63, b'b', b'a', b'z', 0x01,
+  ];
+
   let output = CommandBuilder::new(format!(
     "wallet burn --fee-rate 1 {inscription} --cbor-metadata metadata.cbor"
   ))
   .core(&core)
   .ord(&ord)
-  .write(
-    "metadata.cbor",
-    [
-      0xA2, 0x63, b'f', b'o', b'o', 0x63, b'b', b'a', b'r', 0x63, b'b', b'a', b'z', 0x01,
-    ],
-  )
+  .write("metadata.cbor", metadata)
   .stdout_regex(r".*")
   .run_and_deserialize_output::<Send>();
 
@@ -300,27 +317,40 @@ fn cbor_metadata_can_be_included_when_burning() {
 
   core.mine_blocks(1);
 
-  ord.assert_response_regex(
+  let script_pubkey = script::Builder::new()
+    .push_opcode(opcodes::all::OP_RETURN)
+    .push_slice(<&script::PushBytes>::try_from(&metadata).unwrap())
+    .into_script();
+
+  ord.assert_html(
     format!("/inscription/{inscription}"),
-    ".*<h1>Inscription 0</h1>.*<dl>.*
-  <dt>charms</dt>
-  <dd>
-    <span title=burned>🔥</span>
-  </dd>
-  <dt>burn metadata</dt>
-  <dd>
-    <dl><dt>foo</dt><dd>bar</dd><dt>baz</dt><dd>1</dd></dl>
-  </dd>
-  <dt>value</dt>
-  <dd>9907</dd>
-  .*
-  <dt>content length</dt>
-  <dd>3 bytes</dd>
-  <dt>content type</dt>
-  <dd>text/plain;charset=utf-8</dd>
-  .*
-</dl>
-.*",
+    Chain::Mainnet,
+    InscriptionHtml {
+      charms: Charm::Burned.flag(),
+      fee: 138,
+      id: inscription,
+      output: Some(TxOut {
+        value: Amount::from_sat(9907),
+        script_pubkey,
+      }),
+      height: 3,
+      inscription: Inscription {
+        content_type: Some("text/plain;charset=utf-8".as_bytes().into()),
+        body: Some("foo".as_bytes().into()),
+        ..default()
+      },
+      satpoint: SatPoint {
+        outpoint: OutPoint {
+          txid: output.txid,
+          vout: 0,
+        },
+        offset: 0,
+      },
+      timestamp: "1970-01-01 00:00:03+00:00"
+        .parse::<DateTime<Utc>>()
+        .unwrap(),
+      ..default()
+    },
   );
 }
 

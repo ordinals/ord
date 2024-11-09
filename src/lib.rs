@@ -197,7 +197,7 @@ fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
   BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
 }
 
-fn unbound_outpoint() -> OutPoint {
+pub fn unbound_outpoint() -> OutPoint {
   OutPoint {
     txid: Hash::all_zeros(),
     vout: 0,
