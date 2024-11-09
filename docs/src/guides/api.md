@@ -1842,10 +1842,10 @@ curl -s -X POST \
 </details>
 
 <details>
- <summary>
+  <summary>
     <code>GET</code>
     <code><b>/outputs/&lt;ADDRESS&gt;</b></code>
- </summary>
+  </summary>
 
 ### Description
 
