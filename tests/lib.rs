@@ -4,14 +4,14 @@ use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bitcoin::{
     address::{Address, NetworkUnchecked},
-    Amount, Network, OutPoint, Sequence, Txid, Witness,
+    opcodes, script, Amount, Network, OutPoint, Sequence, TxOut, Txid, Witness,
   },
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   mockcore::TransactionTemplate,
   ord::{
-    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, wallet::batch,
-    wallet::ListDescriptorsResult, InscriptionId, RuneEntry,
+    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, templates::InscriptionHtml,
+    wallet::batch, wallet::ListDescriptorsResult, Inscription, InscriptionId, RuneEntry,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,

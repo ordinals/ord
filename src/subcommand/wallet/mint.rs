@@ -66,9 +66,10 @@ impl Mint {
     let script_pubkey = runestone.encipher();
 
     ensure!(
-      script_pubkey.len() <= 82,
-      "runestone greater than maximum OP_RETURN size: {} > 82",
-      script_pubkey.len()
+      script_pubkey.len() <= MAX_STANDARD_OP_RETURN_SIZE,
+      "runestone greater than maximum OP_RETURN size: {} > {}",
+      script_pubkey.len(),
+      MAX_STANDARD_OP_RETURN_SIZE,
     );
 
     let unfunded_transaction = Transaction {

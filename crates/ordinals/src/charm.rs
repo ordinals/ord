@@ -34,7 +34,7 @@ impl Charm {
     Self::Burned,
   ];
 
-  fn flag(self) -> u16 {
+  pub fn flag(self) -> u16 {
     1 << self as u16
   }
 

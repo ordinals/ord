@@ -32,6 +32,8 @@ fn inscriptions_can_be_burned() {
   <dd>
     <span title=burned>🔥</span>
   </dd>
+  <dt>value</dt>
+  <dd>9922</dd>
   .*
   <dt>content length</dt>
   <dd>3 bytes</dd>
@@ -209,6 +211,193 @@ fn cannot_burn_with_excess_postage() {
   .core(&core)
   .ord(&ord)
   .expected_stderr("error: Postage may not exceed 0.00010000 BTC\n")
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn json_metadata_can_be_included_when_burning() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "wallet burn --fee-rate 1 {inscription} --json-metadata metadata.json"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .write("metadata.json", r#"{"foo": "bar", "baz": 1}"#)
+  .stdout_regex(r".*")
+  .run_and_deserialize_output::<Send>();
+
+  let txid = core.mempool()[0].compute_txid();
+  assert_eq!(txid, output.txid);
+
+  core.mine_blocks(1);
+
+  let script_pubkey = script::Builder::new()
+    .push_opcode(opcodes::all::OP_RETURN)
+    .push_slice([
+      0xA2, 0x63, b'f', b'o', b'o', 0x63, b'b', b'a', b'r', 0x63, b'b', b'a', b'z', 0x01,
+    ])
+    .into_script();
+
+  ord.assert_html(
+    format!("/inscription/{inscription}"),
+    Chain::Mainnet,
+    InscriptionHtml {
+      charms: Charm::Burned.flag(),
+      fee: 138,
+      id: inscription,
+      output: Some(TxOut {
+        value: Amount::from_sat(9907),
+        script_pubkey,
+      }),
+      height: 3,
+      inscription: Inscription {
+        content_type: Some("text/plain;charset=utf-8".as_bytes().into()),
+        body: Some("foo".as_bytes().into()),
+        ..default()
+      },
+      satpoint: SatPoint {
+        outpoint: OutPoint {
+          txid: output.txid,
+          vout: 0,
+        },
+        offset: 0,
+      },
+      timestamp: "1970-01-01 00:00:03+00:00"
+        .parse::<DateTime<Utc>>()
+        .unwrap(),
+      ..default()
+    },
+  );
+}
+
+#[test]
+fn cbor_metadata_can_be_included_when_burning() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let metadata = [
+    0xA2, 0x63, b'f', b'o', b'o', 0x63, b'b', b'a', b'r', 0x63, b'b', b'a', b'z', 0x01,
+  ];
+
+  let output = CommandBuilder::new(format!(
+    "wallet burn --fee-rate 1 {inscription} --cbor-metadata metadata.cbor"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .write("metadata.cbor", metadata)
+  .stdout_regex(r".*")
+  .run_and_deserialize_output::<Send>();
+
+  let txid = core.mempool()[0].compute_txid();
+  assert_eq!(txid, output.txid);
+
+  core.mine_blocks(1);
+
+  let script_pubkey = script::Builder::new()
+    .push_opcode(opcodes::all::OP_RETURN)
+    .push_slice(metadata)
+    .into_script();
+
+  ord.assert_html(
+    format!("/inscription/{inscription}"),
+    Chain::Mainnet,
+    InscriptionHtml {
+      charms: Charm::Burned.flag(),
+      fee: 138,
+      id: inscription,
+      output: Some(TxOut {
+        value: Amount::from_sat(9907),
+        script_pubkey,
+      }),
+      height: 3,
+      inscription: Inscription {
+        content_type: Some("text/plain;charset=utf-8".as_bytes().into()),
+        body: Some("foo".as_bytes().into()),
+        ..default()
+      },
+      satpoint: SatPoint {
+        outpoint: OutPoint {
+          txid: output.txid,
+          vout: 0,
+        },
+        offset: 0,
+      },
+      timestamp: "1970-01-01 00:00:03+00:00"
+        .parse::<DateTime<Utc>>()
+        .unwrap(),
+      ..default()
+    },
+  );
+}
+
+#[test]
+fn cbor_and_json_metadata_flags_conflict() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "wallet burn --fee-rate 1 {inscription} --cbor-metadata foo --json-metadata bar"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .stderr_regex(
+    "error: the argument '--cbor-metadata <PATH>' cannot be used with '--json-metadata <PATH>'.*",
+  )
+  .expected_exit_code(2)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn oversize_metadata_requires_no_limit_flag() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "wallet burn --fee-rate 1 {inscription} --json-metadata metadata.json"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .write("metadata.json", format!("\"{}\"", "0".repeat(79)))
+  .stderr_regex("error: OP_RETURN with metadata larger than maximum: 84 > 83\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }

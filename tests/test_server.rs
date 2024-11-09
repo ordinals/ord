@@ -4,6 +4,7 @@ use {
   bitcoincore_rpc::{Auth, Client, RpcApi},
   ord::{parse_ord_server_args, Index},
   reqwest::blocking::Response,
+  sysinfo::System,
 };
 
 pub(crate) struct TestServer {
@@ -105,6 +106,36 @@ impl TestServer {
       "{}",
       response.text().unwrap()
     );
+    pretty_assert_eq!(response.text().unwrap(), expected_response);
+  }
+
+  #[track_caller]
+  pub(crate) fn assert_html(
+    &self,
+    path: impl AsRef<str>,
+    chain: Chain,
+    content: impl ord::templates::PageContent,
+  ) {
+    self.sync_server();
+    let response = reqwest::blocking::get(self.url().join(path.as_ref()).unwrap()).unwrap();
+
+    assert_eq!(
+      response.status(),
+      StatusCode::OK,
+      "{}",
+      response.text().unwrap()
+    );
+
+    let expected_response = ord::templates::PageHtml::new(
+      content,
+      Arc::new(ord::subcommand::server::ServerConfig {
+        chain,
+        domain: Some(System::host_name().unwrap()),
+        ..Default::default()
+      }),
+    )
+    .to_string();
+
     pretty_assert_eq!(response.text().unwrap(), expected_response);
   }
 
