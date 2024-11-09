@@ -345,6 +345,10 @@ inscriptions:
     output_json,
     api::Output {
       address: Some(destination.clone()),
+      outpoint: OutPoint {
+        txid: reveal_txid,
+        vout: 0
+      },
       inscriptions: vec![
         InscriptionId {
           txid: reveal_txid,

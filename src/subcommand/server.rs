@@ -54,6 +54,22 @@ enum SpawnConfig {
 }
 
 #[derive(Deserialize)]
+pub(crate) struct OutputsQuery {
+  #[serde(rename = "type")]
+  pub(crate) ty: Option<OutputType>,
+}
+
+#[derive(Clone, Copy, Deserialize, Default, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub(crate) enum OutputType {
+  #[default]
+  Any,
+  Cardinal,
+  Inscribed,
+  Runic,
+}
+
+#[derive(Deserialize)]
 struct Search {
   query: String,
 }
@@ -205,6 +221,7 @@ impl Server {
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/outputs", post(Self::outputs))
+        .route("/outputs/:address", get(Self::outputs_address))
         .route("/parents/:inscription_id", get(Self::parents))
         .route(
           "/parents/:inscription_id/:page",
@@ -667,6 +684,75 @@ impl Server {
       } else {
         StatusCode::NOT_FOUND.into_response()
       })
+    })
+  }
+
+  async fn outputs_address(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Path(address): Path<Address<NetworkUnchecked>>,
+    Query(query): Query<OutputsQuery>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      if !index.has_address_index() {
+        return Err(ServerError::NotFound(
+          "this server has no address index".to_string(),
+        ));
+      }
+
+      if !accept_json {
+        return Ok(StatusCode::NOT_FOUND.into_response());
+      }
+
+      let output_type = query.ty.unwrap_or_default();
+
+      if output_type != OutputType::Any {
+        if !index.has_rune_index() {
+          return Err(ServerError::BadRequest(
+            "this server has no runes index".to_string(),
+          ));
+        }
+
+        if !index.has_inscription_index() {
+          return Err(ServerError::BadRequest(
+            "this server has no inscriptions index".to_string(),
+          ));
+        }
+      }
+
+      let address = address
+        .require_network(server_config.chain.network())
+        .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+      let outputs = index.get_address_info(&address)?;
+
+      let mut response = Vec::new();
+      for output in outputs.into_iter() {
+        let include = match output_type {
+          OutputType::Any => true,
+          OutputType::Cardinal => {
+            index
+              .get_inscriptions_on_output_with_satpoints(output)?
+              .is_empty()
+              && index.get_rune_balances_for_output(output)?.is_empty()
+          }
+          OutputType::Inscribed => !index
+            .get_inscriptions_on_output_with_satpoints(output)?
+            .is_empty(),
+          OutputType::Runic => !index.get_rune_balances_for_output(output)?.is_empty(),
+        };
+
+        if include {
+          let (output_info, _) = index
+            .get_output_info(output)?
+            .ok_or_not_found(|| format!("output {output}"))?;
+
+          response.push(output_info);
+        }
+      }
+
+      Ok(Json(response).into_response())
     })
   }
 
@@ -3564,6 +3650,7 @@ mod tests {
         sat_ranges: None,
         indexed: true,
         inscriptions: Vec::new(),
+        outpoint: output,
         runes: vec![(
           SpacedRune {
             rune: Rune(RUNE),
