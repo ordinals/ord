@@ -54,7 +54,7 @@ fn address_page_shows_outputs_and_sat_balance() {
   ord.assert_response_regex(
     format!("/address/{address}"),
     format!(
-      ".*<h1>Address {address}</h1>.*<dd>200000000</dd>.*<a class=monospace href=/output/{}.*",
+      ".*<h1>Address {address}</h1>.*<dd>200000000</dd>.*<a class=collapse href=/output/{}.*",
       OutPoint {
         txid: send.txid,
         vout: 0
@@ -248,9 +248,9 @@ fn inscription_page() {
 .*<iframe .* src=/preview/{inscription}></iframe>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{inscription}</dd>
+  <dd class=collapse>{inscription}</dd>
   <dt>address</dt>
-  <dd class=monospace><a href=/address/bc1.*>bc1.*</a></dd>
+  <dd><a class=collapse href=/address/bc1.*>bc1.*</a></dd>
   <dt>value</dt>
   <dd>10000</dd>
   <dt>preview</dt>
@@ -268,15 +268,15 @@ fn inscription_page() {
   <dt>fee</dt>
   <dd>138</dd>
   <dt>reveal transaction</dt>
-  <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
+  <dd><a class=collapse href=/tx/{reveal}>{reveal}</a></dd>
   <dt>location</dt>
-  <dd><a class=monospace href=/satpoint/{reveal}:0:0>{reveal}:0:0</a></dd>
+  <dd><a class=collapse href=/satpoint/{reveal}:0:0>{reveal}:0:0</a></dd>
   <dt>output</dt>
-  <dd><a class=monospace href=/output/{reveal}:0>{reveal}:0</a></dd>
+  <dd><a class=collapse href=/output/{reveal}:0>{reveal}:0</a></dd>
   <dt>offset</dt>
   <dd>0</dd>
   <dt>ethereum teleburn address</dt>
-  <dd>{ethereum_teleburn_address}</dd>
+  <dd class=collapse>{ethereum_teleburn_address}</dd>
 </dl>.*",
     ),
   );
@@ -362,7 +362,7 @@ fn inscription_page_after_send() {
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      r".*<h1>Inscription 0</h1>.*<dt>location</dt>\s*<dd><a class=monospace href=/satpoint/{reveal}:0:0>{reveal}:0:0</a></dd>.*",
+      r".*<h1>Inscription 0</h1>.*<dt>location</dt>\s*<dd><a class=collapse href=/satpoint/{reveal}:0:0>{reveal}:0:0</a></dd>.*",
     ),
   );
 
@@ -380,7 +380,7 @@ fn inscription_page_after_send() {
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd class=monospace><a href=/address/bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</a></dd>.*<dt>location</dt>\s*<dd><a class=monospace href=/satpoint/{txid}:0:0>{txid}:0:0</a></dd>.*",
+      r".*<h1>Inscription 0</h1>.*<dt>address</dt>\s*<dd><a class=collapse href=/address/bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv>bc1qcqgs2pps4u4yedfyl5pysdjjncs8et5utseepv</a></dd>.*<dt>location</dt>\s*<dd><a class=collapse href=/satpoint/{txid}:0:0>{txid}:0:0</a></dd>.*",
     ),
   )
 }

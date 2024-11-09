@@ -79,8 +79,8 @@ mod tests {
         </div>
       </div>
       <ol start=1260001 reversed class=block-list>
-        <li><a href=/block/1{64}>1{64}</a></li>
-        <li><a href=/block/0{64}>0{64}</a></li>
+        <li><a class=collapse href=/block/1{64}>1{64}</a></li>
+        <li><a class=collapse href=/block/0{64}>0{64}</a></li>
       </ol>
       "
       .unindent(),

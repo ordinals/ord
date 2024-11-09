@@ -71,9 +71,9 @@
   <dt>turbo</dt>
   <dd>{{ self.entry.turbo }}</dd>
   <dt>etching</dt>
-  <dd><a class=monospace href=/tx/{{ self.entry.etching }}>{{ self.entry.etching }}</a></dd>
+  <dd><a class=collapse href=/tx/{{ self.entry.etching }}>{{ self.entry.etching }}</a></dd>
 %% if let Some(parent) = self.parent {
   <dt>parent</dt>
-  <dd><a class=monospace href=/inscription/{{ parent }}>{{ parent }}</a></dd>
+  <dd><a class=collapse href=/inscription/{{ parent }}>{{ parent }}</a></dd>
 %% }
 </dl>

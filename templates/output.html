@@ -28,9 +28,9 @@
   <dt>value</dt><dd>{{ self.output.value.to_sat() }}</dd>
   <dt>script pubkey</dt><dd class=monospace>{{ self.output.script_pubkey.to_asm_string() }}</dd>
 %% if let Ok(address) = self.chain.address_from_script(&self.output.script_pubkey ) {
-  <dt>address</dt><dd class=monospace><a href=/address/{{address}}>{{ address }}</a></dd>
+  <dt>address</dt><dd><a class=collapse href=/address/{{address}}>{{ address }}</a></dd>
 %% }
-  <dt>transaction</dt><dd><a class=monospace href=/tx/{{ self.outpoint.txid }}>{{ self.outpoint.txid }}</a></dd>
+  <dt>transaction</dt><dd><a class=collapse href=/tx/{{ self.outpoint.txid }}>{{ self.outpoint.txid }}</a></dd>
   <dt>spent</dt><dd>{{ self.spent }}</dd>
 </dl>
 %% if let Some(sat_ranges) = &self.sat_ranges {

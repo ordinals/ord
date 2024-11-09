@@ -137,7 +137,7 @@ mod tests {
     <link rel=icon href=/static/favicon.svg>
     <link rel=stylesheet href=/static/index.css>
     <link rel=stylesheet href=/static/modern-normalize.css>
-    <script src=/static/index.js defer></script>
+    <script src=/static/index.js></script>
   </head>
   <body>
   <header>

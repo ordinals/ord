@@ -1,11 +1,4 @@
-use {
-  super::*,
-  bitcoin::{
-    key::{Keypair, Secp256k1, XOnlyPublicKey},
-    secp256k1::rand,
-    WPubkeyHash,
-  },
-};
+use super::*;
 
 #[derive(Debug)]
 pub struct State {
@@ -25,6 +18,7 @@ pub struct State {
   pub receive_addresses: Vec<Address>,
   pub change_addresses: Vec<Address>,
   pub wallets: BTreeSet<String>,
+  pub wallet: Wallet,
 }
 
 impl State {
@@ -54,20 +48,20 @@ impl State {
       utxos: BTreeMap::new(),
       version,
       wallets: BTreeSet::new(),
+      wallet: Wallet::new(network),
     }
   }
 
   pub(crate) fn new_address(&mut self, change: bool) -> Address {
-    let secp256k1 = Secp256k1::new();
-    let keypair = Keypair::new(&secp256k1, &mut rand::thread_rng());
-    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&keypair);
-    let address = Address::p2tr(&secp256k1, public_key, None, self.network);
+    let address = self.wallet.new_address();
+
     if change {
       &mut self.change_addresses
     } else {
       &mut self.receive_addresses
     }
     .push(address.clone());
+
     address
   }
 
