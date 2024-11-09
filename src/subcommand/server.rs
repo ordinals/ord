@@ -65,7 +65,7 @@ pub(crate) enum Type {
   #[default]
   Any,
   Cardinal,
-  Ordinal,
+  Inscribed,
   Runic,
 }
 
@@ -726,7 +726,7 @@ impl Server {
             match utxo_type {
               Type::Any => true,
               Type::Cardinal => !inscribed && !runic,
-              Type::Ordinal => inscribed,
+              Type::Inscribed => inscribed,
               Type::Runic => runic,
             }
           })

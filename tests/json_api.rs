@@ -807,7 +807,7 @@ fn outputs_address() {
     }]
   );
 
-  let inscriptions_response = ord.json_request(format!("/outputs/{}?type=ordinal", address));
+  let inscriptions_response = ord.json_request(format!("/outputs/{}?type=inscribed", address));
 
   assert_eq!(inscriptions_response.status(), StatusCode::OK);
 

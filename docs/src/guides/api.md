@@ -1859,7 +1859,7 @@ Get all UTXOs for an &lt;ADDRESS&gt;
 
 `cardinal`: UTXOs containing only BTC
 
-`ordinal`: UTXOs containing inscriptions
+`inscribed`: UTXOs containing inscriptions
 
 `runic`: UTXOs containing runes
 
