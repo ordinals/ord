@@ -1,29 +1,46 @@
 use super::*;
 
 #[derive(Boilerplate, Default)]
-pub(crate) struct InscriptionHtml {
-  pub(crate) chain: Chain,
-  pub(crate) charms: u16,
-  pub(crate) child_count: u64,
-  pub(crate) children: Vec<InscriptionId>,
-  pub(crate) fee: u64,
-  pub(crate) height: u32,
-  pub(crate) inscription: Inscription,
-  pub(crate) id: InscriptionId,
-  pub(crate) number: i32,
-  pub(crate) next: Option<InscriptionId>,
-  pub(crate) output: Option<TxOut>,
-  pub(crate) parents: Vec<InscriptionId>,
-  pub(crate) previous: Option<InscriptionId>,
-  pub(crate) rune: Option<SpacedRune>,
-  pub(crate) sat: Option<Sat>,
-  pub(crate) satpoint: SatPoint,
-  pub(crate) timestamp: DateTime<Utc>,
+pub struct InscriptionHtml {
+  pub chain: Chain,
+  pub charms: u16,
+  pub child_count: u64,
+  pub children: Vec<InscriptionId>,
+  pub fee: u64,
+  pub height: u32,
+  pub inscription: Inscription,
+  pub id: InscriptionId,
+  pub number: i32,
+  pub next: Option<InscriptionId>,
+  pub output: Option<TxOut>,
+  pub parents: Vec<InscriptionId>,
+  pub previous: Option<InscriptionId>,
+  pub rune: Option<SpacedRune>,
+  pub sat: Option<Sat>,
+  pub satpoint: SatPoint,
+  pub timestamp: DateTime<Utc>,
 }
 
 impl PageContent for InscriptionHtml {
   fn title(&self) -> String {
     format!("Inscription {}", self.number)
+  }
+}
+
+impl InscriptionHtml {
+  pub fn burn_metadata(&self) -> Option<Value> {
+    let script_pubkey = &self.output.as_ref()?.script_pubkey;
+
+    if !script_pubkey.is_op_return() {
+      return None;
+    }
+
+    let script::Instruction::PushBytes(metadata) = script_pubkey.instructions().nth(1)?.ok()?
+    else {
+      return None;
+    };
+
+    ciborium::from_reader(Cursor::new(metadata)).ok()
   }
 }
 
@@ -439,6 +456,47 @@ mod tests {
           .*
           <dt>content encoding</dt>
           <dd>br</dd>
+          .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_burn_metadata() {
+    let script_pubkey = script::Builder::new()
+      .push_opcode(opcodes::all::OP_RETURN)
+      .push_slice([
+        0xA2, 0x63, b'f', b'o', b'o', 0x63, b'b', b'a', b'r', 0x63, b'b', b'a', b'z', 0x01,
+      ])
+      .into_script();
+
+    assert_regex_match!(
+      InscriptionHtml {
+        fee: 1,
+        inscription: Inscription {
+          content_encoding: Some("br".into()),
+          ..inscription("text/plain;charset=utf-8", "HELLOWORLD")
+        },
+        id: inscription_id(1),
+        number: 1,
+        satpoint: satpoint(1, 0),
+        output: Some(TxOut {
+          value: Amount::from_sat(1),
+          script_pubkey,
+        }),
+        ..default()
+      },
+      "
+        <h1>Inscription 1</h1>
+        .*
+        <dl>
+          .*
+          <dt>burn metadata</dt>
+          <dd>
+            <dl><dt>foo</dt><dd>bar</dd><dt>baz</dt><dd>1</dd></dl>
+          </dd>
           .*
         </dl>
       "
