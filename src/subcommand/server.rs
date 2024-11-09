@@ -727,7 +727,7 @@ impl Server {
 
       let outputs = index.get_address_info(&address)?;
 
-      let mut filtered = Vec::new();
+      let mut response = Vec::new();
       for output in outputs.into_iter() {
         let inscribed = !index
           .get_inscriptions_on_output_with_satpoints(output)?
@@ -743,17 +743,12 @@ impl Server {
         };
 
         if include {
-          filtered.push(output);
+          let (output_info, _) = index
+            .get_output_info(output)?
+            .ok_or_not_found(|| format!("output {output}"))?;
+
+          response.push(output_info);
         }
-      }
-
-      let mut response = Vec::new();
-      for outpoint in filtered {
-        let (output_info, _) = index
-          .get_output_info(outpoint)?
-          .ok_or_not_found(|| format!("output {outpoint}"))?;
-
-        response.push(output_info);
       }
 
       Ok(Json(response).into_response())
