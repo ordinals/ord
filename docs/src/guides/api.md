@@ -1867,34 +1867,59 @@ Get UTXOs held by &lt;ADDRESS&gt;.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/outputs/bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf\?type=cardinal
+  "http://0.0.0.0:80/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
 ```
 ```json
 [
   {
-    "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+    "address": "358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW",
     "indexed": true,
     "inscriptions": [],
-    "outpoint": "0ab5f271786279b07fcf2abba628a25393f7c7d2ebe7763f69c0cc2616166002:0",
+    "outpoint": "6737d77ee9fba5f37e5f4128b03479209030bf44f78ffa3f4e94bf9783691b00:0",
     "runes": {},
     "sat_ranges": [
       [
-        180764665173096,
-        180764665319961
+        567775159437503,
+        567775159443555
       ],
       [
-        1270110255166739,
-        1270110255173122
+        1266853954166100,
+        1266853954177531
       ],
       [
-        1644488886231429,
-        1644488886240710
+        1210436862054339,
+        1210436862084993
+      ],
+      [
+        690914221328806,
+        690914221362332
+      ],
+      [
+        957021421066680,
+        957021421075017
       ]
     ],
-    "script_pubkey": "5120156cc4878306157720607cdcb4b32afa4cc6853868458d7258b907112e5a434b",
+    "script_pubkey": "a91425c70777dfcf84ba7479483e262e1bc7bb0bf4d587",
     "spent": false,
-    "transaction": "0ab5f271786279b07fcf2abba628a25393f7c7d2ebe7763f69c0cc2616166002",
-    "value": 162529
+    "transaction": "6737d77ee9fba5f37e5f4128b03479209030bf44f78ffa3f4e94bf9783691b00",
+    "value": 90000
+  },
+  {
+    "address": "358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW",
+    "indexed": true,
+    "inscriptions": [],
+    "outpoint": "0cfa3e55f14812c119e47936d95abbb4e04f3094f6d86ac16c6e10018b0b2900:0",
+    "runes": {},
+    "sat_ranges": [
+      [
+        1773029001419378,
+        1773029001509378
+      ]
+    ],
+    "script_pubkey": "a91425c70777dfcf84ba7479483e262e1bc7bb0bf4d587",
+    "spent": false,
+    "transaction": "0cfa3e55f14812c119e47936d95abbb4e04f3094f6d86ac16c6e10018b0b2900",
+    "value": 90000
   }
 ]
 ```
