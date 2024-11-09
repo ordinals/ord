@@ -1849,7 +1849,7 @@ curl -s -X POST \
 
 ### Description
 
-Get all UTXOs for an &lt;ADDRESS&gt;
+Get UTXOs held by &lt;ADDRESS&gt;.
 
 ### Query Parameters (optional)
 
@@ -1866,8 +1866,7 @@ Get all UTXOs for an &lt;ADDRESS&gt;
 ### Example
 
 ```bash
-curl -s \
-  -H "Accept: application/json" \
+curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/outputs/bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf\?type=cardinal
 ```
 ```json
