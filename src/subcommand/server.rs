@@ -3640,6 +3640,7 @@ mod tests {
         sat_ranges: None,
         indexed: true,
         inscriptions: Vec::new(),
+        outpoint: output,
         runes: vec![(
           SpacedRune {
             rune: Rune(RUNE),
