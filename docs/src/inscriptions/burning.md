@@ -9,11 +9,11 @@ Sending inscriptions to a so-called "burn address" is not recognized by `ord`.
 Burned inscriptions receive the "burned" charm, recognized with 🔥 on the
 inscription's `/inscription` page.
 
-When burning inscriptions, CBOR metadata may be included in the first data push
-after the `OP_RETURN`.
+When burning inscriptions, CBOR metadata may be included in a data push
+immediately following the `OP_RETURN`.
 
 Burn metadata is unstructured, having no meaning to the underlying protocol,
-and should be human readable. it is displayed on the burned inscription's
+and should be human readable. It is displayed on the burned inscription's
 `/inscription` page, in the same manner as inscription metadata, under the
 heading "burn metadata".
 
