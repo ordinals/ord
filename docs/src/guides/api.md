@@ -1849,19 +1849,18 @@ curl -s -X POST \
 
 ### Description
 
-Get UTXOs held by &lt;ADDRESS&gt;.
+Get UTXOs held by `<ADDRESS>`.
 
-### Query Parameters (optional)
+### Query Parameters
 
-#### `type`
+#### `type` (optional)
 
-`any`: UTXOs containing any type of asset
-
-`cardinal`: UTXOs containing only BTC
-
-`inscribed`: UTXOs containing inscriptions
-
-`runic`: UTXOs containing runes
+| Value       | Description |
+|-------------|-------------|
+| `any`       | return all UTXOs |
+| `cardinal`  | return UTXOs not containing inscriptions or runes |
+| `inscribed`  | return UTXOs containing inscriptions |
+| `runic`     | return UTXOs containing runes |
 
 ### Example
 
@@ -1925,7 +1924,6 @@ curl -s -H "Accept: application/json" \
 ]
 ```
 </details>
-
 
 <details>
 <summary>
