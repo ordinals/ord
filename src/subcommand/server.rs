@@ -56,12 +56,12 @@ enum SpawnConfig {
 #[derive(Deserialize)]
 pub(crate) struct OutputsQuery {
   #[serde(rename = "type")]
-  pub(crate) ty: Option<Type>,
+  pub(crate) ty: Option<OutputType>,
 }
 
 #[derive(Clone, Copy, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
-pub(crate) enum Type {
+pub(crate) enum OutputType {
   #[default]
   Any,
   Cardinal,
@@ -724,10 +724,10 @@ impl Server {
               .unwrap_or(false);
 
             match utxo_type {
-              Type::Any => true,
-              Type::Cardinal => !inscribed && !runic,
-              Type::Inscribed => inscribed,
-              Type::Runic => runic,
+              OutputType::Any => true,
+              OutputType::Cardinal => !inscribed && !runic,
+              OutputType::Inscribed => inscribed,
+              OutputType::Runic => runic,
             }
           })
           .collect();
