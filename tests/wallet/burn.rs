@@ -245,12 +245,9 @@ fn json_metadata_can_be_included_when_burning() {
 
   let script_pubkey = script::Builder::new()
     .push_opcode(opcodes::all::OP_RETURN)
-    .push_slice(
-      <&script::PushBytes>::try_from(&[
-        0xA2, 0x63, b'f', b'o', b'o', 0x63, b'b', b'a', b'r', 0x63, b'b', b'a', b'z', 0x01,
-      ])
-      .unwrap(),
-    )
+    .push_slice([
+      0xA2, 0x63, b'f', b'o', b'o', 0x63, b'b', b'a', b'r', 0x63, b'b', b'a', b'z', 0x01,
+    ])
     .into_script();
 
   ord.assert_html(
@@ -319,7 +316,7 @@ fn cbor_metadata_can_be_included_when_burning() {
 
   let script_pubkey = script::Builder::new()
     .push_opcode(opcodes::all::OP_RETURN)
-    .push_slice(<&script::PushBytes>::try_from(&metadata).unwrap())
+    .push_slice(metadata)
     .into_script();
 
   ord.assert_html(
