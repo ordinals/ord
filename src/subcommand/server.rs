@@ -729,17 +729,18 @@ impl Server {
 
       let mut response = Vec::new();
       for output in outputs.into_iter() {
-        let inscribed = !index
-          .get_inscriptions_on_output_with_satpoints(output)?
-          .is_empty();
-
-        let runic = !index.get_rune_balances_for_output(output)?.is_empty();
-
         let include = match output_type {
           OutputType::Any => true,
-          OutputType::Cardinal => !inscribed && !runic,
-          OutputType::Inscribed => inscribed,
-          OutputType::Runic => runic,
+          OutputType::Cardinal => {
+            index
+              .get_inscriptions_on_output_with_satpoints(output)?
+              .is_empty()
+              && index.get_rune_balances_for_output(output)?.is_empty()
+          }
+          OutputType::Inscribed => !index
+            .get_inscriptions_on_output_with_satpoints(output)?
+            .is_empty(),
+          OutputType::Runic => !index.get_rune_balances_for_output(output)?.is_empty(),
         };
 
         if include {
