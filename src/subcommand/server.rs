@@ -59,7 +59,7 @@ pub(crate) struct OutputsQuery {
   pub(crate) ty: Option<OutputType>,
 }
 
-#[derive(Clone, Copy, Deserialize, Default)]
+#[derive(Clone, Copy, Deserialize, Default, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub(crate) enum OutputType {
   #[default]
@@ -701,49 +701,64 @@ impl Server {
         ));
       }
 
-      Ok(if accept_json {
-        let utxo_type = query.ty.unwrap_or_default();
+      if !accept_json {
+        return Ok(StatusCode::NOT_FOUND.into_response());
+      }
 
-        let address = address
-          .require_network(server_config.chain.network())
-          .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+      let output_type = query.ty.unwrap_or_default();
 
-        let outputs = index.get_address_info(&address)?;
-
-        let filtered: Vec<OutPoint> = outputs
-          .into_iter()
-          .filter(|output| {
-            let inscribed = index
-              .get_inscriptions_on_output_with_satpoints(*output)
-              .map(|inscriptions| !inscriptions.is_empty())
-              .unwrap_or(false);
-
-            let runic = index
-              .get_rune_balances_for_output(*output)
-              .map(|runes| !runes.is_empty())
-              .unwrap_or(false);
-
-            match utxo_type {
-              OutputType::Any => true,
-              OutputType::Cardinal => !inscribed && !runic,
-              OutputType::Inscribed => inscribed,
-              OutputType::Runic => runic,
-            }
-          })
-          .collect();
-
-        let mut response = Vec::new();
-        for outpoint in filtered {
-          let (output_info, _) = index
-            .get_output_info(outpoint)?
-            .ok_or_not_found(|| format!("output {outpoint}"))?;
-
-          response.push(output_info);
+      if output_type != OutputType::Any {
+        if !index.has_rune_index() {
+          return Err(ServerError::BadRequest(
+            "this server has no runes index".to_string(),
+          ));
         }
-        Json(response).into_response()
-      } else {
-        StatusCode::NOT_FOUND.into_response()
-      })
+
+        if !index.has_inscription_index() {
+          return Err(ServerError::BadRequest(
+            "this server has no inscriptions index".to_string(),
+          ));
+        }
+      }
+
+      let address = address
+        .require_network(server_config.chain.network())
+        .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+      let outputs = index.get_address_info(&address)?;
+
+      let filtered: Vec<OutPoint> = outputs
+        .into_iter()
+        .filter(|output| {
+          let inscribed = index
+            .get_inscriptions_on_output_with_satpoints(*output)
+            .map(|inscriptions| !inscriptions.is_empty())
+            .unwrap_or(false);
+
+          let runic = index
+            .get_rune_balances_for_output(*output)
+            .map(|runes| !runes.is_empty())
+            .unwrap_or(false);
+
+          match output_type {
+            OutputType::Any => true,
+            OutputType::Cardinal => !inscribed && !runic,
+            OutputType::Inscribed => inscribed,
+            OutputType::Runic => runic,
+          }
+        })
+        .collect();
+
+      let mut response = Vec::new();
+      for outpoint in filtered {
+        let (output_info, _) = index
+          .get_output_info(outpoint)?
+          .ok_or_not_found(|| format!("output {outpoint}"))?;
+
+        response.push(output_info);
+      }
+
+      Ok(Json(response).into_response())
     })
   }
 

@@ -865,3 +865,45 @@ fn outputs_address() {
     .any(|output| output.inscriptions.is_empty() && output.runes.is_empty()));
   assert_eq!(any, default);
 }
+
+#[test]
+fn outputs_address_returns_400_for_missing_indices() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+  let ord = TestServer::spawn_with_args(
+    &core,
+    &[
+      "--no-index-inscriptions",
+      "--index-runes",
+      "--index-addresses",
+      "--regtest",
+    ],
+  );
+
+  let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
+
+  let inscriptions_response = ord.json_request(format!("/outputs/{}?type=inscribed", address));
+  assert_eq!(inscriptions_response.status(), StatusCode::BAD_REQUEST);
+
+  let runes_response = ord.json_request(format!("/outputs/{}?type=runic", address));
+  assert_eq!(runes_response.status(), StatusCode::BAD_REQUEST);
+
+  let cardinal_response = ord.json_request(format!("/outputs/{}?type=runic", address));
+  assert_eq!(cardinal_response.status(), StatusCode::BAD_REQUEST);
+}
+
+#[test]
+fn outputs_address_returns_400_for_missing_rune_index() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+  let ord = TestServer::spawn_with_args(&core, &["--index-addresses", "--regtest"]);
+
+  let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
+
+  let inscriptions_response = ord.json_request(format!("/outputs/{}?type=inscribed", address));
+  assert_eq!(inscriptions_response.status(), StatusCode::BAD_REQUEST);
+
+  let runes_response = ord.json_request(format!("/outputs/{}?type=runic", address));
+  assert_eq!(runes_response.status(), StatusCode::BAD_REQUEST);
+
+  let cardinal_response = ord.json_request(format!("/outputs/{}?type=runic", address));
+  assert_eq!(cardinal_response.status(), StatusCode::BAD_REQUEST);
+}
