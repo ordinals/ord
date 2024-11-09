@@ -862,6 +862,6 @@ fn outputs_address() {
   assert!(any.iter().any(|output| output.inscriptions.len() == 1));
   assert!(any
     .iter()
-    .any(|output| output.inscriptions.len() == 0 && output.runes.len() == 0));
+    .any(|output| output.inscriptions.is_empty() && output.runes.is_empty()));
   assert_eq!(any, default);
 }
