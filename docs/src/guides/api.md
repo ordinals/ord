@@ -1859,7 +1859,7 @@ Get UTXOs held by `<ADDRESS>`.
 |-------------|-------------|
 | `any`       | return all UTXOs |
 | `cardinal`  | return UTXOs not containing inscriptions or runes |
-| `inscribed`  | return UTXOs containing inscriptions |
+| `inscribed` | return UTXOs containing inscriptions |
 | `runic`     | return UTXOs containing runes |
 
 ### Example
