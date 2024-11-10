@@ -1756,7 +1756,7 @@ impl Server {
   async fn push_tx(
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(accept_json): AcceptJson,
-    Json(data): Json<serde_json::Value>
+    Json(data): Json<serde_json::Value>,
   ) -> ServerResult {
     task::block_in_place(|| {
       Ok(if accept_json {
@@ -1766,18 +1766,24 @@ impl Server {
         let txs = if data.is_object() {
           let data = data.as_object().unwrap();
           if !data.contains_key("txs") {
-            return Err(ServerError::NotFound("expected object to contain `txs`".to_string()));
+            return Err(ServerError::NotFound(
+              "expected object to contain `txs`".to_string(),
+            ));
           }
 
           let txs = data.get("txs").unwrap();
           if !txs.is_array() {
-            return Err(ServerError::NotFound("expected `txs` to be an array".to_string()));
+            return Err(ServerError::NotFound(
+              "expected `txs` to be an array".to_string(),
+            ));
           }
 
           if data.contains_key("maxburn") {
             let data = data.get("maxburn").unwrap();
             if !data.is_u64() {
-              return Err(ServerError::NotFound("expected `maxburn` to be a u64".to_string()));
+              return Err(ServerError::NotFound(
+                "expected `maxburn` to be a u64".to_string(),
+              ));
             }
             maxburn = Amount::from_sat(data.as_u64().unwrap());
           }
@@ -1789,17 +1795,24 @@ impl Server {
             } else if data.is_f64() {
               data.as_f64().unwrap()
             } else {
-              return Err(ServerError::NotFound("expected `maxrate` to be f64 or u64".to_string()));
-            }).unwrap();
+              return Err(ServerError::NotFound(
+                "expected `maxrate` to be f64 or u64".to_string(),
+              ));
+            })
+            .unwrap();
           }
 
           txs
         } else if data.is_array() {
           &data
         } else {
-          return Err(ServerError::NotFound("expected data to be object or array".to_string()));
-        }.as_array().unwrap();
-          
+          return Err(ServerError::NotFound(
+            "expected data to be object or array".to_string(),
+          ));
+        }
+        .as_array()
+        .unwrap();
+
         let maxrate = json!(format!("{:.8}", maxrate.n() / 1e8 * 1000.0));
 
         let result = txs
@@ -1863,7 +1876,9 @@ impl Server {
   ) -> ServerResult {
     task::block_in_place(|| {
       Ok(if accept_json {
-        let tx_mempool_entry = index.client.call::<serde_json::Value>("getmempoolentry", &[txid.to_string().into()])
+        let tx_mempool_entry = index
+          .client
+          .call::<serde_json::Value>("getmempoolentry", &[txid.to_string().into()])
           .map_err(|_| ServerError::NotFound("Failed to fetch mempool entry".to_string()))?;
 
         Json(tx_mempool_entry).into_response()
