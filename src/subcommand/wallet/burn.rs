@@ -28,12 +28,6 @@ pub struct Burn {
     you understand the implications."
   )]
   no_limit: bool,
-  #[arg(
-    long,
-    help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]",
-    value_name = "AMOUNT"
-  )]
-  postage: Option<Amount>,
   inscription: InscriptionId,
 }
 
@@ -50,18 +44,6 @@ impl Burn {
     let Some(value) = inscription_info.value else {
       bail!("Cannot burn unbound inscription");
     };
-
-    let value = Amount::from_sat(value);
-
-    ensure! {
-      value <= TARGET_POSTAGE,
-      "Cannot burn inscription contained in UTXO exceeding {TARGET_POSTAGE}",
-    }
-
-    ensure! {
-      self.postage.unwrap_or_default() <= TARGET_POSTAGE,
-      "Postage may not exceed {TARGET_POSTAGE}",
-    }
 
     let mut builder = script::Builder::new().push_opcode(opcodes::all::OP_RETURN);
 
@@ -88,7 +70,6 @@ impl Burn {
     let unsigned_transaction = Self::create_unsigned_burn_transaction(
       &wallet,
       inscription_info.satpoint,
-      self.postage,
       self.fee_rate,
       script_pubkey,
     )?;
@@ -107,7 +88,6 @@ impl Burn {
   fn create_unsigned_burn_transaction(
     wallet: &Wallet,
     satpoint: SatPoint,
-    postage: Option<Amount>,
     fee_rate: FeeRate,
     script_pubkey: ScriptBuf,
   ) -> Result<Transaction> {
@@ -119,8 +99,7 @@ impl Burn {
     );
 
     let change = [wallet.get_change_address()?, wallet.get_change_address()?];
-
-    let postage = postage.map(Target::ExactPostage).unwrap_or(Target::Postage);
+    let postage = Target::ExactPostage(Amount::from_sat(1));
 
     Ok(
       TransactionBuilder::new(
