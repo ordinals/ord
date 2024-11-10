@@ -32,7 +32,8 @@ apt-get install --yes \
   pkg-config \
   ufw \
   vim \
-  tor
+  tor \
+  nginx
 
 apt-get remove --yes --auto-remove
 
