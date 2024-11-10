@@ -22,6 +22,7 @@ Summary
   - [Explorer](guides/explorer.md)
   - [Wallet](guides/wallet.md)
   - [Batch Inscribing](guides/batch-inscribing.md)
+  - [Splitting](guides/splitting.md)
   - [Collecting](guides/collecting.md)
     - [Sparrow Wallet](guides/collecting/sparrow-wallet.md)
   - [Moderation](guides/moderation.md)
