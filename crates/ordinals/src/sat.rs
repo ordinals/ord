@@ -819,4 +819,18 @@ mod tests {
       "failed to parse sat `foo`: invalid percentile",
     );
   }
+
+  #[test]
+  fn palendrome() {
+    assert!(Sat(0).palendrome());
+    assert!(!Sat(10).palendrome());
+    assert!(Sat(11).palendrome());
+  }
+
+  #[test]
+  fn palendrome_charm() {
+    assert!(Charm::Palendrome.is_set(Sat(0).charms()));
+    assert!(!Charm::Palendrome.is_set(Sat(10).charms()));
+    assert!(Charm::Palendrome.is_set(Sat(11).charms()));
+  }
 }
