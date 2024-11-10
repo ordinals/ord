@@ -156,7 +156,10 @@ publish-tag-and-crate revision='master':
   rm -rf tmp/release
 
 outdated:
-  cargo outdated -R --workspace
+  cargo outdated --root-deps-only --workspace
+
+unused:
+  cargo +nightly udeps --workspace
 
 update-modern-normalize:
   curl \

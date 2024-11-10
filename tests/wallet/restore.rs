@@ -5,9 +5,23 @@ fn restore_generates_same_descriptors() {
   let (mnemonic, descriptors) = {
     let core = mockcore::spawn();
 
+    let ord = TestServer::spawn(&core);
+
     let create::Output { mnemonic, .. } = CommandBuilder::new("wallet create")
       .core(&core)
       .run_and_deserialize_output();
+
+    let output = CommandBuilder::new("wallet dump")
+      .core(&core)
+      .ord(&ord)
+      .stderr_regex(".*THIS STRING CONTAINS YOUR PRIVATE KEYS.*")
+      .run_and_deserialize_output::<ListDescriptorsResult>();
+
+    // new descriptors are created with timestamp `now`
+    assert!(output
+      .descriptors
+      .iter()
+      .all(|descriptor| descriptor.timestamp == bitcoincore_rpc::json::Timestamp::Now));
 
     (mnemonic, core.descriptors())
   };
@@ -18,6 +32,20 @@ fn restore_generates_same_descriptors() {
     .stdin(mnemonic.to_string().into())
     .core(&core)
     .run_and_extract_stdout();
+
+  let ord = TestServer::spawn(&core);
+
+  let output = CommandBuilder::new("wallet dump")
+    .core(&core)
+    .ord(&ord)
+    .stderr_regex(".*THIS STRING CONTAINS YOUR PRIVATE KEYS.*")
+    .run_and_deserialize_output::<ListDescriptorsResult>();
+
+  // restored descriptors are created with timestamp `0`
+  assert!(output
+    .descriptors
+    .iter()
+    .all(|descriptor| descriptor.timestamp == bitcoincore_rpc::json::Timestamp::Time(0)));
 
   assert_eq!(core.descriptors(), descriptors);
 }

@@ -608,7 +608,7 @@ fn batch_inscribe_fails_if_invalid_network_destination_address() {
     .write("batch.yaml", "mode: separate-outputs\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
     .core(&core)
     .ord(&ord)
-    .stderr_regex("error: address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 belongs to network bitcoin which is different from required regtest\n")
+    .stderr_regex("error: validation error\n\nbecause:\n- address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 is not valid on regtest\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -682,7 +682,7 @@ inscriptions:
     format!("/inscription/{}", output.inscriptions[0].id),
     ".*
   <dt>address</dt>
-  <dd class=monospace><a href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>.*",
+  <dd><a class=collapse href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>.*",
   );
 
   ord.assert_response_regex(
@@ -690,7 +690,7 @@ inscriptions:
     format!(
       ".*
   <dt>address</dt>
-  <dd class=monospace><a href=/address/{0}>{0}</a></dd>.*",
+  <dd><a class=collapse href=/address/{0}>{0}</a></dd>.*",
       core.state().change_addresses[0],
     ),
   );
@@ -699,7 +699,7 @@ inscriptions:
     format!("/inscription/{}", output.inscriptions[2].id),
     ".*
   <dt>address</dt>
-  <dd class=monospace><a href=/address/bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k>bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k</a></dd>.*",
+  <dd><a class=collapse href=/address/bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k>bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k</a></dd>.*",
   );
 }
 
@@ -995,7 +995,7 @@ fn batch_inscribe_with_satpoint() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   let output = CommandBuilder::new("wallet batch --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
@@ -1045,28 +1045,25 @@ fn batch_inscribe_with_fee_rate() {
     .run_and_deserialize_output::<Batch>();
 
   let commit_tx = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &commit_tx.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &commit_tx.output {
     fee -= output.value;
   }
-  let fee_rate = fee as f64 / commit_tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / commit_tx.vsize() as f64;
   pretty_assert_eq!(fee_rate, set_fee_rate);
 
   let reveal_tx = &core.mempool()[1];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &reveal_tx.input {
-    fee += &commit_tx.output[input.previous_output.vout as usize].value;
+    fee += commit_tx.output[input.previous_output.vout as usize].value;
   }
   for output in &reveal_tx.output {
     fee -= output.value;
   }
-  let fee_rate = fee as f64 / reveal_tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / reveal_tx.vsize() as f64;
   pretty_assert_eq!(fee_rate, set_fee_rate);
 
   assert_eq!(
@@ -1168,7 +1165,7 @@ fn batch_inscribe_with_satpoints_with_parent() {
   let txids = core
     .mine_blocks(3)
     .iter()
-    .map(|block| block.txdata[0].txid())
+    .map(|block| block.txdata[0].compute_txid())
     .collect::<Vec<Txid>>();
 
   let satpoint_1 = SatPoint {
@@ -1532,7 +1529,7 @@ fn batch_can_etch_rune() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*\s*<dt>turbo</dt>\s*<dd>false</dd>.*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*\s*<dt>turbo</dt>\s*<dd>false</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1633,7 +1630,7 @@ fn batch_can_etch_turbo_rune() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 }
@@ -1695,7 +1692,7 @@ fn batch_can_etch_rune_without_premine() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1781,7 +1778,7 @@ fn batch_inscribe_can_etch_rune_with_offset() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1855,7 +1852,7 @@ fn batch_inscribe_can_etch_rune_with_height() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -2619,7 +2616,7 @@ fn oversize_runestone_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: runestone greater than maximum OP_RETURN size: 104 > 82\n")
+    .expected_stderr("error: runestone greater than maximum OP_RETURN size: 104 > 83\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }

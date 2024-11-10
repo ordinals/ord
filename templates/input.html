@@ -1,7 +1,7 @@
 <h1>Input /{{self.path.0}}/{{self.path.1}}/{{self.path.2}}</h1>
 <dl>
 %% if !self.input.previous_output.is_null() {
-  <dt>previous output</dt><dd class=monospace>{{self.input.previous_output}}</dd>
+  <dt>previous output</dt><dd class=collapse>{{self.input.previous_output}}</dd>
 %% }
 %% if self.input.sequence != Sequence::MAX {
   <dt>sequence</dt><dd>{{self.input.sequence}}</dd>

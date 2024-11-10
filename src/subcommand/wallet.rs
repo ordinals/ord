@@ -4,6 +4,7 @@ use {
   shared_args::SharedArgs,
 };
 
+pub mod addresses;
 pub mod balance;
 mod batch_command;
 pub mod burn;
@@ -23,6 +24,8 @@ pub mod runics;
 pub mod sats;
 pub mod send;
 mod shared_args;
+pub mod sign;
+pub mod split;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
@@ -43,6 +46,8 @@ pub(crate) struct WalletCommand {
 #[derive(Debug, Parser)]
 #[allow(clippy::large_enum_variant)]
 pub(crate) enum Subcommand {
+  #[command(about = "Get wallet addresses")]
+  Addresses,
   #[command(about = "Get wallet balance")]
   Balance,
   #[command(about = "Create inscriptions and runes")]
@@ -79,6 +84,10 @@ pub(crate) enum Subcommand {
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
   Send(send::Send),
+  #[command(about = "Sign message")]
+  Sign(sign::Sign),
+  #[command(about = "Split outputs")]
+  Split(split::Split),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
 }
@@ -106,6 +115,7 @@ impl WalletCommand {
     )?;
 
     match self.subcommand {
+      Subcommand::Addresses => addresses::run(wallet),
       Subcommand::Balance => balance::run(wallet),
       Subcommand::Batch(batch) => batch.run(wallet),
       Subcommand::Burn(burn) => burn.run(wallet),
@@ -123,7 +133,31 @@ impl WalletCommand {
       Subcommand::Runics => runics::run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
+      Subcommand::Sign(sign) => sign.run(wallet),
+      Subcommand::Split(split) => split.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
+    }
+  }
+
+  fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
+    match (cbor, json) {
+      (None, None) => Ok(None),
+      (Some(path), None) => {
+        let cbor = fs::read(path)?;
+        let _value: Value = ciborium::from_reader(Cursor::new(cbor.clone()))
+          .context("failed to parse CBOR metadata")?;
+
+        Ok(Some(cbor))
+      }
+      (None, Some(path)) => {
+        let value: serde_json::Value =
+          serde_json::from_reader(File::open(path)?).context("failed to parse JSON metadata")?;
+        let mut cbor = Vec::new();
+        ciborium::into_writer(&value, &mut cbor)?;
+
+        Ok(Some(cbor))
+      }
+      (Some(_), Some(_)) => panic!(),
     }
   }
 }

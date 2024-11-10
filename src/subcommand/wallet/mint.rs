@@ -53,9 +53,9 @@ impl Mint {
     };
 
     ensure!(
-      destination.script_pubkey().dust_value() <= postage,
+      destination.script_pubkey().minimal_non_dust() <= postage,
       "postage below dust limit of {}sat",
-      destination.script_pubkey().dust_value().to_sat()
+      destination.script_pubkey().minimal_non_dust().to_sat()
     );
 
     let runestone = Runestone {
@@ -66,23 +66,24 @@ impl Mint {
     let script_pubkey = runestone.encipher();
 
     ensure!(
-      script_pubkey.len() <= 82,
-      "runestone greater than maximum OP_RETURN size: {} > 82",
-      script_pubkey.len()
+      script_pubkey.len() <= MAX_STANDARD_OP_RETURN_SIZE,
+      "runestone greater than maximum OP_RETURN size: {} > {}",
+      script_pubkey.len(),
+      MAX_STANDARD_OP_RETURN_SIZE,
     );
 
     let unfunded_transaction = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: Vec::new(),
       output: vec![
         TxOut {
           script_pubkey,
-          value: 0,
+          value: Amount::from_sat(0),
         },
         TxOut {
           script_pubkey: destination.script_pubkey(),
-          value: postage.to_sat(),
+          value: postage,
         },
       ],
     };
