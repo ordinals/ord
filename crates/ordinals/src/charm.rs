@@ -27,13 +27,13 @@ impl Charm {
     Self::Legendary,
     Self::Mythic,
     Self::Nineball,
+    Self::Palendrome,
     Self::Reinscription,
     Self::Cursed,
     Self::Unbound,
     Self::Lost,
     Self::Vindicated,
     Self::Burned,
-    Self::Palendrome,
   ];
 
   pub fn flag(self) -> u16 {
