@@ -29,6 +29,18 @@ impl Sat {
     self.n() >= 50 * COIN_VALUE * 9 && self.n() < 50 * COIN_VALUE * 10
   }
 
+  pub fn palendrome(self) -> bool {
+    let mut n = self.0;
+    let mut reversed = 0;
+
+    while n > 0 {
+      reversed = reversed * 10 + n % 10;
+      n /= 10;
+    }
+
+    self.0 == reversed
+  }
+
   pub fn percentile(self) -> String {
     format!("{}%", (self.0 as f64 / Self::LAST.0 as f64) * 100.0)
   }
@@ -95,6 +107,10 @@ impl Sat {
 
     if self.nineball() {
       Charm::Nineball.set(&mut charms);
+    }
+
+    if self.palendrome() {
+      Charm::Palendrome.set(&mut charms);
     }
 
     if self.coin() {

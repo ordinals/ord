@@ -15,10 +15,11 @@ pub enum Charm {
   Vindicated = 10,
   Mythic = 11,
   Burned = 12,
+  Palendrome = 13,
 }
 
 impl Charm {
-  pub const ALL: [Self; 13] = [
+  pub const ALL: [Self; 14] = [
     Self::Coin,
     Self::Uncommon,
     Self::Rare,
@@ -32,6 +33,7 @@ impl Charm {
     Self::Lost,
     Self::Vindicated,
     Self::Burned,
+    Self::Palendrome,
   ];
 
   pub fn flag(self) -> u16 {
@@ -60,6 +62,7 @@ impl Charm {
       Self::Lost => "🤔",
       Self::Mythic => "🎃",
       Self::Nineball => "\u{39}\u{fe0f}\u{20e3}",
+      Self::Palendrome => "🦋",
       Self::Rare => "🧿",
       Self::Reinscription => "♻️",
       Self::Unbound => "🔓",
@@ -90,6 +93,7 @@ impl Display for Charm {
         Self::Lost => "lost",
         Self::Mythic => "mythic",
         Self::Nineball => "nineball",
+        Self::Palendrome => "palendrome",
         Self::Rare => "rare",
         Self::Reinscription => "reinscription",
         Self::Unbound => "unbound",
