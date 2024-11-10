@@ -41,7 +41,7 @@ impl Burn {
 
     let metadata = WalletCommand::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
-    let Some(value) = inscription_info.value else {
+    let Some(_) = inscription_info.value else {
       bail!("Cannot burn unbound inscription");
     };
 
