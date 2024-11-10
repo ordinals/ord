@@ -359,10 +359,6 @@ inscriptions:
           index: 2
         },
       ],
-      outpoint: OutPoint {
-        txid: reveal_txid,
-        vout: 0
-      },
       indexed: true,
       runes: BTreeMap::new(),
       sat_ranges: Some(vec![(5_000_000_000, 5_000_030_000)]),
