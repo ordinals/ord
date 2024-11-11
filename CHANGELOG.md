@@ -1,7 +1,7 @@
 Changelog
 =========
 
-[0.21.3](https://github.com/ordinals/ord/releases/tag/0.21.3) - 2024-11-09
+[0.21.3](https://github.com/ordinals/ord/releases/tag/0.21.3) - 2024-11-11
 --------------------------------------------------------------------------
 
 ### Added
@@ -10,6 +10,7 @@ Changelog
 - BIP322 sign file (#4026)
 - Add `ord wallet split` command for splitting utxos (#4030)
 - Allow fallback for satpoints and addresses (#4033)
+- Add palindrome charm (#4064)
 
 ### Changed
 - Do not chunk runestone data pushes (#4036)
