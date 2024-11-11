@@ -4,8 +4,10 @@ use super::*;
 pub(crate) struct Restore {
   #[clap(value_enum, long, help = "Restore wallet from <SOURCE> on stdin.")]
   from: Source,
-  #[arg(long, help = "Use <PASSPHRASE> when deriving wallet")]
+  #[arg(long, help = "Use <PASSPHRASE> when deriving wallet.")]
   pub(crate) passphrase: Option<String>,
+  #[arg(long, help = "Scan Bitcoin for outputs from <TIMESTAMP> onwards.")]
+  pub(crate) timestamp: Option<u64>,
 }
 
 #[derive(clap::ValueEnum, Debug, Clone)]
@@ -45,7 +47,7 @@ impl Restore {
           name,
           settings,
           mnemonic.to_seed(self.passphrase.unwrap_or_default()),
-          bitcoincore_rpc::json::Timestamp::Time(0),
+          bitcoincore_rpc::json::Timestamp::Time(self.timestamp.unwrap_or(0)),
         )?;
       }
     }
