@@ -15,7 +15,7 @@ pub enum Charm {
   Vindicated = 10,
   Mythic = 11,
   Burned = 12,
-  Palendrome = 13,
+  Palindrome = 13,
 }
 
 impl Charm {
@@ -27,7 +27,7 @@ impl Charm {
     Self::Legendary,
     Self::Mythic,
     Self::Nineball,
-    Self::Palendrome,
+    Self::Palindrome,
     Self::Reinscription,
     Self::Cursed,
     Self::Unbound,
@@ -62,7 +62,7 @@ impl Charm {
       Self::Lost => "🤔",
       Self::Mythic => "🎃",
       Self::Nineball => "\u{39}\u{fe0f}\u{20e3}",
-      Self::Palendrome => "🦋",
+      Self::Palindrome => "🦋",
       Self::Rare => "🧿",
       Self::Reinscription => "♻️",
       Self::Unbound => "🔓",
@@ -93,7 +93,7 @@ impl Display for Charm {
         Self::Lost => "lost",
         Self::Mythic => "mythic",
         Self::Nineball => "nineball",
-        Self::Palendrome => "palendrome",
+        Self::Palindrome => "palindrome",
         Self::Rare => "rare",
         Self::Reinscription => "reinscription",
         Self::Unbound => "unbound",

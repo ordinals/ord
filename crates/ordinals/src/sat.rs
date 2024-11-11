@@ -29,7 +29,7 @@ impl Sat {
     self.n() >= 50 * COIN_VALUE * 9 && self.n() < 50 * COIN_VALUE * 10
   }
 
-  pub fn palendrome(self) -> bool {
+  pub fn palindrome(self) -> bool {
     let mut n = self.0;
     let mut reversed = 0;
 
@@ -109,8 +109,8 @@ impl Sat {
       Charm::Nineball.set(&mut charms);
     }
 
-    if self.palendrome() {
-      Charm::Palendrome.set(&mut charms);
+    if self.palindrome() {
+      Charm::Palindrome.set(&mut charms);
     }
 
     if self.coin() {
@@ -821,16 +821,16 @@ mod tests {
   }
 
   #[test]
-  fn palendrome() {
-    assert!(Sat(0).palendrome());
-    assert!(!Sat(10).palendrome());
-    assert!(Sat(11).palendrome());
+  fn palindrome() {
+    assert!(Sat(0).palindrome());
+    assert!(!Sat(10).palindrome());
+    assert!(Sat(11).palindrome());
   }
 
   #[test]
-  fn palendrome_charm() {
-    assert!(Charm::Palendrome.is_set(Sat(0).charms()));
-    assert!(!Charm::Palendrome.is_set(Sat(10).charms()));
-    assert!(Charm::Palendrome.is_set(Sat(11).charms()));
+  fn palindrome_charm() {
+    assert!(Charm::Palindrome.is_set(Sat(0).charms()));
+    assert!(!Charm::Palindrome.is_set(Sat(10).charms()));
+    assert!(Charm::Palindrome.is_set(Sat(11).charms()));
   }
 }
