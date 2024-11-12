@@ -21,7 +21,11 @@ pub(crate) struct Restore {
   from: Source,
   #[arg(long, help = "Use <PASSPHRASE> when deriving wallet.")]
   pub(crate) passphrase: Option<String>,
-  #[arg(long, help = "Scan Bitcoin for outputs from <TIMESTAMP> onwards.")]
+  #[arg(
+    long,
+    help = "Scan chain for outputs from <TIMESTAMP> onwards. \
+    Can either be a unix timestamp in seconds or the string `now`."
+  )]
   pub(crate) timestamp: Option<Timestamp>,
 }
 
