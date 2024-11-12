@@ -5,25 +5,25 @@ Changelog
 --------------------------------------------------------------------------
 
 ### Added
-- Get output information by address (#4056)
-- Allow including metadata when burning inscriptions (#4045)
-- BIP322 sign file (#4026)
-- Add `ord wallet split` command for splitting utxos (#4030)
-- Allow fallback for satpoints and addresses (#4033)
-- Add palindrome charm (#4064)
-- Allow restoring wallet with custom timestamp (#4065)
+- Get output information by address ([#4056](https://github.com/ordinals/ord/pull/4056) by [raphjaph](https://github.com/raphjaph))
+- Allow including metadata when burning inscriptions ([#4045](https://github.com/ordinals/ord/pull/4045) by [casey](https://github.com/casey))
+- BIP322 sign file ([#4026](https://github.com/ordinals/ord/pull/4026) by [raphjaph](https://github.com/raphjaph))
+- Add `ord wallet split` command for splitting utxos ([#4030](https://github.com/ordinals/ord/pull/4030) by [casey](https://github.com/casey))
+- Allow fallback for satpoints and addresses ([#4033](https://github.com/ordinals/ord/pull/4033) by [casey](https://github.com/casey))
+- Add palindrome charm ([#4064](https://github.com/ordinals/ord/pull/4064) by [casey](https://github.com/casey))
+- Allow restoring wallet with custom timestamp ([#4065](https://github.com/ordinals/ord/pull/4065) by [raphjaph](https://github.com/raphjaph))
 
 ### Changed
-- Do not chunk runestone data pushes (#4036)
-- Rescan wallet on restore (#4041)
+- Do not chunk runestone data pushes ([#4036](https://github.com/ordinals/ord/pull/4036) by [casey](https://github.com/casey))
+- Rescan wallet on restore ([#4041](https://github.com/ordinals/ord/pull/4041) by [casey](https://github.com/casey))
 
 ### Misc
-- Add assert_html function (#4058)
-- Identify collapsible nodes with class=collapse (#4055)
-- Collapse long strings in HTML (#4053)
-- Add simple taproot HD wallet to mockcore (#4038)
-- Hide image preview and thumbnail scrollbars (#4042)
-- Un-pin redb dependency and update to 2.2.0 (#4032)
+- Add assert_html function ([#4058](https://github.com/ordinals/ord/pull/4058) by [casey](https://github.com/casey))
+- Identify collapsible nodes with class=collapse ([#4055](https://github.com/ordinals/ord/pull/4055) by [casey](https://github.com/casey))
+- Collapse long strings in HTML ([#4053](https://github.com/ordinals/ord/pull/4053) by [casey](https://github.com/casey))
+- Add simple taproot HD wallet to mockcore ([#4038](https://github.com/ordinals/ord/pull/4038) by [raphjaph](https://github.com/raphjaph))
+- Hide image preview and thumbnail scrollbars ([#4042](https://github.com/ordinals/ord/pull/4042) by [casey](https://github.com/casey))
+- Un-pin redb dependency and update to 2.2.0 ([#4032](https://github.com/ordinals/ord/pull/4032) by [casey](https://github.com/casey))
 
 [0.21.2](https://github.com/ordinals/ord/releases/tag/0.21.2) - 2024-10-26
 --------------------------------------------------------------------------
