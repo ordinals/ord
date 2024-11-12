@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(Debug, Clone)]
-struct Timestamp(bitcoincore_rpc::json::Timestamp);
+pub(crate) struct Timestamp(bitcoincore_rpc::json::Timestamp);
 
 impl FromStr for Timestamp {
   type Err = Error;
@@ -10,7 +10,7 @@ impl FromStr for Timestamp {
     Ok(if s == "now" {
       Self(bitcoincore_rpc::json::Timestamp::Now)
     } else {
-      Self(bitcoincore_rpc::json::Timestamp::Time(s.parse::<u64>()?))
+      Self(bitcoincore_rpc::json::Timestamp::Time(s.parse()?))
     })
   }
 }
