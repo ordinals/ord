@@ -222,3 +222,24 @@ fn passphrase_conflicts_with_descriptor() {
   .expected_stderr("error: descriptor does not take a passphrase\n")
   .run_and_extract_stdout();
 }
+
+#[test]
+fn timestamp_conflicts_with_descriptor() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  CommandBuilder::new([
+    "wallet",
+    "restore",
+    "--from",
+    "descriptor",
+    "--timestamp",
+    "now",
+  ])
+  .stdin("".into())
+  .core(&core)
+  .ord(&ord)
+  .expected_exit_code(1)
+  .expected_stderr("error: descriptor does not take a timestamp\n")
+  .run_and_extract_stdout();
+}
