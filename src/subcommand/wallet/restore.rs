@@ -33,10 +33,17 @@ impl Restore {
     match self.from {
       Source::Descriptor => {
         io::stdin().read_to_string(&mut buffer)?;
+
         ensure!(
           self.passphrase.is_none(),
           "descriptor does not take a passphrase"
         );
+
+        ensure!(
+          self.timestamp.is_none(),
+          "descriptor does not take a timestamp"
+        );
+
         let wallet_descriptors: ListDescriptorsResult = serde_json::from_str(&buffer)?;
         Wallet::initialize_from_descriptors(name, settings, wallet_descriptors.descriptors)?;
       }
