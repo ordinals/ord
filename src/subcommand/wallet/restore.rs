@@ -23,8 +23,8 @@ pub(crate) struct Restore {
   pub(crate) passphrase: Option<String>,
   #[arg(
     long,
-    help = "Scan chain for outputs from <TIMESTAMP> onwards. \
-    Can either be a unix timestamp in seconds or the string `now`."
+    help = "Scan chain from <TIMESTAMP> onwards. Can be a unix timestamp in \
+    seconds or the string `now`, to skip scanning"
   )]
   pub(crate) timestamp: Option<Timestamp>,
 }
