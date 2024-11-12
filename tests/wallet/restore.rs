@@ -243,3 +243,128 @@ fn timestamp_conflicts_with_descriptor() {
   .expected_stderr("error: descriptor does not take a timestamp\n")
   .run_and_extract_stdout();
 }
+
+#[test]
+fn restore_with_now_timestamp() {
+  let mnemonic = {
+    let core = mockcore::spawn();
+
+    let create::Output { mnemonic, .. } = CommandBuilder::new(["wallet", "create"])
+      .core(&core)
+      .run_and_deserialize_output();
+
+    mnemonic
+  };
+
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  CommandBuilder::new([
+    "wallet",
+    "restore",
+    "--from",
+    "mnemonic",
+    "--timestamp",
+    "now",
+  ])
+  .stdin(mnemonic.to_string().into())
+  .core(&core)
+  .run_and_extract_stdout();
+
+  let output = CommandBuilder::new("wallet dump")
+    .core(&core)
+    .ord(&ord)
+    .stderr_regex(".*")
+    .run_and_deserialize_output::<ListDescriptorsResult>();
+
+  assert!(output
+    .descriptors
+    .iter()
+    .all(|descriptor| match descriptor.timestamp {
+      bitcoincore_rpc::json::Timestamp::Now => true,
+      bitcoincore_rpc::json::Timestamp::Time(time) =>
+        time.abs_diff(
+          std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs()
+        ) <= 5,
+    }));
+}
+
+#[test]
+fn restore_with_no_timestamp_defaults_to_0() {
+  let mnemonic = {
+    let core = mockcore::spawn();
+
+    let create::Output { mnemonic, .. } = CommandBuilder::new(["wallet", "create"])
+      .core(&core)
+      .run_and_deserialize_output();
+
+    mnemonic
+  };
+
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  CommandBuilder::new(["wallet", "restore", "--from", "mnemonic"])
+    .stdin(mnemonic.to_string().into())
+    .core(&core)
+    .run_and_extract_stdout();
+
+  let output = CommandBuilder::new("wallet dump")
+    .core(&core)
+    .ord(&ord)
+    .stderr_regex(".*")
+    .run_and_deserialize_output::<ListDescriptorsResult>();
+
+  assert!(output
+    .descriptors
+    .iter()
+    .all(|descriptor| match descriptor.timestamp {
+      bitcoincore_rpc::json::Timestamp::Now => false,
+      bitcoincore_rpc::json::Timestamp::Time(time) => time == 0,
+    }));
+}
+
+#[test]
+fn restore_with_timestamp() {
+  let mnemonic = {
+    let core = mockcore::spawn();
+
+    let create::Output { mnemonic, .. } = CommandBuilder::new(["wallet", "create"])
+      .core(&core)
+      .run_and_deserialize_output();
+
+    mnemonic
+  };
+
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  CommandBuilder::new([
+    "wallet",
+    "restore",
+    "--from",
+    "mnemonic",
+    "--timestamp",
+    "123456789",
+  ])
+  .stdin(mnemonic.to_string().into())
+  .core(&core)
+  .run_and_extract_stdout();
+
+  let output = CommandBuilder::new("wallet dump")
+    .core(&core)
+    .ord(&ord)
+    .stderr_regex(".*")
+    .run_and_deserialize_output::<ListDescriptorsResult>();
+
+  assert!(output
+    .descriptors
+    .iter()
+    .all(|descriptor| match descriptor.timestamp {
+      bitcoincore_rpc::json::Timestamp::Now => false,
+      bitcoincore_rpc::json::Timestamp::Time(time) => time == 123456789,
+    }));
+}
