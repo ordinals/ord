@@ -11,6 +11,7 @@ Changelog
 - Add `ord wallet split` command for splitting utxos (#4030)
 - Allow fallback for satpoints and addresses (#4033)
 - Add palindrome charm (#4064)
+- Allow restoring wallet with custom timestamp (#4065)
 
 ### Changed
 - Do not chunk runestone data pushes (#4036)
