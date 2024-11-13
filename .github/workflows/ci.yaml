@@ -37,6 +37,9 @@ jobs:
     - name: Install mdbook-i18n-helpers
       run: cargo install mdbook-i18n-helpers
 
+    - name: Install mdbook-force-relative-links
+      run: cargo install mdbook-force-relative-links
+
     - name: Install mdbook-linkcheck
       run: |
         mkdir -p mdbook-linkcheck

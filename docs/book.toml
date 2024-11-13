@@ -11,6 +11,7 @@ extra-watch-dirs = ["po"]
 
 [output.html]
 cname = "docs.ordinals.com"
+site-url = "/"
 default-theme = "coal"
 git-repository-url = "https://github.com/ordinals/ord"
 preferred-dark-theme = "coal"
@@ -19,4 +20,7 @@ additional-css = ["index.css"]
 [output.linkcheck]
 
 [preprocessor.gettext]
+after = ["links"]
+
+[prepocessor.force-relative-links]
 after = ["links"]
