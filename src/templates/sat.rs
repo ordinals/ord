@@ -45,6 +45,7 @@ mod tests {
           <dd>
             <span title=coin>🪙</span>
             <span title=mythic>🎃</span>
+            <span title=palindrome>🦋</span>
           </dd>
         </dl>
         .*

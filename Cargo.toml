@@ -1,7 +1,7 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.21.2"
+version = "0.21.3"
 license = "CC0-1.0"
 edition = "2021"
 autotests = false
@@ -25,7 +25,7 @@ axum-server = "0.5.0"
 base64 = "0.22.0"
 bip322 = "0.0.8"
 bip39 = "2.0.0"
-bitcoin = { version = "0.32.3", features = ["rand"] }
+bitcoin = { version = "=0.32.3", features = ["rand"] }
 bitcoincore-rpc = "0.19.0"
 boilerplate = { version = "1.0.0", features = ["axum"] }
 brotli = "7.0.0"
@@ -49,7 +49,7 @@ mime = "0.3.16"
 mime_guess = "2.0.4"
 miniscript = "12.0.0"
 mp4 = "0.14.0"
-ordinals = { version = "0.0.11", path = "crates/ordinals" }
+ordinals = { version = "0.0.12", path = "crates/ordinals" }
 redb = "2.2.0"
 ref-cast = "1.0.23"
 regex = "1.6.0"
