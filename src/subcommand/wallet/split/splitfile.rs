@@ -83,6 +83,24 @@ impl Splitfile {
   fn load_unchecked(path: &Path) -> Result<SplitfileUnchecked> {
     Ok(serde_yaml::from_reader(File::open(path)?)?)
   }
+
+  pub(crate) fn is_even(&self) -> bool {
+    let Some(entry) = self.outputs.first() else {
+      return false;
+    };
+
+    for output in self.outputs.iter().skip(1) {
+      if entry.runes != output.runes {
+        return false;
+      }
+
+      if entry.value != output.value {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
 
 #[cfg(test)]
