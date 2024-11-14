@@ -38,10 +38,11 @@
 <ul class=monospace>
 %% for (start, end) in sat_ranges {
 %% let value = end - start;
+%% let last = end - 1;
 %% if value == 1 {
   <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a></li>
 %% } else {
-  <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a>-<a href=/sat/{{end}} class={{Sat(*end).rarity()}}>{{end}}</a> ({{value}} sats)</li>
+  <li><a href=/sat/{{start}} class={{Sat(*start).rarity()}}>{{start}}</a>-<a href=/sat/{{last}} class=common>{{last}}</a> ({{value}} sats)</li>
 %% }
 %% }
 </ul>
