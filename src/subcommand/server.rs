@@ -3936,7 +3936,7 @@ mod tests {
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
-  <li><a href=/sat/0 class=mythic>0</a>-<a href=/sat/5000000000 class=uncommon>5000000000</a> \\(5000000000 sats\\)</li>
+  <li><a href=/sat/0 class=mythic>0</a>-<a href=/sat/4999999999 class=common>4999999999</a> \\(5000000000 sats\\)</li>
 </ul>.*"
         ),
       );
@@ -3981,7 +3981,7 @@ mod tests {
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
-  <li><a href=/sat/5000000000 class=uncommon>5000000000</a>-<a href=/sat/10000000000 class=uncommon>10000000000</a> \\(5000000000 sats\\)</li>
+  <li><a href=/sat/5000000000 class=uncommon>5000000000</a>-<a href=/sat/9999999999 class=common>9999999999</a> \\(5000000000 sats\\)</li>
 </ul>.*"
       ),
     );
