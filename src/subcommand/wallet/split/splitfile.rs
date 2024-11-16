@@ -84,7 +84,7 @@ impl Splitfile {
     Ok(serde_yaml::from_reader(File::open(path)?)?)
   }
 
-  pub(crate) fn is_even(&self) -> bool {
+  pub(crate) fn even(&self) -> bool {
     let Some(entry) = self.outputs.first() else {
       return false;
     };
