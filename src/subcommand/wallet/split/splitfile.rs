@@ -84,22 +84,30 @@ impl Splitfile {
     Ok(serde_yaml::from_reader(File::open(path)?)?)
   }
 
-  pub(crate) fn even(&self) -> bool {
+  pub(crate) fn even(&self) -> Option<Rune> {
     let Some(entry) = self.outputs.first() else {
-      return false;
+      return None;
+    };
+
+    if entry.runes.len() != 1 {
+      return None;
+    }
+
+    let Some((rune, _)) = entry.runes.first_entry().cloned() else {
+      return None;
     };
 
     for output in self.outputs.iter().skip(1) {
       if entry.runes != output.runes {
-        return false;
+        return None;
       }
 
       if entry.value != output.value {
-        return false;
+        return None;
       }
     }
 
-    return true;
+    return Some(rune);
   }
 }
 

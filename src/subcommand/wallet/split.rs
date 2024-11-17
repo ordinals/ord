@@ -244,12 +244,23 @@ impl Split {
 
     let base = if need_rune_change_output { 2 } else { 1 };
 
-    if splits.even() {
-      let have = input_rune_balances
-        .get(&output.runes)
-        .copied()
-        .unwrap_or_default();
-      let need = input_runes_required.get(&rune);
+    if let Some(rune) = splits.even() {
+      let have = input_rune_balances.get(&rune).copied().unwrap_or_default();
+      let need = input_runes_required.get(&rune).copied().unwrap_or_default();
+
+      let change = have - need;
+
+      edicts.push(Edict {
+        id: splits.rune_info.get(&rune).unwrap().id,
+        amount: change,
+        output: base.try_into().unwrap(),
+      });
+
+      edicts.push(Edict {
+        id: splits.rune_info.get(&rune).unwrap().id,
+        amount: change,
+        output: base.try_into().unwrap(),
+      });
     } else {
       for (i, output) in splits.outputs.iter().enumerate() {
         for (rune, amount) in &output.runes {
