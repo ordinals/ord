@@ -682,7 +682,7 @@ inscriptions:
     format!("/inscription/{}", output.inscriptions[0].id),
     ".*
   <dt>address</dt>
-  <dd class=monospace><a href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>.*",
+  <dd><a class=collapse href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>.*",
   );
 
   ord.assert_response_regex(
@@ -690,7 +690,7 @@ inscriptions:
     format!(
       ".*
   <dt>address</dt>
-  <dd class=monospace><a href=/address/{0}>{0}</a></dd>.*",
+  <dd><a class=collapse href=/address/{0}>{0}</a></dd>.*",
       core.state().change_addresses[0],
     ),
   );
@@ -699,7 +699,7 @@ inscriptions:
     format!("/inscription/{}", output.inscriptions[2].id),
     ".*
   <dt>address</dt>
-  <dd class=monospace><a href=/address/bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k>bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k</a></dd>.*",
+  <dd><a class=collapse href=/address/bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k>bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k</a></dd>.*",
   );
 }
 
@@ -1529,7 +1529,7 @@ fn batch_can_etch_rune() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*\s*<dt>turbo</dt>\s*<dd>false</dd>.*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*\s*<dt>turbo</dt>\s*<dd>false</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1630,7 +1630,7 @@ fn batch_can_etch_turbo_rune() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 }
@@ -1692,7 +1692,7 @@ fn batch_can_etch_rune_without_premine() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1778,7 +1778,7 @@ fn batch_inscribe_can_etch_rune_with_offset() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1852,7 +1852,7 @@ fn batch_inscribe_can_etch_rune_with_height() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -2616,7 +2616,7 @@ fn oversize_runestone_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: runestone greater than maximum OP_RETURN size: 104 > 82\n")
+    .expected_stderr("error: runestone greater than maximum OP_RETURN size: 104 > 83\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
