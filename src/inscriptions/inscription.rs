@@ -116,7 +116,7 @@ impl Inscription {
     bytes
   }
 
-  pub(crate) fn append_reveal_script_to_builder(
+  pub fn append_reveal_script_to_builder(
     &self,
     mut builder: script::Builder,
   ) -> script::Builder {
@@ -149,7 +149,7 @@ impl Inscription {
     self.append_reveal_script_to_builder(builder).into_script()
   }
 
-  pub(crate) fn append_batch_reveal_script_to_builder(
+  pub fn append_batch_reveal_script_to_builder(
     inscriptions: &[Inscription],
     mut builder: script::Builder,
   ) -> script::Builder {
@@ -160,7 +160,7 @@ impl Inscription {
     builder
   }
 
-  pub(crate) fn append_batch_reveal_script(
+  pub fn append_batch_reveal_script(
     inscriptions: &[Inscription],
     builder: script::Builder,
   ) -> ScriptBuf {
