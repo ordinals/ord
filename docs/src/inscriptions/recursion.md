@@ -3202,17 +3202,6 @@ curl -s -H "Accept: application/json" \
 ```
 </details>
 
-<details>
-  <summary>
-    <code>GET</code>
-    <code><b>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</b></code>
-  </summary>
-
-### Description
-Undelegated content of an inscription.
-
-</details>
-
 
 <details>
   <summary>
