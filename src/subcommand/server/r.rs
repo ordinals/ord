@@ -187,7 +187,7 @@ pub(super) async fn children_inscriptions_paginated(
           .flatten()
           .unwrap();
 
-        api::ChildInscriptionRecursive {
+        api::ChildOrParentInscriptionRecursive {
           charms: Charm::charms(entry.charms),
           fee: entry.fee,
           height: entry.height,
@@ -430,6 +430,62 @@ pub(super) async fn parents(
   parents_paginated(Extension(index), Path((inscription_id, 0))).await
 }
 
+pub async fn parent_inscriptions_recursive(
+  Extension(index): Extension<Arc<Index>>,
+  Path(inscription_id): Path<InscriptionId>,
+) -> ServerResult {
+  parent_inscriptions_recursive_paginated(Extension(index), Path((inscription_id, 0))).await
+}
+
+pub async fn parent_inscriptions_recursive_paginated(
+  Extension(index): Extension<Arc<Index>>,
+  Path((child, page)): Path<(InscriptionId, usize)>,
+) -> ServerResult {
+  task::block_in_place(|| {
+    let entry = index
+      .get_inscription_entry(child)?
+      .ok_or_not_found(|| format!("inscription {child}"))?;
+
+    let (ids, more) = index.get_parents_by_sequence_number_paginated(entry.parents, 100, page)?;
+
+    let parents = ids
+      .into_iter()
+      .map(
+        |inscription_id| -> ServerResult<api::ChildOrParentInscriptionRecursive> {
+          let entry = index
+            .get_inscription_entry(inscription_id)?
+            .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+          let satpoint = index
+            .get_inscription_satpoint_by_id(inscription_id)?
+            .ok_or_not_found(|| format!("satpoint for inscription {inscription_id}"))?;
+
+          Ok(api::ChildOrParentInscriptionRecursive {
+            charms: Charm::charms(entry.charms),
+            fee: entry.fee,
+            height: entry.height,
+            id: inscription_id,
+            number: entry.inscription_number,
+            output: satpoint.outpoint,
+            sat: entry.sat,
+            satpoint,
+            timestamp: timestamp(entry.timestamp.into()).timestamp(),
+          })
+        },
+      )
+      .collect::<Result<Vec<_>, _>>()?;
+
+    Ok(
+      Json(api::ParentInscriptions {
+        parents,
+        more,
+        page,
+      })
+      .into_response(),
+    )
+  })
+}
+
 pub(super) async fn parents_paginated(
   Extension(index): Extension<Arc<Index>>,
   Path((inscription_id, page)): Path<(InscriptionId, usize)>,
@@ -439,7 +495,7 @@ pub(super) async fn parents_paginated(
       .get_inscription_entry(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-    let (ids, more) = index.get_parents_by_sequence_number_paginated(child.parents, page)?;
+    let (ids, more) = index.get_parents_by_sequence_number_paginated(child.parents, 100, page)?;
 
     let page_index =
       u32::try_from(page).map_err(|_| anyhow!("page index {} out of range", page))?;
