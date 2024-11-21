@@ -188,7 +188,7 @@ mod tests {
   fn sat_with_address() {
     assert_regex_match!(
       SatHtml {
-        address: Some(address(0).to_string()),
+        address: Some(address(0)),
         sat: Sat(0),
         satpoint: Some(satpoint(1, 0)),
         blocktime: Blocktime::confirmed(0),
