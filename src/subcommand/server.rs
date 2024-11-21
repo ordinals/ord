@@ -570,54 +570,55 @@ impl Server {
 
       let charms = sat.charms();
 
-      let address = satpoint.and_then(|satpoint| {
-        let outpoint = satpoint.outpoint;
-
-        if outpoint == unbound_outpoint() {
+      let address = if let Some(satpoint) = satpoint {
+        if satpoint.outpoint == unbound_outpoint() {
           None
         } else {
-          index
-            .get_transaction(outpoint.txid)
+          let tx = index
+            .get_transaction(satpoint.outpoint.txid)?
+            .context("could not get transaction for sat")?;
+
+          let tx_out = tx
+            .output
+            .get::<usize>(satpoint.outpoint.vout.try_into().unwrap())
+            .context("could not get vout for sat")?;
+
+          server_config
+            .chain
+            .address_from_script(&tx_out.script_pubkey)
             .ok()
-            .flatten()
-            .and_then(|tx| tx.output.into_iter().nth(outpoint.vout.try_into().unwrap()))
-            .and_then(|output| {
-              server_config
-                .chain
-                .address_from_script(&output.script_pubkey)
-                .ok()
-                .map(|address| address.to_string())
-            })
         }
-      });
+      } else {
+        None
+      };
 
       Ok(if accept_json {
         Json(api::Sat {
-          address,
-          number: sat.0,
+          address: address.map(|address| address.to_string()),
+          block: sat.height().0,
+          charms: Charm::charms(charms),
+          cycle: sat.cycle(),
           decimal: sat.decimal().to_string(),
           degree: sat.degree().to_string(),
-          name: sat.name(),
-          block: sat.height().0,
-          cycle: sat.cycle(),
           epoch: sat.epoch().0,
-          period: sat.period(),
+          inscriptions,
+          name: sat.name(),
+          number: sat.0,
           offset: sat.third(),
-          rarity: sat.rarity(),
           percentile: sat.percentile(),
+          period: sat.period(),
+          rarity: sat.rarity(),
           satpoint,
           timestamp: blocktime.timestamp().timestamp(),
-          inscriptions,
-          charms: Charm::charms(charms),
         })
         .into_response()
       } else {
         SatHtml {
           address,
-          sat,
-          satpoint,
           blocktime,
           inscriptions,
+          sat,
+          satpoint,
         }
         .page(server_config)
         .into_response()
