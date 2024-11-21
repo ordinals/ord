@@ -116,10 +116,7 @@ impl Inscription {
     bytes
   }
 
-  pub fn append_reveal_script_to_builder(
-    &self,
-    mut builder: script::Builder,
-  ) -> script::Builder {
+  pub fn append_reveal_script_to_builder(&self, mut builder: script::Builder) -> script::Builder {
     builder = builder
       .push_opcode(opcodes::OP_FALSE)
       .push_opcode(opcodes::all::OP_IF)
