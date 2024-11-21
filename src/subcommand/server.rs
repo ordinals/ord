@@ -570,24 +570,25 @@ impl Server {
 
       let charms = sat.charms();
 
-      let output = satpoint.and_then(|sp| {
-        if sp.outpoint == unbound_outpoint() {
+      let address = satpoint.and_then(|satpoint| {
+        let outpoint = satpoint.outpoint;
+
+        if outpoint == unbound_outpoint() {
           None
         } else {
           index
-            .get_transaction(sp.outpoint.txid)
+            .get_transaction(outpoint.txid)
             .ok()
             .flatten()
-            .and_then(|tx| tx.output.into_iter().nth(sp.outpoint.vout as usize))
+            .and_then(|tx| tx.output.into_iter().nth(outpoint.vout.try_into().unwrap()))
+            .and_then(|output| {
+              server_config
+                .chain
+                .address_from_script(&output.script_pubkey)
+                .ok()
+                .map(|address| address.to_string())
+            })
         }
-      });
-
-      let address = output.as_ref().and_then(|output| {
-        server_config
-          .chain
-          .address_from_script(&output.script_pubkey)
-          .ok()
-          .map(|address| address.to_string())
       });
 
       Ok(if accept_json {
