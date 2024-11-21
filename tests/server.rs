@@ -233,11 +233,6 @@ fn inscription_page() {
 
   let (inscription, reveal) = inscribe(&core, &ord);
 
-  let ethereum_teleburn_address = CommandBuilder::new(format!("teleburn {inscription}"))
-    .core(&core)
-    .run_and_deserialize_output::<ord::subcommand::teleburn::Output>()
-    .ethereum;
-
   TestServer::spawn_with_args(&core, &[]).assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
@@ -275,8 +270,6 @@ fn inscription_page() {
   <dd><a class=collapse href=/output/{reveal}:0>{reveal}:0</a></dd>
   <dt>offset</dt>
   <dd>0</dd>
-  <dt>ethereum teleburn address</dt>
-  <dd class=collapse>{ethereum_teleburn_address}</dd>
 </dl>.*",
     ),
   );
