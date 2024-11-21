@@ -196,6 +196,7 @@ impl Output {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Sat {
+  pub address: Option<String>,
   pub block: u32,
   pub charms: Vec<Charm>,
   pub cycle: u32,
