@@ -21,7 +21,8 @@ impl Rune {
     5646683826134,
     146813779479510,
     3817158266467286,
-    99246114928149462,
+    99246114928149462, //AAAAAAAAAA
+    //
     2580398988131886038,
     67090373691429037014,
     1744349715977154962390,
@@ -35,6 +36,7 @@ impl Rune {
     364267430781488598271992561443798,
     9470953200318703555071806597538774,
     246244783208286292431866971536008150,
+    // reserved
     6402364363415443603228541259936211926,
     166461473448801533683942072758341510102,
   ];
@@ -87,68 +89,9 @@ impl Rune {
       return None;
     }
 
-    let mut left = 0;
-    let mut right = 12;
-    for (index, step) in Self::STEPS.iter().enumerate() {
-      if step > &self.0 {
-        right = index;
-        break;
-      }
-
-      left = index;
-
-      if step == &self.0 {
-        right = index;
-        break;
-      }
-    }
-
-    if left == right {
-      // let remaining_steps = 12 - left;
-      return Some(Self::first_rune_height(chain) + Self::INTERVAL);
-    }
-
-    let first_rune = Self::STEPS[left];
-    let last_rune = Self::STEPS[right];
-    let rune_count = last_rune - first_rune;
-
-    let start_block = Self::first_rune_height(chain) + Self::INTERVAL * (12 - right as u32);
-    // let endingBlock = Self::first_rune_height(chain) + Self::INTERVAL * (12 - left as u32);
-
-    let unlocked_runes_count = last_rune - self.0;
-
-    // let remainingLockedRuneCount = self.0 - firstRune;
-    // let blockProgress = (unlockedRuneCount * Self::INTERVAL - 1n) / runeCount;
-    let block_progress = (unlocked_runes_count * Self::INTERVAL as u128 - 1) / rune_count;
-
-    let block_height = start_block as u128 + block_progress;
-
-    assert!(
-      Self::minimum_at_height(chain, Height(block_height as u32)) > *self,
-      "estimated block too low"
-    );
-
-    assert!(
-      Self::minimum_at_height(chain, Height(block_height as u32 - 1)) <= *self,
-      "estimated block too high"
-    );
-
-    // let step_height =
-    // Self::first_rune_height(chain) + (u32::try_from(step).unwrap() * Self::INTERVAL);
-
-    // let step_progress = (max - self.n()) as f64 / (max - min) as f64;
-
-    // let height = step_height + (step_progress * Self::INTERVAL as f64) as u32;
-
-    // Some(height)
-
-    Some(block_height as u32)
-  }
-
-  pub fn unlock_height_bar(&self, chain: Network) -> Option<u32> {
     let mut min = 0;
     let mut max = 26;
-    let mut step: usize = 11; // 0,1,2,3,4,5,6,7,8,9,10,11 (12 steps)
+    let mut step: usize = 12; // 0,1,2,3,4,5,6,7,8,9,10,11 (12 steps)
 
     for (i, val) in Self::STEPS.windows(2).enumerate() {
       if self.n() == 0 {
@@ -164,6 +107,36 @@ impl Rune {
       }
     }
 
+    let first_rune = min;
+    let last_rune = max;
+    let rune_count = last_rune - first_rune;
+
+    let start_block =
+      Self::first_rune_height(chain) + Self::INTERVAL * u32::try_from(step).unwrap();
+    let end_block =
+      Self::first_rune_height(chain) + Self::INTERVAL * u32::try_from(step + 1).unwrap();
+
+    dbg!(self.n());
+    dbg!(step);
+    dbg!(start_block);
+    dbg!(end_block);
+
+    assert!(
+      *self < dbg!(Self::minimum_at_height(chain, Height(start_block))),
+      "estimated block too low"
+    );
+
+    assert!(
+      *self >= dbg!(Self::minimum_at_height(chain, Height(end_block))),
+      "estimated block too high"
+    );
+
+    // let unlocked_runes_count = last_rune - self.0;
+
+    // let remainingLockedRuneCount = self.0 - firstRune;
+    // let blockProgress = (unlockedRuneCount * Self::INTERVAL - 1n) / runeCount;
+    // let block_progress = (unlocked_runes_count * Self::INTERVAL as u128 - 1) / rune_count;
+
     let step_height =
       Self::first_rune_height(chain) + (u32::try_from(step).unwrap() * Self::INTERVAL);
 
@@ -173,6 +146,69 @@ impl Rune {
 
     Some(height)
   }
+
+  //  pub fn unlock_height_foo(&self, chain: Network) -> Option<u32> {
+  //    if self.is_reserved() {
+  //      return None;
+  //    }
+  //
+  //    let mut left = 0;
+  //    let mut right = 12;
+  //    for (index, step) in Self::STEPS.iter().enumerate() {
+  //      if step > &self.0 {
+  //        right = index;
+  //        break;
+  //      }
+  //
+  //      left = index;
+  //
+  //      if step == &self.0 {
+  //        right = index;
+  //        break;
+  //      }
+  //    }
+  //
+  //    if left == right {
+  //      let remaining_steps = 12 - dbg!(left);
+  //      return Some(Self::first_rune_height(chain) + Self::INTERVAL * remaining_steps as u32);
+  //    }
+  //
+  //    let first_rune = Self::STEPS[left];
+  //    let last_rune = Self::STEPS[right];
+  //    let rune_count = last_rune - first_rune;
+  //
+  //    let start_block = Self::first_rune_height(chain) + Self::INTERVAL * (12 - right as u32);
+  //    // let endingBlock = Self::first_rune_height(chain) + Self::INTERVAL * (12 - left as u32);
+  //
+  //    let unlocked_runes_count = last_rune - self.0;
+  //
+  //    // let remainingLockedRuneCount = self.0 - firstRune;
+  //    // let blockProgress = (unlockedRuneCount * Self::INTERVAL - 1n) / runeCount;
+  //    let block_progress = (unlocked_runes_count * Self::INTERVAL as u128 - 1) / rune_count;
+  //
+  //    let block_height = start_block as u128 + block_progress;
+  //
+  //    assert!(
+  //      *self <= Self::minimum_at_height(chain, Height(block_height as u32)),
+  //      "estimated block too low"
+  //    );
+  //
+  //    assert!(
+  //      *self > Self::minimum_at_height(chain, Height(block_height as u32 - 1)),
+  //      "estimated block too high"
+  //    );
+  //
+  //    // let step_height =
+  //    // Self::first_rune_height(chain) + (u32::try_from(step).unwrap() * Self::INTERVAL);
+  //
+  //    // let step_progress = (max - self.n()) as f64 / (max - min) as f64;
+  //
+  //    // let height = step_height + (step_progress * Self::INTERVAL as f64) as u32;
+  //
+  //    // Some(height)
+  //
+  //    Some(block_height as u32)
+  //  }
 
   pub fn is_reserved(self) -> bool {
     self.0 >= Self::RESERVED
