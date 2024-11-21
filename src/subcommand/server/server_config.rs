@@ -1,14 +1,14 @@
 use {super::*, axum::http::HeaderName};
 
 #[derive(Default)]
-pub(crate) struct ServerConfig {
-  pub(crate) chain: Chain,
-  pub(crate) csp_origin: Option<String>,
-  pub(crate) decompress: bool,
-  pub(crate) domain: Option<String>,
-  pub(crate) index_sats: bool,
-  pub(crate) json_api_enabled: bool,
-  pub(crate) proxy: Option<Url>,
+pub struct ServerConfig {
+  pub chain: Chain,
+  pub csp_origin: Option<String>,
+  pub decompress: bool,
+  pub domain: Option<String>,
+  pub index_sats: bool,
+  pub json_api_enabled: bool,
+  pub proxy: Option<Url>,
 }
 
 impl ServerConfig {

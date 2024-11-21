@@ -30,7 +30,7 @@ jobs:
 
     - uses: Swatinem/rust-cache@v2
 
-    - uses: peaceiris/actions-mdbook@v1
+    - uses: peaceiris/actions-mdbook@v2
       with:
         mdbook-version: latest
 
@@ -60,7 +60,7 @@ jobs:
         done
 
     - name: Deploy Pages
-      uses: peaceiris/actions-gh-pages@v3
+      uses: peaceiris/actions-gh-pages@v4
       if: github.ref == 'refs/heads/master'
       with:
         github_token: ${{secrets.GITHUB_TOKEN}}

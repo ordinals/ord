@@ -133,6 +133,7 @@ pub mod wallet;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
+const MAX_STANDARD_OP_RETURN_SIZE: usize = 83;
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
@@ -196,7 +197,7 @@ fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
   BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
 }
 
-fn unbound_outpoint() -> OutPoint {
+pub fn unbound_outpoint() -> OutPoint {
   OutPoint {
     txid: Hash::all_zeros(),
     vout: 0,

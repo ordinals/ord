@@ -45,6 +45,7 @@ mod tests {
           <dd>
             <span title=coin>🪙</span>
             <span title=mythic>🎃</span>
+            <span title=palindrome>🦋</span>
           </dd>
         </dl>
         .*
@@ -171,7 +172,7 @@ mod tests {
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
       },
-      "<h1>Sat 0</h1>.*<dt>location</dt><dd class=monospace>1{64}:1:0</dd>.*",
+      "<h1>Sat 0</h1>.*<dt>location</dt><dd><a class=collapse href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>.*",
     );
   }
 }

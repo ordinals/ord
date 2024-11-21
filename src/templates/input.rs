@@ -39,7 +39,7 @@ mod tests {
       "
       <h1>Input /1/2/3</h1>
       <dl>
-        <dt>previous output</dt><dd class=monospace>0000000000000000000000000000000000000000000000000000000000000000:0</dd>
+        <dt>previous output</dt><dd class=collapse>0000000000000000000000000000000000000000000000000000000000000000:0</dd>
         <dt>witness</dt><dd class=monospace>010101</dd>
         <dt>script sig</dt><dd class=monospace>OP_PUSHBYTES_3 666f6f</dd>
         <dt>text</dt><dd>\x03foo</dd>

@@ -39,7 +39,7 @@ fn inscriptions_can_be_sent() {
   <dd>text/plain;charset=utf-8</dd>
   .*
   <dt>location</dt>
-  <dd><a class=monospace href=/satpoint/{send_txid}:0:0>{send_txid}:0:0</a></dd>
+  <dd><a class=collapse href=/satpoint/{send_txid}:0:0>{send_txid}:0:0</a></dd>
   .*
 </dl>
 .*",
@@ -153,7 +153,7 @@ fn send_inscription_by_sat() {
   ord.assert_response_regex(
     format!("/inscription/{inscription}"),
     format!(
-      ".*<h1>Inscription 0</h1>.*<dt>address</dt>.*<dd class=monospace><a href=/address/{address}>{address}</a></dd>.*<dt>location</dt>.*<dd><a class=monospace href=/satpoint/{send_txid}:0:0>{send_txid}:0:0</a></dd>.*",
+      ".*<h1>Inscription 0</h1>.*<dt>address</dt>.*<dd><a class=collapse href=/address/{address}>{address}</a></dd>.*<dt>location</dt>.*<dd><a class=collapse href=/satpoint/{send_txid}:0:0>{send_txid}:0:0</a></dd>.*",
     ),
   );
 }
@@ -345,6 +345,10 @@ inscriptions:
     output_json,
     api::Output {
       address: Some(destination.clone()),
+      outpoint: OutPoint {
+        txid: reveal_txid,
+        vout: 0
+      },
       inscriptions: vec![
         InscriptionId {
           txid: reveal_txid,

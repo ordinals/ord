@@ -1,4 +1,4 @@
-FROM rust:1.76.0-bookworm as builder
+FROM rust:1.79.0-bookworm as builder
 
 WORKDIR /usr/src/ord
 
