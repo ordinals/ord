@@ -1,16 +1,9 @@
-use {
-  super::*,
-  bitcoin::{
-    key::{Keypair, Secp256k1, XOnlyPublicKey},
-    secp256k1::rand,
-    WPubkeyHash,
-  },
-};
+use super::*;
 
 #[derive(Debug)]
 pub struct State {
   pub blocks: BTreeMap<BlockHash, Block>,
-  pub descriptors: Vec<String>,
+  pub descriptors: Vec<(String, bitcoincore_rpc::json::Timestamp)>,
   pub fail_lock_unspent: bool,
   pub hashes: Vec<BlockHash>,
   pub loaded_wallets: BTreeSet<String>,
@@ -25,6 +18,7 @@ pub struct State {
   pub receive_addresses: Vec<Address>,
   pub change_addresses: Vec<Address>,
   pub wallets: BTreeSet<String>,
+  pub wallet: Wallet,
 }
 
 impl State {
@@ -54,20 +48,20 @@ impl State {
       utxos: BTreeMap::new(),
       version,
       wallets: BTreeSet::new(),
+      wallet: Wallet::new(network),
     }
   }
 
   pub(crate) fn new_address(&mut self, change: bool) -> Address {
-    let secp256k1 = Secp256k1::new();
-    let key_pair = Keypair::new(&secp256k1, &mut rand::thread_rng());
-    let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
-    let address = Address::p2tr(&secp256k1, public_key, None, self.network);
+    let address = self.wallet.new_address();
+
     if change {
       &mut self.change_addresses
     } else {
       &mut self.receive_addresses
     }
     .push(address.clone());
+
     address
   }
 
@@ -200,8 +194,28 @@ impl State {
     let mut total_value = 0;
     let mut input = Vec::new();
     for (height, tx, vout, witness) in template.inputs.iter() {
-      let tx = &self.blocks.get(&self.hashes[*height]).unwrap().txdata[*tx];
-      total_value += tx.output[*vout].value.to_sat();
+      let block_hash = self
+        .hashes
+        .get(*height)
+        .ok_or_else(|| format!("invalid block height {height}"))
+        .unwrap();
+
+      let block = self.blocks.get(block_hash).unwrap();
+
+      let tx = block
+        .txdata
+        .get(*tx)
+        .ok_or_else(|| format!("invalid transaction index {tx}"))
+        .unwrap();
+
+      let tx_out = tx
+        .output
+        .get(*vout)
+        .ok_or_else(|| format!("invalid output index {vout}"))
+        .unwrap();
+
+      total_value += tx_out.value.to_sat();
+
       input.push(TxIn {
         previous_output: OutPoint::new(tx.compute_txid(), *vout as u32),
         script_sig: ScriptBuf::new(),

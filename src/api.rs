@@ -93,6 +93,7 @@ pub struct ChildInscriptions {
 pub struct Inscription {
   pub address: Option<String>,
   pub charms: Vec<Charm>,
+  pub child_count: u64,
   pub children: Vec<InscriptionId>,
   pub content_length: Option<usize>,
   pub content_type: Option<String>,
@@ -149,11 +150,12 @@ pub struct Inscriptions {
   pub page_index: u32,
 }
 
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
+  pub outpoint: OutPoint,
   pub runes: BTreeMap<SpacedRune, Pile>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub script_pubkey: ScriptBuf,
@@ -180,6 +182,7 @@ impl Output {
         .map(|address| uncheck(&address)),
       indexed,
       inscriptions,
+      outpoint,
       runes,
       sat_ranges,
       script_pubkey: tx_out.script_pubkey,

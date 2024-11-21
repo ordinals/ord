@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+systemctl stop ord
+
+for host in alpha bravo; do
+  rsync \
+    --archive \
+    --progress \
+    /var/lib/ord/index.redb \
+    root@$host.ordinals.net:/var/lib/ord/index.redb.new
+done
+
+systemctl restart ord

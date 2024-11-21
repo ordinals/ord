@@ -4,12 +4,12 @@ description = "Mock Bitcoin Core RPC server"
 version = "0.0.1"
 edition = "2021"
 license = "CC0-1.0"
-homepage = "https://github.com/ordinals/ord"
+homepage = "https://github.com/ordinals/ord/tree/master/crates/mockcore"
 repository = "https://github.com/ordinals/ord"
 
 [dependencies]
-bitcoin = { version = "0.32.3", features = ["serde", "rand"] }
 base64 = "0.22.0"
+bitcoin = { version = "0.32.3", features = ["serde", "rand"] }
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"
 jsonrpc-derive = "18.0.0"

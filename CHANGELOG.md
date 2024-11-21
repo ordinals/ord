@@ -1,6 +1,55 @@
 Changelog
 =========
 
+[0.21.3](https://github.com/ordinals/ord/releases/tag/0.21.3) - 2024-11-11
+--------------------------------------------------------------------------
+
+### Added
+- Get output information by address ([#4056](https://github.com/ordinals/ord/pull/4056) by [raphjaph](https://github.com/raphjaph))
+- Allow including metadata when burning inscriptions ([#4045](https://github.com/ordinals/ord/pull/4045) by [casey](https://github.com/casey))
+- BIP322 sign file ([#4026](https://github.com/ordinals/ord/pull/4026) by [raphjaph](https://github.com/raphjaph))
+- Add `ord wallet split` command for splitting utxos ([#4030](https://github.com/ordinals/ord/pull/4030) by [casey](https://github.com/casey))
+- Allow fallback for satpoints and addresses ([#4033](https://github.com/ordinals/ord/pull/4033) by [casey](https://github.com/casey))
+- Add palindrome charm ([#4064](https://github.com/ordinals/ord/pull/4064) by [casey](https://github.com/casey))
+- Allow restoring wallet with custom timestamp ([#4065](https://github.com/ordinals/ord/pull/4065) by [raphjaph](https://github.com/raphjaph))
+
+### Changed
+- Do not chunk runestone data pushes ([#4036](https://github.com/ordinals/ord/pull/4036) by [casey](https://github.com/casey))
+- Rescan wallet on restore ([#4041](https://github.com/ordinals/ord/pull/4041) by [casey](https://github.com/casey))
+
+### Misc
+- Add assert_html function ([#4058](https://github.com/ordinals/ord/pull/4058) by [casey](https://github.com/casey))
+- Identify collapsible nodes with class=collapse ([#4055](https://github.com/ordinals/ord/pull/4055) by [casey](https://github.com/casey))
+- Collapse long strings in HTML ([#4053](https://github.com/ordinals/ord/pull/4053) by [casey](https://github.com/casey))
+- Add simple taproot HD wallet to mockcore ([#4038](https://github.com/ordinals/ord/pull/4038) by [raphjaph](https://github.com/raphjaph))
+- Hide image preview and thumbnail scrollbars ([#4042](https://github.com/ordinals/ord/pull/4042) by [casey](https://github.com/casey))
+- Un-pin redb dependency and update to 2.2.0 ([#4032](https://github.com/ordinals/ord/pull/4032) by [casey](https://github.com/casey))
+
+[0.21.2](https://github.com/ordinals/ord/releases/tag/0.21.2) - 2024-10-26
+--------------------------------------------------------------------------
+
+### Fixed
+- Create change output when inputs containing non-outgoing runes are selected ([#4028](https://github.com/ordinals/ord/pull/4028) by [casey](https://github.com/casey))
+
+### Added
+- Show total child count ([#4009](https://github.com/ordinals/ord/pull/4009) by [arik-so](https://github.com/arik-so))
+- Add `/r/undelegated-content/<INSCRIPTION_ID>` ([#3932](https://github.com/ordinals/ord/pull/3932) by [elocremarc](https://github.com/elocremarc))
+- Add BIP322 `wallet sign` ([#3988](https://github.com/ordinals/ord/pull/3988) by [raphjaph](https://github.com/raphjaph))
+- Add `wallet addresses` ([#4005](https://github.com/ordinals/ord/pull/4005) by [raphjaph](https://github.com/raphjaph))
+- Show if JSON API is enabled on /status ([#4014](https://github.com/ordinals/ord/pull/4014) by [casey](https://github.com/casey))
+
+### Changed
+- Only show rune mint progress during mint ([#4013](https://github.com/ordinals/ord/pull/4013) by [casey](https://github.com/casey))
+- Change mint progress to `mints / terms.cap` ([#4012](https://github.com/ordinals/ord/pull/4012) by [casey](https://github.com/casey))
+
+### Misc
+- Add more info to `wallet outputs` ([#4019](https://github.com/ordinals/ord/pull/4019) by [raphjaph](https://github.com/raphjaph))
+- Add authors to Handbook ([#4018](https://github.com/ordinals/ord/pull/4018) by [raphjaph](https://github.com/raphjaph))
+- Document POST method for /inscriptions ([#4017](https://github.com/ordinals/ord/pull/4017) by [cryptoni9n](https://github.com/cryptoni9n))
+- Update JSON-API & Recursive documentation ([#3984](https://github.com/ordinals/ord/pull/3984) by [cryptoni9n](https://github.com/cryptoni9n))
+- Remove pre-alpha warning from ord help ([#4011](https://github.com/ordinals/ord/pull/4011) by [cryptoni9n](https://github.com/cryptoni9n))
+- Update Bitcoin Core install script ([#4007](https://github.com/ordinals/ord/pull/4007) by [raphjaph](https://github.com/raphjaph))
+
 [0.21.1](https://github.com/ordinals/ord/releases/tag/0.21.1) - 2024-10-20
 --------------------------------------------------------------------------
 

@@ -158,6 +158,9 @@ publish-tag-and-crate revision='master':
 outdated:
   cargo outdated --root-deps-only --workspace
 
+unused:
+  cargo +nightly udeps --workspace
+
 update-modern-normalize:
   curl \
     https://raw.githubusercontent.com/sindresorhus/modern-normalize/main/modern-normalize.css \
@@ -214,3 +217,11 @@ benchmark-server:
 
 update-contributors:
   cargo run --release --package update-contributors
+
+replicate:
+  rsync --archive bin/replicate root@charlie.ordinals.net:replicate
+  ssh root@charlie.ordinals.net ./replicate
+
+swap host:
+  rsync --archive bin/swap root@{{ host }}.ordinals.net:swap
+  ssh root@{{ host }}.ordinals.net ./swap

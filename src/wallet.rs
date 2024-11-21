@@ -2,12 +2,12 @@ use {
   super::*,
   base64::{self, Engine},
   batch::ParentInfo,
-  bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
-    bip32::{ChildNumber, DerivationPath, Fingerprint, Xpriv},
+    bip32::{ChildNumber, DerivationPath, Xpriv},
     psbt::Psbt,
+    secp256k1::Secp256k1,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
+  bitcoincore_rpc::json::ImportDescriptors,
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   index::entry::Entry,
@@ -75,6 +75,7 @@ pub(crate) enum Maturity {
 pub(crate) struct Wallet {
   bitcoin_client: Client,
   database: Database,
+  has_inscription_index: bool,
   has_rune_index: bool,
   has_sat_index: bool,
   rpc_url: Url,
@@ -216,6 +217,10 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn get_inscriptions_in_output(&self, output: &OutPoint) -> Vec<InscriptionId> {
+    self.output_info.get(output).unwrap().inscriptions.clone()
+  }
+
   pub(crate) fn get_parent_info(&self, parents: &[InscriptionId]) -> Result<Vec<ParentInfo>> {
     let mut parent_info = Vec::new();
     for parent_id in parents {
@@ -285,9 +290,11 @@ impl Wallet {
       )
       .send()?;
 
-    if !response.status().is_success() {
+    if response.status() == StatusCode::NOT_FOUND {
       return Ok(None);
     }
+
+    let response = response.error_for_status()?;
 
     let rune_json: api::Rune = serde_json::from_str(&response.text()?)?;
 
@@ -302,6 +309,10 @@ impl Wallet {
         .context("could not get change addresses from wallet")?
         .require_network(self.chain().network())?,
     )
+  }
+
+  pub(crate) fn has_inscription_index(&self) -> bool {
+    self.has_inscription_index
   }
 
   pub(crate) fn has_sat_index(&self) -> bool {
@@ -484,7 +495,12 @@ impl Wallet {
     Ok(())
   }
 
-  pub(crate) fn initialize(name: String, settings: &Settings, seed: [u8; 64]) -> Result {
+  pub(crate) fn initialize(
+    name: String,
+    settings: &Settings,
+    seed: [u8; 64],
+    timestamp: bitcoincore_rpc::json::Timestamp,
+  ) -> Result {
     Self::check_version(settings.bitcoin_rpc_client(None)?)?.create_wallet(
       &name,
       None,
@@ -510,55 +526,38 @@ impl Wallet {
 
     let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
 
+    let mut descriptors = Vec::new();
     for change in [false, true] {
-      Self::derive_and_import_descriptor(
-        name.clone(),
-        settings,
-        &secp,
-        (fingerprint, derivation_path.clone()),
-        derived_private_key,
-        change,
-      )?;
-    }
+      let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
+        origin: Some((fingerprint, derivation_path.clone())),
+        xkey: derived_private_key,
+        derivation_path: DerivationPath::master().child(ChildNumber::Normal {
+          index: change.into(),
+        }),
+        wildcard: Wildcard::Unhardened,
+      });
 
-    Ok(())
-  }
+      let public_key = secret_key.to_public(&secp)?;
 
-  fn derive_and_import_descriptor(
-    name: String,
-    settings: &Settings,
-    secp: &Secp256k1<All>,
-    origin: (Fingerprint, DerivationPath),
-    derived_private_key: Xpriv,
-    change: bool,
-  ) -> Result {
-    let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
-      origin: Some(origin),
-      xkey: derived_private_key,
-      derivation_path: DerivationPath::master().child(ChildNumber::Normal {
-        index: change.into(),
-      }),
-      wildcard: Wildcard::Unhardened,
-    });
+      let mut key_map = BTreeMap::new();
+      key_map.insert(public_key.clone(), secret_key);
 
-    let public_key = secret_key.to_public(secp)?;
+      let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
 
-    let mut key_map = BTreeMap::new();
-    key_map.insert(public_key.clone(), secret_key);
-
-    let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
-
-    settings
-      .bitcoin_rpc_client(Some(name.clone()))?
-      .import_descriptors(ImportDescriptors {
+      descriptors.push(ImportDescriptors {
         descriptor: descriptor.to_string_with_secret(&key_map),
-        timestamp: Timestamp::Now,
+        timestamp,
         active: Some(true),
         range: None,
         next_index: None,
         internal: Some(change),
         label: None,
-      })?;
+      });
+    }
+
+    settings
+      .bitcoin_rpc_client(Some(name.clone()))?
+      .call::<serde_json::Value>("importdescriptors", &[serde_json::to_value(descriptors)?])?;
 
     Ok(())
   }
@@ -740,7 +739,7 @@ impl Wallet {
     )
   }
 
-  pub(super) fn sign_transaction(
+  pub(super) fn sign_and_broadcast_transaction(
     &self,
     unsigned_transaction: Transaction,
     dry_run: bool,

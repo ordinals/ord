@@ -13,7 +13,7 @@
 %% if i == self.featured_blocks.len() {
 <ol start={{ self.last - self.featured_blocks.len() as u32 }} reversed class=block-list>
 %% }
-  <li><a href=/block/{{ hash }}>{{ hash }}</a></li>
+  <li><a class=collapse href=/block/{{ hash }}>{{ hash }}</a></li>
 %% }
 %% }
 </ol>
