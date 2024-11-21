@@ -570,7 +570,7 @@ impl Server {
 
       let charms = sat.charms();
 
-      let address: Option<Address> = if let Some(satpoint) = satpoint {
+      let address = if let Some(satpoint) = satpoint {
         if satpoint.outpoint == unbound_outpoint() {
           None
         } else {
