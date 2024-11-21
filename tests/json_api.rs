@@ -185,8 +185,65 @@ fn get_inscription() {
       sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap(),
       timestamp: 2,
+      metaprotocol: None
     }
   )
+}
+
+#[test]
+fn get_inscription_with_metaprotocol() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "--chain {} wallet inscribe --fee-rate 1 --file foo.txt --metaprotocol foo",
+    core.network()
+  ))
+  .write("foo.txt", "FOO")
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let response = ord.json_request(format!("/inscription/{}", output.inscriptions[0].id));
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let mut inscription_json: api::Inscription =
+    serde_json::from_str(&response.text().unwrap()).unwrap();
+  assert_regex_match!(inscription_json.address.unwrap(), r"bc1p.*");
+  inscription_json.address = None;
+
+  pretty_assert_eq!(
+    inscription_json,
+    api::Inscription {
+      address: None,
+      charms: vec![Charm::Coin, Charm::Uncommon],
+      child_count: 0,
+      children: Vec::new(),
+      content_length: Some(3),
+      content_type: Some("text/plain;charset=utf-8".to_string()),
+      effective_content_type: Some("text/plain;charset=utf-8".to_string()),
+      fee: 140,
+      height: 2,
+      id: output.inscriptions[0].id,
+      number: 0,
+      next: None,
+      value: Some(10000),
+      parents: Vec::new(),
+      previous: None,
+      rune: None,
+      sat: Some(Sat(50 * COIN_VALUE)),
+      satpoint: SatPoint::from_str(&format!("{}:{}:{}", output.reveal, 0, 0)).unwrap(),
+      timestamp: 2,
+      metaprotocol: Some("foo".to_string())
+    }
+  );
 }
 
 #[test]
