@@ -983,7 +983,7 @@ fn batch_inscribe_with_sat_arg_fails_if_wrong_mode() {
     .core(&core)
     .ord(&ord)
     .expected_exit_code(1)
-    .expected_stderr("error: neither `sat` nor `satpoint` can be set in `same-sat` mode\n")
+    .expected_stderr("error: `sat` or `satpoint` can only be set in `same-sat` mode\n")
     .run_and_extract_stdout();
 }
 
