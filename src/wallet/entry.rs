@@ -43,7 +43,7 @@ mod tests {
   #[test]
   fn etching_entry() {
     let commit = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         previous_output: OutPoint::null(),
@@ -55,7 +55,7 @@ mod tests {
     };
 
     let reveal = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         previous_output: OutPoint::null(),
@@ -76,7 +76,7 @@ mod tests {
       commit: txid,
       commit_psbt: None,
       inscriptions: Vec::new(),
-      parent: None,
+      parents: Vec::new(),
       reveal: txid,
       reveal_broadcast: true,
       reveal_psbt: None,

@@ -24,6 +24,7 @@ use {
       teleburn, ParsedEnvelope,
     },
     into_usize::IntoUsize,
+    outgoing::Outgoing,
     representation::Representation,
     settings::Settings,
     subcommand::{OutputFormat, Subcommand, SubcommandResult},
@@ -40,8 +41,11 @@ use {
     consensus::{self, Decodable, Encodable},
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
-    script, Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn,
-    TxOut, Txid, Witness,
+    policy::MAX_STANDARD_TX_WEIGHT,
+    script,
+    transaction::Version,
+    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
+    Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chrono::{DateTime, TimeZone, Utc},
@@ -49,7 +53,7 @@ use {
   clap::{ArgGroup, Parser},
   error::{ResultExt, SnafuError},
   html_escaper::{Escape, Trusted},
-  http::HeaderMap,
+  http::{HeaderMap, StatusCode},
   lazy_static::lazy_static,
   ordinals::{
     varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,
@@ -62,13 +66,13 @@ use {
   snafu::{Backtrace, ErrorCompat, Snafu},
   std::{
     backtrace::BacktraceStatus,
-    cmp::{self, Reverse},
-    collections::{BTreeMap, BTreeSet, HashMap, HashSet, VecDeque},
+    cmp,
+    collections::{BTreeMap, BTreeSet, HashSet},
     env,
     ffi::OsString,
     fmt::{self, Display, Formatter},
-    fs,
-    io::{self, Cursor, Read},
+    fs::{self, File},
+    io::{self, BufReader, Cursor, Read},
     mem,
     net::ToSocketAddrs,
     path::{Path, PathBuf},
@@ -129,6 +133,7 @@ pub mod wallet;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
+const MAX_STANDARD_OP_RETURN_SIZE: usize = 83;
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
@@ -192,7 +197,7 @@ fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
   BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
 }
 
-fn unbound_outpoint() -> OutPoint {
+pub fn unbound_outpoint() -> OutPoint {
   OutPoint {
     txid: Hash::all_zeros(),
     vout: 0,
@@ -226,6 +231,10 @@ pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Serve
   }
 }
 
+pub fn cancel_shutdown() {
+  SHUTTING_DOWN.store(false, atomic::Ordering::Relaxed);
+}
+
 pub fn shut_down() {
   SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
 }
@@ -242,6 +251,7 @@ fn gracefully_shut_down_indexer() {
 
 pub fn main() {
   env_logger::init();
+
   ctrlc::set_handler(move || {
     if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
       process::exit(1);

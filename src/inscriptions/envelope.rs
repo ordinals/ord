@@ -261,7 +261,7 @@ mod tests {
 
   fn parse(witnesses: &[Witness]) -> Vec<ParsedEnvelope> {
     ParsedEnvelope::from_transaction(&Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: witnesses
         .iter()
@@ -735,7 +735,7 @@ mod tests {
   fn chunked_data_is_parsable() {
     let mut witness = Witness::new();
 
-    witness.push(&inscription("foo", [1; 1040]).append_reveal_script(script::Builder::new()));
+    witness.push(inscription("foo", [1; 1040]).append_reveal_script(script::Builder::new()));
 
     witness.push([]);
 
@@ -885,7 +885,7 @@ mod tests {
 
   #[test]
   fn pushnum_opcodes_are_parsed_correctly() {
-    const PUSHNUMS: &[(opcodes::All, u8)] = &[
+    const PUSHNUMS: &[(opcodes::Opcode, u8)] = &[
       (opcodes::all::OP_PUSHNUM_NEG1, 0x81),
       (opcodes::all::OP_PUSHNUM_1, 1),
       (opcodes::all::OP_PUSHNUM_2, 2),

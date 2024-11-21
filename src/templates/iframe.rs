@@ -24,20 +24,21 @@ impl Iframe {
 impl Display for Iframe {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     if self.thumbnail {
-      write!(f, "<a href=/inscription/{}>", self.inscription_id)?;
+      write!(
+        f,
+        "<a href=/inscription/{}>\
+          <iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/{}>\
+          </iframe>\
+        </a>",
+        self.inscription_id, self.inscription_id,
+      )
+    } else {
+      write!(
+        f,
+        "<iframe sandbox=allow-scripts loading=lazy src=/preview/{}></iframe>",
+        self.inscription_id,
+      )
     }
-
-    write!(
-      f,
-      "<iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/{}></iframe>",
-      self.inscription_id
-    )?;
-
-    if self.thumbnail {
-      write!(f, "</a>",)?
-    }
-
-    Ok(())
   }
 }
 
@@ -58,7 +59,7 @@ mod tests {
   fn main() {
     assert_regex_match!(
       Iframe::main(inscription_id(1)).0.to_string(),
-      "<iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/1{64}i1></iframe>",
+      "<iframe sandbox=allow-scripts loading=lazy src=/preview/1{64}i1></iframe>",
     );
   }
 }

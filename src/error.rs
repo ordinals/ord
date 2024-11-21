@@ -2,7 +2,64 @@ use super::*;
 
 #[derive(Debug, Snafu)]
 #[snafu(context(suffix(false)), visibility(pub(crate)))]
-pub(crate) enum SnafuError {
+pub enum SnafuError {
+  #[snafu(display("Failed to parse address `{}`", input))]
+  AddressParse {
+    source: bitcoin::address::error::ParseError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse hash `{}`", input))]
+  HashParse {
+    source: bitcoin::hex::HexToArrayError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse inscription ID `{}`", input))]
+  InscriptionIdParse {
+    source: inscriptions::inscription_id::ParseError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse integer `{}`", input))]
+  IntegerParse {
+    source: std::num::ParseIntError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse out point `{}`", input))]
+  OutPointParse {
+    source: bitcoin::transaction::ParseOutPointError,
+    input: String,
+  },
+  #[snafu(display("Failed to parse rune `{}`", input))]
+  RuneParse {
+    source: ordinals::spaced_rune::Error,
+    input: String,
+  },
+  #[snafu(display("Failed to parse sat `{}`", input))]
+  SatParse {
+    source: ordinals::sat::Error,
+    input: String,
+  },
+  #[snafu(display("Failed to parse sat point `{}`", input))]
+  SatPointParse {
+    source: ordinals::sat_point::Error,
+    input: String,
+  },
+  #[snafu(display("Unrecognized representation: `{}`", input))]
+  UnrecognizedRepresentation { input: String },
+  #[snafu(display("Unrecognized outgoing amount: `{}`", input))]
+  AmountParse {
+    source: <Amount as FromStr>::Err,
+    input: String,
+  },
+  #[snafu(display("Unrecognized outgoing: `{}`", input))]
+  OutgoingParse { input: String },
+  #[snafu(display("Failed to parse decimal: {}", source))]
+  RuneAmountParse { source: error::Error, input: String },
+  #[snafu(display("Invalid chain `{}`", chain))]
+  InvalidChain { chain: String },
+  #[snafu(display("Failed to convert script to address: {}", source))]
+  AddressConversion {
+    source: bitcoin::address::FromScriptError,
+  },
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]

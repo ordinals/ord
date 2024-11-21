@@ -1,8 +1,10 @@
 use super::*;
 
+mod addresses;
 mod authentication;
 mod balance;
 mod batch_command;
+mod burn;
 mod cardinals;
 mod create;
 mod dump;
@@ -21,4 +23,6 @@ mod runics;
 mod sats;
 mod selection;
 mod send;
+mod sign;
+mod split;
 mod transactions;

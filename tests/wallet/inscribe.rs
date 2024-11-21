@@ -36,7 +36,7 @@ fn inscribe_works_with_huge_expensive_inscriptions() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   CommandBuilder::new(format!(
     "wallet inscribe --file foo.txt --satpoint {txid}:0:0 --fee-rate 10"
@@ -54,7 +54,7 @@ fn metaprotocol_appears_on_inscription_page() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   let inscribe = CommandBuilder::new(format!(
     "wallet inscribe --file foo.txt --metaprotocol foo --satpoint {txid}:0:0 --fee-rate 10"
@@ -257,7 +257,7 @@ fn inscribe_with_optional_satpoint_arg() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   let Batch { inscriptions, .. } = CommandBuilder::new(format!(
     "wallet inscribe --file foo.txt --satpoint {txid}:0:10000 --fee-rate 1"
@@ -301,31 +301,28 @@ fn inscribe_with_fee_rate() {
       .run_and_deserialize_output::<Batch>();
 
   let tx1 = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx1.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &tx1.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx1.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx1.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
 
   let tx2 = &core.mempool()[1];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx2.input {
-    fee += &tx1.output[input.previous_output.vout as usize].value;
+    fee += tx1.output[input.previous_output.vout as usize].value;
   }
   for output in &tx2.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx2.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx2.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
   assert_eq!(
@@ -355,31 +352,28 @@ fn inscribe_with_commit_fee_rate() {
   .run_and_deserialize_output::<Batch>();
 
   let tx1 = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx1.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &tx1.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx1.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx1.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 2.0);
 
   let tx2 = &core.mempool()[1];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &tx2.input {
-    fee += &tx1.output[input.previous_output.vout as usize].value;
+    fee += tx1.output[input.previous_output.vout as usize].value;
   }
   for output in &tx2.output {
     fee -= output.value;
   }
 
-  let fee_rate = fee as f64 / tx2.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / tx2.vsize() as f64;
 
   pretty_assert_eq!(fee_rate, 1.0);
 }
@@ -492,10 +486,10 @@ fn inscribe_to_specific_destination() {
   .reveal;
 
   let reveal_tx = &core.mempool()[1]; // item 0 is the commit, item 1 is the reveal.
-  assert_eq!(reveal_tx.txid(), txid);
+  assert_eq!(reveal_tx.compute_txid(), txid);
   assert_eq!(
     reveal_tx.output.first().unwrap().script_pubkey,
-    destination.payload.script_pubkey()
+    destination.assume_checked_ref().script_pubkey()
   );
 }
 
@@ -515,7 +509,7 @@ fn inscribe_to_address_on_different_network() {
   .core(&core)
   .ord(&ord)
   .expected_exit_code(1)
-  .stderr_regex("error: address tb1qsgx55dp6gn53tsmyjjv4c2ye403hgxynxs0dnm belongs to network testnet which is different from required bitcoin\n")
+  .stderr_regex("error: validation error\n\nbecause:\n- address tb1qsgx55dp6gn53tsmyjjv4c2ye403hgxynxs0dnm is not valid on bitcoin\n")
   .run_and_extract_stdout();
 }
 
@@ -623,7 +617,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   .run_and_deserialize_output::<Batch>();
 
   assert_eq!(core.descriptors().len(), 4);
-  assert_eq!(parent_id, child_output.parent.unwrap());
+  assert_eq!(parent_id, *child_output.parents.first().unwrap());
 
   let commit_tx = &core.mempool()[0];
   let reveal_tx = &core.mempool()[1];
@@ -639,7 +633,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
   core.mine_blocks(1);
 
   ord.assert_response_regex(
-    format!("/inscription/{}", child_output.parent.unwrap()),
+    format!("/inscription/{}", child_output.parents.first().unwrap()),
     format!(
       ".*<dt>children</dt>.*<a href=/inscription/{}>.*",
       child_output.inscriptions[0].id
@@ -650,7 +644,7 @@ fn inscribe_with_parent_inscription_and_fee_rate() {
     format!("/inscription/{}", child_output.inscriptions[0].id),
     format!(
       ".*<dt>parents</dt>.*<a href=/inscription/{}>.*",
-      child_output.parent.unwrap()
+      child_output.parents.first().unwrap()
     ),
   );
 }
@@ -674,7 +668,7 @@ fn reinscribe_with_flag() {
 
   assert_eq!(core.descriptors().len(), 3);
 
-  let txid = core.mine_blocks(1)[0].txdata[2].txid();
+  let txid = core.mine_blocks(1)[0].txdata[2].compute_txid();
 
   let request = ord.request(format!("/content/{}", inscribe.inscriptions[0].id));
 
@@ -726,7 +720,7 @@ fn with_reinscribe_flag_but_not_actually_a_reinscription() {
     .ord(&ord)
     .run_and_deserialize_output::<Batch>();
 
-  let coinbase = core.mine_blocks(1)[0].txdata[0].txid();
+  let coinbase = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   CommandBuilder::new(format!(
     "wallet inscribe --file orchid.png --fee-rate 1.1 --reinscribe --satpoint {coinbase}:0:0"
@@ -910,7 +904,7 @@ fn inscribe_does_not_pick_locked_utxos() {
   create_wallet(&core, &ord);
 
   let coinbase_tx = &core.mine_blocks(1)[0].txdata[0];
-  let outpoint = OutPoint::new(coinbase_tx.txid(), 0);
+  let outpoint = OutPoint::new(coinbase_tx.compute_txid(), 0);
 
   core.lock(outpoint);
 

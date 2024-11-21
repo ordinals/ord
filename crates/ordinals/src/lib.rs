@@ -4,9 +4,7 @@
 use {
   bitcoin::{
     consensus::{Decodable, Encodable},
-    constants::{
-      COIN_VALUE, DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL,
-    },
+    constants::{DIFFCHANGE_INTERVAL, SUBSIDY_HALVING_INTERVAL},
     opcodes,
     script::{self, Instruction},
     Network, OutPoint, ScriptBuf, Transaction,
@@ -17,11 +15,9 @@ use {
   std::{
     cmp,
     collections::{HashMap, VecDeque},
-    fmt::{self, Display, Formatter},
-    io,
+    fmt::{self, Formatter},
     num::ParseIntError,
     ops::{Add, AddAssign, Sub},
-    str::FromStr,
   },
   thiserror::Error,
 };
@@ -33,6 +29,7 @@ pub use {
   spaced_rune::SpacedRune, terms::Terms,
 };
 
+pub const COIN_VALUE: u64 = 100_000_000;
 pub const CYCLE_EPOCHS: u32 = 6;
 
 fn default<T: Default>() -> T {
@@ -54,8 +51,8 @@ mod rarity;
 mod rune;
 mod rune_id;
 mod runestone;
-mod sat;
-mod sat_point;
-mod spaced_rune;
+pub mod sat;
+pub mod sat_point;
+pub mod spaced_rune;
 mod terms;
 pub mod varint;

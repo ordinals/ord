@@ -10,7 +10,6 @@ pub(crate) use {
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
-  inscription::InscriptionHtml,
   inscriptions::InscriptionsHtml,
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
@@ -20,15 +19,14 @@ pub(crate) use {
     PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
-  range::RangeHtml,
   rare::RareTxt,
   rune_not_found::RuneNotFoundHtml,
   sat::SatHtml,
 };
 
 pub use {
-  blocks::BlocksHtml, rune::RuneHtml, runes::RunesHtml, status::StatusHtml,
-  transaction::TransactionHtml,
+  blocks::BlocksHtml, inscription::InscriptionHtml, rune::RuneHtml, runes::RunesHtml,
+  status::StatusHtml, transaction::TransactionHtml,
 };
 
 pub mod address;
@@ -47,7 +45,6 @@ mod metadata;
 pub mod output;
 mod parents;
 mod preview;
-mod range;
 mod rare;
 pub mod rune;
 pub mod rune_not_found;
@@ -57,7 +54,7 @@ pub mod status;
 pub mod transaction;
 
 #[derive(Boilerplate)]
-pub(crate) struct PageHtml<T: PageContent> {
+pub struct PageHtml<T: PageContent> {
   content: T,
   config: Arc<ServerConfig>,
 }
@@ -66,7 +63,7 @@ impl<T> PageHtml<T>
 where
   T: PageContent,
 {
-  pub(crate) fn new(content: T, config: Arc<ServerConfig>) -> Self {
+  pub fn new(content: T, config: Arc<ServerConfig>) -> Self {
     Self { content, config }
   }
 
@@ -80,14 +77,14 @@ where
 
   fn superscript(&self) -> String {
     if self.config.chain == Chain::Mainnet {
-      "alpha".into()
+      "beta".into()
     } else {
       self.config.chain.to_string()
     }
   }
 }
 
-pub(crate) trait PageContent: Display + 'static {
+pub trait PageContent: Display + 'static {
   fn title(&self) -> String;
 
   fn page(self, server_config: Arc<ServerConfig>) -> PageHtml<Self>
@@ -141,12 +138,12 @@ mod tests {
     <link rel=icon href=/static/favicon.svg>
     <link rel=stylesheet href=/static/index.css>
     <link rel=stylesheet href=/static/modern-normalize.css>
-    <script src=/static/index.js defer></script>
+    <script src=/static/index.js></script>
   </head>
   <body>
   <header>
     <nav>
-      <a href=/ title=home>Ordinals<sup>alpha</sup></a>
+      <a href=/ title=home>Ordinals<sup>beta</sup></a>
       .*
       <a href=/clock title=clock>.*</a>
       <a href=/rare.txt title=rare>.*</a>
@@ -176,7 +173,7 @@ mod tests {
         index_sats: true,
         ..default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*"
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*"
     );
   }
 
@@ -190,7 +187,7 @@ mod tests {
         index_sats: false,
         ..default()
       })),
-      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>alpha</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
+      r".*<nav>\s*<a href=/ title=home>Ordinals<sup>beta</sup></a>.*<a href=/clock title=clock>.*</a>\s*<form action=/search.*",
     );
   }
 

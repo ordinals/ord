@@ -30,12 +30,16 @@
   <dd>{{ self.unrecoverably_reorged }}</dd>
   <dt>address index</dt>
   <dd>{{ self.address_index }}</dd>
+  <dt>inscription index</dt>
+  <dd>{{ self.inscription_index }}</dd>
   <dt>rune index</dt>
   <dd>{{ self.rune_index }}</dd>
   <dt>sat index</dt>
   <dd>{{ self.sat_index }}</dd>
   <dt>transaction index</dt>
   <dd>{{ self.transaction_index }}</dd>
+  <dt>json api</dt>
+  <dd>{{ self.json_api }}</dd>
 %% if !env!("GIT_BRANCH").is_empty() {
   <dt>git branch</dt>
   <dd>{{ env!("GIT_BRANCH") }}</dd>
@@ -43,22 +47,9 @@
 %% if !env!("GIT_COMMIT").is_empty() {
   <dt>git commit</dt>
   <dd>
-    <a href=https://github.com/ordinals/ord/commit/{{ env!("GIT_COMMIT") }}>
+    <a class=collapse href=https://github.com/ordinals/ord/commit/{{ env!("GIT_COMMIT") }}>
       {{ env!("GIT_COMMIT") }}
     </a>
   </dd>
 %% }
-  <dt>inscription content types</dt>
-  <dd>
-    <dl>
-%% for (content_type, count) in &self.content_type_counts {
-%% if let Some(content_type) = content_type {
-      <dt>{{String::from_utf8_lossy(&content_type)}}</dt>
-%% } else {
-      <dt><em>none</em></dt>
-%% }
-      <dd>{{count}}</dt>
-%% }
-    </dl>
-  </dd>
 </dl>
