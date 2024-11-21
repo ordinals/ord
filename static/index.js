@@ -34,52 +34,15 @@ addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  let collapse = [];
-
-  const PATTERNS = [
-    // hash
-    '[a-f0-9]{64}',
-    // outpoint
-    '[a-f0-9]{64}:[0-9]+',
-    // satpoint
-    '[a-f0-9]{64}:[0-9]+:[0-9]+',
-    // ethereum address
-    '0x[A-Fa-f0-9]{40}',
-    // inscription id
-    '[a-f0-9]{64}i[0-9]+',
-    // p2pkh address
-    '1[a-km-zA-HJ-NP-Z1-9]{25,33}',
-    // p2wpkh address
-    '(bc|bcrt|tb)1q[02-9ac-hj-np-z]{38}',
-    // p2wsh address
-    '(bc|bcrt|tb)1q[02-9ac-hj-np-z]{46}',
-    // p2tr address
-    '(bc|bcrt|tb)1p[02-9ac-hj-np-z]{58}',
-    // git hash
-    '[a-f0-9]{40}'
-  ]
-
-  let RE = new RegExp('^(' + PATTERNS.map((p) => '(' + p + ')').join('|') + ')$');
-
-  document.querySelectorAll('.monospace').forEach((node) => {
-    if (node.children.length > 0 || node.parentNode.tagName === 'H1') {
-      return;
-    }
-
-    let text = node.textContent.trim();
-
-    if (!RE.test(text)) {
-      return;
-    }
-
-    node.dataset.original = text;
-    collapse.push(node);
-  });
+  let collapse = document.getElementsByClassName('collapse');
 
   let context = document.createElement('canvas').getContext('2d');
 
   function resize() {
     for (let node of collapse) {
+      if (!('original' in node.dataset)) {
+        node.dataset.original = node.textContent.trim();
+      }
       let original = node.dataset.original;
       let length = original.length;
       let width = node.clientWidth;

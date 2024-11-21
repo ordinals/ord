@@ -2,10 +2,10 @@ use {
   super::*,
   base64::{self, Engine},
   batch::ParentInfo,
-  bitcoin::secp256k1::{All, Secp256k1},
   bitcoin::{
-    bip32::{ChildNumber, DerivationPath, Fingerprint, Xpriv},
+    bip32::{ChildNumber, DerivationPath, Xpriv},
     psbt::Psbt,
+    secp256k1::Secp256k1,
   },
   bitcoincore_rpc::json::ImportDescriptors,
   entry::{EtchingEntry, EtchingEntryValue},
@@ -526,49 +526,25 @@ impl Wallet {
 
     let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
 
+    let mut descriptors = Vec::new();
     for change in [false, true] {
-      Self::derive_and_import_descriptor(
-        name.clone(),
-        settings,
-        &secp,
-        (fingerprint, derivation_path.clone()),
-        derived_private_key,
-        change,
-        timestamp,
-      )?;
-    }
+      let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
+        origin: Some((fingerprint, derivation_path.clone())),
+        xkey: derived_private_key,
+        derivation_path: DerivationPath::master().child(ChildNumber::Normal {
+          index: change.into(),
+        }),
+        wildcard: Wildcard::Unhardened,
+      });
 
-    Ok(())
-  }
+      let public_key = secret_key.to_public(&secp)?;
 
-  fn derive_and_import_descriptor(
-    name: String,
-    settings: &Settings,
-    secp: &Secp256k1<All>,
-    origin: (Fingerprint, DerivationPath),
-    derived_private_key: Xpriv,
-    change: bool,
-    timestamp: bitcoincore_rpc::json::Timestamp,
-  ) -> Result {
-    let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
-      origin: Some(origin),
-      xkey: derived_private_key,
-      derivation_path: DerivationPath::master().child(ChildNumber::Normal {
-        index: change.into(),
-      }),
-      wildcard: Wildcard::Unhardened,
-    });
+      let mut key_map = BTreeMap::new();
+      key_map.insert(public_key.clone(), secret_key);
 
-    let public_key = secret_key.to_public(secp)?;
+      let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
 
-    let mut key_map = BTreeMap::new();
-    key_map.insert(public_key.clone(), secret_key);
-
-    let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
-
-    settings
-      .bitcoin_rpc_client(Some(name.clone()))?
-      .import_descriptors(ImportDescriptors {
+      descriptors.push(ImportDescriptors {
         descriptor: descriptor.to_string_with_secret(&key_map),
         timestamp,
         active: Some(true),
@@ -576,7 +552,12 @@ impl Wallet {
         next_index: None,
         internal: Some(change),
         label: None,
-      })?;
+      });
+    }
+
+    settings
+      .bitcoin_rpc_client(Some(name.clone()))?
+      .call::<serde_json::Value>("importdescriptors", &[serde_json::to_value(descriptors)?])?;
 
     Ok(())
   }

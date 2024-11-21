@@ -2,8 +2,6 @@ use {super::*, splitfile::Splitfile};
 
 mod splitfile;
 
-const MAX_STANDARD_OP_RETURN_SIZE: usize = 83;
-
 #[derive(Debug, PartialEq)]
 enum Error {
   DustOutput {
