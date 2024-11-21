@@ -87,6 +87,65 @@ impl Rune {
       return None;
     }
 
+    let mut left = 0;
+    let mut right = 12;
+    for (index, step) in Self::STEPS.iter().enumerate() {
+      if step > &self.0 {
+        right = index;
+        break;
+      }
+
+      left = index;
+
+      if step == &self.0 {
+        right = index;
+        break;
+      }
+    }
+
+    if left == right {
+      // let remaining_steps = 12 - left;
+      return Some(Self::first_rune_height(chain) + Self::INTERVAL);
+    }
+
+    let first_rune = Self::STEPS[left];
+    let last_rune = Self::STEPS[right];
+    let rune_count = last_rune - first_rune;
+
+    let start_block = Self::first_rune_height(chain) + Self::INTERVAL * (12 - right as u32);
+    // let endingBlock = Self::first_rune_height(chain) + Self::INTERVAL * (12 - left as u32);
+
+    let unlocked_runes_count = last_rune - self.0;
+
+    // let remainingLockedRuneCount = self.0 - firstRune;
+    // let blockProgress = (unlockedRuneCount * Self::INTERVAL - 1n) / runeCount;
+    let block_progress = (unlocked_runes_count * Self::INTERVAL as u128 - 1) / rune_count;
+
+    let block_height = start_block as u128 + block_progress;
+
+    assert!(
+      Self::minimum_at_height(chain, Height(block_height as u32)) > *self,
+      "estimated block too low"
+    );
+
+    assert!(
+      Self::minimum_at_height(chain, Height(block_height as u32 - 1)) <= *self,
+      "estimated block too high"
+    );
+
+    // let step_height =
+    // Self::first_rune_height(chain) + (u32::try_from(step).unwrap() * Self::INTERVAL);
+
+    // let step_progress = (max - self.n()) as f64 / (max - min) as f64;
+
+    // let height = step_height + (step_progress * Self::INTERVAL as f64) as u32;
+
+    // Some(height)
+
+    Some(block_height as u32)
+  }
+
+  pub fn unlock_height_bar(&self, chain: Network) -> Option<u32> {
     let mut min = 0;
     let mut max = 26;
     let mut step: usize = 11; // 0,1,2,3,4,5,6,7,8,9,10,11 (12 steps)
