@@ -58,7 +58,7 @@ impl WalletConstructor {
               break;
             }
             Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(err)))
-              if err.code == -4 =>
+              if err.code == -4 && err.message == "Wallet already loading." =>
             {
               // wallet loading
               thread::sleep(Duration::from_secs(3));
