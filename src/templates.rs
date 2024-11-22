@@ -20,6 +20,7 @@ pub(crate) use {
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
   rare::RareTxt,
+  rune_not_found::RuneNotFoundHtml,
   sat::SatHtml,
 };
 
@@ -46,6 +47,7 @@ mod parents;
 mod preview;
 mod rare;
 pub mod rune;
+pub mod rune_not_found;
 pub mod runes;
 pub mod sat;
 pub mod status;
