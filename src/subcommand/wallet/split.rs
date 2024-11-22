@@ -1499,4 +1499,94 @@ mod tests {
       }
     );
   }
+
+  #[test]
+  fn even_split() {
+    let balances = [
+      (outpoint(0), [(Rune(0), 5_000_000_000)].into()),
+      (outpoint(1), [(Rune(1), 13_000_000_000)].into()),
+    ]
+    .into();
+
+    let splits = Splitfile {
+      outputs: (0..10)
+        .map(|i| splitfile::Output {
+          address: address(i).clone(),
+          runes: [(Rune(1), 1_000_000_000)].into(),
+          value: None,
+        })
+        .collect(),
+      rune_info: [
+        (
+          Rune(0),
+          RuneInfo {
+            id: rune_id(0),
+            divisibility: 0,
+            symbol: None,
+            spaced_rune: SpacedRune {
+              rune: Rune(0),
+              spacers: 0,
+            },
+          },
+        ),
+        (
+          Rune(1),
+          RuneInfo {
+            id: rune_id(1),
+            divisibility: 0,
+            symbol: None,
+            spaced_rune: SpacedRune {
+              rune: Rune(1),
+              spacers: 0,
+            },
+          },
+        ),
+      ]
+      .into(),
+    };
+
+    pretty_assert_eq!(
+      Split::build_transaction(true, balances, &change(0), None, &splits).unwrap(),
+      Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+          previous_output: outpoint(1),
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::MAX,
+          witness: Witness::new(),
+        }],
+        output: (0..11)
+          .map(|i| if i == 0 {
+            TxOut {
+              value: Amount::from_sat(0),
+              script_pubkey: Runestone {
+                edicts: vec![
+                  Edict {
+                    id: rune_id(1).into(),
+                    amount: 3_000_000_000,
+                    output: 10,
+                  },
+                  Edict {
+                    id: rune_id(1).into(),
+                    amount: 1_000_000_000,
+                    output: 11,
+                  },
+                ],
+                etching: None,
+                mint: None,
+                pointer: None,
+              }
+              .encipher(),
+            }
+          } else {
+            TxOut {
+              script_pubkey: address(i - 1).into(),
+              value: Amount::from_sat(294),
+            }
+          })
+          .collect()
+      }
+    );
+  }
 }
