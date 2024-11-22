@@ -3906,19 +3906,36 @@ OP_ENDIF
 <p>When downscaling image inscriptions, <code>image-rendering: auto</code>, should be used. This is desirable even when downscaling pixel art.</p>
 <p>When upscaling image inscriptions other than AVIF, <code>image-rendering: pixelated</code> should be used. This is desirable when upscaling pixel art, since it preserves the sharp edges of pixels. It is undesirable when upscaling non-pixel art, but should still be used for visual compatibility with the <code>ord</code> explorer.</p>
 <p>When upscaling AVIF and JPEG XL inscriptions, <code>image-rendering: auto</code> should be used. This allows inscribers to opt-in to non-pixelated upscaling for non-pixel art inscriptions. Until such time as JPEG XL is widely supported by browsers, it is not a recommended image format.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="uris"><a class="header" href="#uris">URIs</a></h1>
+<p><em>This document is a draft. It should be considered provisional and subject to change at any time. The <code>ord:</code> schema has not been registered with the IANA.</em></p>
+<p>Inscriptions content can be addressed with inscription URIs using the <code>ord:</code> schema.</p>
+<p>Inscription URIs consist of <code>ord:</code> followed by a target inscription ID. <code>ord:</code> is not followed by <code>//</code>, since the schema-specific part of inscription URIs, namely the target inscription ID, does not contain a hierarchical structure.</p>
+<p>For example, the inscription URI of the genesis inscription is:</p>
+<pre><code>ord:6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
+</code></pre>
+<p>Inscription URIs match the following verbose regular expression:</p>
+<pre><code>(?i)            # case-insensitive
+ord:            # schema
+[0-9a-f]{64}    # transaction ID
+i               # separator
+(0|[1-9][0-9]*) # inscription index
+</code></pre>
+<p>Inscription URIs are case-insensitive and can thus use the more compact alphanumeric mode when encoded as QR codes. Lowercase is, however, the preferred presentation style.</p>
+<p>The referent of an inscription URI is an HTTP resource with the content, content type, content encoding, and content length corresponding to the inscription with the given ID.</p>
+<p>The referent of an inscription URI is always the original content of the target inscription, and not the content of the delegate, regardless of whether or not the target inscription has a delegate.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="inscription-examples"><a class="header" href="#inscription-examples">Inscription Examples</a></h1>
-<h3 id="delegate-1"><a class="header" href="#delegate-1">Delegate</a></h3>
+<h2 id="delegate-1"><a class="header" href="#delegate-1">Delegate</a></h2>
 <ul>
 <li>The <a href="https://ordinals.com/inscription/626127511953479e1933a448f020c76acd9086efe2f2b3f5e492c0c85d2ce051i0">first delegate inscription</a>.</li>
 <li>The Oscillations * collection utilizes delegation, provenance, recursion, sat endpoint, and detects the kind of sat that each piece is inscribed on (sattribute-aware). Each piece is a delegate of <a href="https://ordinals.com/inscription/52b4ea10c2518c954c73594e403ccfb2d50044f5a3b09a224dfa3bf06dd1d499i0">this inscription</a>.</li>
 <li><a href="https://ordinals.com/inscription/23a8f17fff4a73e2932dfc76e46d14d4f8975da96f5d5ae9a45898422056071ai0">This inscription</a> was inscribed as a delegate of <a href="https://ordinals.com/inscription/9ff39db4c51f831225d41efbd29a399f2b16c758970ec4ab95a1a17e8be59088i0">this inscription</a> and is also the parent inscription of a rune.</li>
 </ul>
-<h3 id="métadonnées-1"><a class="header" href="#métadonnées-1">Métadonnées</a></h3>
+<h2 id="métadonnées-1"><a class="header" href="#métadonnées-1">Métadonnées</a></h2>
 <ul>
 <li>Each <a href="https://ordinals.com/inscription/ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi1">member</a> in the FUN collection has metadata that describes its attributes.</li>
 <li><a href="https://ordinals.com/inscription/454700af2cffd3a872daeb89598a891f5fe9936225838a8c4522f491f246ca0ai0">This inscription</a> uses its own metadata to draw the ordinal image.</li>
 </ul>
-<h3 id="provenance-1"><a class="header" href="#provenance-1">Provenance</a></h3>
+<h2 id="provenance-1"><a class="header" href="#provenance-1">Provenance</a></h2>
 <ul>
 <li><a href="https://ordinals.com/inscription/0">Inscription 0</a> is the parent inscription for Casey's sugar skull collection, a grandparent for the FUN! collection, and the grandparent for <a href="https://ordinals.com/rune/ZZZZZZZZZZZZZZZZZZZZZZZZZZ">the sleepiest rune</a>.</li>
 <li>With the <a href="https://ordinals.com/inscription/f87a6b16a1224b65f9c8ea55e1718585b3075373581689e343860c12a70d15c7i41">Rug Me</a> collection, owners are able to change the background color by inscribing a child to it.</li>
@@ -3926,7 +3943,7 @@ OP_ENDIF
 <li><a href="https://ordinals.com/inscription/17541f6adf6eb160d52bc6eb0a3546c7c1d2adfe607b1a3cddc72cc0619526adi0">The yellow_ord_bot</a> has many different quotes as cursed children.</li>
 <li>The <a href="https://ordinals.com/children/451accbce30177c23a8cd42ab85131312a449359ada3c054aa147b054136fa3bi0">Spellbound</a> collection from the Wizard of Ord utilizes recursion, delegation, metadata, provenance, postage, location, compression.</li>
 </ul>
-<h3 id="récursion-1"><a class="header" href="#récursion-1">Récursion</a></h3>
+<h2 id="récursion-1"><a class="header" href="#récursion-1">Récursion</a></h2>
 <ul>
 <li><a href="https://ordinals.com/inscription/bf637552f3758e20f733d1f250cbea7cbbb4bbf157a8d4a9c26132950a383415i0">Inscription 12992</a> was the first recursive inscription inscribed on mainnet.</li>
 <li><a href="https://ordinals.com/children/fb162a46943e5d7d31d72ee2c8c850e66c1ca5d0d453068aa63883528285ed21i0">OnChain Monkey Genesis (BTC)</a> was one of the earliest collections to use recursion to create its PFP art.</li>
