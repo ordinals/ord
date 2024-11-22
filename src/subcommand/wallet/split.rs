@@ -284,8 +284,6 @@ impl Split {
       ..default()
     };
 
-    dbg!(&runestone);
-
     let mut output = Vec::new();
 
     let runestone_script_pubkey = runestone.encipher();
@@ -344,7 +342,7 @@ impl Split {
     }
 
     pretty_assertions::assert_eq!(
-      dbg!(Runestone::decipher(&tx)),
+      Runestone::decipher(&tx),
       Some(Artifact::Runestone(runestone)),
     );
 

@@ -169,6 +169,7 @@ impl Runestone {
       varint::encode_to_vec(Tag::Body.into(), &mut payload);
 
       let mut edicts = self.edicts.clone();
+      // why sort?
       edicts.sort_by_key(|edict| edict.id);
 
       let mut previous = RuneId::default();

@@ -222,10 +222,10 @@ fn oversize_op_returns_are_allowed_with_flag() {
     &ord,
     batch::File {
       etching: Some(batch::Etching {
-        supply: "10000000000".parse().unwrap(),
+        supply: "10000000045".parse().unwrap(),
         divisibility: 0,
         terms: None,
-        premine: "10000000000".parse().unwrap(),
+        premine: "10000000045".parse().unwrap(),
         rune: SpacedRune { rune, spacers: 1 },
         symbol: '¢',
         turbo: false,
@@ -240,12 +240,13 @@ fn oversize_op_returns_are_allowed_with_flag() {
 
   let mut splitfile = String::from("outputs:\n");
 
-  for _ in 0..10 {
-    splitfile.push_str(
+  for i in 0..10 {
+    splitfile.push_str(&format!(
       "\n- address: bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw
   runes:
-    AAAAAAAAAAAAA: 1000000000",
-    );
+    AAAAAAAAAAAAA: {}",
+      1000000000 + i
+    ));
   }
 
   CommandBuilder::new("--regtest wallet split --fee-rate 0 --splits splits.yaml")
@@ -280,7 +281,7 @@ fn oversize_op_returns_are_allowed_with_flag() {
               vout: 1 + i,
             },
             Pile {
-              amount: 1000000000,
+              amount: 1000000000 + i as u128,
               divisibility: 0,
               symbol: Some('¢'),
             }
