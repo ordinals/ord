@@ -235,7 +235,7 @@ impl Split {
 
     let mut need_rune_change_output = false;
     for (rune, input) in &input_rune_balances {
-      if input > &input_runes_required.get(&rune).copied().unwrap_or_default() {
+      if input > &input_runes_required.get(rune).copied().unwrap_or_default() {
         need_rune_change_output = true;
       }
     }
@@ -1356,7 +1356,7 @@ mod tests {
       outputs: (0..10)
         .map(|i| splitfile::Output {
           address: address(i).clone(),
-          runes: [(Rune(i as u128 % 2), 1_000_000_000)].into(),
+          runes: [(Rune(u128::from(i) % 2), 1_000_000_000)].into(),
           value: None,
         })
         .collect(),
@@ -1407,7 +1407,7 @@ mod tests {
       outputs: (0..10)
         .map(|i| splitfile::Output {
           address: address(i).clone(),
-          runes: [(Rune(i as u128 % 2), 1_000_000_000)].into(),
+          runes: [(Rune(u128::from(i) % 2), 1_000_000_000)].into(),
           value: None,
         })
         .collect(),

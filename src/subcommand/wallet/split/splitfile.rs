@@ -85,17 +85,13 @@ impl Splitfile {
   }
 
   pub(crate) fn even(&self) -> Option<Rune> {
-    let Some(entry) = self.outputs.first() else {
-      return None;
-    };
+    let entry = self.outputs.first()?;
 
     if entry.runes.len() != 1 {
       return None;
     }
 
-    let Some((rune, _)) = entry.runes.first_key_value().clone() else {
-      return None;
-    };
+    let (rune, _) = entry.runes.first_key_value()?;
 
     for output in self.outputs.iter().skip(1) {
       if entry.runes != output.runes {
@@ -107,7 +103,7 @@ impl Splitfile {
       }
     }
 
-    return Some(rune.clone());
+    Some(*rune)
   }
 }
 
