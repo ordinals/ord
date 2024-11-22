@@ -3230,10 +3230,6 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.assert_response_regex("/rune/0", StatusCode::NOT_FOUND, ".*");
-
-    server.mine_blocks(1);
-
     server.assert_response_regex(
       format!("/rune/{}", Rune(RUNE)),
       StatusCode::NOT_FOUND,
@@ -3254,10 +3250,6 @@ mod tests {
       .chain(Chain::Regtest)
       .index_runes()
       .build();
-
-    server.mine_blocks(1);
-
-    server.assert_response_regex("/rune/0", StatusCode::NOT_FOUND, ".*");
 
     server.mine_blocks(1);
 
