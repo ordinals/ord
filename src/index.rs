@@ -4173,7 +4173,7 @@ mod tests {
             i,
             if i == 1 { 0 } else { 1 },
             0,
-            inscription("text/plain;charset=utf-8", &format!("hello {}", i)).to_witness(),
+            inscription("text/plain;charset=utf-8", format!("hello {}", i)).to_witness(),
           )], // for the first inscription use coinbase, otherwise use the previous tx
           ..Default::default()
         });

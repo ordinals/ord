@@ -245,7 +245,7 @@ impl StreamEvent {
 
   fn is_text_related(media: Media, content_type: Option<String>) -> bool {
     if content_type
-      .map(|ct| ct.starts_with("text/") || ct.starts_with("image/svg"))
+      .map(|ct| ct.starts_with("text/"))
       .unwrap_or(false)
     {
       return true;
