@@ -3330,6 +3330,7 @@ curl -s -H "Accept: application/json" \
       "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:12:0",
       "timestamp": 1675607405
     }
+    ...
   ],
   "more": true,
   "page": 0
@@ -3390,6 +3391,7 @@ curl -s -H "Accept: application/json" \
       "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:101:0",
       "timestamp": 1675780989
     }
+    ...
   ],
   "more": false,
   "page": 1
