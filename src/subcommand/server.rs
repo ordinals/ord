@@ -836,7 +836,7 @@ impl Server {
         let reserved;
 
         if let Some(height) = unlock_height {
-          etchable = index.block_count()? >= height;
+          etchable = Height(index.block_count()?) >= height;
           reserved = false;
         } else {
           etchable = false;
@@ -850,7 +850,7 @@ impl Server {
             etchable,
             reserved,
             rune,
-            unlock_height,
+            unlock_height: unlock_height.map(|h| h.n()),
           }
           .page(server_config)
           .into_response()
