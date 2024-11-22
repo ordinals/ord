@@ -2602,14 +2602,19 @@ mod tests {
 
     #[track_caller]
     fn assert_html(&self, path: impl AsRef<str>, content: impl PageContent) {
+      self.assert_html_status(path, StatusCode::OK, content);
+    }
+
+    #[track_caller]
+    fn assert_html_status(
+      &self,
+      path: impl AsRef<str>,
+      status: StatusCode,
+      content: impl PageContent,
+    ) {
       let response = self.get(path);
 
-      assert_eq!(
-        response.status(),
-        StatusCode::OK,
-        "{}",
-        response.text().unwrap()
-      );
+      assert_eq!(response.status(), status, "{}", response.text().unwrap());
 
       let expected_response = PageHtml::new(
         content,
@@ -3230,17 +3235,13 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.assert_response_regex(
+    server.assert_html_status(
       "/rune/A",
       StatusCode::NOT_FOUND,
-      ".*<title>Rune A</title>.*
-<dl>
-  <dt>unlock height</dt>
-  <dd>209999</dd>
-  <dt>reserved</dt>
-  <dd>false</dd>
-</dl>.*
-",
+      RuneNotFoundHtml {
+        rune: Rune(0),
+        unlock_height: Some(Height(209999)),
+      },
     );
   }
 
@@ -3253,17 +3254,13 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.assert_response_regex(
+    server.assert_html_status(
       format!("/rune/{}", Rune(Rune::RESERVED)),
       StatusCode::NOT_FOUND,
-      ".*<title>Rune AAAAAAAAAAAAAAAAAAAAAAAAAAA</title>.*
-<dl>
-  <dt>unlock height</dt>
-  <dd>none</dd>
-  <dt>reserved</dt>
-  <dd>true</dd>
-</dl>.*
-",
+      RuneNotFoundHtml {
+        rune: Rune(Rune::RESERVED),
+        unlock_height: None,
+      },
     );
   }
 
