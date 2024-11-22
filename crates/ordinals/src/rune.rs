@@ -110,18 +110,18 @@ impl Rune {
     let min_block_height = height + blocks_since_rune_start as u32;
 
     // Calculate the remainder using the correct step boundaries
-    let number_at_step_start = Self::STEPS[step_index];
-    let number_at_step_end = if step_index > 0 {
+    let start = Self::STEPS[step_index];
+    let end = if step_index > 0 {
       Self::STEPS[step_index - 1]
     } else {
       0
     };
 
-    let numbers_between_steps = number_at_step_start - number_at_step_end;
-    let numbers_since_step_start = number_at_step_start - self.0;
+    let interval = start - end;
+    let progress = start - self.0;
 
     // Calculate progress as a ratio first, then multiply by interval
-    let ratio = (numbers_since_step_start as f64) / (numbers_between_steps as f64);
+    let ratio = (progress as f64) / (interval as f64);
     let progress_as_blocks = ((ratio * Self::UNLOCK_INTERVAL as f64) - 1.0).ceil() as u32;
 
     let height = min_block_height + progress_as_blocks;
