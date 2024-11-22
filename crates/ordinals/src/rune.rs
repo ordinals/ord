@@ -6,7 +6,7 @@ use super::*;
 pub struct Rune(pub u128);
 
 impl Rune {
-  pub const RESERVED: u128 = 6402364363415443603228541259936211926;
+  const RESERVED: u128 = 6402364363415443603228541259936211926;
 
   const UNLOCKED: usize = 12;
 
@@ -70,7 +70,7 @@ impl Rune {
     }
 
     if offset >= end {
-      return Rune(Self::STEPS[0]);
+      return Rune(0);
     }
 
     let progress = offset.saturating_sub(start);
