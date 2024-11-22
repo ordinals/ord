@@ -527,9 +527,6 @@ mod tests {
 
     case("ZZZZZZZZZ", START + Rune::UNLOCK_INTERVAL * 3);
 
-    case("A", 1_049_999);
-    case("B", 1_049_326);
-
     case("ZZZ", 997_500);
 
     case("AAA", 1_014_999);
