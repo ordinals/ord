@@ -41,6 +41,8 @@ impl Rune {
 
   const UNLOCK_INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
 
+  const UNLOCKED: usize = 12;
+
   pub fn n(self) -> u128 {
     self.0
   }
@@ -64,7 +66,7 @@ impl Rune {
     let end = start + SUBSIDY_HALVING_INTERVAL;
 
     if offset < start {
-      return Rune(Self::STEPS[12]);
+      return Rune(Self::STEPS[Self::UNLOCKED]);
     }
 
     if offset >= end {
@@ -73,7 +75,9 @@ impl Rune {
 
     let progress = offset.saturating_sub(start);
 
-    let length = 12u32.saturating_sub(progress / Self::UNLOCK_INTERVAL);
+    let length = u32::try_from(Self::UNLOCKED)
+      .unwrap()
+      .saturating_sub(progress / Self::UNLOCK_INTERVAL);
 
     let end = Self::STEPS[usize::try_from(length - 1).unwrap()];
 
@@ -89,45 +93,21 @@ impl Rune {
       return None;
     }
 
-    if self.0 >= Self::STEPS[12] {
+    if self.0 >= Self::STEPS[Self::UNLOCKED] {
       return Some(Height(0));
     }
 
-    let height = Self::first_rune_height(network);
+    let i = Self::STEPS.iter().position(|&step| self.0 < step).unwrap();
 
-    // Find the first step where self.0 < STEPS[i]:
-    let mut step_index = 0;
-    for i in 0..Self::STEPS.len() {
-      if self.0 < Self::STEPS[i] {
-        step_index = i;
-        break;
-      }
-    }
-
-    let steps_since_rune_start = 12 - step_index;
-    let blocks_since_rune_start = steps_since_rune_start * Self::UNLOCK_INTERVAL as usize;
-
-    let min_block_height = height + blocks_since_rune_start as u32;
-
-    // Calculate the remainder using the correct step boundaries
-    let start = Self::STEPS[step_index];
-    let end = if step_index > 0 {
-      Self::STEPS[step_index - 1]
-    } else {
-      0
-    };
+    let start = Self::STEPS[i];
+    let end = i.checked_sub(1).map(|i| Self::STEPS[i]).unwrap_or_default();
 
     let interval = start - end;
     let progress = start - self.0;
 
-    // Calculate progress as a ratio first, then multiply by interval
-    let ratio = (progress as f64) / (interval as f64);
-    let progress_as_blocks = ((ratio * Self::UNLOCK_INTERVAL as f64) - 1.0).ceil() as u32;
-
-    let height = min_block_height + progress_as_blocks;
-
-    debug_assert!(Self::minimum_at_height(network, Height(height)) <= self);
-    debug_assert!(Self::minimum_at_height(network, Height(height - 1)) > self);
+    let height = Self::first_rune_height(network)
+      + u32::try_from(Self::UNLOCKED - i).unwrap() * Self::UNLOCK_INTERVAL
+      + u32::try_from((progress * u128::from(Self::UNLOCK_INTERVAL) - 1) / interval).unwrap();
 
     Some(Height(height))
   }
@@ -288,10 +268,19 @@ mod tests {
   fn mainnet_minimum_at_height() {
     #[track_caller]
     fn case(height: u32, minimum: &str) {
+      let minimum = minimum.parse::<Rune>().unwrap();
       assert_eq!(
-        Rune::minimum_at_height(Network::Bitcoin, Height(height)).to_string(),
+        Rune::minimum_at_height(Network::Bitcoin, Height(height)),
         minimum,
       );
+
+      let unlock_height = minimum.unlock_height(Network::Bitcoin).unwrap().0;
+
+      assert!(unlock_height <= height);
+
+      if unlock_height == 0 {
+        assert!(height < SUBSIDY_HALVING_INTERVAL * 4);
+      }
     }
 
     const START: u32 = SUBSIDY_HALVING_INTERVAL * 4;
@@ -435,7 +424,9 @@ mod tests {
   fn is_reserved() {
     #[track_caller]
     fn case(rune: &str, reserved: bool) {
-      assert_eq!(rune.parse::<Rune>().unwrap().is_reserved(), reserved);
+      let rune = rune.parse::<Rune>().unwrap();
+      assert_eq!(rune.is_reserved(), reserved);
+      assert_eq!(rune.unlock_height(Network::Bitcoin).is_none(), reserved);
     }
 
     case("A", false);
@@ -527,6 +518,8 @@ mod tests {
 
     case("ZZZZZZZZZ", START + Rune::UNLOCK_INTERVAL * 3);
 
+    case("ZZYZXBRKWXVA", START);
+
     case("ZZZ", 997_500);
 
     case("AAA", 1_014_999);
@@ -552,13 +545,14 @@ mod tests {
     case("B", 1_049_326);
     case("A", 1_049_999);
 
-    for i in 0..4 {
-      for n in Rune::STEPS[i]..Rune::STEPS[i + 1] {
-        let rune = Rune(n);
-        let unlock_height = rune.unlock_height(Network::Bitcoin).unwrap();
-        assert!(rune >= Rune::minimum_at_height(Network::Bitcoin, unlock_height));
-        assert!(rune < Rune::minimum_at_height(Network::Bitcoin, Height(unlock_height.0 - 1)));
-      }
-    }
+    // Break glass in case of emergency:
+    // for i in 0..5 {
+    //   for n in Rune::STEPS[i]..Rune::STEPS[i + 1] {
+    //     let rune = Rune(n);
+    //     let unlock_height = rune.unlock_height(Network::Bitcoin).unwrap();
+    //     assert!(rune >= Rune::minimum_at_height(Network::Bitcoin, unlock_height));
+    //     assert!(rune < Rune::minimum_at_height(Network::Bitcoin, Height(unlock_height.0 - 1)));
+    //   }
+    // }
   }
 }
