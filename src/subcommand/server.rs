@@ -807,48 +807,44 @@ impl Server {
           .ok_or_not_found(|| format!("rune number {number}"))?,
       };
 
-      if let Some((id, entry, parent)) = index.rune(rune)? {
-        let block_height = index.block_height()?.unwrap_or(Height(0));
-
-        let mintable = entry.mintable((block_height.n() + 1).into()).is_ok();
-
-        Ok(if accept_json {
-          Json(api::Rune {
-            entry,
-            id,
-            mintable,
-            parent,
-          })
-          .into_response()
-        } else {
-          RuneHtml {
-            entry,
-            id,
-            mintable,
-            parent,
-          }
-          .page(server_config)
-          .into_response()
-        })
-      } else {
-        let unlock_height = rune.unlock_height(server_config.chain.network());
-        let reserved = unlock_height.is_none();
-
-        Ok(if accept_json {
+      let Some((id, entry, parent)) = index.rune(rune)? else {
+        return Ok(if accept_json {
           StatusCode::NOT_FOUND.into_response()
         } else {
           (
             StatusCode::NOT_FOUND,
             RuneNotFoundHtml {
-              reserved,
               rune,
-              unlock_height: unlock_height.map(|height| height.n()),
+              unlock_height: rune.unlock_height(server_config.chain.network()),
             }
             .page(server_config),
           )
             .into_response()
+        });
+      };
+
+      let block_height = index.block_height()?.unwrap_or(Height(0));
+
+      let mintable = entry.mintable((block_height.n() + 1).into()).is_ok();
+
+      Ok(if accept_json {
+        Json(api::Rune {
+          entry,
+          id,
+          mintable,
+          parent,
         })
-      }
+        .into_response()
+      } else {
+        RuneHtml {
+          entry,
+          id,
+          mintable,
+          parent,
+        }
+        .page(server_config)
+        .into_response()
+      })
     })
   }
 

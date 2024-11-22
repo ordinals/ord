@@ -1,10 +1,9 @@
 use super::*;
 
-#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
+#[derive(Boilerplate, Debug, PartialEq, Serialize)]
 pub struct RuneNotFoundHtml {
-  pub reserved: bool,
   pub rune: Rune,
-  pub unlock_height: Option<u32>,
+  pub unlock_height: Option<Height>,
 }
 
 impl PageContent for RuneNotFoundHtml {
@@ -21,9 +20,8 @@ mod tests {
   fn display() {
     assert_regex_match!(
       RuneNotFoundHtml {
-        reserved: false,
         rune: Rune(u128::MAX),
-        unlock_height: Some(111),
+        unlock_height: Some(Height(111)),
       },
       "<h1>BCGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>
@@ -40,7 +38,6 @@ mod tests {
   fn display_reserved() {
     assert_regex_match!(
       RuneNotFoundHtml {
-        reserved: true,
         rune: Rune(Rune::RESERVED),
         unlock_height: None,
       },
