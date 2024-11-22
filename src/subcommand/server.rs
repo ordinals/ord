@@ -3370,6 +3370,8 @@ mod tests {
 
     let rune = Rune(RUNE);
 
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+
     let (txid, id) = server.etch(
       Runestone {
         edicts: vec![Edict {
@@ -3496,6 +3498,8 @@ mod tests {
     server.mine_blocks(1);
 
     let rune = Rune(RUNE);
+
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
     let (txid, id) = server.etch(
       Runestone {
@@ -3659,6 +3663,8 @@ mod tests {
     server.mine_blocks(1);
 
     let rune = Rune(RUNE);
+
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
 
     let (txid, id) = server.etch(
       Runestone {

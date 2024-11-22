@@ -35,4 +35,23 @@ mod tests {
 "
     );
   }
+
+  #[test]
+  fn display_reserved() {
+    assert_regex_match!(
+      RuneNotFoundHtml {
+        reserved: true,
+        rune: Rune(Rune::RESERVED),
+        unlock_height: None,
+      },
+      "<h1>AAAAAAAAAAAAAAAAAAAAAAAAAAA</h1>
+<dl>
+  <dt>unlock height</dt>
+  <dd>none</dd>
+  <dt>reserved</dt>
+  <dd>true</dd>
+</dl>
+"
+    );
+  }
 }
