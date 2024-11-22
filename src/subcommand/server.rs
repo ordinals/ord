@@ -3240,13 +3240,13 @@ mod tests {
 
     server.assert_response_regex(
       format!("/rune/{}", Rune(RUNE)),
-      StatusCode::OK,
+      StatusCode::NOT_FOUND,
       ".*<title>Rune AAAAAAAAAAAAA</title>.*
 <dl>
   <dt>unlock height</dt>
   <dd>0</dd>
-  <dt>etchable</dt>
-  <dd>true</dd>
+  <dt>reserved</dt>
+  <dd>false</dd>
 </dl>.*
 ",
     );
@@ -3267,9 +3267,11 @@ mod tests {
 
     server.assert_response_regex(
       format!("/rune/{}", Rune(Rune::RESERVED)),
-      StatusCode::OK,
+      StatusCode::NOT_FOUND,
       ".*<title>Rune AAAAAAAAAAAAAAAAAAAAAAAAAAA</title>.*
 <dl>
+  <dt>unlock height</dt>
+  <dd>none</dd>
   <dt>reserved</dt>
   <dd>true</dd>
 </dl>.*
