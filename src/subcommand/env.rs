@@ -203,7 +203,7 @@ rpcport={bitcoind_port}
     }
 
     serde_json::to_writer_pretty(
-      fs::File::create(self.directory.join("env.json"))?,
+      File::create(self.directory.join("env.json"))?,
       &Info {
         bitcoind_port,
         ord_port,

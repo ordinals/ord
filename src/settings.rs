@@ -74,7 +74,7 @@ impl Settings {
     };
 
     let config = if let Some(config_path) = config_path {
-      serde_yaml::from_reader(fs::File::open(&config_path).context(anyhow!(
+      serde_yaml::from_reader(File::open(&config_path).context(anyhow!(
         "failed to open config file `{}`",
         config_path.display()
       ))?)
@@ -994,7 +994,7 @@ mod tests {
 
   #[test]
   fn example_config_file_is_valid() {
-    let _: Settings = serde_yaml::from_reader(fs::File::open("ord.yaml").unwrap()).unwrap();
+    let _: Settings = serde_yaml::from_reader(File::open("ord.yaml").unwrap()).unwrap();
   }
 
   #[test]

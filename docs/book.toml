@@ -14,7 +14,7 @@ cname = "docs.ordinals.com"
 default-theme = "coal"
 git-repository-url = "https://github.com/ordinals/ord"
 preferred-dark-theme = "coal"
-additional-css = ["language-picker.css"]
+additional-css = ["index.css"]
 
 [output.linkcheck]
 

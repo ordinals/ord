@@ -1,12 +1,12 @@
 <h1>Block {{ self.height }}</h1>
 <dl>
-  <dt>hash</dt><dd class=monospace>{{self.hash}}</dd>
-  <dt>target</dt><dd class=monospace>{{self.target}}</dd>
+  <dt>hash</dt><dd class=collapse>{{self.hash}}</dd>
+  <dt>target</dt><dd class=collapse>{{self.target}}</dd>
   <dt>timestamp</dt><dd><time>{{timestamp(self.block.header.time.into())}}</time></dd>
   <dt>size</dt><dd>{{self.block.total_size()}}</dd>
   <dt>weight</dt><dd>{{self.block.weight()}}</dd>
 %% if self.height.0 > 0 {
-  <dt>previous blockhash</dt><dd><a href=/block/{{self.block.header.prev_blockhash}} class=monospace>{{self.block.header.prev_blockhash}}</a></dd>
+  <dt>previous blockhash</dt><dd><a href=/block/{{self.block.header.prev_blockhash}} class=collapse>{{self.block.header.prev_blockhash}}</a></dd>
 %% }
 </dl>
 <div class=center>
@@ -41,9 +41,9 @@ next
 </div>
 %% }
 <h2>{{"Transaction".tally(self.block.txdata.len())}}</h2>
-<ul class=monospace>
+<ul>
 %% for tx in &self.block.txdata {
 %% let txid = tx.txid();
-  <li><a href=/tx/{{txid}}>{{txid}}</a></li>
+  <li><a class=collapse href=/tx/{{txid}}>{{txid}}</a></li>
 %% }
 </ul>

@@ -24,4 +24,5 @@ mod sats;
 mod selection;
 mod send;
 mod sign;
+mod split;
 mod transactions;

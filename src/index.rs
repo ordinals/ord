@@ -684,7 +684,7 @@ impl Index {
   }
 
   pub fn export(&self, filename: &String, include_addresses: bool) -> Result {
-    let mut writer = BufWriter::new(fs::File::create(filename)?);
+    let mut writer = BufWriter::new(File::create(filename)?);
     let rtx = self.database.begin_read()?;
 
     let blocks_indexed = rtx
@@ -2159,6 +2159,7 @@ impl Index {
         satpoint,
         timestamp: timestamp(entry.timestamp.into()).timestamp(),
         value: output.as_ref().map(|o| o.value.to_sat()),
+        metaprotocol: inscription.metaprotocol().map(|s| s.to_string()),
       },
       output,
       inscription,

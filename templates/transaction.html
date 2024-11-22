@@ -16,7 +16,7 @@
 <h2>{{"Input".tally(self.transaction.input.len())}}</h2>
 <ul>
 %% for input in &self.transaction.input {
-  <li><a class=monospace href=/output/{{input.previous_output}}>{{input.previous_output}}</a></li>
+  <li><a class=collapse href=/output/{{input.previous_output}}>{{input.previous_output}}</a></li>
 %% }
 </ul>
 <h2>{{"Output".tally(self.transaction.output.len())}}</h2>
@@ -24,14 +24,14 @@
 %% for (vout, output) in self.transaction.output.iter().enumerate() {
 %% let outpoint = OutPoint::new(self.txid, vout as u32);
   <li>
-    <a href=/output/{{outpoint}} class=monospace>
+    <a href=/output/{{outpoint}} class=collapse>
       {{ outpoint }}
     </a>
     <dl>
       <dt>value</dt><dd>{{ output.value.to_sat() }}</dd>
       <dt>script pubkey</dt><dd class=monospace>{{ output.script_pubkey.to_asm_string() }}</dd>
 %% if let Ok(address) = self.chain.address_from_script(&output.script_pubkey) {
-      <dt>address</dt><dd class=monospace><a href=/address/{{address}}>{{ address }}</a></dd>
+      <dt>address</dt><dd><a class=collapse href=/address/{{address}}>{{ address }}</a></dd>
 %% }
     </dl>
   </li>

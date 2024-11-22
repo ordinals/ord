@@ -12,7 +12,11 @@ pub(crate) use {
   unindent::Unindent,
 };
 
-pub(crate) fn txid(n: u64) -> Txid {
+pub(crate) fn rune_id(tx: u32) -> RuneId {
+  RuneId { block: 1, tx }
+}
+
+pub(crate) fn txid(n: u32) -> Txid {
   let hex = format!("{n:x}");
 
   if hex.is_empty() || hex.len() > 1 {
@@ -22,22 +26,37 @@ pub(crate) fn txid(n: u64) -> Txid {
   hex.repeat(64).parse().unwrap()
 }
 
-pub(crate) fn outpoint(n: u64) -> OutPoint {
-  format!("{}:{}", txid(n), n).parse().unwrap()
-}
-
-pub(crate) fn satpoint(n: u64, offset: u64) -> SatPoint {
-  SatPoint {
-    outpoint: outpoint(n),
-    offset,
+pub(crate) fn outpoint(n: u32) -> OutPoint {
+  OutPoint {
+    txid: txid(n),
+    vout: n,
   }
 }
 
-pub(crate) fn address() -> Address {
-  "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-    .parse::<Address<NetworkUnchecked>>()
-    .unwrap()
-    .assume_checked()
+pub(crate) fn satpoint(n: u32, offset: u64) -> SatPoint {
+  SatPoint {
+    offset,
+    outpoint: outpoint(n),
+  }
+}
+
+pub(crate) fn address(n: u32) -> Address {
+  match n {
+    0 => "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4",
+    1 => "bc1qhl452zcq3ng5kzajzkx9jnzncml9tnsk3w96s6",
+    2 => "bc1qqqcjq9jydx79rywltc38g5qfrjq485a8xfmkf7",
+    3 => "bc1qcq2uv5nk6hec6kvag3wyevp6574qmsm9scjxc2",
+    4 => "bc1qukgekwq8e68ay0mewdrvg0d3cfuc094aj2rvx9",
+    5 => "bc1qtdjs8tgkaja5ddxs0j7rn52uqfdtqa53mum8xc",
+    6 => "bc1qd3ex6kwlc5ett55hgsnk94y8q2zhdyxyqyujkl",
+    7 => "bc1q8dcv8r903evljd87mcg0hq8lphclch7pd776wt",
+    8 => "bc1q9j6xvm3td447ygnhfra5tfkpkcupwe9937nhjq",
+    9 => "bc1qlyrhjzvxdzmvxe2mnr37p68vkl5fysyhfph8z0",
+    _ => panic!(),
+  }
+  .parse::<Address<NetworkUnchecked>>()
+  .unwrap()
+  .assume_checked()
 }
 
 pub(crate) fn recipient() -> ScriptBuf {

@@ -10,7 +10,6 @@ pub(crate) use {
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
-  inscription::InscriptionHtml,
   inscriptions::InscriptionsHtml,
   inscriptions_block::InscriptionsBlockHtml,
   metadata::MetadataHtml,
@@ -25,8 +24,8 @@ pub(crate) use {
 };
 
 pub use {
-  blocks::BlocksHtml, rune::RuneHtml, runes::RunesHtml, status::StatusHtml,
-  transaction::TransactionHtml,
+  blocks::BlocksHtml, inscription::InscriptionHtml, rune::RuneHtml, runes::RunesHtml,
+  status::StatusHtml, transaction::TransactionHtml,
 };
 
 pub mod address;
@@ -53,7 +52,7 @@ pub mod status;
 pub mod transaction;
 
 #[derive(Boilerplate)]
-pub(crate) struct PageHtml<T: PageContent> {
+pub struct PageHtml<T: PageContent> {
   content: T,
   config: Arc<ServerConfig>,
 }
@@ -62,7 +61,7 @@ impl<T> PageHtml<T>
 where
   T: PageContent,
 {
-  pub(crate) fn new(content: T, config: Arc<ServerConfig>) -> Self {
+  pub fn new(content: T, config: Arc<ServerConfig>) -> Self {
     Self { content, config }
   }
 
@@ -83,7 +82,7 @@ where
   }
 }
 
-pub(crate) trait PageContent: Display + 'static {
+pub trait PageContent: Display + 'static {
   fn title(&self) -> String;
 
   fn page(self, server_config: Arc<ServerConfig>) -> PageHtml<Self>
@@ -137,7 +136,7 @@ mod tests {
     <link rel=icon href=/static/favicon.svg>
     <link rel=stylesheet href=/static/index.css>
     <link rel=stylesheet href=/static/modern-normalize.css>
-    <script src=/static/index.js defer></script>
+    <script src=/static/index.js></script>
   </head>
   <body>
   <header>

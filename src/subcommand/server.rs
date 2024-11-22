@@ -39,7 +39,7 @@ use {
   },
 };
 
-pub(crate) use server_config::ServerConfig;
+pub use server_config::ServerConfig;
 
 mod accept_encoding;
 mod accept_json;
@@ -51,6 +51,22 @@ enum SpawnConfig {
   Https(AxumAcceptor),
   Http,
   Redirect(String),
+}
+
+#[derive(Deserialize)]
+pub(crate) struct OutputsQuery {
+  #[serde(rename = "type")]
+  pub(crate) ty: Option<OutputType>,
+}
+
+#[derive(Clone, Copy, Deserialize, Default, PartialEq)]
+#[serde(rename_all = "lowercase")]
+pub(crate) enum OutputType {
+  #[default]
+  Any,
+  Cardinal,
+  Inscribed,
+  Runic,
 }
 
 #[derive(Deserialize)]
@@ -205,6 +221,7 @@ impl Server {
         .route("/ordinal/:sat", get(Self::ordinal))
         .route("/output/:output", get(Self::output))
         .route("/outputs", post(Self::outputs))
+        .route("/outputs/:address", get(Self::outputs_address))
         .route("/parents/:inscription_id", get(Self::parents))
         .route(
           "/parents/:inscription_id/:page",
@@ -519,12 +536,16 @@ impl Server {
         "rune"
       } else if re::OUTPOINT.is_match(&path) {
         "output"
+      } else if re::SATPOINT.is_match(&path) {
+        "satpoint"
       } else if re::HASH.is_match(&path) {
         if index.block_header(path.parse().unwrap())?.is_some() {
           "block"
         } else {
           "tx"
         }
+      } else if re::ADDRESS.is_match(&path) {
+        "address"
       } else {
         return Ok(StatusCode::NOT_FOUND.into_response());
       };
@@ -553,31 +574,55 @@ impl Server {
 
       let charms = sat.charms();
 
+      let address = if let Some(satpoint) = satpoint {
+        if satpoint.outpoint == unbound_outpoint() {
+          None
+        } else {
+          let tx = index
+            .get_transaction(satpoint.outpoint.txid)?
+            .context("could not get transaction for sat")?;
+
+          let tx_out = tx
+            .output
+            .get::<usize>(satpoint.outpoint.vout.try_into().unwrap())
+            .context("could not get vout for sat")?;
+
+          server_config
+            .chain
+            .address_from_script(&tx_out.script_pubkey)
+            .ok()
+        }
+      } else {
+        None
+      };
+
       Ok(if accept_json {
         Json(api::Sat {
-          number: sat.0,
+          address: address.map(|address| address.to_string()),
+          block: sat.height().0,
+          charms: Charm::charms(charms),
+          cycle: sat.cycle(),
           decimal: sat.decimal().to_string(),
           degree: sat.degree().to_string(),
-          name: sat.name(),
-          block: sat.height().0,
-          cycle: sat.cycle(),
           epoch: sat.epoch().0,
-          period: sat.period(),
+          inscriptions,
+          name: sat.name(),
+          number: sat.0,
           offset: sat.third(),
-          rarity: sat.rarity(),
           percentile: sat.percentile(),
+          period: sat.period(),
+          rarity: sat.rarity(),
           satpoint,
           timestamp: blocktime.timestamp().timestamp(),
-          inscriptions,
-          charms: Charm::charms(charms),
         })
         .into_response()
       } else {
         SatHtml {
-          sat,
-          satpoint,
+          address,
           blocktime,
           inscriptions,
+          sat,
+          satpoint,
         }
         .page(server_config)
         .into_response()
@@ -667,6 +712,75 @@ impl Server {
       } else {
         StatusCode::NOT_FOUND.into_response()
       })
+    })
+  }
+
+  async fn outputs_address(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Path(address): Path<Address<NetworkUnchecked>>,
+    Query(query): Query<OutputsQuery>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      if !index.has_address_index() {
+        return Err(ServerError::NotFound(
+          "this server has no address index".to_string(),
+        ));
+      }
+
+      if !accept_json {
+        return Ok(StatusCode::NOT_FOUND.into_response());
+      }
+
+      let output_type = query.ty.unwrap_or_default();
+
+      if output_type != OutputType::Any {
+        if !index.has_rune_index() {
+          return Err(ServerError::BadRequest(
+            "this server has no runes index".to_string(),
+          ));
+        }
+
+        if !index.has_inscription_index() {
+          return Err(ServerError::BadRequest(
+            "this server has no inscriptions index".to_string(),
+          ));
+        }
+      }
+
+      let address = address
+        .require_network(server_config.chain.network())
+        .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+      let outputs = index.get_address_info(&address)?;
+
+      let mut response = Vec::new();
+      for output in outputs.into_iter() {
+        let include = match output_type {
+          OutputType::Any => true,
+          OutputType::Cardinal => {
+            index
+              .get_inscriptions_on_output_with_satpoints(output)?
+              .is_empty()
+              && index.get_rune_balances_for_output(output)?.is_empty()
+          }
+          OutputType::Inscribed => !index
+            .get_inscriptions_on_output_with_satpoints(output)?
+            .is_empty(),
+          OutputType::Runic => !index.get_rune_balances_for_output(output)?.is_empty(),
+        };
+
+        if include {
+          let (output_info, _) = index
+            .get_output_info(output)?
+            .ok_or_not_found(|| format!("output {output}"))?;
+
+          response.push(output_info);
+        }
+      }
+
+      Ok(Json(response).into_response())
     })
   }
 
@@ -2513,6 +2627,30 @@ mod tests {
       assert_regex_match!(response.text().unwrap(), regex.as_ref());
     }
 
+    #[track_caller]
+    fn assert_html(&self, path: impl AsRef<str>, content: impl PageContent) {
+      let response = self.get(path);
+
+      assert_eq!(
+        response.status(),
+        StatusCode::OK,
+        "{}",
+        response.text().unwrap()
+      );
+
+      let expected_response = PageHtml::new(
+        content,
+        Arc::new(ServerConfig {
+          chain: Chain::Regtest,
+          domain: Some(System::host_name().unwrap()),
+          ..Default::default()
+        }),
+      )
+      .to_string();
+
+      pretty_assert_eq!(response.text().unwrap(), expected_response);
+    }
+
     fn assert_response_csp(
       &self,
       path: impl AsRef<str>,
@@ -2984,12 +3122,28 @@ mod tests {
       "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     );
     server.assert_redirect(
-      "/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
+      "/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0",
+      "/satpoint/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0",
+    );
+    server.assert_redirect(
+      "/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
       "/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f",
     );
     server.assert_redirect(
-      "/search/0000000000000000000000000000000000000000000000000000000000000000",
-      "/tx/0000000000000000000000000000000000000000000000000000000000000000",
+      "/000000000000000000000000000000000000000000000000000000000000000f",
+      "/tx/000000000000000000000000000000000000000000000000000000000000000f",
+    );
+    server.assert_redirect(
+      "/bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297",
+      "/address/bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297",
+    );
+    server.assert_redirect(
+      "/bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
+      "/address/bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq",
+    );
+    server.assert_redirect(
+      "/1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+      "/address/1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
     );
 
     server.assert_response_regex("/hello", StatusCode::NOT_FOUND, "");
@@ -3103,10 +3257,14 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.assert_response_regex(
+    server.assert_html(
       "/runes",
-      StatusCode::OK,
-      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>\n<div class=center>\n    prev\n      next\n  </div>.*",
+      RunesHtml {
+        entries: Vec::new(),
+        more: false,
+        prev: None,
+        next: None,
+      },
     );
 
     let (txid, id) = server.etch(
@@ -3152,14 +3310,23 @@ mod tests {
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])]
     );
 
-    server.assert_response_regex(
+    server.assert_html(
       "/runes",
-      StatusCode::OK,
-      ".*<title>Runes</title>.*
-<h1>Runes</h1>
-<ul>
-  <li><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></li>
-</ul>.*",
+      RunesHtml {
+        entries: vec![(
+          RuneId::default(),
+          RuneEntry {
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0,
+            },
+            ..default()
+          },
+        )],
+        more: false,
+        prev: None,
+        next: None,
+      },
     );
   }
 
@@ -3204,73 +3371,38 @@ mod tests {
       ),
     );
 
-    assert_eq!(
-      server.index.runes().unwrap(),
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          etching: txid,
-          spaced_rune: SpacedRune { rune, spacers: 0 },
-          premine: u128::MAX,
-          symbol: Some('%'),
-          timestamp: id.block,
-          turbo: true,
-          ..default()
-        }
-      )]
-    );
+    let entry = RuneEntry {
+      block: id.block,
+      etching: txid,
+      spaced_rune: SpacedRune { rune, spacers: 0 },
+      premine: u128::MAX,
+      symbol: Some('%'),
+      timestamp: id.block,
+      turbo: true,
+      ..default()
+    };
+
+    assert_eq!(server.index.runes().unwrap(), [(id, entry)]);
 
     assert_eq!(
       server.index.get_rune_balances().unwrap(),
       [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])]
     );
 
-    server.assert_response_regex(
+    let parent = InscriptionId { txid, index: 0 };
+
+    server.assert_html(
       format!("/rune/{rune}"),
-      StatusCode::OK,
-      format!(
-        ".*<title>Rune AAAAAAAAAAAAA</title>.*
-<h1>AAAAAAAAAAAAA</h1>
-.*<a.*<iframe .* src=/preview/{txid}i0></iframe></a>.*
-<dl>
-  <dt>number</dt>
-  <dd>0</dd>
-  <dt>timestamp</dt>
-  <dd><time>1970-01-01 00:00:08 UTC</time></dd>
-  <dt>id</dt>
-  <dd>8:1</dd>
-  <dt>etching block</dt>
-  <dd><a href=/block/8>8</a></dd>
-  <dt>etching transaction</dt>
-  <dd>1</dd>
-  <dt>mint</dt>
-  <dd>no</dd>
-  <dt>supply</dt>
-  <dd>340282366920938463463374607431768211455\u{A0}%</dd>
-  <dt>premine</dt>
-  <dd>340282366920938463463374607431768211455\u{A0}%</dd>
-  <dt>premine percentage</dt>
-  <dd>100%</dd>
-  <dt>burned</dt>
-  <dd>0\u{A0}%</dd>
-  <dt>divisibility</dt>
-  <dd>0</dd>
-  <dt>symbol</dt>
-  <dd>%</dd>
-  <dt>turbo</dt>
-  <dd>true</dd>
-  <dt>etching</dt>
-  <dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
-  <dt>parent</dt>
-  <dd><a class=monospace href=/inscription/{txid}i0>{txid}i0</a></dd>
-</dl>
-.*"
-      ),
+      RuneHtml {
+        id,
+        entry,
+        mintable: false,
+        parent: Some(parent),
+      },
     );
 
     server.assert_response_regex(
-      format!("/inscription/{txid}i0"),
+      format!("/inscription/{parent}"),
       StatusCode::OK,
       ".*
 <dl>
@@ -3581,6 +3713,7 @@ mod tests {
         sat_ranges: None,
         indexed: true,
         inscriptions: Vec::new(),
+        outpoint: output,
         runes: vec![(
           SpacedRune {
             rune: Rune(RUNE),
@@ -3708,7 +3841,7 @@ mod tests {
   <dd>.*</dd>
   <dt>git commit</dt>
   <dd>
-    <a href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
+    <a class=collapse href=https://github.com/ordinals/ord/commit/[[:xdigit:]]{40}>
       [[:xdigit:]]{40}
     </a>
   </dd>
@@ -3861,12 +3994,12 @@ mod tests {
 <dl>
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
-  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
   <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
-  <li><a href=/sat/0 class=mythic>0</a>-<a href=/sat/5000000000 class=uncommon>5000000000</a> \\(5000000000 sats\\)</li>
+  <li><a href=/sat/0 class=mythic>0</a>-<a href=/sat/4999999999 class=common>4999999999</a> \\(5000000000 sats\\)</li>
 </ul>.*"
         ),
       );
@@ -3883,7 +4016,7 @@ mod tests {
 <dl>
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
-  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
   <dt>spent</dt><dd>false</dd>
 </dl>.*"
       ),
@@ -3906,12 +4039,12 @@ mod tests {
 <dl>
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace></dd>
-  <dt>transaction</dt><dd><a class=monospace href=/tx/{txid}>{txid}</a></dd>
+  <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
   <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
 <ul class=monospace>
-  <li><a href=/sat/5000000000 class=uncommon>5000000000</a>-<a href=/sat/10000000000 class=uncommon>10000000000</a> \\(5000000000 sats\\)</li>
+  <li><a href=/sat/5000000000 class=uncommon>5000000000</a>-<a href=/sat/9999999999 class=common>9999999999</a> \\(5000000000 sats\\)</li>
 </ul>.*"
       ),
     );
@@ -3954,8 +4087,8 @@ mod tests {
       format!(
         ".*<dl>
   <dt>id</dt>
-  <dd class=monospace>{inscription_id}</dd>.*<dt>output</dt>
-  <dd><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
+  <dd class=collapse>{inscription_id}</dd>.*<dt>output</dt>
+  <dd><a class=collapse href=/output/0000000000000000000000000000000000000000000000000000000000000000:0>0000000000000000000000000000000000000000000000000000000000000000:0</a></dd>.*"
       ),
     );
 
@@ -3966,7 +4099,7 @@ mod tests {
 <dl>
   <dt>inscriptions</dt>
   <dd class=thumbnails>
-    <a href=/inscription/.*><iframe sandbox=allow-scripts loading=lazy src=/preview/.*></iframe></a>
+    <a href=/inscription/.*><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/.*></iframe></a>
   </dd>.*",
     );
   }
@@ -4076,7 +4209,7 @@ mod tests {
     test_server.assert_response_regex(
       "/blocks",
       StatusCode::OK,
-      ".*<ol start=96 reversed class=block-list>\n(  <li><a href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
+      ".*<ol start=96 reversed class=block-list>\n(  <li><a class=collapse href=/block/[[:xdigit:]]{64}>[[:xdigit:]]{64}</a></li>\n){95}</ol>.*"
     );
   }
 
@@ -4174,12 +4307,12 @@ mod tests {
 </dl>
 <h2>1 Input</h2>
 <ul>
-  <li><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
+  <li><a class=collapse href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
 </ul>
 <h2>1 Output</h2>
 <ul class=monospace>
   <li>
-    <a href=/output/{txid}:0 class=monospace>
+    <a href=/output/{txid}:0 class=collapse>
       {txid}:0
     </a>
     <dl>
@@ -5511,7 +5644,7 @@ next
       format!(
         ".*<title>Inscription 1</title>.*
 .*<dt>id</dt>
-.*<dd class=monospace>{child0}</dd>.*"
+.*<dd class=collapse>{child0}</dd>.*"
       ),
     );
 
@@ -5526,7 +5659,7 @@ next
       format!(
         ".*<title>Inscription -1</title>.*
 .*<dt>id</dt>
-.*<dd class=monospace>{child1}</dd>.*"
+.*<dd class=collapse>{child1}</dd>.*"
       ),
     );
   }
@@ -5687,7 +5820,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{inscription_id}</dd>.*"
+  <dd class=collapse>{inscription_id}</dd>.*"
       ),
     );
     server.assert_response_regex(
@@ -5697,7 +5830,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{inscription_id}</dd>.*"
+  <dd class=collapse>{inscription_id}</dd>.*"
       ),
     );
 
@@ -5708,7 +5841,7 @@ next
         ".*<h1>Inscription -1</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{cursed_inscription_id}</dd>.*"
+  <dd class=collapse>{cursed_inscription_id}</dd>.*"
       ),
     )
   }
@@ -5739,7 +5872,7 @@ next
         ".*<h1>Inscription -1</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>
     <span title=cursed>👹</span>
@@ -5778,7 +5911,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   .*
   <dt>value</dt>
   .*
@@ -5814,7 +5947,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>.*<span title=coin>🪙</span>.*</dd>
   .*
@@ -5850,7 +5983,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>.*<span title=uncommon>🌱</span>.*</dd>
   .*
@@ -5886,7 +6019,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>.*<span title=nineball>9️⃣</span>.*</dd>
   .*
@@ -5926,7 +6059,7 @@ next
         ".*<h1>Inscription -1</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>
     <span title=reinscription>♻️</span>
@@ -5990,7 +6123,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   .*
   <dt>value</dt>
   .*
@@ -6051,7 +6184,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   .*
   <dt>value</dt>
   .*
@@ -6101,7 +6234,7 @@ next
         ".*<h1>Inscription -1</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>
     <span title=cursed>👹</span>
@@ -6137,7 +6270,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   .*
   <dt>value</dt>
   <dd>5000000000</dd>
@@ -6163,7 +6296,7 @@ next
         ".*<h1>Inscription 0</h1>.*
 <dl>
   <dt>id</dt>
-  <dd class=monospace>{id}</dd>
+  <dd class=collapse>{id}</dd>
   <dt>charms</dt>
   <dd>
     <span title=lost>🤔</span>
@@ -6672,7 +6805,7 @@ next
         ".*<h1>Inscription 1</h1>.*
         <dl>
           <dt>id</dt>
-          <dd class=monospace>{id}</dd>
+          <dd class=collapse>{id}</dd>
           .*
           <dt>delegate</dt>
           <dd><a href=/inscription/{delegate}>{delegate}</a></dd>

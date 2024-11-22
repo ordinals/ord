@@ -476,12 +476,20 @@ impl Api for Server {
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
-    _utxos: Option<Vec<SignRawTransactionInput>>,
+    utxos: Option<Vec<SignRawTransactionInput>>,
     sighash_type: Option<()>,
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
     let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
+    if let Some(utxos) = &utxos {
+      // sign for zero-value UTXOs produced by `ord wallet sign`
+      if utxos[0].amount == Some(Amount::ZERO) {
+        transaction.input[0].witness = self.state().wallet.sign_bip322(&utxos[0], &transaction);
+      }
+    }
+
     for input in &mut transaction.input {
       if input.witness.is_empty() {
         input.witness = Witness::from_slice(&[&[0; 64]]);
@@ -803,10 +811,11 @@ impl Api for Server {
     &self,
     req: Vec<ImportDescriptors>,
   ) -> Result<Vec<ImportMultiResult>, jsonrpc_core::Error> {
-    self
-      .state()
-      .descriptors
-      .extend(req.into_iter().map(|params| params.descriptor));
+    self.state().descriptors.extend(
+      req
+        .into_iter()
+        .map(|params| (params.descriptor, params.timestamp)),
+    );
 
     Ok(vec![ImportMultiResult {
       success: true,
@@ -901,9 +910,9 @@ impl Api for Server {
         .state()
         .descriptors
         .iter()
-        .map(|desc| Descriptor {
+        .map(|(desc, timestamp)| Descriptor {
           desc: desc.to_string(),
-          timestamp: Timestamp::Now,
+          timestamp: *timestamp,
           active: true,
           internal: None,
           range: None,
