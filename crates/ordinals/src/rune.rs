@@ -39,6 +39,8 @@ impl Rune {
     166461473448801533683942072758341510102,
   ];
 
+  const UNLOCK_INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
+
   pub fn n(self) -> u128 {
     self.0
   }
@@ -54,12 +56,10 @@ impl Rune {
       }
   }
 
-  pub fn minimum_at_height(chain: Network, height: Height) -> Self {
+  pub fn minimum_at_height(network: Network, height: Height) -> Self {
     let offset = height.0.saturating_add(1);
 
-    const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
-
-    let start = Self::first_rune_height(chain);
+    let start = Self::first_rune_height(network);
 
     let end = start + SUBSIDY_HALVING_INTERVAL;
 
@@ -73,15 +73,69 @@ impl Rune {
 
     let progress = offset.saturating_sub(start);
 
-    let length = 12u32.saturating_sub(progress / INTERVAL);
+    let length = 12u32.saturating_sub(progress / Self::UNLOCK_INTERVAL);
 
     let end = Self::STEPS[usize::try_from(length - 1).unwrap()];
 
     let start = Self::STEPS[usize::try_from(length).unwrap()];
 
-    let remainder = u128::from(progress % INTERVAL);
+    let remainder = u128::from(progress % Self::UNLOCK_INTERVAL);
 
-    Rune(start - ((start - end) * remainder / u128::from(INTERVAL)))
+    Rune(start - ((start - end) * remainder / u128::from(Self::UNLOCK_INTERVAL)))
+  }
+
+  pub fn unlock_height(self, network: Network) -> Option<Height> {
+    if self.is_reserved() {
+      return None;
+    }
+
+    if self.0 >= Self::STEPS[12] {
+      return Some(Height(0));
+    }
+
+    let mut height = Self::first_rune_height(network);
+
+    for i in (0..12).rev() {
+      let end = Self::STEPS[i];
+
+      if self.0 > end {
+        let start = Self::STEPS[i + 1];
+        let interval = start - end;
+        let progress = start - self.0;
+
+        let height = height
+          + u32::try_from(
+            progress
+              .checked_mul(u128::from(Self::UNLOCK_INTERVAL))
+              .unwrap()
+              / interval,
+          )
+          .unwrap();
+
+        // the height calculated is off by one whenever we are 0/4, 1/4, 2/4,
+        // or 3/4 through an interval.
+        let height = if progress == 0
+          || progress * 4 == interval
+          || progress * 2 == interval
+          || progress * 4 == interval * 3
+        {
+          height - 1
+        } else {
+          height
+        };
+
+        // since the above hack was discoverd through testing and not through
+        // actually understanding what's going on, throw in an assert that our result is correct
+        assert!(Self::minimum_at_height(network, Height(height)) <= self);
+        assert!(Self::minimum_at_height(network, Height(height - 1)) > self);
+
+        return Some(Height(height));
+      }
+
+      height += Self::UNLOCK_INTERVAL;
+    }
+
+    Some(Height(1_049_999))
   }
 
   pub fn is_reserved(self) -> bool {
@@ -248,7 +302,6 @@ mod tests {
 
     const START: u32 = SUBSIDY_HALVING_INTERVAL * 4;
     const END: u32 = START + SUBSIDY_HALVING_INTERVAL;
-    const INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
 
     case(0, "AAAAAAAAAAAAA");
     case(START / 2, "AAAAAAAAAAAAA");
@@ -259,64 +312,70 @@ mod tests {
     case(END + 1, "A");
     case(u32::MAX, "A");
 
-    case(START + INTERVAL * 00 - 1, "AAAAAAAAAAAAA");
-    case(START + INTERVAL * 00 + 0, "ZZYZXBRKWXVA");
-    case(START + INTERVAL * 00 + 1, "ZZXZUDIVTVQA");
+    case(START + Rune::UNLOCK_INTERVAL * 00 - 1, "AAAAAAAAAAAAA");
+    case(START + Rune::UNLOCK_INTERVAL * 00 + 0, "ZZYZXBRKWXVA");
+    case(START + Rune::UNLOCK_INTERVAL * 00 + 1, "ZZXZUDIVTVQA");
 
-    case(START + INTERVAL * 01 - 1, "AAAAAAAAAAAA");
-    case(START + INTERVAL * 01 + 0, "ZZYZXBRKWXV");
-    case(START + INTERVAL * 01 + 1, "ZZXZUDIVTVQ");
+    case(START + Rune::UNLOCK_INTERVAL * 01 - 1, "AAAAAAAAAAAA");
+    case(START + Rune::UNLOCK_INTERVAL * 01 + 0, "ZZYZXBRKWXV");
+    case(START + Rune::UNLOCK_INTERVAL * 01 + 1, "ZZXZUDIVTVQ");
 
-    case(START + INTERVAL * 02 - 1, "AAAAAAAAAAA");
-    case(START + INTERVAL * 02 + 0, "ZZYZXBRKWY");
-    case(START + INTERVAL * 02 + 1, "ZZXZUDIVTW");
+    case(START + Rune::UNLOCK_INTERVAL * 02 - 1, "AAAAAAAAAAA");
+    case(START + Rune::UNLOCK_INTERVAL * 02 + 0, "ZZYZXBRKWY");
+    case(START + Rune::UNLOCK_INTERVAL * 02 + 1, "ZZXZUDIVTW");
 
-    case(START + INTERVAL * 03 - 1, "AAAAAAAAAA");
-    case(START + INTERVAL * 03 + 0, "ZZYZXBRKX");
-    case(START + INTERVAL * 03 + 1, "ZZXZUDIVU");
+    case(START + Rune::UNLOCK_INTERVAL * 03 - 1, "AAAAAAAAAA");
+    case(START + Rune::UNLOCK_INTERVAL * 03 + 0, "ZZYZXBRKX");
+    case(START + Rune::UNLOCK_INTERVAL * 03 + 1, "ZZXZUDIVU");
 
-    case(START + INTERVAL * 04 - 1, "AAAAAAAAA");
-    case(START + INTERVAL * 04 + 0, "ZZYZXBRL");
-    case(START + INTERVAL * 04 + 1, "ZZXZUDIW");
+    case(START + Rune::UNLOCK_INTERVAL * 04 - 1, "AAAAAAAAA");
+    case(START + Rune::UNLOCK_INTERVAL * 04 + 0, "ZZYZXBRL");
+    case(START + Rune::UNLOCK_INTERVAL * 04 + 1, "ZZXZUDIW");
 
-    case(START + INTERVAL * 05 - 1, "AAAAAAAA");
-    case(START + INTERVAL * 05 + 0, "ZZYZXBS");
-    case(START + INTERVAL * 05 + 1, "ZZXZUDJ");
+    case(START + Rune::UNLOCK_INTERVAL * 05 - 1, "AAAAAAAA");
+    case(START + Rune::UNLOCK_INTERVAL * 05 + 0, "ZZYZXBS");
+    case(START + Rune::UNLOCK_INTERVAL * 05 + 1, "ZZXZUDJ");
 
-    case(START + INTERVAL * 06 - 1, "AAAAAAA");
-    case(START + INTERVAL * 06 + 0, "ZZYZXC");
-    case(START + INTERVAL * 06 + 1, "ZZXZUE");
+    case(START + Rune::UNLOCK_INTERVAL * 06 - 1, "AAAAAAA");
+    case(START + Rune::UNLOCK_INTERVAL * 06 + 0, "ZZYZXC");
+    case(START + Rune::UNLOCK_INTERVAL * 06 + 1, "ZZXZUE");
 
-    case(START + INTERVAL * 07 - 1, "AAAAAA");
-    case(START + INTERVAL * 07 + 0, "ZZYZY");
-    case(START + INTERVAL * 07 + 1, "ZZXZV");
+    case(START + Rune::UNLOCK_INTERVAL * 07 - 1, "AAAAAA");
+    case(START + Rune::UNLOCK_INTERVAL * 07 + 0, "ZZYZY");
+    case(START + Rune::UNLOCK_INTERVAL * 07 + 1, "ZZXZV");
 
-    case(START + INTERVAL * 08 - 1, "AAAAA");
-    case(START + INTERVAL * 08 + 0, "ZZZA");
-    case(START + INTERVAL * 08 + 1, "ZZYA");
+    case(START + Rune::UNLOCK_INTERVAL * 08 - 1, "AAAAA");
+    case(START + Rune::UNLOCK_INTERVAL * 08 + 0, "ZZZA");
+    case(START + Rune::UNLOCK_INTERVAL * 08 + 1, "ZZYA");
 
-    case(START + INTERVAL * 09 - 1, "AAAA");
-    case(START + INTERVAL * 09 + 0, "ZZZ");
-    case(START + INTERVAL * 09 + 1, "ZZY");
+    case(START + Rune::UNLOCK_INTERVAL * 09 - 1, "AAAA");
+    case(START + Rune::UNLOCK_INTERVAL * 09 + 0, "ZZZ");
+    case(START + Rune::UNLOCK_INTERVAL * 09 + 1, "ZZY");
 
-    case(START + INTERVAL * 10 - 2, "AAC");
-    case(START + INTERVAL * 10 - 1, "AAA");
-    case(START + INTERVAL * 10 + 0, "AAA");
-    case(START + INTERVAL * 10 + 1, "AAA");
+    case(START + Rune::UNLOCK_INTERVAL * 10 - 2, "AAC");
+    case(START + Rune::UNLOCK_INTERVAL * 10 - 1, "AAA");
+    case(START + Rune::UNLOCK_INTERVAL * 10 + 0, "AAA");
+    case(START + Rune::UNLOCK_INTERVAL * 10 + 1, "AAA");
 
-    case(START + INTERVAL * 10 + INTERVAL / 2, "NA");
+    case(
+      START + Rune::UNLOCK_INTERVAL * 10 + Rune::UNLOCK_INTERVAL / 2,
+      "NA",
+    );
 
-    case(START + INTERVAL * 11 - 2, "AB");
-    case(START + INTERVAL * 11 - 1, "AA");
-    case(START + INTERVAL * 11 + 0, "AA");
-    case(START + INTERVAL * 11 + 1, "AA");
+    case(START + Rune::UNLOCK_INTERVAL * 11 - 2, "AB");
+    case(START + Rune::UNLOCK_INTERVAL * 11 - 1, "AA");
+    case(START + Rune::UNLOCK_INTERVAL * 11 + 0, "AA");
+    case(START + Rune::UNLOCK_INTERVAL * 11 + 1, "AA");
 
-    case(START + INTERVAL * 11 + INTERVAL / 2, "N");
+    case(
+      START + Rune::UNLOCK_INTERVAL * 11 + Rune::UNLOCK_INTERVAL / 2,
+      "N",
+    );
 
-    case(START + INTERVAL * 12 - 2, "B");
-    case(START + INTERVAL * 12 - 1, "A");
-    case(START + INTERVAL * 12 + 0, "A");
-    case(START + INTERVAL * 12 + 1, "A");
+    case(START + Rune::UNLOCK_INTERVAL * 12 - 2, "B");
+    case(START + Rune::UNLOCK_INTERVAL * 12 - 1, "A");
+    case(START + Rune::UNLOCK_INTERVAL * 12 + 0, "A");
+    case(START + Rune::UNLOCK_INTERVAL * 12 + 1, "A");
   }
 
   #[test]
@@ -419,5 +478,93 @@ mod tests {
     case(65535, &[255, 255]);
     case(65536, &[0, 0, 1]);
     case(u128::MAX, &[255; 16]);
+  }
+
+  #[test]
+  fn steps_are_sorted_and_unique() {
+    let mut steps = Rune::STEPS.to_vec();
+    steps.sort();
+    assert_eq!(steps, Rune::STEPS);
+    steps.dedup();
+    assert_eq!(steps, Rune::STEPS);
+  }
+
+  #[test]
+  fn reserved_rune_unlock_height() {
+    assert_eq!(Rune(Rune::RESERVED).unlock_height(Network::Bitcoin), None);
+    assert_eq!(
+      Rune(Rune::RESERVED + 1).unlock_height(Network::Bitcoin),
+      None
+    );
+    assert_eq!(
+      Rune(Rune::RESERVED - 1).unlock_height(Network::Bitcoin),
+      Some(Height(0))
+    );
+  }
+
+  #[test]
+  fn unlock_height() {
+    #[track_caller]
+    fn case(rune: &str, unlock_height: u32) {
+      let rune = rune.parse::<Rune>().unwrap();
+      assert_eq!(
+        rune.unlock_height(Network::Bitcoin),
+        Some(Height(unlock_height)),
+        "invalid unlock height for rune `{rune}`",
+      );
+
+      if unlock_height > 0 {
+        assert!(rune >= Rune::minimum_at_height(Network::Bitcoin, Height(unlock_height)));
+        assert!(rune < Rune::minimum_at_height(Network::Bitcoin, Height(unlock_height - 1)));
+      }
+    }
+
+    const START: u32 = SUBSIDY_HALVING_INTERVAL * 4;
+
+    case("AAAAAAAAAAAAB", 0);
+
+    case("AAAAAAAAAAAAA", 0);
+
+    case("ZZZZZZZZZZZZ", START);
+
+    case("ZZZZZZZZZZZ", START + Rune::UNLOCK_INTERVAL);
+
+    case("ZZZZZZZZZZ", START + Rune::UNLOCK_INTERVAL * 2);
+
+    case("ZZZZZZZZZ", START + Rune::UNLOCK_INTERVAL * 3);
+
+    case("ZZZ", 997_500);
+
+    case("AAA", 1_014_999);
+
+    case("NNNN", 988_400);
+
+    case("Z", 1_033_173);
+    case("Y", 1_033_846);
+    case("P", 1_039_903);
+    case("O", 1_040_576);
+    case("N", 1_041_249);
+    case("M", 1_041_923);
+    case("L", 1_042_596);
+    case("K", 1_043_269);
+    case("J", 1_043_942);
+    case("I", 1_044_615);
+    case("H", 1_045_288);
+    case("G", 1_045_961);
+    case("F", 1_046_634);
+    case("E", 1_047_307);
+    case("D", 1_047_980);
+    case("C", 1_048_653);
+    case("B", 1_049_326);
+    case("A", 1_049_999);
+
+    for i in 0..4 {
+      for n in Rune::STEPS[i]..Rune::STEPS[i + 1] {
+        let rune = Rune(n);
+        let unlock_height = rune.unlock_height(Network::Bitcoin).unwrap();
+        assert!(rune >= Rune::minimum_at_height(Network::Bitcoin, unlock_height));
+        assert!(rune < Rune::minimum_at_height(Network::Bitcoin, Height(unlock_height.0 - 1)));
+      }
+    }
   }
 }
