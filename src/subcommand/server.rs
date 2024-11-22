@@ -3233,10 +3233,10 @@ mod tests {
     server.assert_response_regex(
       "/rune/A",
       StatusCode::NOT_FOUND,
-      ".*<title>Rune AAAAAAAAAAAAA</title>.*
+      ".*<title>Rune A</title>.*
 <dl>
   <dt>unlock height</dt>
-  <dd>0</dd>
+  <dd>209999</dd>
   <dt>reserved</dt>
   <dd>false</dd>
 </dl>.*
