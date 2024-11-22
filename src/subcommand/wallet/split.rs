@@ -341,10 +341,22 @@ impl Split {
       assert!(output.value >= output.script_pubkey.minimal_non_dust());
     }
 
-    pretty_assertions::assert_eq!(
-      Runestone::decipher(&tx),
-      Some(Artifact::Runestone(runestone)),
-    );
+    let Some(Artifact::Runestone(deciphered)) = Runestone::decipher(&tx) else {
+      panic!("failed to decipher runestone from transaction");
+    };
+
+    assert!(deciphered.etching.is_none());
+    assert!(deciphered.mint.is_none());
+    assert!(deciphered.pointer.is_none());
+
+    let mut edicts = runestone.edicts;
+    edicts.sort_by_key(|edict| edict.id);
+    assert_eq!(edicts, deciphered.edicts);
+
+    // pretty_assertions::assert_eq!(
+    // Runestone::decipher(&tx),
+    // Some(Artifact::Runestone(runestone)),
+    // );
 
     Ok(tx)
   }
@@ -1445,12 +1457,20 @@ mod tests {
       Transaction {
         version: Version(2),
         lock_time: LockTime::ZERO,
-        input: vec![TxIn {
-          previous_output: outpoint(0),
-          script_sig: ScriptBuf::new(),
-          sequence: Sequence::MAX,
-          witness: Witness::new(),
-        }],
+        input: vec![
+          TxIn {
+            previous_output: outpoint(0),
+            script_sig: ScriptBuf::new(),
+            sequence: Sequence::MAX,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: outpoint(1),
+            script_sig: ScriptBuf::new(),
+            sequence: Sequence::MAX,
+            witness: Witness::new(),
+          }
+        ],
         output: (0..11)
           .map(|i| if i == 0 {
             TxOut {
