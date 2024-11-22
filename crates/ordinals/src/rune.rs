@@ -8,6 +8,10 @@ pub struct Rune(pub u128);
 impl Rune {
   const RESERVED: u128 = 6402364363415443603228541259936211926;
 
+  const UNLOCKED: usize = 12;
+
+  const UNLOCK_INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
+
   const STEPS: &'static [u128] = &[
     0,
     26,
@@ -38,10 +42,6 @@ impl Rune {
     6402364363415443603228541259936211926,
     166461473448801533683942072758341510102,
   ];
-
-  const UNLOCK_INTERVAL: u32 = SUBSIDY_HALVING_INTERVAL / 12;
-
-  const UNLOCKED: usize = 12;
 
   pub fn n(self) -> u128 {
     self.0
