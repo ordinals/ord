@@ -255,7 +255,7 @@ impl StreamEvent {
     match media {
       Media::Text => true,
       Media::Code(_) => true,
-      Media::Iframe => true,
+      Media::Iframe => false,
       Media::Markdown => true,
       Media::Image(_) => false,
       Media::Model => false,
