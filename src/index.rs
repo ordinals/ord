@@ -2128,6 +2128,7 @@ impl Index {
         satpoint,
         timestamp: timestamp(entry.timestamp.into()).timestamp(),
         value: output.as_ref().map(|o| o.value.to_sat()),
+        metaprotocol: inscription.metaprotocol().map(|s| s.to_string()),
       },
       output,
       inscription,
