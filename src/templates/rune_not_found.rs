@@ -2,7 +2,6 @@ use super::*;
 
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct RuneNotFoundHtml {
-  pub etchable: bool,
   pub reserved: bool,
   pub rune: Rune,
   pub unlock_height: Option<u32>,
@@ -22,7 +21,6 @@ mod tests {
   fn display() {
     assert_regex_match!(
       RuneNotFoundHtml {
-        etchable: true,
         reserved: false,
         rune: Rune(u128::MAX),
         unlock_height: Some(111),
@@ -31,8 +29,8 @@ mod tests {
 <dl>
   <dt>unlock height</dt>
   <dd>111</dd>
-  <dt>etchable</dt>
-  <dd>true</dd>
+  <dt>reserved</dt>
+  <dd>false</dd>
 </dl>
 "
     );

@@ -832,28 +832,21 @@ impl Server {
         })
       } else {
         let unlock_height = rune.unlock_height(server_config.chain.network());
-        let etchable;
-        let reserved;
-
-        if let Some(height) = unlock_height {
-          etchable = Height(index.block_count()?) >= height;
-          reserved = false;
-        } else {
-          etchable = false;
-          reserved = true;
-        }
+        let reserved = unlock_height.is_none();
 
         Ok(if accept_json {
           StatusCode::NOT_FOUND.into_response()
         } else {
-          RuneNotFoundHtml {
-            etchable,
-            reserved,
-            rune,
-            unlock_height: unlock_height.map(|h| h.n()),
-          }
-          .page(server_config)
-          .into_response()
+          (
+            StatusCode::NOT_FOUND,
+            RuneNotFoundHtml {
+              reserved,
+              rune,
+              unlock_height: unlock_height.map(|height| height.n()),
+            }
+            .page(server_config),
+          )
+            .into_response()
         })
       }
     })
