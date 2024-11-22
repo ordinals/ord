@@ -284,6 +284,8 @@ impl Split {
       ..default()
     };
 
+    dbg!(&runestone);
+
     let mut output = Vec::new();
 
     let runestone_script_pubkey = runestone.encipher();
@@ -342,7 +344,7 @@ impl Split {
     }
 
     pretty_assertions::assert_eq!(
-      Runestone::decipher(&tx),
+      dbg!(Runestone::decipher(&tx)),
       Some(Artifact::Runestone(runestone)),
     );
 
@@ -1347,8 +1349,8 @@ mod tests {
   #[test]
   fn oversize_op_return_is_an_error() {
     let balances = [
-      (outpoint(0), [(Rune(0), 10_000_000_000)].into()),
-      (outpoint(1), [(Rune(1), 10_000_000_000)].into()),
+      (outpoint(0), [(Rune(0), 5_000_000_000)].into()),
+      (outpoint(1), [(Rune(1), 5_000_000_000)].into()),
     ]
     .into();
 
@@ -1356,7 +1358,7 @@ mod tests {
       outputs: (0..10)
         .map(|i| splitfile::Output {
           address: address(i).clone(),
-          runes: [(Rune((i % 2 == 0) as u128), 1_000_000_000)].into(),
+          runes: [(Rune(i as u128 % 2), 1_000_000_000)].into(),
           value: None,
         })
         .collect(),
@@ -1398,8 +1400,8 @@ mod tests {
   #[test]
   fn oversize_op_return_is_allowed_with_flag() {
     let balances = [
-      (outpoint(0), [(Rune(0), 10_000_000_000)].into()),
-      (outpoint(1), [(Rune(1), 10_000_000_000)].into()),
+      (outpoint(0), [(Rune(0), 5_000_000_000)].into()),
+      (outpoint(1), [(Rune(1), 5_000_000_000)].into()),
     ]
     .into();
 
@@ -1407,7 +1409,7 @@ mod tests {
       outputs: (0..10)
         .map(|i| splitfile::Output {
           address: address(i).clone(),
-          runes: [(Rune((i % 2 == 0) as u128), 1_000_000_000)].into(),
+          runes: [(Rune(i as u128 % 2), 1_000_000_000)].into(),
           value: None,
         })
         .collect(),
