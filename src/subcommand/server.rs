@@ -2974,6 +2974,8 @@ mod tests {
 
     let rune = Rune(RUNE);
 
+    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
+
     server.etch(
       Runestone {
         edicts: vec![Edict {
