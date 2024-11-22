@@ -93,49 +93,43 @@ impl Rune {
       return Some(Height(0));
     }
 
-    let mut height = Self::first_rune_height(network);
+    let height = Self::first_rune_height(network);
 
-    for i in (0..12).rev() {
-      let end = Self::STEPS[i];
-
-      if self.0 > end {
-        let start = Self::STEPS[i + 1];
-        let interval = start - end;
-        let progress = start - self.0;
-
-        let height = height
-          + u32::try_from(
-            progress
-              .checked_mul(u128::from(Self::UNLOCK_INTERVAL))
-              .unwrap()
-              / interval,
-          )
-          .unwrap();
-
-        // the height calculated is off by one whenever we are 0/4, 1/4, 2/4,
-        // or 3/4 through an interval.
-        let height = if progress == 0
-          || progress * 4 == interval
-          || progress * 2 == interval
-          || progress * 4 == interval * 3
-        {
-          height - 1
-        } else {
-          height
-        };
-
-        // since the above hack was discoverd through testing and not through
-        // actually understanding what's going on, throw in an assert that our result is correct
-        assert!(Self::minimum_at_height(network, Height(height)) <= self);
-        assert!(Self::minimum_at_height(network, Height(height - 1)) > self);
-
-        return Some(Height(height));
+    // Find the first step where self.0 < STEPS[i]:
+    let mut step_index = 0;
+    for i in 0..Self::STEPS.len() {
+      if self.0 < Self::STEPS[i] {
+        step_index = i;
+        break;
       }
-
-      height += Self::UNLOCK_INTERVAL;
     }
 
-    Some(Height(1_049_999))
+    let steps_since_rune_start = 12 - step_index;
+    let blocks_since_rune_start = steps_since_rune_start * Self::UNLOCK_INTERVAL as usize;
+
+    let min_block_height = height + blocks_since_rune_start as u32;
+
+    // Calculate the remainder using the correct step boundaries
+    let number_at_step_start = Self::STEPS[step_index];
+    let number_at_step_end = if step_index > 0 {
+      Self::STEPS[step_index - 1]
+    } else {
+      0
+    };
+
+    let numbers_between_steps = number_at_step_start - number_at_step_end;
+    let numbers_since_step_start = number_at_step_start - self.0;
+
+    // Calculate progress as a ratio first, then multiply by interval
+    let ratio = (numbers_since_step_start as f64) / (numbers_between_steps as f64);
+    let progress_as_blocks = ((ratio * Self::UNLOCK_INTERVAL as f64) - 1.0).ceil() as u32;
+
+    let height = min_block_height + progress_as_blocks;
+
+    debug_assert!(Self::minimum_at_height(network, Height(height)) <= self);
+    debug_assert!(Self::minimum_at_height(network, Height(height - 1)) > self);
+
+    Some(Height(height))
   }
 
   pub fn is_reserved(self) -> bool {
@@ -532,6 +526,9 @@ mod tests {
     case("ZZZZZZZZZZ", START + Rune::UNLOCK_INTERVAL * 2);
 
     case("ZZZZZZZZZ", START + Rune::UNLOCK_INTERVAL * 3);
+
+    case("A", 1_049_999);
+    case("B", 1_049_326);
 
     case("ZZZ", 997_500);
 
