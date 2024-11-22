@@ -4,7 +4,7 @@ URIs
 *This document is a draft. It should be considered provisional and subject to
 change at any time. The `ord:` schema has not been registered with the IANA.*
 
-Inscriptions content can be addressed with Inscription URIs using the `ord:`
+Inscriptions content can be addressed with inscription URIs using the `ord:`
 schema.
 
 Inscription URIs consist of `ord:` followed by a target inscription ID. `ord:`
@@ -17,20 +17,19 @@ For example, the inscription URI of the genesis inscription is:
 ord:6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 ```
 
-Inscription URIs match the following regular verbose-mode expression:
+Inscription URIs match the following verbose regular expression:
 
 ```
-(?i)
-ord:
-[0-9a-f]{64}
-i
-(0|[1-9][0-9]*)
+(?i)            # case-insensitive
+ord:            # schema
+[0-9a-f]{64}    # transaction ID
+i               # separator
+(0|[1-9][0-9]*) # inscription index
 ```
 
-Inscription URIs are case-insensitive so they can use the more compact
+Inscription URIs are case-insensitive and thus can use the more compact
 alphanumeric mode when encoded as QR codes. Lowercase is, however, the
-preferred presentation style, and inscription URIs should always be converted
-to lowercase for display.
+preferred presentation style.
 
 The referent of an inscription URI is an HTTP resource with the content,
 content type, content encoding, and content length corresponding to the
