@@ -27,7 +27,7 @@ i               # separator
 (0|[1-9][0-9]*) # inscription index
 ```
 
-Inscription URIs are case-insensitive and thus can use the more compact
+Inscription URIs are case-insensitive and can thus use the more compact
 alphanumeric mode when encoded as QR codes. Lowercase is, however, the
 preferred presentation style.
 
