@@ -73,6 +73,8 @@ tokio-util = {version = "0.7.3", features = ["compat"] }
 tower-http = { version = "0.4.0", features = ["auth", "compression-br", "compression-gzip", "cors", "set-header"] }
 urlencoding = "2.1.3"
 
+pretty_assertions = "1.2.1"
+
 [dev-dependencies]
 criterion = "0.5.1"
 executable-path = "1.0.0"

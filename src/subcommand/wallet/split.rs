@@ -234,8 +234,8 @@ impl Split {
     }
 
     let mut need_rune_change_output = false;
-    for (rune, input) in input_rune_balances {
-      if input > input_runes_required.get(&rune).copied().unwrap_or_default() {
+    for (rune, input) in &input_rune_balances {
+      if input > &input_runes_required.get(&rune).copied().unwrap_or_default() {
         need_rune_change_output = true;
       }
     }
@@ -244,32 +244,38 @@ impl Split {
 
     let base = if need_rune_change_output { 2 } else { 1 };
 
+    for (i, output) in splits.outputs.iter().enumerate() {
+      for (rune, amount) in &output.runes {
+        edicts.push(Edict {
+          id: splits.rune_info.get(rune).unwrap().id,
+          amount: *amount,
+          output: (i + base).try_into().unwrap(),
+        });
+      }
+    }
+
     if let Some(rune) = splits.even() {
       let have = input_rune_balances.get(&rune).copied().unwrap_or_default();
       let need = input_runes_required.get(&rune).copied().unwrap_or_default();
 
       let change = have - need;
 
-      edicts.push(Edict {
+      let mut even_edicts = Vec::new();
+
+      even_edicts.push(Edict {
         id: splits.rune_info.get(&rune).unwrap().id,
         amount: change,
         output: base.try_into().unwrap(),
       });
 
-      edicts.push(Edict {
+      even_edicts.push(Edict {
         id: splits.rune_info.get(&rune).unwrap().id,
         amount: change,
         output: base.try_into().unwrap(),
       });
-    } else {
-      for (i, output) in splits.outputs.iter().enumerate() {
-        for (rune, amount) in &output.runes {
-          edicts.push(Edict {
-            id: splits.rune_info.get(rune).unwrap().id,
-            amount: *amount,
-            output: (i + base).try_into().unwrap(),
-          });
-        }
+
+      if even_edicts.len() < edicts.len() {
+        edicts = even_edicts;
       }
     }
 
@@ -335,7 +341,7 @@ impl Split {
       assert!(output.value >= output.script_pubkey.minimal_non_dust());
     }
 
-    assert_eq!(
+    pretty_assertions::assert_eq!(
       Runestone::decipher(&tx),
       Some(Artifact::Runestone(runestone)),
     );
@@ -1340,32 +1346,50 @@ mod tests {
 
   #[test]
   fn oversize_op_return_is_an_error() {
-    let balances = [(outpoint(0), [(Rune(0), 10_000_000_000)].into())].into();
+    let balances = [
+      (outpoint(0), [(Rune(0), 10_000_000_000)].into()),
+      (outpoint(1), [(Rune(1), 10_000_000_000)].into()),
+    ]
+    .into();
 
     let splits = Splitfile {
       outputs: (0..10)
         .map(|i| splitfile::Output {
           address: address(i).clone(),
-          runes: [(Rune(0), 1_000_000_000)].into(),
+          runes: [(Rune((i % 2 == 0) as u128), 1_000_000_000)].into(),
           value: None,
         })
         .collect(),
-      rune_info: [(
-        Rune(0),
-        RuneInfo {
-          id: rune_id(0),
-          divisibility: 0,
-          symbol: None,
-          spaced_rune: SpacedRune {
-            rune: Rune(0),
-            spacers: 0,
+      rune_info: [
+        (
+          Rune(0),
+          RuneInfo {
+            id: rune_id(0),
+            divisibility: 0,
+            symbol: None,
+            spaced_rune: SpacedRune {
+              rune: Rune(0),
+              spacers: 0,
+            },
           },
-        },
-      )]
+        ),
+        (
+          Rune(1),
+          RuneInfo {
+            id: rune_id(1),
+            divisibility: 0,
+            symbol: None,
+            spaced_rune: SpacedRune {
+              rune: Rune(1),
+              spacers: 0,
+            },
+          },
+        ),
+      ]
       .into(),
     };
 
-    assert_eq!(
+    pretty_assert_eq!(
       Split::build_transaction(false, balances, &change(0), None, &splits).unwrap_err(),
       Error::RunestoneSize { size: 85 },
     );
@@ -1373,28 +1397,46 @@ mod tests {
 
   #[test]
   fn oversize_op_return_is_allowed_with_flag() {
-    let balances = [(outpoint(0), [(Rune(0), 10_000_000_000)].into())].into();
+    let balances = [
+      (outpoint(0), [(Rune(0), 10_000_000_000)].into()),
+      (outpoint(1), [(Rune(1), 10_000_000_000)].into()),
+    ]
+    .into();
 
     let splits = Splitfile {
       outputs: (0..10)
         .map(|i| splitfile::Output {
           address: address(i).clone(),
-          runes: [(Rune(0), 1_000_000_000)].into(),
+          runes: [(Rune((i % 2 == 0) as u128), 1_000_000_000)].into(),
           value: None,
         })
         .collect(),
-      rune_info: [(
-        Rune(0),
-        RuneInfo {
-          id: rune_id(0),
-          divisibility: 0,
-          symbol: None,
-          spaced_rune: SpacedRune {
-            rune: Rune(0),
-            spacers: 0,
+      rune_info: [
+        (
+          Rune(0),
+          RuneInfo {
+            id: rune_id(0),
+            divisibility: 0,
+            symbol: None,
+            spaced_rune: SpacedRune {
+              rune: Rune(0),
+              spacers: 0,
+            },
           },
-        },
-      )]
+        ),
+        (
+          Rune(1),
+          RuneInfo {
+            id: rune_id(1),
+            divisibility: 0,
+            symbol: None,
+            spaced_rune: SpacedRune {
+              rune: Rune(1),
+              spacers: 0,
+            },
+          },
+        ),
+      ]
       .into(),
     };
 
@@ -1416,7 +1458,7 @@ mod tests {
               script_pubkey: Runestone {
                 edicts: (0..10)
                   .map(|i| Edict {
-                    id: rune_id(0),
+                    id: rune_id((i % 2 != 0).into()),
                     amount: 1_000_000_000,
                     output: i + 1,
                   })

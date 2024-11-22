@@ -93,7 +93,7 @@ impl Splitfile {
       return None;
     }
 
-    let Some((rune, _)) = entry.runes.first_entry().cloned() else {
+    let Some((rune, _)) = entry.runes.first_key_value().clone() else {
       return None;
     };
 
@@ -107,7 +107,7 @@ impl Splitfile {
       }
     }
 
-    return Some(rune);
+    return Some(rune.clone());
   }
 }
 
