@@ -545,14 +545,13 @@ mod tests {
     case("B", 1_049_326);
     case("A", 1_049_999);
 
-    // Break glass in case of emergency:
-    // for i in 0..5 {
-    //   for n in Rune::STEPS[i]..Rune::STEPS[i + 1] {
-    //     let rune = Rune(n);
-    //     let unlock_height = rune.unlock_height(Network::Bitcoin).unwrap();
-    //     assert!(rune >= Rune::minimum_at_height(Network::Bitcoin, unlock_height));
-    //     assert!(rune < Rune::minimum_at_height(Network::Bitcoin, Height(unlock_height.0 - 1)));
-    //   }
-    // }
+    for i in 0..4 {
+      for n in Rune::STEPS[i]..Rune::STEPS[i + 1] {
+        let rune = Rune(n);
+        let unlock_height = rune.unlock_height(Network::Bitcoin).unwrap();
+        assert!(rune >= Rune::minimum_at_height(Network::Bitcoin, unlock_height));
+        assert!(rune < Rune::minimum_at_height(Network::Bitcoin, Height(unlock_height.0 - 1)));
+      }
+    }
   }
 }
