@@ -3231,7 +3231,7 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_regex(
-      format!("/rune/{}", Rune(RUNE)),
+      "/rune/A",
       StatusCode::NOT_FOUND,
       ".*<title>Rune AAAAAAAAAAAAA</title>.*
 <dl>
