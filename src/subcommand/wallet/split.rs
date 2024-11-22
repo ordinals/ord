@@ -279,6 +279,8 @@ impl Split {
       }
     }
 
+    edicts.sort_by_key(|edict| edict.id);
+
     let runestone = Runestone {
       edicts,
       ..default()
@@ -341,22 +343,10 @@ impl Split {
       assert!(output.value >= output.script_pubkey.minimal_non_dust());
     }
 
-    let Some(Artifact::Runestone(deciphered)) = Runestone::decipher(&tx) else {
-      panic!("failed to decipher runestone from transaction");
-    };
-
-    assert!(deciphered.etching.is_none());
-    assert!(deciphered.mint.is_none());
-    assert!(deciphered.pointer.is_none());
-
-    let mut edicts = runestone.edicts;
-    edicts.sort_by_key(|edict| edict.id);
-    assert_eq!(edicts, deciphered.edicts);
-
-    // pretty_assertions::assert_eq!(
-    // Runestone::decipher(&tx),
-    // Some(Artifact::Runestone(runestone)),
-    // );
+    assert_eq!(
+      Runestone::decipher(&tx),
+      Some(Artifact::Runestone(runestone)),
+    );
 
     Ok(tx)
   }
