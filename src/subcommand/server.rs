@@ -250,7 +250,7 @@ impl Server {
           get(Self::child_inscriptions_recursive),
         )
         .route(
-          "/r/children/:inscription_id/inscriptions/at/:index",
+          "/r/children/:inscription_id/at/:index",
           get(Self::child_inscription_at_index),
         )
         .route(
@@ -6497,7 +6497,7 @@ next
     };
 
     server.assert_response(
-      format!("/r/children/{parent_inscription_id}/inscriptions/at/-1"),
+      format!("/r/children/{parent_inscription_id}/at/-1"),
       StatusCode::NOT_FOUND,
       &format!("inscription {parent_inscription_id} not found"),
     );
@@ -6526,7 +6526,7 @@ next
     server.mine_blocks(1);
     let latest_child_inscription_id = InscriptionId { txid, index: 69 };
     let child_json = server.get_json::<api::ChildInscriptionRecursive>(format!(
-      "/r/children/{parent_inscription_id}/inscriptions/at/-1"
+      "/r/children/{parent_inscription_id}/at/-1"
     ));
     assert_eq!(child_json.id, latest_child_inscription_id);
   }
