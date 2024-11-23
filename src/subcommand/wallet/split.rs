@@ -22,6 +22,9 @@ enum Error {
     have: Pile,
     need: Pile,
   },
+  TransactionSize {
+    weight: u64,
+  },
   ZeroValue {
     output: usize,
     rune: SpacedRune,
@@ -50,6 +53,10 @@ impl Display for Error {
       Self::Shortfall { rune, have, need } => {
         write!(f, "wallet contains {have} of {rune} but need {need}")
       }
+      Self::TransactionSize { weight } => write!(
+        f,
+        "transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): {weight}"
+      ),
       Self::ZeroValue { output, rune } => {
         write!(f, "output {output} has zero value for rune {rune}")
       }
@@ -156,7 +163,7 @@ impl Split {
   }
 
   fn build_transaction(
-    no_runestone_limit: bool,
+    no_limit: bool,
     balances: BTreeMap<OutPoint, BTreeMap<Rune, u128>>,
     change_address: &Address,
     postage: Option<Amount>,
@@ -310,7 +317,7 @@ impl Split {
     let runestone_script_pubkey = runestone.encipher();
     let size = runestone_script_pubkey.len();
 
-    if !no_runestone_limit && size > MAX_STANDARD_OP_RETURN_SIZE {
+    if !no_limit && size > MAX_STANDARD_OP_RETURN_SIZE {
       return Err(Error::RunestoneSize { size });
     }
 
@@ -357,6 +364,12 @@ impl Split {
         .collect(),
       output: outputs,
     };
+
+    let weight = tx.weight().to_vbytes_ceil();
+
+    if !no_limit && weight > MAX_STANDARD_TX_WEIGHT.into() {
+      return Err(Error::TransactionSize { weight });
+    }
 
     for output in &tx.output {
       assert!(output.value >= output.script_pubkey.minimal_non_dust());
