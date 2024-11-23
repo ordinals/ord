@@ -84,14 +84,14 @@ impl Splitfile {
     Ok(serde_yaml::from_reader(File::open(path)?)?)
   }
 
-  pub(crate) fn even(&self) -> Option<Rune> {
+  pub(crate) fn even(&self) -> Option<(Rune, u128)> {
     let entry = self.outputs.first()?;
 
     if entry.runes.len() != 1 {
       return None;
     }
 
-    let (rune, _) = entry.runes.first_key_value()?;
+    let (rune, amount) = entry.runes.first_key_value()?;
 
     for output in self.outputs.iter().skip(1) {
       if entry.runes != output.runes {
@@ -103,7 +103,7 @@ impl Splitfile {
       }
     }
 
-    Some(*rune)
+    Some((*rune, *amount))
   }
 }
 

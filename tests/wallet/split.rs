@@ -148,7 +148,7 @@ outputs:
   )
   .run_and_deserialize_output::<Split>();
 
-  assert_eq!(output.fee, 2030);
+  assert_eq!(output.fee, 2050);
 
   core.mine_blocks_with_subsidy(1, 0);
 
@@ -181,7 +181,7 @@ outputs:
               vout: 1
             },
             Pile {
-              amount: 499,
+              amount: 501,
               divisibility: 1,
               symbol: Some('¢'),
             }
@@ -192,7 +192,7 @@ outputs:
               vout: 2
             },
             Pile {
-              amount: 501,
+              amount: 499,
               divisibility: 1,
               symbol: Some('¢'),
             }

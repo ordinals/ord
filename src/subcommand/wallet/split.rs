@@ -128,7 +128,7 @@ impl Split {
       })
       .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, u128>>>>()?;
 
-    let unfunded_transaction = Self::build_transaction(
+    let (unfunded_transaction, needs_change) = Self::build_transaction(
       self.no_limit,
       balances,
       &wallet.get_change_address()?,
@@ -142,7 +142,12 @@ impl Split {
       &unfunded_transaction,
     )?;
 
-    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+    let unsigned_transaction: Transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+
+    assert_eq!(
+      unsigned_transaction.output.len(),
+      splits.outputs.len() + 2 + usize::from(needs_change)
+    );
 
     let (txid, psbt, fee) =
       wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
@@ -156,7 +161,7 @@ impl Split {
     change_address: &Address,
     postage: Option<Amount>,
     splits: &Splitfile,
-  ) -> Result<Transaction, Error> {
+  ) -> Result<(Transaction, bool), Error> {
     if splits.outputs.is_empty() {
       return Err(Error::NoOutputs);
     }
@@ -236,6 +241,7 @@ impl Split {
     let mut rune_change_output = None;
     for (rune, input) in &input_rune_balances {
       if input > &input_runes_required.get(rune).copied().unwrap_or_default() {
+        // add OP_RETURN
         rune_change_output = Some(u32::try_from(splits.outputs.len()).unwrap() + 1);
       }
     }
@@ -243,9 +249,9 @@ impl Split {
     let mut edicts = Vec::new();
 
     let output_count = if let Some(change_output) = rune_change_output {
-      change_output + 1
+      change_output + 2
     } else {
-      u32::try_from(splits.outputs.len()).unwrap() + 1
+      u32::try_from(splits.outputs.len()).unwrap() + 2
     };
 
     for (i, output) in splits.outputs.iter().enumerate() {
@@ -258,7 +264,9 @@ impl Split {
       }
     }
 
-    if let Some(rune) = splits.even() {
+    let mut use_even = false;
+
+    if let Some((rune, amount)) = splits.even() {
       let have = input_rune_balances.get(&rune).copied().unwrap_or_default();
       let need = input_runes_required.get(&rune).copied().unwrap_or_default();
 
@@ -278,12 +286,13 @@ impl Split {
 
       even_edicts.push(Edict {
         id,
-        amount: change,
+        amount,
         output: output_count,
       });
 
       if even_edicts.len() < edicts.len() {
         edicts = even_edicts;
+        use_even = true;
       }
     }
 
@@ -353,14 +362,27 @@ impl Split {
       assert!(output.value >= output.script_pubkey.minimal_non_dust());
     }
 
-    assert_eq!(output_count, u32::try_from(tx.output.len()).unwrap());
+    // still missing the fundrawtransactions change output
+    assert_eq!(output_count, u32::try_from(tx.output.len()).unwrap() + 1);
 
-    assert_eq!(
-      Runestone::decipher(&tx),
-      Some(Artifact::Runestone(runestone)),
-    );
+    // this should complain because we haven't added the change output from fundrawtransaction
+    if use_even {
+      assert_eq!(
+        Runestone::decipher(&tx),
+        Some(Artifact::Cenotaph(ordinals::Cenotaph {
+          etching: None,
+          flaw: Some(ordinals::Flaw::EdictOutput),
+          mint: None
+        })),
+      );
+    } else {
+      assert_eq!(
+        Runestone::decipher(&tx),
+        Some(Artifact::Runestone(runestone)),
+      );
+    }
 
-    Ok(tx)
+    Ok((tx, rune_change_output.is_some()))
   }
 }
 
@@ -700,7 +722,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let (tx, _) = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -768,7 +790,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change, None, &splits).unwrap();
+    let (tx, _) = Split::build_transaction(false, balances, &change, None, &splits).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -788,22 +810,22 @@ mod tests {
               edicts: vec![Edict {
                 id,
                 amount: 1000,
-                output: 2
+                output: 1
               }],
               etching: None,
               mint: None,
-              pointer: None,
+              pointer: Some(2),
             }
             .encipher()
+          },
+          TxOut {
+            script_pubkey: address.into(),
+            value: Amount::from_sat(294),
           },
           TxOut {
             script_pubkey: change.into(),
             value: TARGET_POSTAGE,
           },
-          TxOut {
-            script_pubkey: address.into(),
-            value: Amount::from_sat(294),
-          }
         ],
       },
     );
@@ -840,7 +862,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(
+    let (tx, _) = Split::build_transaction(
       false,
       balances,
       &change,
@@ -867,22 +889,22 @@ mod tests {
               edicts: vec![Edict {
                 id,
                 amount: 1000,
-                output: 2
+                output: 1
               }],
               etching: None,
               mint: None,
-              pointer: None,
+              pointer: Some(2),
             }
             .encipher()
+          },
+          TxOut {
+            script_pubkey: address.into(),
+            value: Amount::from_sat(294),
           },
           TxOut {
             script_pubkey: change.into(),
             value: Amount::from_sat(500),
           },
-          TxOut {
-            script_pubkey: address.into(),
-            value: Amount::from_sat(294),
-          }
         ],
       },
     );
@@ -917,7 +939,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change, None, &splits).unwrap();
+    let (tx, _) = Split::build_transaction(false, balances, &change, None, &splits).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -937,22 +959,22 @@ mod tests {
               edicts: vec![Edict {
                 id: rune_id(0),
                 amount: 1000,
-                output: 2
+                output: 1
               }],
               etching: None,
               mint: None,
-              pointer: None,
+              pointer: Some(2),
             }
             .encipher()
+          },
+          TxOut {
+            script_pubkey: address.into(),
+            value: Amount::from_sat(294),
           },
           TxOut {
             script_pubkey: change.into(),
             value: TARGET_POSTAGE,
           },
-          TxOut {
-            script_pubkey: address.into(),
-            value: Amount::from_sat(294),
-          }
         ],
       },
     );
@@ -991,7 +1013,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let (tx, _) = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -1062,7 +1084,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let (tx, _) = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -1132,7 +1154,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let (tx, _) = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -1189,12 +1211,12 @@ mod tests {
       outputs: vec![
         splitfile::Output {
           address: address(0),
-          runes: [(rune, 500)].into(),
+          runes: [(rune, 800)].into(),
           value: None,
         },
         splitfile::Output {
           address: address(1),
-          runes: [(rune, 500)].into(),
+          runes: [(rune, 200)].into(),
           value: None,
         },
       ],
@@ -1213,7 +1235,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let (tx, _) = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -1233,12 +1255,12 @@ mod tests {
               edicts: vec![
                 Edict {
                   id,
-                  amount: 500,
+                  amount: 800,
                   output: 1
                 },
                 Edict {
                   id,
-                  amount: 500,
+                  amount: 200,
                   output: 2
                 }
               ],
@@ -1306,7 +1328,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let (tx, _) = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -1454,8 +1476,10 @@ mod tests {
       .into(),
     };
 
+    let (tx, _) = Split::build_transaction(true, balances, &change(0), None, &splits).unwrap();
+
     pretty_assert_eq!(
-      Split::build_transaction(true, balances, &change(0), None, &splits).unwrap(),
+      tx,
       Transaction {
         version: Version(2),
         lock_time: LockTime::ZERO,
@@ -1503,7 +1527,7 @@ mod tests {
   }
 
   #[test]
-  fn even_split() {
+  fn even_split_with_change() {
     let balances = [
       (outpoint(0), [(Rune(0), 5_000_000_000)].into()),
       (outpoint(1), [(Rune(1), 13_000_000_000)].into()),
@@ -1547,8 +1571,10 @@ mod tests {
       .into(),
     };
 
+    let (tx, _) = Split::build_transaction(true, balances, &change(0), None, &splits).unwrap();
+
     pretty_assert_eq!(
-      Split::build_transaction(true, balances, &change(0), None, &splits).unwrap(),
+      tx,
       Transaction {
         version: Version(2),
         lock_time: LockTime::ZERO,
@@ -1558,28 +1584,33 @@ mod tests {
           sequence: Sequence::MAX,
           witness: Witness::new(),
         }],
-        output: (0..11)
+        output: (0..12)
           .map(|i| if i == 0 {
             TxOut {
               value: Amount::from_sat(0),
               script_pubkey: Runestone {
                 edicts: vec![
                   Edict {
-                    id: rune_id(1).into(),
+                    id: rune_id(1),
                     amount: 3_000_000_000,
-                    output: 10,
+                    output: 11,
                   },
                   Edict {
-                    id: rune_id(1).into(),
+                    id: rune_id(1),
                     amount: 1_000_000_000,
-                    output: 11,
+                    output: 13,
                   },
                 ],
                 etching: None,
                 mint: None,
-                pointer: None,
+                pointer: Some(11),
               }
               .encipher(),
+            }
+          } else if i == 11 {
+            TxOut {
+              script_pubkey: change(0).into(),
+              value: TARGET_POSTAGE,
             }
           } else {
             TxOut {
