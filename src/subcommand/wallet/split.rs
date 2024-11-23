@@ -156,6 +156,10 @@ impl Split {
       splits.outputs.len() + 2 + usize::from(needs_change)
     );
 
+    let Some(Artifact::Runestone(_)) = Runestone::decipher(&unsigned_transaction) else {
+      bail!("should not produce a cenotaph");
+    };
+
     let (txid, psbt, fee) =
       wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
 
