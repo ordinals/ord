@@ -233,23 +233,27 @@ impl Split {
       }
     }
 
-    let mut need_rune_change_output = false;
+    let mut rune_change_output = None;
     for (rune, input) in &input_rune_balances {
       if input > &input_runes_required.get(rune).copied().unwrap_or_default() {
-        need_rune_change_output = true;
+        rune_change_output = Some(u32::try_from(splits.outputs.len()).unwrap() + 1);
       }
     }
 
     let mut edicts = Vec::new();
 
-    let base = if need_rune_change_output { 2 } else { 1 };
+    let output_count = if let Some(change_output) = rune_change_output {
+      change_output + 1
+    } else {
+      u32::try_from(splits.outputs.len()).unwrap() + 1
+    };
 
     for (i, output) in splits.outputs.iter().enumerate() {
       for (rune, amount) in &output.runes {
         edicts.push(Edict {
           id: splits.rune_info.get(rune).unwrap().id,
           amount: *amount,
-          output: (i + base).try_into().unwrap(),
+          output: (i + 1).try_into().unwrap(),
         });
       }
     }
@@ -262,16 +266,20 @@ impl Split {
 
       let mut even_edicts = Vec::new();
 
-      even_edicts.push(Edict {
-        id: splits.rune_info.get(&rune).unwrap().id,
-        amount: change,
-        output: base.try_into().unwrap(),
-      });
+      let id = splits.rune_info.get(&rune).unwrap().id;
+
+      if let Some(output) = rune_change_output {
+        even_edicts.push(Edict {
+          id,
+          amount: change,
+          output,
+        });
+      }
 
       even_edicts.push(Edict {
-        id: splits.rune_info.get(&rune).unwrap().id,
+        id,
         amount: change,
-        output: base.try_into().unwrap(),
+        output: output_count,
       });
 
       if even_edicts.len() < edicts.len() {
@@ -279,14 +287,16 @@ impl Split {
       }
     }
 
+    // should this be inside a builder function for the Runestone?
     edicts.sort_by_key(|edict| edict.id);
 
     let runestone = Runestone {
       edicts,
+      pointer: rune_change_output,
       ..default()
     };
 
-    let mut output = Vec::new();
+    let mut outputs = Vec::new();
 
     let runestone_script_pubkey = runestone.encipher();
     let size = runestone_script_pubkey.len();
@@ -295,17 +305,10 @@ impl Split {
       return Err(Error::RunestoneSize { size });
     }
 
-    output.push(TxOut {
+    outputs.push(TxOut {
       script_pubkey: runestone_script_pubkey,
       value: Amount::from_sat(0),
     });
-
-    if need_rune_change_output {
-      output.push(TxOut {
-        script_pubkey: change_script_pubkey,
-        value: postage,
-      });
-    }
 
     for (i, split_output) in splits.outputs.iter().enumerate() {
       let script_pubkey = split_output.address.script_pubkey();
@@ -318,9 +321,16 @@ impl Split {
           value,
         });
       }
-      output.push(TxOut {
+      outputs.push(TxOut {
         script_pubkey,
         value,
+      });
+    }
+
+    if rune_change_output.is_some() {
+      outputs.push(TxOut {
+        script_pubkey: change_script_pubkey,
+        value: postage,
       });
     }
 
@@ -336,12 +346,14 @@ impl Split {
           witness: Witness::new(),
         })
         .collect(),
-      output,
+      output: outputs,
     };
 
     for output in &tx.output {
       assert!(output.value >= output.script_pubkey.minimal_non_dust());
     }
+
+    assert_eq!(output_count, u32::try_from(tx.output.len()).unwrap());
 
     assert_eq!(
       Runestone::decipher(&tx),
