@@ -6529,6 +6529,16 @@ next
       "/r/children/{parent_inscription_id}/at/-1"
     ));
     assert_eq!(child_json.id, latest_child_inscription_id);
+    let zeroth_child_inscription_id = InscriptionId { txid, index: 0 };
+    let zeroth_child = server.get_json::<api::ChildInscriptionRecursive>(format!(
+      "/r/children/{parent_inscription_id}/at/0"
+    ));
+    assert_eq!(zeroth_child.id, zeroth_child_inscription_id);
+    let first_child_inscription_id = InscriptionId { txid, index: 1 };
+    let first_child = server.get_json::<api::ChildInscriptionRecursive>(format!(
+      "/r/children/{parent_inscription_id}/at/1"
+    ));
+    assert_eq!(first_child.id, first_child_inscription_id);
   }
 
   #[test]
