@@ -1201,7 +1201,7 @@ impl Server {
           charms: Charm::charms(entry.charms),
           content_type: inscription.content_type().map(|s| s.to_string()),
           content_length: inscription.content_length(),
-          delegate: inscription.delegate(),
+          delegates: inscription.delegates(),
           fee: entry.fee,
           height: entry.height,
           id: inscription_id,
@@ -1583,11 +1583,13 @@ impl Server {
         };
       };
 
-      if let Some(delegate) = inscription.delegate() {
-        inscription = index
-          .get_inscription_by_id(delegate)?
-          .ok_or_not_found(|| format!("delegate {inscription_id}"))?
-      }
+      let inscription_override = inscription.delegates().iter().find_map(|delegate| {
+        index
+          .get_inscription_by_id(*delegate)
+          .unwrap_or(None)
+      });
+
+      inscription = inscription_override.unwrap_or(inscription);
 
       Ok(
         Self::content_response(inscription, accept_encoding, &server_config)?
@@ -1707,11 +1709,13 @@ impl Server {
         .get_inscription_by_id(inscription_id)?
         .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-      if let Some(delegate) = inscription.delegate() {
-        inscription = index
-          .get_inscription_by_id(delegate)?
-          .ok_or_not_found(|| format!("delegate {inscription_id}"))?
-      }
+      let inscription_override = inscription.delegates().iter().find_map(|delegate| {
+        index
+          .get_inscription_by_id(*delegate)
+          .unwrap_or(None)
+      });
+
+      inscription = inscription_override.unwrap_or(inscription);
 
       let media = inscription.media();
 
@@ -6751,7 +6755,7 @@ next
     server.mine_blocks(1);
 
     let inscription = Inscription {
-      delegate: Some(delegate.value()),
+      delegates: vec![delegate.value()],
       ..default()
     };
 
@@ -6788,8 +6792,9 @@ next
     assert_eq!(
       server
         .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
-        .delegate,
-      Some(delegate)
+        .delegates
+        .first(),
+      Some(&delegate)
     );
   }
 
@@ -6820,7 +6825,7 @@ next
     let inscription = Inscription {
       content_type: Some("text/plain".into()),
       body: Some("bar".into()),
-      delegate: Some(delegate_id.value()),
+      delegates: vec![delegate_id.value()],
       ..default()
     };
 
@@ -7054,7 +7059,7 @@ next
         charms: Vec::new(),
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
@@ -7084,7 +7089,7 @@ next
         charms: Vec::new(),
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
@@ -7107,7 +7112,7 @@ next
         charms: Vec::new(),
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
@@ -7293,7 +7298,7 @@ next
         charms: vec![Charm::Burned],
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
@@ -7342,7 +7347,7 @@ next
         charms: vec![],
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
@@ -7387,7 +7392,7 @@ next
         charms: vec![Charm::Burned],
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,

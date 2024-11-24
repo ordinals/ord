@@ -2087,16 +2087,14 @@ impl Index {
       Charm::Lost.set(&mut charms);
     }
 
-    let effective_mime_type = if let Some(delegate_id) = inscription.delegate() {
-      let delegate_result = self.get_inscription_by_id(delegate_id);
-      if let Ok(Some(delegate)) = delegate_result {
-        delegate.content_type().map(str::to_string)
-      } else {
-        inscription.content_type().map(str::to_string)
-      }
-    } else {
-      inscription.content_type().map(str::to_string)
-    };
+    let effective_mime_type = inscription
+      .delegates()
+      .iter()
+      .find_map(|delegate| self.get_inscription_by_id(*delegate).unwrap_or(None))
+      .as_ref()
+      .unwrap_or(&inscription)
+      .content_type()
+      .map(str::to_string);
 
     Ok(Some((
       api::Inscription {

@@ -85,8 +85,8 @@
   <dt>metaprotocol</dt>
   <dd>{{ metaprotocol }}</dd>
 %% }
-%% if self.inscription.content_length().is_some() || self.inscription.delegate().is_some() {
-%% if let Some(delegate) = self.inscription.delegate() {
+%% if self.inscription.content_length().is_some() || !self.inscription.delegates().is_empty() {
+%% if let Some(delegate) = self.inscription.delegates().first() {
   <dt>delegate</dt>
   <dd><a href=/inscription/{{ delegate }}>{{ delegate }}</a></dd>
 %% }
