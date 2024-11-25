@@ -91,6 +91,16 @@ mod tests {
           <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
+          <dt>details</dt>
+          <dd>
+            <details>
+              <summary>...</summary>
+              <dl>
+                <dt>ethereum teleburn address</dt>
+                <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+              </dl>
+            </details>
+          </dd>
         </dl>
       "
       .unindent()
@@ -272,6 +282,16 @@ mod tests {
           <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
+          <dt>details</dt>
+          <dd>
+            <details>
+              <summary>...</summary>
+              <dl>
+                <dt>ethereum teleburn address</dt>
+                <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+              </dl>
+            </details>
+          </dd>
         </dl>
 "
       .unindent()
@@ -333,6 +353,16 @@ mod tests {
           <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
+          <dt>details</dt>
+          <dd>
+            <details>
+              <summary>...</summary>
+              <dl>
+                <dt>ethereum teleburn address</dt>
+                <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+              </dl>
+            </details>
+          </dd>
         </dl>
       "
       .unindent()
@@ -393,6 +423,16 @@ mod tests {
           <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
+          <dt>details</dt>
+          <dd>
+            <details>
+              <summary>...</summary>
+              <dl>
+                <dt>ethereum teleburn address</dt>
+                <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
+              </dl>
+            </details>
+          </dd>
         </dl>
       "
       .unindent()
