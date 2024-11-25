@@ -1,3 +1,4 @@
+pub use self::entry::RuneEntry;
 use {
   self::{
     entry::{
@@ -12,6 +13,7 @@ use {
   },
   super::*,
   crate::{
+    api::RawTransactionInfo,
     runes::MintError,
     subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
@@ -35,8 +37,6 @@ use {
     sync::Once,
   },
 };
-
-pub use self::entry::RuneEntry;
 
 pub(crate) mod entry;
 pub mod event;
@@ -1588,6 +1588,14 @@ impl Index {
     }
 
     self.client.get_raw_transaction(&txid, None).into_option()
+  }
+
+  pub fn get_raw_transaction_info(&self, txid: Txid) -> Result<Option<RawTransactionInfo>> {
+    self
+      .client
+      .get_raw_transaction_info(&txid, None)
+      .map(RawTransactionInfo::from)
+      .into_option()
   }
 
   pub fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {

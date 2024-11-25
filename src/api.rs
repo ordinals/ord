@@ -1,5 +1,9 @@
 use {
   super::*,
+  bitcoincore_rpc::bitcoincore_rpc_json::{
+    GetRawTransactionResult, GetRawTransactionResultVin, GetRawTransactionResultVout,
+    GetRawTransactionResultVoutScriptPubKey,
+  },
   serde_hex::{SerHex, Strict},
 };
 
@@ -232,4 +236,93 @@ pub struct AddressInfo {
   pub inscriptions: Vec<InscriptionId>,
   pub sat_balance: u64,
   pub runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RawTransactionInfoVin {
+  /// The raw scriptSig in case of a coinbase tx.
+  #[serde(with = "SerHex::<Strict>")]
+  pub coinbase: [u8; 32],
+  /// Not provided for coinbase txs.
+  pub txid: Option<Txid>,
+  /// Not provided for coinbase txs.
+  pub vout: Option<u32>,
+}
+
+impl From<GetRawTransactionResultVin> for RawTransactionInfoVin {
+  fn from(vin: GetRawTransactionResultVin) -> Self {
+    RawTransactionInfoVin {
+      coinbase: vin.coinbase.map(vec_to_array32).unwrap_or([0; 32]),
+      txid: vin.txid,
+      vout: vin.vout,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RawTransactionInfoVout {
+  #[serde(with = "bitcoin::amount::serde::as_btc")]
+  pub value: Amount,
+  pub n: u32,
+  pub script_pub_key: RawTransactionInfoVoutScriptPubKey,
+}
+
+impl From<GetRawTransactionResultVout> for RawTransactionInfoVout {
+  fn from(vout: GetRawTransactionResultVout) -> Self {
+    RawTransactionInfoVout {
+      value: vout.value,
+      n: vout.n,
+      script_pub_key: RawTransactionInfoVoutScriptPubKey::from(vout.script_pub_key),
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Deserialize, Serialize)]
+pub struct RawTransactionInfoVoutScriptPubKey {
+  #[serde(with = "SerHex::<Strict>")]
+  pub hex: [u8; 32],
+}
+
+impl From<GetRawTransactionResultVoutScriptPubKey> for RawTransactionInfoVoutScriptPubKey {
+  fn from(pub_key: GetRawTransactionResultVoutScriptPubKey) -> Self {
+    RawTransactionInfoVoutScriptPubKey {
+      hex: vec_to_array32(pub_key.hex),
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+pub struct RawTransactionInfo {
+  pub blockhash: String,
+  #[serde(with = "SerHex::<Strict>")]
+  pub hex: [u8; 32],
+  pub vin: Vec<RawTransactionInfoVin>,
+  pub vout: Vec<RawTransactionInfoVout>,
+}
+
+impl From<GetRawTransactionResult> for RawTransactionInfo {
+  fn from(result: GetRawTransactionResult) -> Self {
+    RawTransactionInfo {
+      blockhash: result.blockhash.unwrap().to_string(),
+      hex: vec_to_array32(result.hex),
+      vin: result
+        .vin
+        .into_iter()
+        .map(RawTransactionInfoVin::from)
+        .collect(),
+      vout: result
+        .vout
+        .into_iter()
+        .map(RawTransactionInfoVout::from)
+        .collect(),
+    }
+  }
+}
+
+fn vec_to_array32(vec: Vec<u8>) -> [u8; 32] {
+  let mut arr = [0u8; 32]; // Create a fixed-size array with default 0 values
+  let len = vec.len().min(32); // Take the minimum of the Vec length and 32
+  arr[..len].copy_from_slice(&vec[..len]); // Copy up to 32 elements
+  arr
 }
