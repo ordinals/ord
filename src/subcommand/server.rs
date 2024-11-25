@@ -956,11 +956,21 @@ impl Server {
         .require_network(server_config.chain.network())
         .map_err(|err| ServerError::BadRequest(err.to_string()))?;
 
-      let mut outputs = index.get_address_info(&address)?;
+      let outputs = index.get_address_info(&address)?;
 
-      outputs.sort();
+      let sat_balances = index.get_sat_balances_for_outputs(&outputs)?;
+      let sat_balance = sat_balances.iter().sum();
 
-      let sat_balance = index.get_sat_balances_for_outputs(&outputs)?;
+      let mut outpoint_infos: Vec<_> = outputs
+        .iter()
+        .enumerate()
+        .map(|(i, output)| api::OutpointInfo {
+          output: *output,
+          value: sat_balances[i],
+        })
+        .collect();
+
+      outpoint_infos.sort_by_key(|info| info.output);
 
       let inscriptions = index.get_inscriptions_for_outputs(&outputs)?;
 
@@ -969,7 +979,7 @@ impl Server {
       Ok(if accept_json {
         Json(api::AddressInfo {
           sat_balance,
-          outputs,
+          outputs: outpoint_infos,
           inscriptions,
           runes_balances,
         })

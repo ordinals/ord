@@ -2317,20 +2317,22 @@ impl Index {
     )
   }
 
-  pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<u64> {
+  pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<Vec<u64>> {
     let outpoint_to_utxo_entry = self
       .database
       .begin_read()?
       .open_table(OUTPOINT_TO_UTXO_ENTRY)?;
 
-    let mut acc = 0;
+    let mut balances = Vec::with_capacity(outputs.len());
     for output in outputs {
       if let Some(utxo_entry) = outpoint_to_utxo_entry.get(&output.store())? {
-        acc += utxo_entry.value().parse(self).total_value();
-      };
+        balances.push(utxo_entry.value().parse(self).total_value());
+      } else {
+        balances.push(0);
+      }
     }
 
-    Ok(acc)
+    Ok(balances)
   }
 
   pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {

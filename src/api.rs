@@ -228,8 +228,15 @@ pub struct SatInscriptions {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct AddressInfo {
-  pub outputs: Vec<OutPoint>,
+  pub outputs: Vec<OutpointInfo>,
   pub inscriptions: Vec<InscriptionId>,
   pub sat_balance: u64,
   pub runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct OutpointInfo {
+  #[serde(flatten)]
+  pub output: OutPoint,
+  pub value: u64,
 }
