@@ -21,6 +21,7 @@ use {
     Router,
   },
   axum_server::Handle,
+  bitcoincore_rpc::json::GetRawTransactionResult,
   brotli::Decompressor,
   rust_embed::RustEmbed,
   rustls_acme::{
@@ -263,6 +264,8 @@ impl Server {
           "/r/parents/:inscription_id/:page",
           get(Self::parents_recursive_paginated),
         )
+        .route("/r/rawtx/:txid", get(Self::get_raw_transaction))
+        .route("/r/rawtxinfo/:txid", get(Self::get_raw_transaction_info))
         .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
         .route(
           "/r/sat/:sat_number/:page",
@@ -1077,6 +1080,32 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn get_raw_transaction(
+    Extension(index): Extension<Arc<Index>>,
+    Path(txid): Path<Txid>,
+  ) -> ServerResult<Json<Transaction>> {
+    task::block_in_place(|| {
+      let transaction = index
+        .get_transaction(txid)?
+        .ok_or_not_found(|| format!("transaction {txid}"))?;
+
+      Ok(Json(transaction))
+    })
+  }
+
+  async fn get_raw_transaction_info(
+    Extension(index): Extension<Arc<Index>>,
+    Path(txid): Path<Txid>,
+  ) -> ServerResult<Json<GetRawTransactionResult>> {
+    task::block_in_place(|| {
+      let raw_transaction_info = index
+        .get_raw_transaction_info(txid)?
+        .ok_or_not_found(|| format!("transaction {txid}"))?;
+
+      Ok(Json(raw_transaction_info))
     })
   }
 
@@ -4338,6 +4367,34 @@ mod tests {
   </li>
 </ul>.*"
       ),
+    );
+  }
+
+  #[test]
+  fn raw_transaction() {
+    let test_server = TestServer::new();
+
+    let coinbase_tx = test_server.mine_blocks(1)[0].txdata[0].clone();
+    let txid = coinbase_tx.compute_txid();
+
+    test_server.assert_response(
+      format!("/r/rawtx/{txid}"),
+      StatusCode::OK,
+      "{\"version\":2,\"lock_time\":0,\"input\":[{\"previous_output\":\"0000000000000000000000000000000000000000000000000000000000000000:4294967295\",\"script_sig\":\"51\",\"sequence\":4294967295,\"witness\":[]}],\"output\":[{\"value\":5000000000,\"script_pubkey\":\"5120be7cbbe9ca06a7d7b2a17c6b4ff4b85b362cbcd7ee1970daa66dfaa834df59a0\"}]}",
+    );
+  }
+
+  #[test]
+  fn raw_transaction_info() {
+    let test_server = TestServer::new();
+
+    let coinbase_tx = test_server.mine_blocks(1)[0].txdata[0].clone();
+    let txid = coinbase_tx.compute_txid();
+
+    test_server.assert_response(
+      format!("/r/rawtxinfo/{txid}"),
+      StatusCode::OK,
+      "{\"in_active_chain\":true,\"hex\":\"\",\"txid\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"hash\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"size\":0,\"vsize\":0,\"version\":2,\"locktime\":0,\"vin\":[],\"vout\":[{\"value\":50.0,\"n\":0,\"scriptPubKey\":{\"asm\":\"OP_PUSHNUM_1 OP_PUSHBYTES_32 be7cbbe9ca06a7d7b2a17c6b4ff4b85b362cbcd7ee1970daa66dfaa834df59a0\",\"hex\":\"5120be7cbbe9ca06a7d7b2a17c6b4ff4b85b362cbcd7ee1970daa66dfaa834df59a0\",\"reqSigs\":null,\"type\":null,\"addresses\":[],\"address\":null}}],\"blockhash\":\"56d05060a0280d0712d113f25321158747310ece87ea9e299bde06cf385b8d85\",\"confirmations\":0,\"time\":null,\"blocktime\":null}",
     );
   }
 

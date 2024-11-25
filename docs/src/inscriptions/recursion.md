@@ -3370,6 +3370,292 @@ curl -s -H "Accept: application/json" \
 ```
 </details>
 
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/rawtx/&lt;TRANSACTION_ID&gt;</b></code>
+  </summary>
+
+### Description
+
+Raw transaction data for `<TRANSACTION_ID>`.
+
+### Example
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/rawtx/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa
+```
+
+```json
+{
+  "version": 1,
+  "lock_time": 0,
+  "input": [
+    {
+      "previous_output": "bdc7d178771f919925057864ff1958bcb5dbb8c2533d0057ee2bb3dc72285783:0",
+      "script_sig": "",
+      "sequence": 4294967293,
+      "witness": [
+        "7aa50d93d6fc01265fd52d3edc93af4e009ccc1a704ce1b5cb8ede1412a5df31eba587d080b3dc903ceb9002ed9d921aad323fd44d7b4dc2a1ad2ea12d436042",
+        "20c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326effac0063036f7264010118746578742f706c61696e3b636861727365743d7574662d3800077072696d65730a68",
+        "c1c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326eff"
+      ]
+    }
+  ],
+  "output": [
+    {
+      "value": 10000,
+      "script_pubkey": "5120e41e0cba05c6ac797cf543ff9a6c619a91a53813e59146d1e32ea89747b111a6"
+    }
+  ]
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/rawtxinfo/&lt;TRANSACTION_ID&gt;</b></code>
+  </summary>
+
+### Description
+
+Raw transaction data for `<TRANSACTION_ID>` with verbose information.
+
+### Example
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/rawtxinfo/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa
+```
+
+```json
+{
+  "in_active_chain": null,
+  "hex": "0100000000010183572872dcb32bee57003d53c2b8dbb5bc5819ff6478052599911f7778d1c7bd0000000000fdffffff011027000000000000225120e41e0cba05c6ac797cf543ff9a6c619a91a53813e59146d1e32ea89747b111a603407aa50d93d6fc01265fd52d3edc93af4e009ccc1a704ce1b5cb8ede1412a5df31eba587d080b3dc903ceb9002ed9d921aad323fd44d7b4dc2a1ad2ea12d4360424d20c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326effac0063036f7264010118746578742f706c61696e3b636861727365743d7574662d3800077072696d65730a6821c1c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326eff00000000",
+  "txid": "60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa",
+  "hash": "dfdd8cc83669e9e982f7d80ca7fe2b3e53eb9a472f98304237c7566505c738e4",
+  "size": 274,
+  "vsize": 139,
+  "version": 1,
+  "locktime": 0,
+  "vin": [
+    {
+      "sequence": 4294967293,
+      "coinbase": null,
+      "txid": "bdc7d178771f919925057864ff1958bcb5dbb8c2533d0057ee2bb3dc72285783",
+      "vout": 0,
+      "scriptSig": {
+        "asm": "",
+        "hex": ""
+      },
+      "txinwitness": [
+        [
+          122,
+          165,
+          13,
+          147,
+          214,
+          252,
+          1,
+          38,
+          95,
+          213,
+          45,
+          62,
+          220,
+          147,
+          175,
+          78,
+          0,
+          156,
+          204,
+          26,
+          112,
+          76,
+          225,
+          181,
+          203,
+          142,
+          222,
+          20,
+          18,
+          165,
+          223,
+          49,
+          235,
+          165,
+          135,
+          208,
+          128,
+          179,
+          220,
+          144,
+          60,
+          235,
+          144,
+          2,
+          237,
+          157,
+          146,
+          26,
+          173,
+          50,
+          63,
+          212,
+          77,
+          123,
+          77,
+          194,
+          161,
+          173,
+          46,
+          161,
+          45,
+          67,
+          96,
+          66
+        ],
+        [
+          32,
+          199,
+          163,
+          163,
+          141,
+          241,
+          152,
+          164,
+          252,
+          222,
+          125,
+          93,
+          172,
+          88,
+          25,
+          237,
+          25,
+          255,
+          77,
+          37,
+          187,
+          137,
+          60,
+          149,
+          17,
+          248,
+          225,
+          245,
+          29,
+          89,
+          50,
+          110,
+          255,
+          172,
+          0,
+          99,
+          3,
+          111,
+          114,
+          100,
+          1,
+          1,
+          24,
+          116,
+          101,
+          120,
+          116,
+          47,
+          112,
+          108,
+          97,
+          105,
+          110,
+          59,
+          99,
+          104,
+          97,
+          114,
+          115,
+          101,
+          116,
+          61,
+          117,
+          116,
+          102,
+          45,
+          56,
+          0,
+          7,
+          112,
+          114,
+          105,
+          109,
+          101,
+          115,
+          10,
+          104
+        ],
+        [
+          193,
+          199,
+          163,
+          163,
+          141,
+          241,
+          152,
+          164,
+          252,
+          222,
+          125,
+          93,
+          172,
+          88,
+          25,
+          237,
+          25,
+          255,
+          77,
+          37,
+          187,
+          137,
+          60,
+          149,
+          17,
+          248,
+          225,
+          245,
+          29,
+          89,
+          50,
+          110,
+          255
+        ]
+      ]
+    }
+  ],
+  "vout": [
+    {
+      "value": 0.0001,
+      "n": 0,
+      "scriptPubKey": {
+        "asm": "1 e41e0cba05c6ac797cf543ff9a6c619a91a53813e59146d1e32ea89747b111a6",
+        "hex": "5120e41e0cba05c6ac797cf543ff9a6c619a91a53813e59146d1e32ea89747b111a6",
+        "reqSigs": null,
+        "type": "witness_v1_taproot",
+        "addresses": [],
+        "address": "bc1pus0qews9c6k8jl84g0le5mrpn2g62wqnukg5d50r965fw3a3zxnqnghe3g"
+      }
+    }
+  ],
+  "blockhash": "00000000000000000000ce2459594de93b8d2f64b809b6c9d7fdd058bf970370",
+  "confirmations": 57992,
+  "time": 1698317176,
+  "blocktime": 1698317176
+}
+```
+</details>
+
 &nbsp;
 &nbsp;
 
