@@ -154,4 +154,11 @@ mod tests {
     let flags = Charm::Coin.unset(flags);
     assert!(!Charm::Coin.is_set(flags));
   }
+
+  #[test]
+  fn from_str() {
+    for charm in Charm::ALL {
+      assert_eq!(charm.to_string().parse::<Charm>().unwrap(), charm);
+    }
+  }
 }
