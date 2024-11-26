@@ -99,7 +99,7 @@ impl Burn {
     Ok(Some(Box::new(send::Output {
       txid,
       psbt,
-      outgoing: Outgoing::InscriptionId(self.inscription),
+      asset: Outgoing::InscriptionId(self.inscription),
       fee,
     })))
   }

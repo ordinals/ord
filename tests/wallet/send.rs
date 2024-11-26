@@ -671,7 +671,7 @@ fn send_dry_run() {
     .to_sat(),
     output.fee
   );
-  assert_eq!(output.outgoing, Outgoing::InscriptionId(inscription));
+  assert_eq!(output.asset, Outgoing::InscriptionId(inscription));
 }
 
 #[test]
