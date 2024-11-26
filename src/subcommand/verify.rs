@@ -8,7 +8,7 @@ use {
 group(
   ArgGroup::new("input")
     .required(true)
-    .args(&["message", "file"])),
+    .args(&["text", "file"])),
 group(
   ArgGroup::new("signature")
     .required(true)
@@ -17,8 +17,8 @@ group(
 pub(crate) struct Verify {
   #[arg(long, help = "Verify signature made by <ADDRESS>.")]
   address: Address<NetworkUnchecked>,
-  #[arg(long, help = "Verify signature over <MESSAGE>.")]
-  message: Option<String>,
+  #[arg(long, help = "Verify signature over <TEXT>.")]
+  text: Option<String>,
   #[arg(long, help = "Verify signature over contents of <FILE>.")]
   file: Option<PathBuf>,
   #[arg(long, help = "Verify base64-encoded <WITNESS>.")]
@@ -29,8 +29,8 @@ pub(crate) struct Verify {
 
 impl Verify {
   pub(crate) fn run(self) -> SubcommandResult {
-    let message = if let Some(message) = &self.message {
-      message.as_bytes()
+    let message = if let Some(text) = &self.text {
+      text.as_bytes()
     } else if let Some(file) = &self.file {
       &fs::read(file)?
     } else {

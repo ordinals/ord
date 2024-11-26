@@ -27,6 +27,7 @@ use {
     outgoing::Outgoing,
     representation::Representation,
     settings::Settings,
+    signer::Signer,
     subcommand::{OutputFormat, Subcommand, SubcommandResult},
     tally::Tally,
   },
@@ -125,6 +126,7 @@ mod re;
 mod representation;
 pub mod runes;
 pub mod settings;
+mod signer;
 pub mod subcommand;
 mod tally;
 pub mod templates;

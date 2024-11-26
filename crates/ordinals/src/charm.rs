@@ -117,6 +117,7 @@ impl FromStr for Charm {
       "lost" => Self::Lost,
       "mythic" => Self::Mythic,
       "nineball" => Self::Nineball,
+      "palindrome" => Self::Palindrome,
       "rare" => Self::Rare,
       "reinscription" => Self::Reinscription,
       "unbound" => Self::Unbound,
@@ -152,5 +153,12 @@ mod tests {
     assert!(Charm::Coin.is_set(flags));
     let flags = Charm::Coin.unset(flags);
     assert!(!Charm::Coin.is_set(flags));
+  }
+
+  #[test]
+  fn from_str() {
+    for charm in Charm::ALL {
+      assert_eq!(charm.to_string().parse::<Charm>().unwrap(), charm);
+    }
   }
 }

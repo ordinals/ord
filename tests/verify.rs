@@ -6,7 +6,7 @@ fn verify() {
     CommandBuilder::new([
       "verify",
       "--address", "bc1q9vza2e8x573nczrlzms0wvx3gsqjx7vavgkx0l",
-      "--message", "Hello World",
+      "--text", "Hello World",
       "--witness", "AkcwRAIgZRfIY3p7/DoVTty6YZbWS71bc5Vct9p9Fia83eRmw2QCICK/ENGfwLtptFluMGs2KsqoNSk89pO7F29zJLUx9a/sASECx/EgAxlkQpQ9hYjgGu6EBCPMVPwVIVJqO4XCsMvViHI="
     ])
     .run_and_extract_stdout(),
@@ -19,7 +19,7 @@ fn verify_fails() {
   CommandBuilder::new([
       "verify",
       "--address", "bc1q9vza2e8x573nczrlzms0wvx3gsqjx7vavgkx0l",
-      "--message", "Hello World - this should fail",
+      "--text", "Hello World - this should fail",
       "--witness", "AkcwRAIgZRfIY3p7/DoVTty6YZbWS71bc5Vct9p9Fia83eRmw2QCICK/ENGfwLtptFluMGs2KsqoNSk89pO7F29zJLUx9a/sASECx/EgAxlkQpQ9hYjgGu6EBCPMVPwVIVJqO4XCsMvViHI="
   ])
   .expected_exit_code(1)
@@ -32,7 +32,7 @@ fn witness_and_transaction_conflict() {
   CommandBuilder::new([
       "verify",
       "--address", "bc1q9vza2e8x573nczrlzms0wvx3gsqjx7vavgkx0l",
-      "--message", "Hello World",
+      "--text", "Hello World",
       "--transaction", "asdf",
       "--witness", "AkcwRAIgZRfIY3p7/DoVTty6YZbWS71bc5Vct9p9Fia83eRmw2QCICK/ENGfwLtptFluMGs2KsqoNSk89pO7F29zJLUx9a/sASECx/EgAxlkQpQ9hYjgGu6EBCPMVPwVIVJqO4XCsMvViHI="
   ])
@@ -55,7 +55,7 @@ fn verify_with_transaction() {
       "verify",
       "--address",
       "bc1q9vza2e8x573nczrlzms0wvx3gsqjx7vavgkx0l",
-      "--message",
+      "--text",
       "Hello World",
       "--transaction",
       &tx,
