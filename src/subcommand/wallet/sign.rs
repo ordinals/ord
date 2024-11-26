@@ -19,9 +19,9 @@ group(
 pub(crate) struct Sign {
   #[arg(
     long,
-    help = "Sign with either <ADDRESS>, <OUTPUT> or <INSCRIPTION_ID>."
+    help = "Sign with public from address, output, or inscription id."
   )]
-  sign_with: Signer,
+  signer: Signer,
   #[arg(long, help = "Sign <TEXT>.")]
   text: Option<String>,
   #[arg(long, help = "Sign contents of <FILE>.")]
@@ -30,7 +30,7 @@ pub(crate) struct Sign {
 
 impl Sign {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let address = match &self.sign_with {
+    let address = match &self.signer {
       Signer::Address(address) => address.clone().require_network(wallet.chain().network())?,
       Signer::Inscription(inscription) => Address::from_str(
         &wallet
