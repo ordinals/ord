@@ -111,8 +111,6 @@ impl Burn {
       65,
     );
 
-    eprintln!("tx len: {}", unsigned_transaction.base_size());
-
     let (txid, psbt, fee) =
       wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run, Some(value))?;
 
