@@ -20,10 +20,10 @@ fn sign() {
 
   let address = addresses.first_key_value().unwrap().0;
 
-  let message = "HelloWorld";
+  let text = "HelloWorld";
 
   let sign = CommandBuilder::new(format!(
-    "wallet sign --address {} --message {message}",
+    "wallet sign --address {} --text {text}",
     address.clone().assume_checked(),
   ))
   .core(&core)
@@ -31,10 +31,9 @@ fn sign() {
   .run_and_deserialize_output::<SignOutput>();
 
   assert_eq!(address, &sign.address);
-  assert_eq!(message, &sign.message.unwrap());
 
   CommandBuilder::new(format!(
-    "verify --address {} --message {message} --witness {}",
+    "verify --address {} --text {text} --witness {}",
     address.clone().assume_checked(),
     sign.witness,
   ))
@@ -70,7 +69,6 @@ fn sign_file() {
   .run_and_deserialize_output::<SignOutput>();
 
   assert_eq!(address, &sign.address);
-  assert!(sign.message.is_none());
 
   CommandBuilder::new(format!(
     "verify --address {} --file hello.txt --witness {}",
@@ -112,18 +110,14 @@ fn sign_for_inscription() {
     .ord(&ord)
     .run_and_deserialize_output::<BTreeMap<Address<NetworkUnchecked>, Vec<AddressesOutput>>>();
 
-  let message = "HelloWorld";
+  let text = "HelloWorld";
 
-  let sign = CommandBuilder::new(format!(
-    "wallet sign --inscription {inscription} --message {message}",
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<SignOutput>();
+  let sign = CommandBuilder::new(format!("wallet sign --signer {inscription} --text {text}",))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<SignOutput>();
 
   assert!(addresses.contains_key(&sign.address));
-  assert_eq!(message, &sign.message.unwrap());
-  assert_eq!(inscription, sign.inscription.unwrap());
 }
 
 #[test]
@@ -143,14 +137,12 @@ fn sign_for_output() {
 
   let output = addresses.first_key_value().unwrap().1[0].output;
 
-  let message = "HelloWorld";
+  let text = "HelloWorld";
 
-  let sign = CommandBuilder::new(format!("wallet sign --output {output} --message {message}",))
+  let sign = CommandBuilder::new(format!("wallet sign --output {output} --text {text}",))
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<SignOutput>();
 
   assert!(addresses.contains_key(&sign.address));
-  assert_eq!(message, &sign.message.unwrap());
-  assert_eq!(output, sign.output.unwrap());
 }
