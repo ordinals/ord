@@ -39,7 +39,7 @@ impl Sign {
           .ok_or_else(|| anyhow!("inscription {inscription} not in wallet"))?
           .address
           .clone()
-          .ok_or_else(|| anyhow!("inscription {inscription} in an output without address"))?,
+          .ok_or_else(|| anyhow!("inscription {inscription} in output without address"))?,
       )?
       .require_network(wallet.chain().network())?,
       Signer::Output(output) => wallet.chain().address_from_script(
