@@ -81,7 +81,7 @@ impl Send {
     };
 
     let (txid, psbt, fee) =
-      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
+      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run, None)?;
 
     Ok(Some(Box::new(Output {
       txid,
