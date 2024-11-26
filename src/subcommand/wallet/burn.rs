@@ -104,11 +104,10 @@ impl Burn {
       script_pubkey,
     )?;
 
+    let base_size = unsigned_transaction.base_size();
     assert!(
-      unsigned_transaction.base_size() >= 65,
-      "transaction base size less than minimum standard tx nonwitness size: {} < {}",
-      unsigned_transaction.base_size(),
-      65,
+      base_size >= 65,
+      "transaction base size less than minimum standard tx nonwitness size: {base_size} < 65",
     );
 
     let (txid, psbt, fee) =
