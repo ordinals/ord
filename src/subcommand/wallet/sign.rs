@@ -19,7 +19,7 @@ group(
 pub(crate) struct Sign {
   #[arg(
     long,
-    help = "Sign with public associated with address, output, or inscription."
+    help = "Sign with public key associated with address, output, or inscription."
   )]
   signer: Signer,
   #[arg(long, help = "Sign <TEXT>.")]
