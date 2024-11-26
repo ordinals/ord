@@ -1,7 +1,6 @@
 use super::*;
 
 #[derive(Debug, PartialEq, Clone, DeserializeFromStr)]
-// #[derive(Debug, PartialEq, Clone, DeserializeFromStr, SerializeDisplay)]
 pub enum Signer {
   Address(Address<NetworkUnchecked>),
   Inscription(InscriptionId),
