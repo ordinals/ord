@@ -122,9 +122,9 @@ mod tests {
   <dt>turbo</dt>
   <dd>true</dd>
   <dt>etching</dt>
-  <dd><a class=monospace href=/tx/0{64}>0{64}</a></dd>
+  <dd><a class=collapse href=/tx/0{64}>0{64}</a></dd>
   <dt>parent</dt>
-  <dd><a class=monospace href=/inscription/0{64}i0>0{64}i0</a></dd>
+  <dd><a class=collapse href=/inscription/0{64}i0>0{64}i0</a></dd>
 </dl>
 "
     );

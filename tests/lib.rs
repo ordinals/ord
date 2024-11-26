@@ -4,14 +4,14 @@ use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bitcoin::{
     address::{Address, NetworkUnchecked},
-    Amount, Network, OutPoint, Sequence, Txid, Witness,
+    opcodes, script, Amount, Network, OutPoint, Sequence, TxOut, Txid, Witness,
   },
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   mockcore::TransactionTemplate,
   ord::{
-    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, wallet::batch,
-    wallet::ListDescriptorsResult, InscriptionId, RuneEntry,
+    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, templates::InscriptionHtml,
+    wallet::batch, wallet::ListDescriptorsResult, Inscription, InscriptionId, RuneEntry,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
@@ -368,9 +368,9 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   <dt>turbo</dt>
   <dd>{turbo}</dd>
   <dt>etching</dt>
-  <dd><a class=monospace href=/tx/{reveal}>{reveal}</a></dd>
+  <dd><a class=collapse href=/tx/{reveal}>{reveal}</a></dd>
   <dt>parent</dt>
-  <dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>
+  <dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>
 .*",
       mint_definition.join("\\s+"),
     ),

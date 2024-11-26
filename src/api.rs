@@ -110,6 +110,7 @@ pub struct Inscription {
   pub satpoint: SatPoint,
   pub timestamp: i64,
   pub value: Option<u64>,
+  pub metaprotocol: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -155,6 +156,7 @@ pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
   pub inscriptions: Vec<InscriptionId>,
+  pub outpoint: OutPoint,
   pub runes: BTreeMap<SpacedRune, Pile>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub script_pubkey: ScriptBuf,
@@ -181,6 +183,7 @@ impl Output {
         .map(|address| uncheck(&address)),
       indexed,
       inscriptions,
+      outpoint,
       runes,
       sat_ranges,
       script_pubkey: tx_out.script_pubkey,
@@ -193,6 +196,7 @@ impl Output {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Sat {
+  pub address: Option<String>,
   pub block: u32,
   pub charms: Vec<Charm>,
   pub cycle: u32,
