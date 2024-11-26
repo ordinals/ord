@@ -778,6 +778,14 @@ impl Wallet {
         .hex
         .ok_or_else(|| anyhow!("unable to sign transaction"))?;
 
+      {
+        let tx =
+          Transaction::consensus_decode(&mut io::BufReader::new(Cursor::new(signed_tx.clone())))
+            .unwrap();
+
+        eprintln!("tx length: {}", tx.base_size());
+      }
+
       (self.send_raw_transaction(&signed_tx, burn_amount)?, psbt)
     };
 
