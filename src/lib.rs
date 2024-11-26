@@ -126,7 +126,7 @@ mod re;
 mod representation;
 pub mod runes;
 pub mod settings;
-pub mod signer;
+mod signer;
 pub mod subcommand;
 mod tally;
 pub mod templates;
