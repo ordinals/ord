@@ -29,8 +29,8 @@ pub(crate) struct Verify {
 
 impl Verify {
   pub(crate) fn run(self) -> SubcommandResult {
-    let message = if let Some(message) = &self.text {
-      message.as_bytes()
+    let message = if let Some(text) = &self.text {
+      text.as_bytes()
     } else if let Some(file) = &self.file {
       &fs::read(file)?
     } else {

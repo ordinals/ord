@@ -14,10 +14,14 @@ pub struct Output {
 group(
   ArgGroup::new("input")
     .required(true)
-    .args(&["message", "file"])))
+    .args(&["text", "file"])))
 ]
 pub(crate) struct Sign {
-  signer: Signer,
+  #[arg(
+    long,
+    help = "Sign with either <ADDRESS>, <OUTPUT> or <INSCRIPTION_ID>."
+  )]
+  sign_with: Signer,
   #[arg(long, help = "Sign <TEXT>.")]
   text: Option<String>,
   #[arg(long, help = "Sign contents of <FILE>.")]
@@ -26,12 +30,12 @@ pub(crate) struct Sign {
 
 impl Sign {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let address = match &self.signer {
+    let address = match &self.sign_with {
       Signer::Address(address) => address.clone().require_network(wallet.chain().network())?,
       Signer::Inscription(inscription) => Address::from_str(
         &wallet
           .inscription_info()
-          .get(&inscription)
+          .get(inscription)
           .ok_or_else(|| anyhow!("inscription {inscription} not in wallet"))?
           .address
           .clone()
@@ -41,7 +45,7 @@ impl Sign {
       Signer::Output(output) => wallet.chain().address_from_script(
         &wallet
           .utxos()
-          .get(&output)
+          .get(output)
           .ok_or_else(|| anyhow!("output {output} has no address"))?
           .script_pubkey,
       )?,

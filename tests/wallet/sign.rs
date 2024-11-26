@@ -23,7 +23,7 @@ fn sign() {
   let text = "HelloWorld";
 
   let sign = CommandBuilder::new(format!(
-    "wallet sign --address {} --text {text}",
+    "wallet sign --sign-with {} --text {text}",
     address.clone().assume_checked(),
   ))
   .core(&core)
@@ -60,7 +60,7 @@ fn sign_file() {
   let address = addresses.first_key_value().unwrap().0;
 
   let sign = CommandBuilder::new(format!(
-    "wallet sign --address {} --file hello.txt",
+    "wallet sign --sign-with {} --file hello.txt",
     address.clone().assume_checked(),
   ))
   .write("hello.txt", "Hello World")
@@ -112,10 +112,12 @@ fn sign_for_inscription() {
 
   let text = "HelloWorld";
 
-  let sign = CommandBuilder::new(format!("wallet sign --signer {inscription} --text {text}",))
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<SignOutput>();
+  let sign = CommandBuilder::new(format!(
+    "wallet sign --sign-with {inscription} --text {text}",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<SignOutput>();
 
   assert!(addresses.contains_key(&sign.address));
 }
@@ -139,7 +141,7 @@ fn sign_for_output() {
 
   let text = "HelloWorld";
 
-  let sign = CommandBuilder::new(format!("wallet sign --output {output} --text {text}",))
+  let sign = CommandBuilder::new(format!("wallet sign --sign-with {output} --text {text}",))
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<SignOutput>();
