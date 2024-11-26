@@ -117,6 +117,7 @@ impl FromStr for Charm {
       "lost" => Self::Lost,
       "mythic" => Self::Mythic,
       "nineball" => Self::Nineball,
+      "palindrome" => Self::Palindrome,
       "rare" => Self::Rare,
       "reinscription" => Self::Reinscription,
       "unbound" => Self::Unbound,
