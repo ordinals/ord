@@ -3390,10 +3390,9 @@ curl -s -H "Accept: application/json" \
 ```json
 {
   "blockhash": "00000000000000000000ce2459594de93b8d2f64b809b6c9d7fdd058bf970370",
-  "hex": "0100000000010183572872dcb32bee57003d53c2b8dbb5bc5819ff6478052599",
+  "hex": "0100000000010183572872dcb32bee57003d53c2b8dbb5bc5819ff6478052599...",
   "vin": [
     {
-      "coinbase": "0000000000000000000000000000000000000000000000000000000000000000",
       "txid": "bdc7d178771f919925057864ff1958bcb5dbb8c2533d0057ee2bb3dc72285783",
       "vout": 0
     }
@@ -3403,7 +3402,7 @@ curl -s -H "Accept: application/json" \
       "value": 0.0001,
       "n": 0,
       "scriptPubKey": {
-        "hex": "5120e41e0cba05c6ac797cf543ff9a6c619a91a53813e59146d1e32ea89747b1"
+        "hex": "5120e41e0cba05c6ac797cf543ff9a6c619a91a53813e59146d1e32ea89747b111a6"
       }
     }
   ]

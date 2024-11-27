@@ -4366,7 +4366,7 @@ mod tests {
     test_server.assert_response(
       format!("/r/rawtxinfo/{txid}"),
       StatusCode::OK,
-      "{\"blockhash\":\"56d05060a0280d0712d113f25321158747310ece87ea9e299bde06cf385b8d85\",\"hex\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"vin\":[],\"vout\":[{\"value\":50.0,\"n\":0,\"scriptPubKey\":{\"hex\":\"5120be7cbbe9ca06a7d7b2a17c6b4ff4b85b362cbcd7ee1970daa66dfaa834df\"}}]}"
+      "{\"blockhash\":\"56d05060a0280d0712d113f25321158747310ece87ea9e299bde06cf385b8d85\",\"hex\":\"\",\"vin\":[],\"vout\":[{\"value\":50.0,\"n\":0,\"scriptPubKey\":{\"hex\":\"5120be7cbbe9ca06a7d7b2a17c6b4ff4b85b362cbcd7ee1970daa66dfaa834df59a0\"}}]}"
     );
   }
 
