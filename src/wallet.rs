@@ -563,7 +563,7 @@ impl Wallet {
   }
 
   pub(crate) fn check_version(client: Client) -> Result<Client> {
-    const MIN_VERSION: usize = 240000;
+    const MIN_VERSION: usize = 250000;
 
     let bitcoin_version = client.version()?;
     if bitcoin_version < MIN_VERSION {
@@ -743,6 +743,7 @@ impl Wallet {
     &self,
     unsigned_transaction: Transaction,
     dry_run: bool,
+    burn_amount: Option<Amount>,
   ) -> Result<(Txid, String, u64)> {
     let unspent_outputs = self.utxos();
 
@@ -777,10 +778,7 @@ impl Wallet {
         .hex
         .ok_or_else(|| anyhow!("unable to sign transaction"))?;
 
-      (
-        self.bitcoin_client().send_raw_transaction(&signed_tx)?,
-        psbt,
-      )
+      (self.send_raw_transaction(&signed_tx, burn_amount)?, psbt)
     };
 
     let mut fee = 0;
@@ -796,5 +794,24 @@ impl Wallet {
     }
 
     Ok((txid, psbt, fee))
+  }
+
+  fn send_raw_transaction<R: bitcoincore_rpc::RawTx>(
+    &self,
+    tx: R,
+    burn_amount: Option<Amount>,
+  ) -> Result<Txid> {
+    let mut arguments = vec![tx.raw_hex().into()];
+
+    if let Some(burn_amount) = burn_amount {
+      arguments.push(serde_json::Value::Null);
+      arguments.push(burn_amount.to_btc().into());
+    }
+
+    Ok(
+      self
+        .bitcoin_client()
+        .call("sendrawtransaction", &arguments)?,
+    )
   }
 }

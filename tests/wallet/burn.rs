@@ -33,7 +33,7 @@ fn inscriptions_can_be_burned() {
     <span title=burned>🔥</span>
   </dd>
   <dt>value</dt>
-  <dd>9922</dd>
+  <dd>9918</dd>
   .*
   <dt>content length</dt>
   <dd>3 bytes</dd>
