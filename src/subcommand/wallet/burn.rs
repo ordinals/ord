@@ -65,14 +65,25 @@ impl Burn {
 
     let mut builder = script::Builder::new().push_opcode(opcodes::all::OP_RETURN);
 
-    if let Some(metadata) = metadata {
-      let push: &script::PushBytes = metadata.as_slice().try_into().with_context(|| {
-        format!(
-          "metadata length {} over maximum {}",
-          metadata.len(),
-          u32::MAX
-        )
-      })?;
+    // add empty metadata if none is supplied so we can add padding
+    let metadata = metadata.unwrap_or_default();
+
+    let push: &script::PushBytes = metadata.as_slice().try_into().with_context(|| {
+      format!(
+        "metadata length {} over maximum {}",
+        metadata.len(),
+        u32::MAX
+      )
+    })?;
+    builder = builder.push_slice(push);
+
+    // pad OP_RETURN script to least five bytes to ensure transaction base size
+    // is greater than 64 bytes
+    let padding = 5usize.saturating_sub(builder.as_script().len());
+    if padding > 0 {
+      // subtract one byte push opcode from padding length
+      let padding = vec![0; padding - 1];
+      let push: &script::PushBytes = padding.as_slice().try_into().unwrap();
       builder = builder.push_slice(push);
     }
 
@@ -93,13 +104,19 @@ impl Burn {
       script_pubkey,
     )?;
 
+    let base_size = unsigned_transaction.base_size();
+    assert!(
+      base_size >= 65,
+      "transaction base size less than minimum standard tx nonwitness size: {base_size} < 65",
+    );
+
     let (txid, psbt, fee) =
-      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
+      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run, Some(value))?;
 
     Ok(Some(Box::new(send::Output {
       txid,
       psbt,
-      outgoing: Outgoing::InscriptionId(self.inscription),
+      asset: Outgoing::InscriptionId(self.inscription),
       fee,
     })))
   }
