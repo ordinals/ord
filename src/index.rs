@@ -13,14 +13,13 @@ use {
   },
   super::*,
   crate::{
-    api::RawTransactionInfo,
     runes::MintError,
     subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{
-    json::{GetBlockHeaderResult, GetBlockStatsResult},
+    json::{GetBlockHeaderResult, GetBlockStatsResult, GetRawTransactionResult},
     Client,
   },
   chrono::SubsecRound,
@@ -1590,11 +1589,10 @@ impl Index {
     self.client.get_raw_transaction(&txid, None).into_option()
   }
 
-  pub fn get_raw_transaction_info(&self, txid: Txid) -> Result<Option<RawTransactionInfo>> {
+  pub fn raw_transaction_info(&self, txid: Txid) -> Result<Option<GetRawTransactionResult>> {
     self
       .client
       .get_raw_transaction_info(&txid, None)
-      .map(RawTransactionInfo::from)
       .into_option()
   }
 

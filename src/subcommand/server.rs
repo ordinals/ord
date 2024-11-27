@@ -1088,10 +1088,10 @@ impl Server {
   ) -> ServerResult<Json<RawTransactionInfo>> {
     task::block_in_place(|| {
       let raw_transaction_info = index
-        .get_raw_transaction_info(txid)?
+        .raw_transaction_info(txid)?
         .ok_or_not_found(|| format!("transaction {txid}"))?;
 
-      Ok(Json(raw_transaction_info))
+      Ok(Json(api::RawTransactionInfo::from(raw_transaction_info)))
     })
   }
 
