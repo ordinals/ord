@@ -21,7 +21,7 @@ use {
     inscriptions::{
       inscription_id,
       media::{self, ImageRendering, Media},
-      teleburn, ParsedEnvelope,
+      teleburn,
     },
     into_usize::IntoUsize,
     outgoing::Outgoing,
@@ -93,7 +93,7 @@ pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
   index::{Index, RuneEntry},
-  inscriptions::{Envelope, Inscription, InscriptionId},
+  inscriptions::{Envelope, Inscription, InscriptionId, ParsedEnvelope},
   object::Object,
   options::Options,
   wallet::transaction_builder::{Target, TransactionBuilder},

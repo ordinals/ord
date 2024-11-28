@@ -15,7 +15,7 @@ pub(crate) const BODY_TAG: [u8; 0] = [];
 
 type Result<T> = std::result::Result<T, script::Error>;
 type RawEnvelope = Envelope<Vec<Vec<u8>>>;
-pub(crate) type ParsedEnvelope = Envelope<Inscription>;
+pub type ParsedEnvelope = Envelope<Inscription>;
 
 #[derive(Default, PartialEq, Clone, Serialize, Deserialize, Debug, Eq)]
 pub struct Envelope<T> {
@@ -90,7 +90,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
 }
 
 impl ParsedEnvelope {
-  pub(crate) fn from_transaction(transaction: &Transaction) -> Vec<Self> {
+  pub fn from_transaction(transaction: &Transaction) -> Vec<Self> {
     RawEnvelope::from_transaction(transaction)
       .into_iter()
       .map(|envelope| envelope.into())
