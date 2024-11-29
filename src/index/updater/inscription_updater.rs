@@ -58,7 +58,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) unbound_inscriptions: u64,
 }
 
-impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
+impl InscriptionUpdater<'_, '_> {
   pub(super) fn index_inscriptions(
     &mut self,
     tx: &Transaction,
