@@ -41,7 +41,7 @@ impl Burn {
 
     let metadata = WalletCommand::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
-    let Some(value) = inscription_info.value else {
+    let Some(_) = inscription_info.value else {
       bail!("Cannot burn unbound inscription");
     };
 
@@ -83,6 +83,7 @@ impl Burn {
       inscription_info.satpoint,
       self.fee_rate,
       script_pubkey,
+      None,
     )?;
 
     let base_size = unsigned_transaction.base_size();
@@ -94,7 +95,7 @@ impl Burn {
     let (txid, psbt, fee) = wallet.sign_and_broadcast_transaction(
       unsigned_transaction,
       self.dry_run,
-      Some(Amount::from_sat(value)),
+      Some(Amount::from_sat(1)),
     )?;
 
     Ok(Some(Box::new(send::Output {
@@ -110,6 +111,7 @@ impl Burn {
     satpoint: SatPoint,
     fee_rate: FeeRate,
     script_pubkey: ScriptBuf,
+    burn_amount: Option<Amount>,
   ) -> Result<Transaction> {
     let runic_outputs = wallet.get_runic_outputs()?;
 
@@ -119,7 +121,12 @@ impl Burn {
     );
 
     let change = [wallet.get_change_address()?, wallet.get_change_address()?];
-    let postage = Target::ExactPostage(Amount::from_sat(1));
+
+    let postage = Target::ExactPostage(if let Some(burn_amount) = burn_amount {
+      burn_amount
+    } else {
+      Amount::from_sat(1)
+    });
 
     Ok(
       TransactionBuilder::new(
