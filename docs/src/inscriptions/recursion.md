@@ -3370,26 +3370,6 @@ curl -s -H "Accept: application/json" \
 ```
 </details>
 
-&nbsp;
-&nbsp;
-
-Note: `<SAT_NUMBER>` only allows the actual number of a sat no other sat
-notations like degree, percentile or decimal. We may expand to allow those in
-the future.
-
-Responses from most of the above recursive endpoints are JSON. For backwards
-compatibility, some endpoints are supported which only return
-plain-text responses.
-
-- `/blockheight`: latest block height.
-- `/blockhash`: latest block hash.
-- `/blockhash/<HEIGHT>`: block hash at given block height.
-- `/blocktime`: UNIX time stamp of latest block.
-
-
-See
-[examples](examples.md#recursion) for on-chain examples of inscriptions that feature this functionality.
-
 <details>
   <summary>
     <code>GET</code>
@@ -3414,3 +3394,23 @@ Returns the appropriate mime-type and content of the last inscription created on
 alwaysbebuilding.bitmap
 ```
 </details>
+
+&nbsp;
+&nbsp;
+
+Note: `<SAT_NUMBER>` only allows the actual number of a sat no other sat
+notations like degree, percentile or decimal. We may expand to allow those in
+the future.
+
+Responses from most of the above recursive endpoints are JSON. For backwards
+compatibility, some endpoints are supported which only return
+plain-text responses.
+
+- `/blockheight`: latest block height.
+- `/blockhash`: latest block hash.
+- `/blockhash/<HEIGHT>`: block hash at given block height.
+- `/blocktime`: UNIX time stamp of latest block.
+
+
+See
+[examples](examples.md#recursion) for on-chain examples of inscriptions that feature this functionality.
