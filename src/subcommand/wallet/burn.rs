@@ -45,6 +45,8 @@ impl Burn {
       bail!("Cannot burn unbound inscription");
     };
 
+    let burn_amount = Amount::from_sat(1);
+
     let mut builder = script::Builder::new().push_opcode(opcodes::all::OP_RETURN);
 
     // add empty metadata if none is supplied so we can add padding
@@ -83,7 +85,7 @@ impl Burn {
       inscription_info.satpoint,
       self.fee_rate,
       script_pubkey,
-      None,
+      Some(burn_amount),
     )?;
 
     let base_size = unsigned_transaction.base_size();
@@ -95,7 +97,7 @@ impl Burn {
     let (txid, psbt, fee) = wallet.sign_and_broadcast_transaction(
       unsigned_transaction,
       self.dry_run,
-      Some(Amount::from_sat(1)),
+      Some(burn_amount),
     )?;
 
     Ok(Some(Box::new(send::Output {
