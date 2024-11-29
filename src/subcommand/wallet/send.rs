@@ -12,15 +12,22 @@ pub(crate) struct Send {
     value_name = "AMOUNT"
   )]
   pub(crate) postage: Option<Amount>,
+  #[arg(help = "Recipient address")]
   address: Address<NetworkUnchecked>,
-  outgoing: Outgoing,
+  #[arg(
+    help = "Outgoing asset formatted as a bitcoin amount, rune amount, sat name, satpoint, or \
+    inscription ID. Bitcoin amounts are `DECIMAL UNIT` where `UNIT` is one of \
+    `bit btc cbtc mbtc msat nbtc pbtc sat satoshi ubtc`. Rune amounts are `DECIMAL:RUNE` and \
+    respect divisibility"
+  )]
+  asset: Outgoing,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub txid: Txid,
   pub psbt: String,
-  pub outgoing: Outgoing,
+  pub asset: Outgoing,
   pub fee: u64,
 }
 
@@ -31,7 +38,7 @@ impl Send {
       .clone()
       .require_network(wallet.chain().network())?;
 
-    let unsigned_transaction = match self.outgoing {
+    let unsigned_transaction = match self.asset {
       Outgoing::Amount(amount) => {
         Self::create_unsigned_send_amount_transaction(&wallet, address, amount, self.fee_rate)?
       }
@@ -74,12 +81,12 @@ impl Send {
     };
 
     let (txid, psbt, fee) =
-      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
+      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run, None)?;
 
     Ok(Some(Box::new(Output {
       txid,
       psbt,
-      outgoing: self.outgoing,
+      asset: self.asset,
       fee,
     })))
   }

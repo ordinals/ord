@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct SatHtml {
+  pub(crate) address: Option<Address>,
   pub(crate) blocktime: Blocktime,
   pub(crate) inscriptions: Vec<InscriptionId>,
   pub(crate) sat: Sat,
@@ -22,6 +23,7 @@ mod tests {
   fn first() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -61,6 +63,7 @@ mod tests {
   fn last() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(2099999997689999),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -98,6 +101,7 @@ mod tests {
   fn sat_with_next_and_prev() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(1),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -111,6 +115,7 @@ mod tests {
   fn sat_with_inscription() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -132,6 +137,7 @@ mod tests {
   fn sat_with_reinscription() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -154,6 +160,7 @@ mod tests {
   fn last_sat_next_link_is_disabled() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat::LAST,
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -167,12 +174,27 @@ mod tests {
   fn sat_with_satpoint() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(0),
         satpoint: Some(satpoint(1, 0)),
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
       },
       "<h1>Sat 0</h1>.*<dt>location</dt><dd><a class=collapse href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>.*",
+    );
+  }
+
+  #[test]
+  fn sat_with_address() {
+    assert_regex_match!(
+      SatHtml {
+        address: Some(address(0)),
+        sat: Sat(0),
+        satpoint: Some(satpoint(1, 0)),
+        blocktime: Blocktime::confirmed(0),
+        inscriptions: Vec::new(),
+      },
+      "<h1>Sat 0</h1>.*<dt>address</dt><dd class=monospace><a href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>.*",
     );
   }
 }

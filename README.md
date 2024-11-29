@@ -129,7 +129,7 @@ cargo build --release
 
 Once built, the `ord` binary can be found at `./target/release/ord`.
 
-`ord` requires `rustc` version 1.76.0 or later. Run `rustc --version` to ensure
+`ord` requires `rustc` version 1.79.0 or later. Run `rustc --version` to ensure
 you have this version. Run `rustup update` to get the latest stable release.
 
 ### Docker
