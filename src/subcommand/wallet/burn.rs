@@ -28,12 +28,6 @@ pub struct Burn {
     you understand the implications."
   )]
   no_limit: bool,
-  #[arg(
-    long,
-    help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]",
-    value_name = "AMOUNT"
-  )]
-  postage: Option<Amount>,
   inscription: InscriptionId,
 }
 
@@ -47,21 +41,10 @@ impl Burn {
 
     let metadata = WalletCommand::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
-    let Some(value) = inscription_info.value else {
-      bail!("Cannot burn unbound inscription");
-    };
-
-    let value = Amount::from_sat(value);
-
-    ensure! {
-      value <= TARGET_POSTAGE,
-      "Cannot burn inscription contained in UTXO exceeding {TARGET_POSTAGE}",
-    }
-
-    ensure! {
-      self.postage.unwrap_or_default() <= TARGET_POSTAGE,
-      "Postage may not exceed {TARGET_POSTAGE}",
-    }
+    ensure!(
+      inscription_info.value.is_some(),
+      "Cannot burn unbound inscription"
+    );
 
     let mut builder = script::Builder::new().push_opcode(opcodes::all::OP_RETURN);
 
@@ -96,12 +79,14 @@ impl Burn {
       MAX_STANDARD_OP_RETURN_SIZE,
     );
 
+    let burn_amount = Amount::from_sat(1);
+
     let unsigned_transaction = Self::create_unsigned_burn_transaction(
       &wallet,
       inscription_info.satpoint,
-      self.postage,
       self.fee_rate,
       script_pubkey,
+      burn_amount,
     )?;
 
     let base_size = unsigned_transaction.base_size();
@@ -110,8 +95,11 @@ impl Burn {
       "transaction base size less than minimum standard tx nonwitness size: {base_size} < 65",
     );
 
-    let (txid, psbt, fee) =
-      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run, Some(value))?;
+    let (txid, psbt, fee) = wallet.sign_and_broadcast_transaction(
+      unsigned_transaction,
+      self.dry_run,
+      Some(burn_amount),
+    )?;
 
     Ok(Some(Box::new(send::Output {
       txid,
@@ -124,9 +112,9 @@ impl Burn {
   fn create_unsigned_burn_transaction(
     wallet: &Wallet,
     satpoint: SatPoint,
-    postage: Option<Amount>,
     fee_rate: FeeRate,
     script_pubkey: ScriptBuf,
+    burn_amount: Amount,
   ) -> Result<Transaction> {
     let runic_outputs = wallet.get_runic_outputs()?;
 
@@ -136,8 +124,6 @@ impl Burn {
     );
 
     let change = [wallet.get_change_address()?, wallet.get_change_address()?];
-
-    let postage = postage.map(Target::ExactPostage).unwrap_or(Target::Postage);
 
     Ok(
       TransactionBuilder::new(
@@ -149,7 +135,7 @@ impl Burn {
         script_pubkey,
         change,
         fee_rate,
-        postage,
+        Target::ExactPostage(burn_amount),
         wallet.chain().network(),
       )
       .build_transaction()?,
