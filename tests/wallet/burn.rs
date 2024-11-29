@@ -139,7 +139,6 @@ fn burns_only_one_sat() {
     }
   );
 
-  // command mines 2 more blocks
   let (inscription, _) = inscribe_with_postage(&core, &ord, Some(100_000));
 
   CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription}",))
@@ -150,7 +149,7 @@ fn burns_only_one_sat() {
   core.mine_blocks(1);
 
   // 4 block rewards - 1 burned sat
-  let expected_balance = 200 * COIN_VALUE - 1;
+  let expected_balance = 4 * 50 * COIN_VALUE - 1;
 
   assert_eq!(
     CommandBuilder::new("wallet balance")
