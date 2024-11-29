@@ -95,6 +95,7 @@ impl redb::Value for &UtxoEntry {
     = &'a UtxoEntry
   where
     Self: 'a;
+
   type AsBytes<'a>
     = &'a [u8]
   where
