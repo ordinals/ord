@@ -79,12 +79,14 @@ impl Burn {
       MAX_STANDARD_OP_RETURN_SIZE,
     );
 
+    let burn_amount = Amount::from_sat(1);
+
     let unsigned_transaction = Self::create_unsigned_burn_transaction(
       &wallet,
       inscription_info.satpoint,
       self.fee_rate,
       script_pubkey,
-      Amount::from_sat(1),
+      burn_amount,
     )?;
 
     let base_size = unsigned_transaction.base_size();
@@ -96,7 +98,7 @@ impl Burn {
     let (txid, psbt, fee) = wallet.sign_and_broadcast_transaction(
       unsigned_transaction,
       self.dry_run,
-      Some(Amount::from_sat(1)),
+      Some(burn_amount),
     )?;
 
     Ok(Some(Box::new(send::Output {
