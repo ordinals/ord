@@ -3391,7 +3391,7 @@ curl -s -H "Accept: application/json" \
 
 Returns the appropriate mime-type and content of the last inscription created on the queried satoshi.
 ```
-alwaysbebuilding.bitmap
+alwaysbebuilding.bitmap 👷🏗️🟧🌌
 ```
 </details>
 
