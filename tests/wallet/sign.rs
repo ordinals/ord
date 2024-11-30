@@ -20,10 +20,10 @@ fn sign() {
 
   let address = addresses.first_key_value().unwrap().0;
 
-  let message = "HelloWorld";
+  let text = "HelloWorld";
 
   let sign = CommandBuilder::new(format!(
-    "wallet sign --address {} --message {message}",
+    "wallet sign --signer {} --text {text}",
     address.clone().assume_checked(),
   ))
   .core(&core)
@@ -31,10 +31,9 @@ fn sign() {
   .run_and_deserialize_output::<SignOutput>();
 
   assert_eq!(address, &sign.address);
-  assert_eq!(message, &sign.message.unwrap());
 
   CommandBuilder::new(format!(
-    "verify --address {} --message {message} --witness {}",
+    "verify --address {} --text {text} --witness {}",
     address.clone().assume_checked(),
     sign.witness,
   ))
@@ -61,7 +60,7 @@ fn sign_file() {
   let address = addresses.first_key_value().unwrap().0;
 
   let sign = CommandBuilder::new(format!(
-    "wallet sign --address {} --file hello.txt",
+    "wallet sign --signer {} --file hello.txt",
     address.clone().assume_checked(),
   ))
   .write("hello.txt", "Hello World")
@@ -70,7 +69,6 @@ fn sign_file() {
   .run_and_deserialize_output::<SignOutput>();
 
   assert_eq!(address, &sign.address);
-  assert!(sign.message.is_none());
 
   CommandBuilder::new(format!(
     "verify --address {} --file hello.txt --witness {}",
@@ -93,4 +91,58 @@ fn sign_file() {
   .expected_exit_code(1)
   .stderr_regex("error: Invalid signature.*")
   .run_and_extract_stdout();
+}
+
+#[test]
+fn sign_for_inscription() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, _reveal) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let addresses = CommandBuilder::new("wallet addresses")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<BTreeMap<Address<NetworkUnchecked>, Vec<AddressesOutput>>>();
+
+  let text = "HelloWorld";
+
+  let sign = CommandBuilder::new(format!("wallet sign --signer {inscription} --text {text}",))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<SignOutput>();
+
+  assert!(addresses.contains_key(&sign.address));
+}
+
+#[test]
+fn sign_for_output() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let addresses = CommandBuilder::new("wallet addresses")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<BTreeMap<Address<NetworkUnchecked>, Vec<AddressesOutput>>>();
+
+  let output = addresses.first_key_value().unwrap().1[0].output;
+
+  let text = "HelloWorld";
+
+  let sign = CommandBuilder::new(format!("wallet sign --signer {output} --text {text}",))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<SignOutput>();
+
+  assert!(addresses.contains_key(&sign.address));
 }
