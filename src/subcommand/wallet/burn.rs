@@ -28,68 +28,93 @@ pub struct Burn {
     you understand the implications."
   )]
   no_limit: bool,
-  inscription: InscriptionId,
+  asset: Outgoing,
 }
 
 impl Burn {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    let inscription_info = wallet
-      .inscription_info()
-      .get(&self.inscription)
-      .ok_or_else(|| anyhow!("inscription {} not found", self.inscription))?
-      .clone();
+    let (unsigned_transaction, burn_amount) = match self.asset {
+      Outgoing::InscriptionId(id) => {
+        let inscription_info = wallet
+          .inscription_info()
+          .get(&id)
+          .ok_or_else(|| anyhow!("inscription {id} not found"))?
+          .clone();
 
-    let metadata = WalletCommand::parse_metadata(self.cbor_metadata, self.json_metadata)?;
+        let metadata = WalletCommand::parse_metadata(self.cbor_metadata, self.json_metadata)?;
 
-    ensure!(
-      inscription_info.value.is_some(),
-      "Cannot burn unbound inscription"
-    );
+        ensure!(
+          inscription_info.value.is_some(),
+          "Cannot burn unbound inscription"
+        );
 
-    let mut builder = script::Builder::new().push_opcode(opcodes::all::OP_RETURN);
+        let mut builder = script::Builder::new().push_opcode(opcodes::all::OP_RETURN);
 
-    // add empty metadata if none is supplied so we can add padding
-    let metadata = metadata.unwrap_or_default();
+        // add empty metadata if none is supplied so we can add padding
+        let metadata = metadata.unwrap_or_default();
 
-    let push: &script::PushBytes = metadata.as_slice().try_into().with_context(|| {
-      format!(
-        "metadata length {} over maximum {}",
-        metadata.len(),
-        u32::MAX
-      )
-    })?;
-    builder = builder.push_slice(push);
+        let push: &script::PushBytes = metadata.as_slice().try_into().with_context(|| {
+          format!(
+            "metadata length {} over maximum {}",
+            metadata.len(),
+            u32::MAX
+          )
+        })?;
+        builder = builder.push_slice(push);
 
-    // pad OP_RETURN script to least five bytes to ensure transaction base size
-    // is greater than 64 bytes
-    let padding = 5usize.saturating_sub(builder.as_script().len());
-    if padding > 0 {
-      // subtract one byte push opcode from padding length
-      let padding = vec![0; padding - 1];
-      let push: &script::PushBytes = padding.as_slice().try_into().unwrap();
-      builder = builder.push_slice(push);
-    }
+        // pad OP_RETURN script to least five bytes to ensure transaction base size
+        // is greater than 64 bytes
+        let padding = 5usize.saturating_sub(builder.as_script().len());
+        if padding > 0 {
+          // subtract one byte push opcode from padding length
+          let padding = vec![0; padding - 1];
+          let push: &script::PushBytes = padding.as_slice().try_into().unwrap();
+          builder = builder.push_slice(push);
+        }
 
-    let script_pubkey = builder.into_script();
+        let script_pubkey = builder.into_script();
 
-    ensure!(
-      self.no_limit || script_pubkey.len() <= MAX_STANDARD_OP_RETURN_SIZE,
-      "OP_RETURN with metadata larger than maximum: {} > {}",
-      script_pubkey.len(),
-      MAX_STANDARD_OP_RETURN_SIZE,
-    );
+        ensure!(
+          self.no_limit || script_pubkey.len() <= MAX_STANDARD_OP_RETURN_SIZE,
+          "OP_RETURN with metadata larger than maximum: {} > {}",
+          script_pubkey.len(),
+          MAX_STANDARD_OP_RETURN_SIZE,
+        );
 
-    let burn_amount = Amount::from_sat(1);
+        let burn_amount = Amount::from_sat(1);
 
-    let unsigned_transaction = Self::create_unsigned_burn_transaction(
-      &wallet,
-      inscription_info.satpoint,
-      self.fee_rate,
-      script_pubkey,
-      burn_amount,
-    )?;
+        (
+          Self::create_unsigned_burn_satpoint_transaction(
+            &wallet,
+            inscription_info.satpoint,
+            self.fee_rate,
+            script_pubkey,
+            burn_amount,
+          )?,
+          burn_amount,
+        )
+      }
+      Outgoing::Rune { decimal, rune } => {
+        ensure!(
+          self.cbor_metadata.is_none(),
+          "metadata not supported for burning runes"
+        );
+
+        ensure!(
+          self.json_metadata.is_none(),
+          "metadata not supported for burning runes"
+        );
+
+        (
+          Self::create_unsigned_burn_runes_transaction(&wallet, rune, decimal, self.fee_rate)?,
+          Amount::ZERO,
+        )
+      }
+      _ => unreachable!(),
+    };
 
     let base_size = unsigned_transaction.base_size();
+
     assert!(
       base_size >= 65,
       "transaction base size less than minimum standard tx nonwitness size: {base_size} < 65",
@@ -104,12 +129,12 @@ impl Burn {
     Ok(Some(Box::new(send::Output {
       txid,
       psbt,
-      asset: Outgoing::InscriptionId(self.inscription),
+      asset: self.asset,
       fee,
     })))
   }
 
-  fn create_unsigned_burn_transaction(
+  fn create_unsigned_burn_satpoint_transaction(
     wallet: &Wallet,
     satpoint: SatPoint,
     fee_rate: FeeRate,
@@ -140,5 +165,144 @@ impl Burn {
       )
       .build_transaction()?,
     )
+  }
+
+  fn create_unsigned_burn_runes_transaction(
+    wallet: &Wallet,
+    spaced_rune: SpacedRune,
+    decimal: Decimal,
+    fee_rate: FeeRate,
+  ) -> Result<Transaction> {
+    ensure!(
+      wallet.has_rune_index(),
+      "sending runes with `ord send` requires index created with `--index-runes` flag",
+    );
+
+    wallet.lock_non_cardinal_outputs()?;
+
+    let (id, entry, _parent) = wallet
+      .get_rune(spaced_rune.rune)?
+      .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
+
+    let amount = decimal.to_integer(entry.divisibility)?;
+
+    let inscribed_outputs = wallet
+      .inscriptions()
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<HashSet<OutPoint>>();
+
+    let balances = wallet
+      .get_runic_outputs()?
+      .into_iter()
+      .filter(|output| !inscribed_outputs.contains(output))
+      .map(|output| {
+        wallet.get_runes_balances_in_output(&output).map(|balance| {
+          (
+            output,
+            balance
+              .into_iter()
+              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
+              .collect(),
+          )
+        })
+      })
+      .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, u128>>>>()?;
+
+    let mut inputs = Vec::new();
+    let mut input_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
+
+    for (output, runes) in balances {
+      if let Some(balance) = runes.get(&spaced_rune.rune) {
+        if *balance > 0 {
+          for (rune, balance) in runes {
+            *input_rune_balances.entry(rune).or_default() += balance;
+          }
+
+          inputs.push(output);
+
+          if input_rune_balances
+            .get(&spaced_rune.rune)
+            .cloned()
+            .unwrap_or_default()
+            >= amount
+          {
+            break;
+          }
+        }
+      }
+    }
+
+    let input_rune_balance = input_rune_balances
+      .get(&spaced_rune.rune)
+      .cloned()
+      .unwrap_or_default();
+
+    let needs_runes_change_output = input_rune_balance > amount || input_rune_balances.len() > 1;
+
+    ensure! {
+      input_rune_balance >= amount,
+      "insufficient `{}` balance, only {} in wallet",
+      spaced_rune,
+      Pile {
+        amount: input_rune_balance,
+        divisibility: entry.divisibility,
+        symbol: entry.symbol
+      },
+    }
+
+    let runestone = Runestone {
+      edicts: vec![Edict {
+        amount,
+        id,
+        output: 0,
+      }],
+      ..default()
+    };
+
+    let unfunded_transaction = Transaction {
+      version: Version(2),
+      lock_time: LockTime::ZERO,
+      input: inputs
+        .into_iter()
+        .map(|previous_output| TxIn {
+          previous_output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::MAX,
+          witness: Witness::new(),
+        })
+        .collect(),
+      output: if needs_runes_change_output {
+        vec![
+          TxOut {
+            script_pubkey: runestone.encipher(),
+            value: Amount::from_sat(0),
+          },
+          TxOut {
+            script_pubkey: wallet.get_change_address()?.script_pubkey(),
+            value: TARGET_POSTAGE,
+          },
+        ]
+      } else {
+        vec![TxOut {
+          script_pubkey: runestone.encipher(),
+          value: Amount::from_sat(0),
+        }]
+      },
+    };
+
+    let unsigned_transaction =
+      fund_raw_transaction(wallet.bitcoin_client(), fee_rate, &unfunded_transaction)?;
+
+    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+
+    if needs_runes_change_output {
+      assert_eq!(
+        Runestone::decipher(&unsigned_transaction),
+        Some(Artifact::Runestone(runestone)),
+      );
+    }
+
+    Ok(unsigned_transaction)
   }
 }
