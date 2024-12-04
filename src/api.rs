@@ -89,6 +89,13 @@ pub struct ChildInscriptions {
   pub page: usize,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ParentInscriptions {
+  pub parents: Vec<ParentInscriptionRecursive>,
+  pub more: bool,
+  pub page: usize,
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Inscription {
   pub address: Option<String>,
@@ -130,6 +137,8 @@ pub struct InscriptionRecursive {
   pub value: Option<u64>,
   pub address: Option<String>,
 }
+
+pub type ParentInscriptionRecursive = ChildInscriptionRecursive;
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct ChildInscriptionRecursive {
