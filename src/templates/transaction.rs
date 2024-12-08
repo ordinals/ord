@@ -5,6 +5,7 @@ pub struct TransactionHtml {
   pub chain: Chain,
   pub etching: Option<SpacedRune>,
   pub inscription_count: u32,
+  pub runestone: Option<Runestone>,
   pub transaction: Transaction,
   pub txid: Txid,
 }
