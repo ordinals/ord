@@ -240,6 +240,7 @@ impl Server {
           "/r/inscription/:inscription_id",
           get(Self::inscription_recursive),
         )
+        .route("/r/charms", get(Self::charms))
         .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
           "/r/children/:inscription_id/:page",
@@ -1866,6 +1867,17 @@ impl Server {
         StatusCode::NOT_FOUND.into_response()
       })
     })
+  }
+
+  async fn charms() -> ServerResult {
+    let charms_map = serde_json::Map::from_iter(Charm::ALL.iter().map(|charm| {
+      (
+        charm.to_string(),
+        serde_json::Value::String(charm.icon().to_string()),
+      )
+    }));
+
+    Ok(Json(serde_json::Value::Object(charms_map)).into_response())
   }
 
   async fn collections(
@@ -6423,6 +6435,33 @@ next
       .get_json::<api::SatInscription>("/r/sat/5000000000/at/111")
       .id
       .is_none());
+  }
+
+  #[test]
+  fn charms_recursive() {
+    let server = TestServer::new();
+
+    let charms_response =
+      server.get_json::<serde_json::Map<String, serde_json::Value>>("/r/charms");
+
+    assert!(!charms_response.is_empty());
+
+    for charm in Charm::ALL {
+      let icon = charm.icon().to_string();
+      let name = charm.to_string();
+      assert_eq!(
+        charms_response.get(&name).and_then(|v| v.as_str()),
+        Some(icon.as_str())
+      );
+    }
+
+    assert_eq!(charms_response.len(), Charm::ALL.len());
+
+    for value in charms_response.values() {
+      assert!(Charm::ALL
+        .iter()
+        .any(|c| c.icon() == value.as_str().unwrap()));
+    }
   }
 
   #[test]
