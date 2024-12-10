@@ -485,7 +485,7 @@ fn burn_rune_with_many_assets_in_wallet() {
 
   core.mine_blocks(1);
 
-  let (inscription, _) = inscribe(&core, &ord);
+  inscribe(&core, &ord);
 
   let rune_0 = Rune(RUNE);
   etch(&core, &ord, rune_0);
