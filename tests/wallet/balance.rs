@@ -174,7 +174,7 @@ fn unsynced_wallet_fails_with_unindexed_output() {
     .ord(&no_sync_ord)
     .core(&core)
     .expected_exit_code(1)
-    .expected_stderr("error: wallet failed to synchronize with `ord server` after 20 attempts\n")
+    .stderr_regex("error: wallet failed to synchronize with `ord server` after 20 attempts\n.*")
     .run_and_extract_stdout();
 
   CommandBuilder::new("wallet --no-sync balance")
