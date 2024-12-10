@@ -33,7 +33,7 @@ fn inscriptions_can_be_burned() {
     <span title=burned>🔥</span>
   </dd>
   <dt>value</dt>
-  <dd>9922</dd>
+  <dd>1</dd>
   .*
   <dt>content length</dt>
   <dd>3 bytes</dd>
@@ -116,7 +116,7 @@ fn runic_outputs_are_protected() {
 }
 
 #[test]
-fn cannot_burn_inscriptions_on_large_utxos() {
+fn burns_only_one_sat() {
   let core = mockcore::spawn();
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
@@ -125,14 +125,45 @@ fn cannot_burn_inscriptions_on_large_utxos() {
 
   core.mine_blocks(1);
 
-  let (inscription, _) = inscribe_with_postage(&core, &ord, Some(10_001));
+  assert_eq!(
+    CommandBuilder::new("wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 50 * COIN_VALUE,
+      ordinal: 0,
+      runic: None,
+      runes: None,
+      total: 50 * COIN_VALUE,
+    }
+  );
+
+  let (inscription, _) = inscribe_with_postage(&core, &ord, Some(100_000));
 
   CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription}",))
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: Cannot burn inscription contained in UTXO exceeding 0.00010000 BTC\n")
-    .expected_exit_code(1)
-    .run_and_extract_stdout();
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  // 4 block rewards - 1 burned sat
+  let expected_balance = 4 * 50 * COIN_VALUE - 1;
+
+  assert_eq!(
+    CommandBuilder::new("wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: expected_balance,
+      ordinal: 0,
+      runic: None,
+      runes: None,
+      total: expected_balance,
+    }
+  );
 }
 
 #[test]
@@ -192,30 +223,6 @@ fn cannot_burn_inscription_sharing_utxo_with_another_inscription() {
 }
 
 #[test]
-fn cannot_burn_with_excess_postage() {
-  let core = mockcore::spawn();
-
-  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
-
-  create_wallet(&core, &ord);
-
-  core.mine_blocks(1);
-
-  let (inscription, _) = inscribe(&core, &ord);
-
-  core.mine_blocks(1);
-
-  CommandBuilder::new(format!(
-    "wallet burn --fee-rate 1 {inscription} --postage 10001sat",
-  ))
-  .core(&core)
-  .ord(&ord)
-  .expected_stderr("error: Postage may not exceed 0.00010000 BTC\n")
-  .expected_exit_code(1)
-  .run_and_extract_stdout();
-}
-
-#[test]
 fn json_metadata_can_be_included_when_burning() {
   let core = mockcore::spawn();
 
@@ -258,7 +265,7 @@ fn json_metadata_can_be_included_when_burning() {
       fee: 138,
       id: inscription,
       output: Some(TxOut {
-        value: Amount::from_sat(9907),
+        value: Amount::from_sat(1),
         script_pubkey,
       }),
       height: 3,
@@ -327,7 +334,7 @@ fn cbor_metadata_can_be_included_when_burning() {
       fee: 138,
       id: inscription,
       output: Some(TxOut {
-        value: Amount::from_sat(9907),
+        value: Amount::from_sat(1),
         script_pubkey,
       }),
       height: 3,

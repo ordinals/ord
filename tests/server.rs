@@ -32,6 +32,7 @@ fn run() {
   }
 
   child.kill().unwrap();
+  child.wait().unwrap();
 }
 
 #[test]
@@ -233,52 +234,55 @@ fn inscription_page() {
 
   let (inscription, reveal) = inscribe(&core, &ord);
 
-  let ethereum_teleburn_address = CommandBuilder::new(format!("teleburn {inscription}"))
-    .core(&core)
-    .run_and_deserialize_output::<ord::subcommand::teleburn::Output>()
-    .ethereum;
+  let response = ord.json_request(format!(
+    "/output/{}",
+    OutPoint {
+      txid: reveal,
+      vout: 0
+    }
+  ));
 
-  TestServer::spawn_with_args(&core, &[]).assert_response_regex(
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let output: api::Output = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  TestServer::spawn_with_args(&core, &[]).assert_html(
     format!("/inscription/{inscription}"),
-    format!(
-      ".*<meta property=og:title content='Inscription 0'>.*
-.*<meta property=og:image content='https://.*/favicon.png'>.*
-.*<meta property=twitter:card content=summary>.*
-<h1>Inscription 0</h1>
-.*<iframe .* src=/preview/{inscription}></iframe>.*
-<dl>
-  <dt>id</dt>
-  <dd class=collapse>{inscription}</dd>
-  <dt>address</dt>
-  <dd><a class=collapse href=/address/bc1.*>bc1.*</a></dd>
-  <dt>value</dt>
-  <dd>10000</dd>
-  <dt>preview</dt>
-  <dd><a href=/preview/{inscription}>link</a></dd>
-  <dt>content</dt>
-  <dd><a href=/content/{inscription}>link</a></dd>
-  <dt>content length</dt>
-  <dd>3 bytes</dd>
-  <dt>content type</dt>
-  <dd>text/plain;charset=utf-8</dd>
-  <dt>timestamp</dt>
-  <dd><time>1970-01-01 00:00:02 UTC</time></dd>
-  <dt>height</dt>
-  <dd><a href=/block/2>2</a></dd>
-  <dt>fee</dt>
-  <dd>138</dd>
-  <dt>reveal transaction</dt>
-  <dd><a class=collapse href=/tx/{reveal}>{reveal}</a></dd>
-  <dt>location</dt>
-  <dd><a class=collapse href=/satpoint/{reveal}:0:0>{reveal}:0:0</a></dd>
-  <dt>output</dt>
-  <dd><a class=collapse href=/output/{reveal}:0>{reveal}:0</a></dd>
-  <dt>offset</dt>
-  <dd>0</dd>
-  <dt>ethereum teleburn address</dt>
-  <dd class=collapse>{ethereum_teleburn_address}</dd>
-</dl>.*",
-    ),
+    Chain::Mainnet,
+    InscriptionHtml {
+      chain: Chain::Mainnet,
+      charms: 0,
+      child_count: 0,
+      children: Vec::new(),
+      fee: 138,
+      height: 2,
+      inscription: Inscription {
+        content_type: Some("text/plain;charset=utf-8".as_bytes().into()),
+        body: Some("foo".as_bytes().into()),
+        ..default()
+      },
+      id: inscription,
+      number: 0,
+      next: None,
+      output: Some(TxOut {
+        value: Amount::from_sat(10000),
+        script_pubkey: output.script_pubkey,
+      }),
+      parents: Vec::new(),
+      previous: None,
+      rune: None,
+      sat: None,
+      satpoint: SatPoint {
+        outpoint: OutPoint {
+          txid: reveal,
+          vout: 0,
+        },
+        offset: 0,
+      },
+      timestamp: "1970-01-01 00:00:02+00:00"
+        .parse::<DateTime<Utc>>()
+        .unwrap(),
+    },
   );
 }
 
@@ -738,6 +742,7 @@ fn run_no_sync() {
   }
 
   child.kill().unwrap();
+  child.wait().unwrap();
 
   let builder = CommandBuilder::new(format!(
     "server --no-sync --address 127.0.0.1 --http-port {port}",
@@ -767,6 +772,7 @@ fn run_no_sync() {
   }
 
   child.kill().unwrap();
+  child.wait().unwrap();
 }
 
 #[test]
@@ -811,6 +817,7 @@ fn authentication() {
   assert_eq!(response.status(), 200);
 
   child.kill().unwrap();
+  child.wait().unwrap();
 }
 
 #[cfg(unix)]

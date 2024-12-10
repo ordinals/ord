@@ -7,11 +7,14 @@ use {
 #[command(
   version,
   styles = Styles::styled()
-    .header(AnsiColor::Green.on_default() | Effects::BOLD)
-    .usage(AnsiColor::Green.on_default() | Effects::BOLD)
-    .literal(AnsiColor::Blue.on_default() | Effects::BOLD)
-    .placeholder(AnsiColor::Cyan.on_default()))
-]
+    .error(AnsiColor::Red.on_default() | Effects::BOLD)
+    .header(AnsiColor::Yellow.on_default() | Effects::BOLD)
+    .invalid(AnsiColor::Red.on_default())
+    .literal(AnsiColor::Blue.on_default())
+    .placeholder(AnsiColor::Cyan.on_default())
+    .usage(AnsiColor::Yellow.on_default() | Effects::BOLD)
+    .valid(AnsiColor::Green.on_default()),
+)]
 pub(crate) struct Arguments {
   #[command(flatten)]
   pub(crate) options: Options,

@@ -74,13 +74,13 @@ fn metaprotocol_appears_on_inscription_page() {
 
 #[test]
 fn inscribe_fails_if_bitcoin_core_is_too_old() {
-  let core = mockcore::builder().version(230000).build();
+  let core = mockcore::builder().version(240000).build();
   let ord = TestServer::spawn(&core);
 
   CommandBuilder::new("wallet inscribe --file hello.txt --fee-rate 1")
     .write("hello.txt", "HELLOWORLD")
     .expected_exit_code(1)
-    .expected_stderr("error: Bitcoin Core 24.0.0 or newer required, current version is 23.0.0\n")
+    .expected_stderr("error: Bitcoin Core 25.0.0 or newer required, current version is 24.0.0\n")
     .core(&core)
     .ord(&ord)
     .run_and_extract_stdout();
