@@ -110,7 +110,7 @@ impl Burn {
           Amount::ZERO,
         )
       }
-      _ => unreachable!(),
+      _ => bail!("burning is only implemented for inscriptions and runes"),
     };
 
     let base_size = unsigned_transaction.base_size();
