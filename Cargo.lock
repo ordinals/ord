@@ -2622,7 +2622,7 @@ dependencies = [
 
 [[package]]
 name = "ordinals"
-version = "0.0.12"
+version = "0.0.13"
 dependencies = [
  "bitcoin",
  "derive_more",
