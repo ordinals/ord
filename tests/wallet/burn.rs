@@ -1,3 +1,5 @@
+use ord::decimal::Decimal;
+
 use super::*;
 
 #[test]
@@ -407,4 +409,70 @@ fn oversize_metadata_requires_no_limit_flag() {
   .stderr_regex("error: OP_RETURN with metadata larger than maximum: 84 > 83\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
+}
+
+#[test]
+fn burn_rune() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let rune = Rune(RUNE);
+  etch(&core, &ord, rune);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 500:{rune}",))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 450 * COIN_VALUE - 2 * 10000 + 129,
+      ordinal: 10000,
+      runic: Some(9871),
+      runes: Some(
+        [(
+          SpacedRune { rune, spacers: 0 },
+          Decimal {
+            value: 500,
+            scale: 0
+          }
+        )]
+        .into_iter()
+        .collect()
+      ),
+      total: 450 * COIN_VALUE,
+    }
+  );
+
+  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 500:{rune}",))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 500 * COIN_VALUE - 10000,
+      ordinal: 10000,
+      runic: Some(0),
+      runes: Some(BTreeMap::new()),
+      total: 500 * COIN_VALUE,
+    }
+  );
 }
