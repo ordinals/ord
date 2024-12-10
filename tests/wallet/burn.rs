@@ -1,6 +1,4 @@
-use ord::decimal::Decimal;
-
-use super::*;
+use {super::*, ord::decimal::Decimal};
 
 #[test]
 fn inscriptions_can_be_burned() {
