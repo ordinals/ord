@@ -474,3 +474,127 @@ fn burn_rune() {
     }
   );
 }
+
+#[test]
+fn burn_rune_with_many_assets_in_wallet() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  let rune_0 = Rune(RUNE);
+  etch(&core, &ord, rune_0);
+
+  let rune_1 = Rune(RUNE - 1);
+  etch(&core, &ord, rune_1);
+
+  let rune_2 = Rune(RUNE - 2);
+  etch(&core, &ord, rune_2);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 119999930000,
+      ordinal: 40000,
+      runic: Some(30000),
+      runes: Some(
+        [
+          (
+            SpacedRune {
+              rune: rune_0,
+              spacers: 0
+            },
+            Decimal {
+              value: 1000,
+              scale: 0
+            }
+          ),
+          (
+            SpacedRune {
+              rune: rune_1,
+              spacers: 0
+            },
+            Decimal {
+              value: 1000,
+              scale: 0
+            }
+          ),
+          (
+            SpacedRune {
+              rune: rune_2,
+              spacers: 0
+            },
+            Decimal {
+              value: 1000,
+              scale: 0
+            }
+          )
+        ]
+        .into_iter()
+        .collect()
+      ),
+      total: 24 * 50 * COIN_VALUE,
+    }
+  );
+
+  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 1111:{rune_0}",))
+    .core(&core)
+    .ord(&ord)
+    .expected_exit_code(1)
+    .stderr_regex("error: insufficient `AAAAAAAAAAAAA` balance.*")
+    .run_and_extract_stdout();
+
+  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 1000:{rune_2}",))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 124999940000,
+      ordinal: 40000,
+      runic: Some(20000),
+      runes: Some(
+        [
+          (
+            SpacedRune {
+              rune: rune_0,
+              spacers: 0
+            },
+            Decimal {
+              value: 1000,
+              scale: 0
+            }
+          ),
+          (
+            SpacedRune {
+              rune: rune_1,
+              spacers: 0
+            },
+            Decimal {
+              value: 1000,
+              scale: 0
+            }
+          ),
+        ]
+        .into_iter()
+        .collect()
+      ),
+      total: 25 * 50 * COIN_VALUE,
+    }
+  );
+}
