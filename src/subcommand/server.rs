@@ -6824,8 +6824,14 @@ next
       });
 
       [
-        InscriptionId { txid: txid_a, index: 0 },
-        InscriptionId { txid: txid_b, index: 0 },
+        InscriptionId {
+          txid: txid_a,
+          index: 0,
+        },
+        InscriptionId {
+          txid: txid_b,
+          index: 0,
+        },
       ]
     };
 
@@ -6842,10 +6848,17 @@ next
       ..default()
     });
 
-    let unmined_delegate = InscriptionId { txid: unmined_delegate_tx.compute_txid(), index: 0 };
+    let unmined_delegate = InscriptionId {
+      txid: unmined_delegate_tx.compute_txid(),
+      index: 0,
+    };
 
     let inscription = Inscription {
-      delegates: vec![unmined_delegate.value(), mined_delegates[0].value(), mined_delegates[1].value()],
+      delegates: vec![
+        unmined_delegate.value(),
+        mined_delegates[0].value(),
+        mined_delegates[1].value(),
+      ],
       ..default()
     };
 
@@ -6858,7 +6871,8 @@ next
 
     let id = InscriptionId { txid, index: 0 };
 
-    { // test with first delegate not mined yet
+    {
+      // test with first delegate not mined yet
       let delegate = mined_delegates[0];
 
       server.assert_response_regex(
@@ -6875,7 +6889,7 @@ next
           .*
         </dl>.*"
         )
-          .unindent(),
+        .unindent(),
       );
 
       server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
@@ -6894,7 +6908,8 @@ next
     server.core.broadcast_tx(unmined_delegate_tx);
     server.mine_blocks(1);
 
-    { // test with first delegate not mined yet
+    {
+      // test with first delegate not mined yet
       let delegate = unmined_delegate;
 
       server.assert_response_regex(
@@ -6911,7 +6926,7 @@ next
           .*
         </dl>.*"
         )
-          .unindent(),
+        .unindent(),
       );
 
       server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
@@ -6927,7 +6942,6 @@ next
       );
     }
   }
-
 
   #[test]
   fn undelegated_content() {
