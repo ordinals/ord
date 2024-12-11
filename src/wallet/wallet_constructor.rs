@@ -61,6 +61,7 @@ impl WalletConstructor {
               if err.code == -4 && err.message == "Wallet already loading." =>
             {
               // wallet loading
+              eprint!(".");
               thread::sleep(Duration::from_secs(3));
               continue;
             }
