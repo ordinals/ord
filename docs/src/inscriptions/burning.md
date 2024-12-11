@@ -22,3 +22,8 @@ closing of a collection, or for whatever other purposes you so desire.
 
 Data pushes after the first are currently ignored by `ord`. However, they may
 be given future meaning by the protocol, and should not be used.
+
+For example, transaction
+[b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683](https://mempool.space/tx/b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683)
+burned inscription
+[681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0](https://ordinals.com/inscription/681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0).
