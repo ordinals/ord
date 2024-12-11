@@ -6816,18 +6816,18 @@ next
   fn multiple_delegates() {
     let server = TestServer::builder().chain(Chain::Regtest).build();
 
-    server.mine_blocks(4);
+    server.mine_blocks(5);
 
     let mined_delegates = {
       let delegate_a = Inscription {
         content_type: Some("text/html".into()),
-        body: Some("foo".into()),
+        body: Some("alpha".into()),
         ..default()
       };
 
       let delegate_b = Inscription {
         content_type: Some("text/plain".into()),
-        body: Some("bar".into()),
+        body: Some("bravo".into()),
         ..default()
       };
 
@@ -6855,37 +6855,66 @@ next
 
     server.mine_blocks(1);
 
-    let unmined_delegate_tx = server.core.create_tx_from_template(TransactionTemplate {
-      inputs: &[(
-        3,
-        0,
-        0,
-        Inscription {
-          content_type: Some("text/html".into()),
-          body: Some("baz".into()),
-          ..default()
-        }
-        .to_witness(),
-      )],
-      ..default()
-    });
+    let unmined_delegate_transactions = {
+      let delegate_a = server.core.create_tx_from_template(TransactionTemplate {
+        inputs: &[(
+          3,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/html".into()),
+            body: Some("charlie".into()),
+            ..default()
+          }
+            .to_witness(),
+        )],
+        ..default()
+      });
 
-    let unmined_delegate = InscriptionId {
-      txid: unmined_delegate_tx.compute_txid(),
-      index: 0,
+      let delegate_b = server.core.create_tx_from_template(TransactionTemplate {
+        inputs: &[(
+          4,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("delta".into()),
+            ..default()
+          }
+            .to_witness(),
+        )],
+        ..default()
+      });
+
+      [delegate_a, delegate_b]
     };
+
+    let unmined_delegates = {
+      [
+        InscriptionId {
+          txid: unmined_delegate_transactions[0].compute_txid(),
+          index: 0,
+        },
+        InscriptionId {
+          txid: unmined_delegate_transactions[1].compute_txid(),
+          index: 0,
+        },
+      ]
+    };
+
 
     let inscription = Inscription {
       delegates: vec![
-        unmined_delegate.value(),
-        mined_delegates[0].value(),
-        mined_delegates[1].value(),
+        unmined_delegates[0].value(), // charlie
+        unmined_delegates[1].value(), // delta
+        mined_delegates[0].value(), // alpha
+        mined_delegates[1].value(), // bravo
       ],
       ..default()
     };
 
     let txid = server.core.broadcast_template(TransactionTemplate {
-      inputs: &[(4, 0, 0, inscription.to_witness())],
+      inputs: &[(5, 0, 0, inscription.to_witness())],
       ..default()
     });
 
@@ -6903,7 +6932,7 @@ next
         child_count: 0,
         children: Vec::new(),
         fee: 0,
-        height: 6,
+        height: 7,
         inscription,
         id,
         number: -1,
@@ -6920,35 +6949,58 @@ next
           outpoint: output.outpoint,
           offset: 0,
         },
-        timestamp: "1970-01-01 00:00:06+00:00"
+        timestamp: "1970-01-01 00:00:07+00:00"
           .parse::<DateTime<Utc>>()
           .unwrap(),
       },
     );
 
-    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
-    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "alpha");
+    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "alpha");
 
     assert_eq!(
       server
-        .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
-        .delegates
-        .first(),
-      Some(&unmined_delegate)
+        .get_json::<api::Inscription>(format!("/inscription/{id}"))
+        .effective_content_type,
+      Some("text/html".to_string())
     );
 
-    server.core.broadcast_tx(unmined_delegate_tx);
+    assert_eq!(
+      server
+        .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
+        .delegates
+        .first(),
+      Some(&unmined_delegates[0])
+    );
+
+    server.core.broadcast_tx(unmined_delegate_transactions[1].clone());
     server.mine_blocks(1);
 
-    server.assert_response(format!("/content/{id}"), StatusCode::OK, "baz");
-    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "baz");
+    assert_eq!(
+      server
+        .get_json::<api::Inscription>(format!("/inscription/{id}"))
+        .effective_content_type,
+      Some("text/plain".to_string())
+    );
+
+    server.core.broadcast_tx(unmined_delegate_transactions[0].clone());
+    server.mine_blocks(1);
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "charlie");
+    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "charlie");
+    assert_eq!(
+      server
+        .get_json::<api::Inscription>(format!("/inscription/{id}"))
+        .effective_content_type,
+      Some("text/html".to_string())
+    );
 
     assert_eq!(
       server
         .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
         .delegates
         .first(),
-      Some(&unmined_delegate)
+      Some(&unmined_delegates[0])
     );
   }
 
