@@ -18,8 +18,6 @@ impl Info {
   pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     let index = Index::open(&settings)?;
 
-    index.update()?;
-
     let info = index.info()?;
 
     if self.transactions {
