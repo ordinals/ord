@@ -12,7 +12,7 @@ Summary
   - [Recursion](inscriptions/recursion.md)
   - [Rendering](inscriptions/rendering.md)
   - [URIs](inscriptions/uris.md)
-  - [Burn](inscriptions/burn.md)
+  - [Burning](inscriptions/burning.md)
   - [Examples](inscriptions/examples.md)
 - [Runes](runes.md)
   - [Specification](runes/specification.md)
