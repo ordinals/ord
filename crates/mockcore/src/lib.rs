@@ -263,8 +263,8 @@ impl Handle {
     blocks
   }
 
-  pub fn broadcast_tx(&self, template: TransactionTemplate) -> Txid {
-    self.state().broadcast_tx(template)
+  pub fn broadcast_template(&self, template: TransactionTemplate) -> Txid {
+    self.state().broadcast_template(template)
   }
 
   pub fn height(&self) -> u64 {
