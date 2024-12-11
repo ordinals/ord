@@ -6766,21 +6766,37 @@ next
 
     let id = InscriptionId { txid, index: 0 };
 
-    server.assert_response_regex(
+    let output = server.get_json::<api::Output>(format!("/output/{}", OutPoint { txid, vout: 0 }));
+
+    server.assert_html(
       format!("/inscription/{id}"),
-      StatusCode::OK,
-      format!(
-        ".*<h1>Inscription 1</h1>.*
-        <dl>
-          <dt>id</dt>
-          <dd class=collapse>{id}</dd>
-          .*
-          <dt>delegate</dt>
-          <dd><a href=/inscription/{delegate}>{delegate}</a></dd>
-          .*
-        </dl>.*"
-      )
-      .unindent(),
+      InscriptionHtml {
+        chain: Chain::Regtest,
+        charms: 0,
+        child_count: 0,
+        children: Vec::new(),
+        fee: 0,
+        height: 3,
+        inscription,
+        id,
+        number: 1,
+        next: None,
+        output: Some(TxOut {
+          value: Amount::from_sat(output.value),
+          script_pubkey: output.script_pubkey,
+        }),
+        parents: Vec::new(),
+        previous: Some(delegate),
+        rune: None,
+        sat: None,
+        satpoint: SatPoint {
+          outpoint: output.outpoint,
+          offset: 0,
+        },
+        timestamp: "1970-01-01 00:00:03+00:00"
+          .parse::<DateTime<Utc>>()
+          .unwrap(),
+      },
     );
 
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
@@ -6808,6 +6824,7 @@ next
         body: Some("foo".into()),
         ..default()
       };
+
       let delegate_b = Inscription {
         content_type: Some("text/plain".into()),
         body: Some("bar".into()),
@@ -6818,6 +6835,7 @@ next
         inputs: &[(1, 0, 0, delegate_a.to_witness())],
         ..default()
       });
+
       let txid_b = server.core.broadcast_template(TransactionTemplate {
         inputs: &[(2, 0, 0, delegate_b.to_witness())],
         ..default()
@@ -6837,14 +6855,18 @@ next
 
     server.mine_blocks(1);
 
-    let unmined_inscription = Inscription {
-      content_type: Some("text/html".into()),
-      body: Some("baz".into()),
-      ..default()
-    };
-
     let unmined_delegate_tx = server.core.create_tx_from_template(TransactionTemplate {
-      inputs: &[(3, 0, 0, unmined_inscription.to_witness())],
+      inputs: &[(
+        3,
+        0,
+        0,
+        Inscription {
+          content_type: Some("text/html".into()),
+          body: Some("baz".into()),
+          ..default()
+        }
+        .to_witness(),
+      )],
       ..default()
     });
 
@@ -6871,75 +6893,63 @@ next
 
     let id = InscriptionId { txid, index: 0 };
 
-    {
-      // test with first delegate not mined yet
-      let delegate = mined_delegates[0];
+    let output = server.get_json::<api::Output>(format!("/output/{}", OutPoint { txid, vout: 0 }));
 
-      // server.assert_response_regex(
-      //   format!("/inscription/{id}"),
-      //   StatusCode::OK,
-      //   format!(
-      //     ".*<h1>Inscription 1</h1>.*
-      //   <dl>
-      //     <dt>id</dt>
-      //     <dd class=collapse>{id}</dd>
-      //     .*
-      //     <dt>delegate</dt>
-      //     <dd><a href=/inscription/{delegate}>{delegate}</a></dd>
-      //     .*
-      //   </dl>.*"
-      //   )
-      //     .unindent(),
-      // );
+    server.assert_html(
+      format!("/inscription/{id}"),
+      InscriptionHtml {
+        chain: Chain::Regtest,
+        charms: Charm::Cursed.flag(),
+        child_count: 0,
+        children: Vec::new(),
+        fee: 0,
+        height: 6,
+        inscription,
+        id,
+        number: -1,
+        next: None,
+        output: Some(TxOut {
+          value: Amount::from_sat(output.value),
+          script_pubkey: output.script_pubkey,
+        }),
+        parents: Vec::new(),
+        previous: Some(mined_delegates[1]),
+        rune: None,
+        sat: None,
+        satpoint: SatPoint {
+          outpoint: output.outpoint,
+          offset: 0,
+        },
+        timestamp: "1970-01-01 00:00:06+00:00"
+          .parse::<DateTime<Utc>>()
+          .unwrap(),
+      },
+    );
 
-      server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
-      server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
 
-      // assert_eq!(
-      //   server
-      //     .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
-      //     .delegates
-      //     .first(),
-      //   Some(&delegate)
-      // );
-    }
+    assert_eq!(
+      server
+        .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
+        .delegates
+        .first(),
+      Some(&unmined_delegate)
+    );
 
     server.core.broadcast_tx(unmined_delegate_tx);
     server.mine_blocks(1);
 
-    {
-      // test with first delegate not mined yet
-      let delegate = unmined_delegate;
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "baz");
+    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "baz");
 
-      // server.assert_response_regex(
-      //   format!("/inscription/{id}"),
-      //   StatusCode::OK,
-      //   format!(
-      //     ".*<h1>Inscription 1</h1>.*
-      //   <dl>
-      //     <dt>id</dt>
-      //     <dd class=collapse>{id}</dd>
-      //     .*
-      //     <dt>delegate</dt>
-      //     <dd><a href=/inscription/{delegate}>{delegate}</a></dd>
-      //     .*
-      //   </dl>.*"
-      //   )
-      //     .unindent(),
-      // );
-
-      server.assert_response(format!("/content/{id}"), StatusCode::OK, "baz");
-
-      server.assert_response(format!("/preview/{id}"), StatusCode::OK, "baz");
-
-      assert_eq!(
-        server
-          .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
-          .delegates
-          .first(),
-        Some(&delegate)
-      );
-    }
+    assert_eq!(
+      server
+        .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
+        .delegates
+        .first(),
+      Some(&unmined_delegate)
+    );
   }
 
   #[test]
