@@ -6837,12 +6837,12 @@ next
       ..default()
     };
 
-    let txid_c = server.core.broadcast_template(TransactionTemplate {
+    let unmined_delegate_tx = server.core.create_tx_from_template(TransactionTemplate {
       inputs: &[(3, 0, 0, unmined_delegate.to_witness())],
       ..default()
     });
 
-    let delegate = mined_delegates[0];
+    let unmined_delegate = InscriptionId { txid: unmined_delegate_tx.compute_txid(), index: 0 };
 
     let inscription = Inscription {
       delegates: vec![unmined_delegate.value(), mined_delegates[0].value(), mined_delegates[1].value()],
@@ -6856,13 +6856,15 @@ next
 
     server.mine_blocks(1);
 
-    let id = InscriptionId { txid, index: 0 };
+    { // test with first delegate not mined yet
+      let id = InscriptionId { txid, index: 0 };
+      let delegate = mined_delegates[0];
 
-    server.assert_response_regex(
-      format!("/inscription/{id}"),
-      StatusCode::OK,
-      format!(
-        ".*<h1>Inscription 1</h1>.*
+      server.assert_response_regex(
+        format!("/inscription/{id}"),
+        StatusCode::OK,
+        format!(
+          ".*<h1>Inscription 1</h1>.*
         <dl>
           <dt>id</dt>
           <dd class=collapse>{id}</dd>
@@ -6871,21 +6873,22 @@ next
           <dd><a href=/inscription/{delegate}>{delegate}</a></dd>
           .*
         </dl>.*"
-      )
-        .unindent(),
-    );
+        )
+          .unindent(),
+      );
 
-    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+      server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
-    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+      server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
 
-    assert_eq!(
-      server
-        .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
-        .delegates
-        .first(),
-      Some(&delegate)
-    );
+      assert_eq!(
+        server
+          .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
+          .delegates
+          .first(),
+        Some(&delegate)
+      );
+    }
   }
 
 
