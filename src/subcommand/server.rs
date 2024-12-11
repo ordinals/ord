@@ -6800,7 +6800,7 @@ next
   fn multiple_delegates() {
     let server = TestServer::builder().chain(Chain::Regtest).build();
 
-    server.mine_blocks(3);
+    server.mine_blocks(4);
 
     let mined_delegates = {
       let delegate_a = Inscription {
@@ -6831,14 +6831,14 @@ next
 
     server.mine_blocks(1);
 
-    let unmined_delegate = Inscription {
+    let unmined_inscription = Inscription {
       content_type: Some("application/json".into()),
       body: Some("baz".into()),
       ..default()
     };
 
     let unmined_delegate_tx = server.core.create_tx_from_template(TransactionTemplate {
-      inputs: &[(3, 0, 0, unmined_delegate.to_witness())],
+      inputs: &[(3, 0, 0, unmined_inscription.to_witness())],
       ..default()
     });
 
@@ -6850,15 +6850,52 @@ next
     };
 
     let txid = server.core.broadcast_template(TransactionTemplate {
-      inputs: &[(2, 0, 0, inscription.to_witness())],
+      inputs: &[(4, 0, 0, inscription.to_witness())],
       ..default()
     });
 
     server.mine_blocks(1);
 
+    let id = InscriptionId { txid, index: 0 };
+
     { // test with first delegate not mined yet
-      let id = InscriptionId { txid, index: 0 };
       let delegate = mined_delegates[0];
+
+      server.assert_response_regex(
+        format!("/inscription/{id}"),
+        StatusCode::OK,
+        format!(
+          ".*<h1>Inscription 1</h1>.*
+        <dl>
+          <dt>id</dt>
+          <dd class=collapse>{id}</dd>
+          .*
+          <dt>delegate</dt>
+          <dd><a href=/inscription/{delegate}>{delegate}</a></dd>
+          .*
+        </dl>.*"
+        )
+          .unindent(),
+      );
+
+      server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+
+      server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+
+      assert_eq!(
+        server
+          .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
+          .delegates
+          .first(),
+        Some(&delegate)
+      );
+    }
+
+    server.core.broadcast_tx(unmined_delegate_tx);
+    server.mine_blocks(1);
+
+    { // test with first delegate not mined yet
+      let delegate = unmined_delegate;
 
       server.assert_response_regex(
         format!("/inscription/{id}"),
