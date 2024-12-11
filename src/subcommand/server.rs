@@ -79,6 +79,10 @@ struct Search {
 #[folder = "static"]
 struct StaticAssets;
 
+lazy_static! {
+  static ref REGEX_SAT_AT_INDEX: Regex = Regex::new(r"(?m)r\/sat\/\d+\/at\/-?\d+$").unwrap();
+}
+
 #[derive(Debug, Parser, Clone)]
 pub struct Server {
   #[arg(
@@ -548,8 +552,7 @@ impl Server {
 
       // This is a workaround for the fact the the /r/sat/<SAT_NUMBER>/at/<INDEX>
       // does not return a 404 when no inscription is present on the sat.
-      let regex = Regex::new(r"(?m)r\/sat\/\d+\/at\/-?\d+$").unwrap();
-      if regex.is_match(&path) {
+      if REGEX_SAT_AT_INDEX.is_match(&path) {
         let (parts, body) = response.into_parts();
 
         let bytes = axum::body::to_bytes(body, usize::MAX)
