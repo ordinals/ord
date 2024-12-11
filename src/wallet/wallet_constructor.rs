@@ -71,16 +71,17 @@ impl WalletConstructor {
 
     if !self.no_sync {
       for i in 0.. {
-        let ord_block_count = self
-          .get("/blockcount")?
-          .text()?
-          .parse::<u64>()
-          .expect("wallet failed to talk to server. Make sure `ord server` is running.");
+        let ord_block_count = self.get("/blockcount")?.text()?.parse::<u64>().expect(
+          "wallet failed to retreive block count from server. Make sure `ord server` is running.",
+        );
 
         if ord_block_count >= bitcoin_block_count {
           break;
         } else if i == 20 {
-          bail!("wallet failed to synchronize with `ord server` after {i} attempts\n`ord` still catching up with Bitcoin Core ({ord_block_count} < {bitcoin_block_count})\nUse `--no-sync` to skip synchronization");
+          bail!(
+            "`ord server` {} blocks behind `bitcoind`, consider using `--no-sync` to ignore this error",
+            bitcoin_block_count - ord_block_count
+          );
         }
         std::thread::sleep(Duration::from_millis(50));
       }
