@@ -32,6 +32,7 @@ fn run() {
   }
 
   child.kill().unwrap();
+  child.wait().unwrap();
 }
 
 #[test]
@@ -741,6 +742,7 @@ fn run_no_sync() {
   }
 
   child.kill().unwrap();
+  child.wait().unwrap();
 
   let builder = CommandBuilder::new(format!(
     "server --no-sync --address 127.0.0.1 --http-port {port}",
@@ -770,6 +772,7 @@ fn run_no_sync() {
   }
 
   child.kill().unwrap();
+  child.wait().unwrap();
 }
 
 #[test]
@@ -814,6 +817,7 @@ fn authentication() {
   assert_eq!(response.status(), 200);
 
   child.kill().unwrap();
+  child.wait().unwrap();
 }
 
 #[cfg(unix)]
