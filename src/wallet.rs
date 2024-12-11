@@ -682,7 +682,8 @@ impl Wallet {
       {
         let database = Database::builder().create(&path)?;
 
-        let tx = database.begin_write()?;
+        let mut tx = database.begin_write()?;
+        tx.set_quick_repair(true);
 
         tx.open_table(RUNE_TO_ETCHING)?;
 
@@ -706,7 +707,8 @@ impl Wallet {
     reveal: &Transaction,
     output: batch::Output,
   ) -> Result {
-    let wtx = self.database.begin_write()?;
+    let mut wtx = self.database.begin_write()?;
+    wtx.set_quick_repair(true);
 
     wtx.open_table(RUNE_TO_ETCHING)?.insert(
       rune.0,
@@ -735,7 +737,8 @@ impl Wallet {
   }
 
   pub(crate) fn clear_etching(&self, rune: Rune) -> Result {
-    let wtx = self.database.begin_write()?;
+    let mut wtx = self.database.begin_write()?;
+    wtx.set_quick_repair(true);
 
     wtx.open_table(RUNE_TO_ETCHING)?.remove(rune.0)?;
     wtx.commit()?;

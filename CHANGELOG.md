@@ -1,6 +1,41 @@
 Changelog
 =========
 
+[0.22.0](https://github.com/ordinals/ord/releases/tag/0.22.0) - 2024-12-10
+--------------------------------------------------------------------------
+
+### Added
+- Sign for inscription and output ([#4027](https://github.com/ordinals/ord/pull/4027) by [raphjaph](https://github.com/raphjaph))
+- Document Inscription URIs ([#4098](https://github.com/ordinals/ord/pull/4098) by [casey](https://github.com/casey))
+- Show rune unlock height ([#3580](https://github.com/ordinals/ord/pull/3580) by [raphjaph](https://github.com/raphjaph))
+- Add field metaprotocol to api::Inscription ([#4047](https://github.com/ordinals/ord/pull/4047) by [kbehouse](https://github.com/kbehouse))
+- Show sat owner address when present ([#4016](https://github.com/ordinals/ord/pull/4016) by [lifofifoX](https://github.com/lifofifoX))
+
+### Changed
+- Only burn one sat ([#4063](https://github.com/ordinals/ord/pull/4063) by [onchainguy-btc](https://github.com/onchainguy-btc))
+
+### Fixed
+- Set `maxburnamount` when burning and require at least Bitcoin Core 25 ([#4106](https://github.com/ordinals/ord/pull/4106) by [casey](https://github.com/casey))
+- Add `palindrome` to `Charm::from_str` ([#4104](https://github.com/ordinals/ord/pull/4104) by [mvdnbrk](https://github.com/mvdnbrk))
+- Fix sat off-by-one error in output template ([#4075](https://github.com/ordinals/ord/pull/4075) by [casey](https://github.com/casey))
+
+### Misc
+- Style help text ([#4118](https://github.com/ordinals/ord/pull/4118) by [casey](https://github.com/casey))
+- Placate clippy ([#4116](https://github.com/ordinals/ord/pull/4116) by [raphjaph](https://github.com/raphjaph))
+- Test `Charm` `FromStr` implementation for exhaustiveness ([#4107](https://github.com/ordinals/ord/pull/4107) by [casey](https://github.com/casey))
+- Improve `ord wallet send` help message and rename output `outgoing` to `asset` ([#4105](https://github.com/ordinals/ord/pull/4105) by [casey](https://github.com/casey))
+- Hide teleburn address ([#4093](https://github.com/ordinals/ord/pull/4093) by [raphjaph](https://github.com/raphjaph))
+- Add function to calculate rune unlock height ([#4097](https://github.com/ordinals/ord/pull/4097) by [casey](https://github.com/casey))
+- Handle errors when retrieving sat address ([#4094](https://github.com/ordinals/ord/pull/4094) by [casey](https://github.com/casey))
+- Fixed error message when using sat or satpoint with batch inscribe ([#4054](https://github.com/ordinals/ord/pull/4054) by [pokrovskyy](https://github.com/pokrovskyy))
+- Add replicate and swap recipes ([#4083](https://github.com/ordinals/ord/pull/4083) by [casey](https://github.com/casey))
+- Make build script public ([#4085](https://github.com/ordinals/ord/pull/4085) by [arronzhang](https://github.com/arronzhang))
+- Update `index.hbs` ([#4090](https://github.com/ordinals/ord/pull/4090) by [raphjaph](https://github.com/raphjaph))
+- Update Rust version in Dockerfile ([#4078](https://github.com/ordinals/ord/pull/4078) by [Th0rgal](https://github.com/Th0rgal))
+- Update minimum rust version to 1.79.0 ([#4074](https://github.com/ordinals/ord/pull/4074) by [raphjaph](https://github.com/raphjaph))
+- Update docs Github Action ([#4069](https://github.com/ordinals/ord/pull/4069) by [raphjaph](https://github.com/raphjaph))
+- Pin `bitcoin` to 0.32.3 in `ordinals` crate ([#4066](https://github.com/ordinals/ord/pull/4066) by [casey](https://github.com/casey))
+
 [0.21.3](https://github.com/ordinals/ord/releases/tag/0.21.3) - 2024-11-11
 --------------------------------------------------------------------------
 
