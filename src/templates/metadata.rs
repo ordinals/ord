@@ -2,7 +2,7 @@ use super::*;
 
 pub(crate) struct MetadataHtml<'a>(pub &'a Value);
 
-impl<'a> Display for MetadataHtml<'a> {
+impl Display for MetadataHtml<'_> {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     match self.0 {
       Value::Array(x) => {

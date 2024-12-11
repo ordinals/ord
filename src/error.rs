@@ -74,6 +74,8 @@ pub enum SnafuError {
     path: PathBuf,
     source: io::Error,
   },
+  #[snafu(display("Unrecognized signer: `{}`", input))]
+  SignerParse { input: String },
 }
 
 impl From<Error> for SnafuError {

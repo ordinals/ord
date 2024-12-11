@@ -40,7 +40,7 @@ pub(crate) struct Updater<'index> {
   pub(super) sat_ranges_since_flush: u64,
 }
 
-impl<'index> Updater<'index> {
+impl Updater<'_> {
   pub(crate) fn update_index(&mut self, mut wtx: WriteTransaction) -> Result {
     let start = Instant::now();
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;

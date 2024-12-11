@@ -217,3 +217,11 @@ benchmark-server:
 
 update-contributors:
   cargo run --release --package update-contributors
+
+replicate:
+  rsync --archive bin/replicate root@charlie.ordinals.net:replicate
+  ssh root@charlie.ordinals.net ./replicate
+
+swap host:
+  rsync --archive bin/swap root@{{ host }}.ordinals.net:swap
+  ssh root@{{ host }}.ordinals.net ./swap
