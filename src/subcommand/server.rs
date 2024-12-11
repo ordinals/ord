@@ -6797,6 +6797,99 @@ next
   }
 
   #[test]
+  fn multiple_delegates() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(3);
+
+    let mined_delegates = {
+      let delegate_a = Inscription {
+        content_type: Some("text/html".into()),
+        body: Some("foo".into()),
+        ..default()
+      };
+      let delegate_b = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("bar".into()),
+        ..default()
+      };
+
+      let txid_a = server.core.broadcast_template(TransactionTemplate {
+        inputs: &[(1, 0, 0, delegate_a.to_witness())],
+        ..default()
+      });
+      let txid_b = server.core.broadcast_template(TransactionTemplate {
+        inputs: &[(2, 0, 0, delegate_b.to_witness())],
+        ..default()
+      });
+
+      [
+        InscriptionId { txid: txid_a, index: 0 },
+        InscriptionId { txid: txid_b, index: 0 },
+      ]
+    };
+
+    server.mine_blocks(1);
+
+    let unmined_delegate = Inscription {
+      content_type: Some("application/json".into()),
+      body: Some("baz".into()),
+      ..default()
+    };
+
+    let txid_c = server.core.broadcast_template(TransactionTemplate {
+      inputs: &[(3, 0, 0, unmined_delegate.to_witness())],
+      ..default()
+    });
+
+    let delegate = mined_delegates[0];
+
+    let inscription = Inscription {
+      delegates: vec![unmined_delegate.value(), mined_delegates[0].value(), mined_delegates[1].value()],
+      ..default()
+    };
+
+    let txid = server.core.broadcast_template(TransactionTemplate {
+      inputs: &[(2, 0, 0, inscription.to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response_regex(
+      format!("/inscription/{id}"),
+      StatusCode::OK,
+      format!(
+        ".*<h1>Inscription 1</h1>.*
+        <dl>
+          <dt>id</dt>
+          <dd class=collapse>{id}</dd>
+          .*
+          <dt>delegate</dt>
+          <dd><a href=/inscription/{delegate}>{delegate}</a></dd>
+          .*
+        </dl>.*"
+      )
+        .unindent(),
+    );
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+
+    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+
+    assert_eq!(
+      server
+        .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
+        .delegates
+        .first(),
+      Some(&delegate)
+    );
+  }
+
+
+  #[test]
   fn undelegated_content() {
     let server = TestServer::builder().chain(Chain::Regtest).build();
 
