@@ -50,7 +50,7 @@ mime_guess = "2.0.4"
 miniscript = "12.0.0"
 mp4 = "0.14.0"
 ordinals = { version = "0.0.13", path = "crates/ordinals" }
-redb = { git = "https://github.com/cberner/redb", rev = "c66447a6530d62615c5b377b3dca05799ab03efd" }
+redb = "2.3.0"
 ref-cast = "1.0.23"
 regex = "1.6.0"
 reqwest = { version = "0.11.27", features = ["blocking", "json"] }
