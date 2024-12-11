@@ -6866,7 +6866,7 @@ next
             body: Some("charlie".into()),
             ..default()
           }
-            .to_witness(),
+          .to_witness(),
         )],
         ..default()
       });
@@ -6881,7 +6881,7 @@ next
             body: Some("delta".into()),
             ..default()
           }
-            .to_witness(),
+          .to_witness(),
         )],
         ..default()
       });
@@ -6902,13 +6902,12 @@ next
       ]
     };
 
-
     let inscription = Inscription {
       delegates: vec![
         unmined_delegates[0].value(), // charlie
         unmined_delegates[1].value(), // delta
-        mined_delegates[0].value(), // alpha
-        mined_delegates[1].value(), // bravo
+        mined_delegates[0].value(),   // alpha
+        mined_delegates[1].value(),   // bravo
       ],
       ..default()
     };
@@ -6973,7 +6972,9 @@ next
       Some(&unmined_delegates[0])
     );
 
-    server.core.broadcast_tx(unmined_delegate_transactions[1].clone());
+    server
+      .core
+      .broadcast_tx(unmined_delegate_transactions[1].clone());
     server.mine_blocks(1);
 
     assert_eq!(
@@ -6983,7 +6984,9 @@ next
       Some("text/plain".to_string())
     );
 
-    server.core.broadcast_tx(unmined_delegate_transactions[0].clone());
+    server
+      .core
+      .broadcast_tx(unmined_delegate_transactions[0].clone());
     server.mine_blocks(1);
 
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "charlie");
