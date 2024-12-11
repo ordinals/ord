@@ -4183,6 +4183,26 @@ inscription with the given ID.</p>
 <p>The referent of an inscription URI is always the original content of the target
 inscription, and not the content of the delegate, regardless of whether or not
 the target inscription has a delegate.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="burning"><a class="header" href="#burning">Burning</a></h1>
+<p>Inscriptions may be burned by constructing a transaction that spends them to a
+script pubkey beginning with <code>OP_RETURN</code>.</p>
+<p>Sending inscriptions to a so-called "burn address" is not recognized by <code>ord</code>.</p>
+<p>Burned inscriptions receive the "burned" charm, recognized with 🔥 on the
+inscription's <code>/inscription</code> page.</p>
+<p>When burning inscriptions, CBOR metadata may be included in a data push
+immediately following the <code>OP_RETURN</code>.</p>
+<p>Burn metadata is unstructured, having no meaning to the underlying protocol,
+and should be human readable. It is displayed on the burned inscription's
+<code>/inscription</code> page, in the same manner as inscription metadata, under the
+heading "burn metadata".</p>
+<p>Use it, if you feel like it, to commemorate the inscription, celebrate the
+closing of a collection, or for whatever other purposes you so desire.</p>
+<p>Data pushes after the first are currently ignored by <code>ord</code>. However, they may
+be given future meaning by the protocol, and should not be used.</p>
+<p>For example, transaction
+<a href="https://mempool.space/tx/b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683">b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683</a>
+burned inscription
+<a href="https://ordinals.com/inscription/681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0">681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="inscription-examples"><a class="header" href="#inscription-examples">Inscription Examples</a></h1>
 <h2 id="delegate-1"><a class="header" href="#delegate-1">Delegate</a></h2>
 <ul>
@@ -4301,7 +4321,7 @@ unallocated runes to outputs.</p>
 <p>After all edicts are processed, remaining unallocated runes are transferred to
 the transaction's first non-<code>OP_RETURN</code> output. A runestone may optionally
 contain a pointer that specifies an alternative default output.</p>
-<h3 id="burning"><a class="header" href="#burning">Burning</a></h3>
+<h3 id="burning-1"><a class="header" href="#burning-1">Burning</a></h3>
 <p>Runes may be burned by transferring them to an <code>OP_RETURN</code> output with an edict
 or pointer.</p>
 <h2 id="cenotaphs"><a class="header" href="#cenotaphs">Cenotaphs</a></h2>

@@ -3923,6 +3923,15 @@ i               # separator
 <p>Inscription URIs are case-insensitive and can thus use the more compact alphanumeric mode when encoded as QR codes. Lowercase is, however, the preferred presentation style.</p>
 <p>The referent of an inscription URI is an HTTP resource with the content, content type, content encoding, and content length corresponding to the inscription with the given ID.</p>
 <p>The referent of an inscription URI is always the original content of the target inscription, and not the content of the delegate, regardless of whether or not the target inscription has a delegate.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="quemar"><a class="header" href="#quemar">Quemar</a></h1>
+<p>Inscriptions may be burned by constructing a transaction that spends them to a script pubkey beginning with <code>OP_RETURN</code>.</p>
+<p>Sending inscriptions to a so-called "burn address" is not recognized by <code>ord</code>.</p>
+<p>Burned inscriptions receive the "burned" charm, recognized with 🔥 on the inscription's <code>/inscription</code> page.</p>
+<p>When burning inscriptions, CBOR metadata may be included in a data push immediately following the <code>OP_RETURN</code>.</p>
+<p>Burn metadata is unstructured, having no meaning to the underlying protocol, and should be human readable. It is displayed on the burned inscription's <code>/inscription</code> page, in the same manner as inscription metadata, under the heading "burn metadata".</p>
+<p>Use it, if you feel like it, to commemorate the inscription, celebrate the closing of a collection, or for whatever other purposes you so desire.</p>
+<p>Data pushes after the first are currently ignored by <code>ord</code>. However, they may be given future meaning by the protocol, and should not be used.</p>
+<p>For example, transaction <a href="https://mempool.space/tx/b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683">b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683</a> burned inscription <a href="https://ordinals.com/inscription/681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0">681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="inscription-examples"><a class="header" href="#inscription-examples">Inscription Examples</a></h1>
 <h2 id="delegado-1"><a class="header" href="#delegado-1">Delegado</a></h2>
 <ul>
@@ -4002,7 +4011,7 @@ i               # separator
 <p>Una runa puede contener cualquier cantidad de edictos. Los edictos consisten en un ID de runa, una cantidad y un número de salida. Los edictos se procesan en orden, asignando runas que no han sido asignadas a las salidas.</p>
 <h3 id="puntero-1"><a class="header" href="#puntero-1">Puntero</a></h3>
 <p>Una vez procesados todos los edictos, las runas no asignadas se transfieren a la primera salida de la transacción que no sea <code>OP_RETURN</code>. De manera opcional, una runa puede incluir un puntero que indique una salida predeterminada diferente.</p>
-<h3 id="quemar"><a class="header" href="#quemar">Quemar</a></h3>
+<h3 id="quemar-1"><a class="header" href="#quemar-1">Quemar</a></h3>
 <p>Las runas pueden ser quemadas transfiriéndolas a una salida <code>OP_RETURN</code> que tenga un edicto o puntero.</p>
 <h2 id="cenotafios"><a class="header" href="#cenotafios">Cenotafios</a></h2>
 <p>Las runas pueden estar mal formadas por varias razones, incluyendo opcodes no pushdata en el <code>OP_RETURN</code> de la runa, varints inválidos o campos de runas no reconocidos.</p>

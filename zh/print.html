@@ -3923,6 +3923,15 @@ i               # separator
 <p>Inscription URIs are case-insensitive and can thus use the more compact alphanumeric mode when encoded as QR codes. Lowercase is, however, the preferred presentation style.</p>
 <p>The referent of an inscription URI is an HTTP resource with the content, content type, content encoding, and content length corresponding to the inscription with the given ID.</p>
 <p>The referent of an inscription URI is always the original content of the target inscription, and not the content of the delegate, regardless of whether or not the target inscription has a delegate.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="燃烧"><a class="header" href="#燃烧">燃烧</a></h1>
+<p>Inscriptions may be burned by constructing a transaction that spends them to a script pubkey beginning with <code>OP_RETURN</code>.</p>
+<p>Sending inscriptions to a so-called "burn address" is not recognized by <code>ord</code>.</p>
+<p>Burned inscriptions receive the "burned" charm, recognized with 🔥 on the inscription's <code>/inscription</code> page.</p>
+<p>When burning inscriptions, CBOR metadata may be included in a data push immediately following the <code>OP_RETURN</code>.</p>
+<p>Burn metadata is unstructured, having no meaning to the underlying protocol, and should be human readable. It is displayed on the burned inscription's <code>/inscription</code> page, in the same manner as inscription metadata, under the heading "burn metadata".</p>
+<p>Use it, if you feel like it, to commemorate the inscription, celebrate the closing of a collection, or for whatever other purposes you so desire.</p>
+<p>Data pushes after the first are currently ignored by <code>ord</code>. However, they may be given future meaning by the protocol, and should not be used.</p>
+<p>For example, transaction <a href="https://mempool.space/tx/b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683">b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683</a> burned inscription <a href="https://ordinals.com/inscription/681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0">681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="inscription-examples"><a class="header" href="#inscription-examples">Inscription Examples</a></h1>
 <h2 id="委托-1"><a class="header" href="#委托-1">委托</a></h2>
 <ul>
@@ -4002,7 +4011,7 @@ i               # separator
 <p>符石可以包含任意数量的法令。法令由一个符文ID、一个数量和一个输出编号组成。法令按顺序处理，将未分配的符文分配给输出。</p>
 <h3 id="指针-1"><a class="header" href="#指针-1">指针</a></h3>
 <p>在所有法令处理完毕后，剩余的未分配符文被转移到交易的第一个非OP_RETURN输出。符石可以选择性地包含一个指针，指定一个替代的默认输出。</p>
-<h3 id="燃烧"><a class="header" href="#燃烧">燃烧</a></h3>
+<h3 id="燃烧-1"><a class="header" href="#燃烧-1">燃烧</a></h3>
 <p>符文可以通过将它们转移到一个包含法令或指针的<code>OP_RETURN</code>输出来燃烧。</p>
 <h2 id="墓碑"><a class="header" href="#墓碑">墓碑</a></h2>
 <p>由于多种原因，符石可能会形成错误，包括符石<code>OP_RETURN</code>中的非推送数据操作码、无效的变长整数或无法识别的符石字段。</p>
