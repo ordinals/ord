@@ -190,7 +190,7 @@ impl State {
     blockhash
   }
 
-  pub(crate) fn broadcast_template(&mut self, template: TransactionTemplate) -> Txid {
+  pub(crate) fn create_tx_from_template(&mut self, template: TransactionTemplate) -> Transaction {
     let mut total_value = 0;
     let mut input = Vec::new();
     for (height, tx, vout, witness) in template.inputs.iter() {
@@ -274,6 +274,19 @@ impl State {
       );
     }
 
+    tx
+  }
+
+  pub(crate) fn broadcast_tx(&mut self, transaction: Transaction) -> Txid {
+    let txid = transaction.compute_txid();
+
+    self.mempool.push(transaction);
+
+    txid
+  }
+
+  pub(crate) fn broadcast_template(&mut self, template: TransactionTemplate) -> Txid {
+    let tx = self.create_tx_from_template(template);
     let txid = tx.compute_txid();
 
     self.mempool.push(tx);
