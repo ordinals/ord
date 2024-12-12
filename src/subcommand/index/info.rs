@@ -6,7 +6,7 @@ pub(crate) struct Info {
   transactions: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct TransactionsOutput {
   pub start: u32,
   pub end: u32,
