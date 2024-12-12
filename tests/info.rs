@@ -9,7 +9,7 @@ fn json_with_satoshi_index() {
     .run();
 
   CommandBuilder::new("--index-sats index info")
-    .temp_dir(Arc::new(tempdir))
+    .temp_dir(tempdir)
     .core(&core)
     .stdout_regex(
       r#"\{
@@ -48,7 +48,7 @@ fn json_without_satoshi_index() {
 
   CommandBuilder::new("index info")
     .core(&core)
-    .temp_dir(Arc::new(tempdir))
+    .temp_dir(tempdir)
     .stdout_regex(
       r#"\{
   "blocks_indexed": 1,
@@ -84,36 +84,25 @@ fn transactions() {
 
   let (tempdir, _) = CommandBuilder::new("index update").core(&core).run();
 
-  let (tempdir, stdout) = CommandBuilder::new("index info --transactions")
-    .temp_dir(Arc::new(tempdir))
+  let output = CommandBuilder::new("index info --transactions")
+    .temp_dir(tempdir.clone())
     .core(&core)
-    .stdout_regex(".*")
-    .run();
-
-  let output: Vec<TransactionsOutput> = match serde_json::from_str(&stdout) {
-    Ok(output) => output,
-    Err(err) => panic!("Failed to deserialize JSON: {err}\n{stdout}"),
-  };
+    .run_and_deserialize_output::<Vec<TransactionsOutput>>();
 
   assert!(output.is_empty());
 
   core.mine_blocks(10);
 
-  let (tempdir, _) = CommandBuilder::new("index update")
-    .temp_dir(Arc::new(tempdir))
+  CommandBuilder::new("index update")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .run();
 
-  let (tempdir, stdout) = CommandBuilder::new("index info --transactions")
-    .temp_dir(Arc::new(tempdir))
+  let output = CommandBuilder::new("index info --transactions")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .stdout_regex(".*")
-    .run();
-
-  let output: Vec<TransactionsOutput> = match serde_json::from_str(&stdout) {
-    Ok(output) => output,
-    Err(err) => panic!("Failed to deserialize JSON: {err}\n{stdout}"),
-  };
+    .run_and_deserialize_output::<Vec<TransactionsOutput>>();
 
   assert_eq!(output[0].start, 0);
   assert_eq!(output[0].end, 1);
@@ -121,21 +110,15 @@ fn transactions() {
 
   core.mine_blocks(10);
 
-  let (tempdir, _) = CommandBuilder::new("index update")
-    .temp_dir(Arc::new(tempdir))
+  CommandBuilder::new("index update")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .run();
 
-  let (_, stdout) = CommandBuilder::new("index info --transactions")
-    .temp_dir(Arc::new(tempdir))
+  let output = CommandBuilder::new("index info --transactions")
+    .temp_dir(tempdir.clone())
     .core(&core)
-    .stdout_regex(".*")
-    .run();
-
-  let output: Vec<TransactionsOutput> = match serde_json::from_str(&stdout) {
-    Ok(output) => output,
-    Err(err) => panic!("Failed to deserialize JSON: {err}\n{stdout}"),
-  };
+    .run_and_deserialize_output::<Vec<TransactionsOutput>>();
 
   assert_eq!(output[1].start, 1);
   assert_eq!(output[1].end, 11);
