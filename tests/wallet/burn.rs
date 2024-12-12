@@ -408,3 +408,345 @@ fn oversize_metadata_requires_no_limit_flag() {
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
+
+#[test]
+fn burn_rune() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let rune = Rune(RUNE);
+  etch(&core, &ord, rune);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 500:{rune}",))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 450 * COIN_VALUE - 2 * 10000 + 129,
+      ordinal: 10000,
+      runic: Some(9871),
+      runes: Some(
+        [(
+          SpacedRune { rune, spacers: 0 },
+          Decimal {
+            value: 500,
+            scale: 0
+          }
+        )]
+        .into_iter()
+        .collect()
+      ),
+      total: 450 * COIN_VALUE,
+    }
+  );
+
+  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 500:{rune}",))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 500 * COIN_VALUE - 10000,
+      ordinal: 10000,
+      runic: Some(0),
+      runes: Some(BTreeMap::new()),
+      total: 500 * COIN_VALUE,
+    }
+  );
+}
+
+#[test]
+fn burn_rune_with_many_assets_in_wallet() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  inscribe(&core, &ord);
+
+  let rune_0 = Rune(RUNE);
+  etch(&core, &ord, rune_0);
+
+  let rune_1 = Rune(RUNE - 1);
+  etch(&core, &ord, rune_1);
+
+  let rune_2 = Rune(RUNE - 2);
+  etch(&core, &ord, rune_2);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 119999930000,
+      ordinal: 40000,
+      runic: Some(30000),
+      runes: Some(
+        [
+          (
+            SpacedRune {
+              rune: rune_0,
+              spacers: 0
+            },
+            Decimal {
+              value: 1000,
+              scale: 0
+            }
+          ),
+          (
+            SpacedRune {
+              rune: rune_1,
+              spacers: 0
+            },
+            Decimal {
+              value: 1000,
+              scale: 0
+            }
+          ),
+          (
+            SpacedRune {
+              rune: rune_2,
+              spacers: 0
+            },
+            Decimal {
+              value: 1000,
+              scale: 0
+            }
+          )
+        ]
+        .into_iter()
+        .collect()
+      ),
+      total: 24 * 50 * COIN_VALUE,
+    }
+  );
+
+  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 1111:{rune_0}",))
+    .core(&core)
+    .ord(&ord)
+    .expected_exit_code(1)
+    .stderr_regex("error: insufficient `AAAAAAAAAAAAA` balance.*")
+    .run_and_extract_stdout();
+
+  CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 1000:{rune_2}",))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 124999940000,
+      ordinal: 40000,
+      runic: Some(20000),
+      runes: Some(
+        [
+          (
+            SpacedRune {
+              rune: rune_0,
+              spacers: 0
+            },
+            Decimal {
+              value: 1000,
+              scale: 0
+            }
+          ),
+          (
+            SpacedRune {
+              rune: rune_1,
+              spacers: 0
+            },
+            Decimal {
+              value: 1000,
+              scale: 0
+            }
+          ),
+        ]
+        .into_iter()
+        .collect()
+      ),
+      total: 25 * 50 * COIN_VALUE,
+    }
+  );
+}
+
+#[test]
+fn burning_rune_creates_change_output_for_non_burnt_runes() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let a = etch(&core, &ord, Rune(RUNE));
+  let b = etch(&core, &ord, Rune(RUNE + 1));
+
+  let (a_block, a_tx) = core.tx_index(a.output.reveal);
+  let (b_block, b_tx) = core.tx_index(b.output.reveal);
+
+  core.mine_blocks(1);
+
+  let address = CommandBuilder::new("--regtest wallet receive")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
+    .addresses
+    .into_iter()
+    .next()
+    .unwrap();
+
+  let merge = core.broadcast_tx(TransactionTemplate {
+    inputs: &[(a_block, a_tx, 1, default()), (b_block, b_tx, 1, default())],
+    recipient: Some(address.require_network(Network::Regtest).unwrap()),
+    ..default()
+  });
+
+  core.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  pretty_assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: [
+        (
+          SpacedRune::new(Rune(RUNE), 0),
+          [(
+            OutPoint {
+              txid: merge,
+              vout: 0
+            },
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        ),
+        (
+          SpacedRune::new(Rune(RUNE + 1), 0),
+          [(
+            OutPoint {
+              txid: merge,
+              vout: 0
+            },
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        ),
+      ]
+      .into()
+    }
+  );
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet burn --fee-rate 1 500:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  pretty_assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: [
+        (
+          SpacedRune::new(Rune(RUNE), 0),
+          [(
+            OutPoint {
+              txid: output.txid,
+              vout: 1
+            },
+            Pile {
+              amount: 500,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        ),
+        (
+          SpacedRune::new(Rune(RUNE + 1), 0),
+          [(
+            OutPoint {
+              txid: output.txid,
+              vout: 1
+            },
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        )
+      ]
+      .into()
+    }
+  );
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest --index-runes wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 84999970000,
+      ordinal: 20000,
+      runes: Some(
+        [
+          (SpacedRune::new(Rune(RUNE), 0), "500".parse().unwrap()),
+          (SpacedRune::new(Rune(RUNE + 1), 0), "1000".parse().unwrap())
+        ]
+        .into()
+      ),
+      runic: Some(10000),
+      total: 17 * 50 * COIN_VALUE,
+    }
+  );
+}
