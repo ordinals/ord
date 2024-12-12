@@ -10,8 +10,9 @@ use {
   executable_path::executable_path,
   mockcore::TransactionTemplate,
   ord::{
-    api, chain::Chain, outgoing::Outgoing, subcommand::runes::RuneInfo, templates::InscriptionHtml,
-    wallet::batch, wallet::ListDescriptorsResult, Inscription, InscriptionId, RuneEntry,
+    api, chain::Chain, decimal::Decimal, outgoing::Outgoing, subcommand::runes::RuneInfo,
+    templates::InscriptionHtml, wallet::batch, wallet::ListDescriptorsResult, Inscription,
+    InscriptionId, RuneEntry,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
