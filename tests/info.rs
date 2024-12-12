@@ -84,16 +84,11 @@ fn transactions() {
 
   let (tempdir, _) = CommandBuilder::new("index update").core(&core).run();
 
-  let index_path = tempdir.path().join("index.redb");
-
-  let (tempdir, stdout) = CommandBuilder::new(format!(
-    "--index {} index info --transactions",
-    index_path.display()
-  ))
-  .temp_dir(Arc::new(tempdir))
-  .core(&core)
-  .stdout_regex(".*")
-  .run();
+  let (tempdir, stdout) = CommandBuilder::new("index info --transactions")
+    .temp_dir(Arc::new(tempdir))
+    .core(&core)
+    .stdout_regex(".*")
+    .run();
 
   let output: Vec<TransactionsOutput> = match serde_json::from_str(&stdout) {
     Ok(output) => output,
@@ -109,14 +104,11 @@ fn transactions() {
     .core(&core)
     .run();
 
-  let (tempdir, stdout) = CommandBuilder::new(format!(
-    "--index {} index info --transactions",
-    index_path.display()
-  ))
-  .temp_dir(Arc::new(tempdir))
-  .core(&core)
-  .stdout_regex(".*")
-  .run();
+  let (tempdir, stdout) = CommandBuilder::new("index info --transactions")
+    .temp_dir(Arc::new(tempdir))
+    .core(&core)
+    .stdout_regex(".*")
+    .run();
 
   let output: Vec<TransactionsOutput> = match serde_json::from_str(&stdout) {
     Ok(output) => output,
@@ -134,14 +126,11 @@ fn transactions() {
     .core(&core)
     .run();
 
-  let (_, stdout) = CommandBuilder::new(format!(
-    "--index {} index info --transactions",
-    index_path.display()
-  ))
-  .temp_dir(Arc::new(tempdir))
-  .core(&core)
-  .stdout_regex(".*")
-  .run();
+  let (_, stdout) = CommandBuilder::new("index info --transactions")
+    .temp_dir(Arc::new(tempdir))
+    .core(&core)
+    .stdout_regex(".*")
+    .run();
 
   let output: Vec<TransactionsOutput> = match serde_json::from_str(&stdout) {
     Ok(output) => output,
