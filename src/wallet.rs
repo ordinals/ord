@@ -555,11 +555,29 @@ impl Wallet {
       });
     }
 
-    settings
+    match settings
       .bitcoin_rpc_client(Some(name.clone()))?
-      .call::<serde_json::Value>("importdescriptors", &[serde_json::to_value(descriptors)?])?;
-
-    Ok(())
+      .call::<serde_json::Value>(
+        "importdescriptors",
+        &[serde_json::to_value(descriptors.clone())?],
+      ) {
+      Ok(_) => Ok(()),
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(err)))
+        if err.code == -4 && err.message == "Wallet already loading." =>
+      {
+        // wallet loading
+        Ok(())
+      }
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(err)))
+        if err.code == -35 =>
+      {
+        // wallet already loaded
+        Ok(())
+      }
+      Err(err) => {
+        bail!("Failed to import descriptors for wallet {}: {err}", name)
+      }
+    }
   }
 
   pub(crate) fn check_version(client: Client) -> Result<Client> {
@@ -664,7 +682,8 @@ impl Wallet {
       {
         let database = Database::builder().create(&path)?;
 
-        let tx = database.begin_write()?;
+        let mut tx = database.begin_write()?;
+        tx.set_quick_repair(true);
 
         tx.open_table(RUNE_TO_ETCHING)?;
 
@@ -688,7 +707,8 @@ impl Wallet {
     reveal: &Transaction,
     output: batch::Output,
   ) -> Result {
-    let wtx = self.database.begin_write()?;
+    let mut wtx = self.database.begin_write()?;
+    wtx.set_quick_repair(true);
 
     wtx.open_table(RUNE_TO_ETCHING)?.insert(
       rune.0,
@@ -717,7 +737,8 @@ impl Wallet {
   }
 
   pub(crate) fn clear_etching(&self, rune: Rune) -> Result {
-    let wtx = self.database.begin_write()?;
+    let mut wtx = self.database.begin_write()?;
+    wtx.set_quick_repair(true);
 
     wtx.open_table(RUNE_TO_ETCHING)?.remove(rune.0)?;
     wtx.commit()?;
