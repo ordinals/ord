@@ -1,4 +1,4 @@
-use {super::*, ord::decimal::Decimal};
+use super::*;
 
 #[test]
 fn inscriptions_can_be_burned() {
@@ -677,7 +677,7 @@ fn burning_rune_creates_change_output_for_non_burnt_runes() {
   );
 
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet burn --fee-rate 1 1000:{}",
+    "--chain regtest --index-runes wallet burn --fee-rate 1 500:{}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -694,21 +694,38 @@ fn burning_rune_creates_change_output_for_non_burnt_runes() {
   pretty_assert_eq!(
     balances,
     ord::subcommand::balances::Output {
-      runes: [(
-        SpacedRune::new(Rune(RUNE + 1), 0),
-        [(
-          OutPoint {
-            txid: output.txid,
-            vout: 1
-          },
-          Pile {
-            amount: 1000,
-            divisibility: 0,
-            symbol: Some('¢')
-          },
-        )]
-        .into()
-      )]
+      runes: [
+        (
+          SpacedRune::new(Rune(RUNE), 0),
+          [(
+            OutPoint {
+              txid: output.txid,
+              vout: 1
+            },
+            Pile {
+              amount: 500,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        ),
+        (
+          SpacedRune::new(Rune(RUNE + 1), 0),
+          [(
+            OutPoint {
+              txid: output.txid,
+              vout: 1
+            },
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        )
+      ]
       .into()
     }
   );
@@ -721,7 +738,13 @@ fn burning_rune_creates_change_output_for_non_burnt_runes() {
     Balance {
       cardinal: 84999970000,
       ordinal: 20000,
-      runes: Some([(SpacedRune::new(Rune(RUNE + 1), 0), "1000".parse().unwrap())].into()),
+      runes: Some(
+        [
+          (SpacedRune::new(Rune(RUNE), 0), "500".parse().unwrap()),
+          (SpacedRune::new(Rune(RUNE + 1), 0), "1000".parse().unwrap())
+        ]
+        .into()
+      ),
       runic: Some(10000),
       total: 17 * 50 * COIN_VALUE,
     }
