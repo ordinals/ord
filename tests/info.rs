@@ -4,11 +4,15 @@ use {super::*, ord::subcommand::index::info::TransactionsOutput};
 fn json_with_satoshi_index() {
   let core = mockcore::spawn();
 
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
   CommandBuilder::new("--index-sats index update")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .run_and_extract_stdout();
 
   CommandBuilder::new("--index-sats index info")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .stdout_regex(
       r#"\{
@@ -43,11 +47,15 @@ fn json_with_satoshi_index() {
 fn json_without_satoshi_index() {
   let core = mockcore::spawn();
 
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
   CommandBuilder::new("index update")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .run_and_extract_stdout();
 
   CommandBuilder::new("index info")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .stdout_regex(
       r#"\{
@@ -82,11 +90,12 @@ fn json_without_satoshi_index() {
 fn transactions() {
   let core = mockcore::spawn();
 
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
   CommandBuilder::new("index update")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .run_and_extract_stdout();
-
-  let tempdir = TempDir::new().unwrap();
 
   let index_path = tempdir.path().join("index.redb");
 

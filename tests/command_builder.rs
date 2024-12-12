@@ -53,7 +53,7 @@ impl Spawn {
     self.expected_stderr.assert_match(stderr);
     self.expected_stdout.assert_match(stdout);
 
-    (Arc::try_unwrap(self.tempdir).unwrap(), stdout.into())
+    (Arc::try_unwrap(dbg!(self.tempdir)).unwrap(), stdout.into())
   }
 
   #[track_caller]
