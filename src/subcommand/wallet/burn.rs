@@ -111,9 +111,9 @@ impl Burn {
           Amount::ZERO,
         )
       }
-      Outgoing::Amount(_) => bail!("can't burn amount"),
-      Outgoing::Sat(_) => bail!("can't burn sat"),
-      Outgoing::SatPoint(_) => bail!("can't burn satpoint"),
+      Outgoing::Amount(_) => bail!("burning bitcoin not supported"),
+      Outgoing::Sat(_) => bail!("burning sat not supported"),
+      Outgoing::SatPoint(_) => bail!("burning satpoint not supported"),
     };
 
     let base_size = unsigned_transaction.base_size();
