@@ -52,7 +52,30 @@ impl WalletConstructor {
         Wallet::check_version(self.settings.bitcoin_rpc_client(Some(self.name.clone()))?)?;
 
       if !client.list_wallets()?.contains(&self.name) {
-        client.load_wallet(&self.name)?;
+        loop {
+          match client.load_wallet(&self.name) {
+            Ok(_) => {
+              break;
+            }
+            Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(err)))
+              if err.code == -4 && err.message == "Wallet already loading." =>
+            {
+              // wallet loading
+              eprint!(".");
+              thread::sleep(Duration::from_secs(3));
+              continue;
+            }
+            Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(err)))
+              if err.code == -35 =>
+            {
+              // wallet already loaded
+              break;
+            }
+            Err(err) => {
+              bail!("Failed to load wallet {}: {err}", self.name);
+            }
+          }
+        }
       }
 
       if client.get_wallet_info()?.private_keys_enabled {
