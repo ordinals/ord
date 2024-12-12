@@ -101,11 +101,19 @@ impl Burn {
         );
 
         (
-          Self::create_unsigned_burn_runes_transaction(&wallet, rune, decimal, self.fee_rate)?,
+          wallet.create_unsigned_send_or_burn_runes_transaction(
+            None,
+            rune,
+            decimal,
+            None,
+            self.fee_rate,
+          )?,
           Amount::ZERO,
         )
       }
-      _ => bail!("burning is only implemented for inscriptions and runes"),
+      Outgoing::Amount(_) => bail!("can't burn amount"),
+      Outgoing::Sat(_) => bail!("can't burn sat"),
+      Outgoing::SatPoint(_) => bail!("can't burn satpoint"),
     };
 
     let base_size = unsigned_transaction.base_size();
@@ -160,144 +168,5 @@ impl Burn {
       )
       .build_transaction()?,
     )
-  }
-
-  fn create_unsigned_burn_runes_transaction(
-    wallet: &Wallet,
-    spaced_rune: SpacedRune,
-    decimal: Decimal,
-    fee_rate: FeeRate,
-  ) -> Result<Transaction> {
-    ensure!(
-      wallet.has_rune_index(),
-      "sending runes with `ord send` requires index created with `--index-runes` flag",
-    );
-
-    wallet.lock_non_cardinal_outputs()?;
-
-    let (id, entry, _parent) = wallet
-      .get_rune(spaced_rune.rune)?
-      .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
-
-    let amount = decimal.to_integer(entry.divisibility)?;
-
-    let inscribed_outputs = wallet
-      .inscriptions()
-      .keys()
-      .map(|satpoint| satpoint.outpoint)
-      .collect::<HashSet<OutPoint>>();
-
-    let balances = wallet
-      .get_runic_outputs()?
-      .into_iter()
-      .filter(|output| !inscribed_outputs.contains(output))
-      .map(|output| {
-        wallet.get_runes_balances_in_output(&output).map(|balance| {
-          (
-            output,
-            balance
-              .into_iter()
-              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
-              .collect(),
-          )
-        })
-      })
-      .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, u128>>>>()?;
-
-    let mut inputs = Vec::new();
-    let mut input_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
-
-    for (output, runes) in balances {
-      if let Some(balance) = runes.get(&spaced_rune.rune) {
-        if *balance > 0 {
-          for (rune, balance) in runes {
-            *input_rune_balances.entry(rune).or_default() += balance;
-          }
-
-          inputs.push(output);
-
-          if input_rune_balances
-            .get(&spaced_rune.rune)
-            .cloned()
-            .unwrap_or_default()
-            >= amount
-          {
-            break;
-          }
-        }
-      }
-    }
-
-    let input_rune_balance = input_rune_balances
-      .get(&spaced_rune.rune)
-      .cloned()
-      .unwrap_or_default();
-
-    let needs_runes_change_output = input_rune_balance > amount || input_rune_balances.len() > 1;
-
-    ensure! {
-      input_rune_balance >= amount,
-      "insufficient `{}` balance, only {} in wallet",
-      spaced_rune,
-      Pile {
-        amount: input_rune_balance,
-        divisibility: entry.divisibility,
-        symbol: entry.symbol
-      },
-    }
-
-    let runestone = Runestone {
-      edicts: vec![Edict {
-        amount,
-        id,
-        output: 0,
-      }],
-      ..default()
-    };
-
-    let unfunded_transaction = Transaction {
-      version: Version(2),
-      lock_time: LockTime::ZERO,
-      input: inputs
-        .into_iter()
-        .map(|previous_output| TxIn {
-          previous_output,
-          script_sig: ScriptBuf::new(),
-          sequence: Sequence::MAX,
-          witness: Witness::new(),
-        })
-        .collect(),
-      output: if needs_runes_change_output {
-        vec![
-          TxOut {
-            script_pubkey: runestone.encipher(),
-            value: Amount::from_sat(0),
-          },
-          TxOut {
-            script_pubkey: wallet.get_change_address()?.script_pubkey(),
-            value: TARGET_POSTAGE,
-          },
-        ]
-      } else {
-        vec![TxOut {
-          script_pubkey: runestone.encipher(),
-          value: Amount::from_sat(0),
-        }]
-      },
-    };
-
-    let unsigned_transaction =
-      fund_raw_transaction(wallet.bitcoin_client(), fee_rate, &unfunded_transaction)?;
-
-    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
-
-    if needs_runes_change_output {
-      assert_eq!(
-        Runestone::decipher(&unsigned_transaction),
-        Some(Artifact::Runestone(runestone)),
-      );
-    }
-
-    Ok(unsigned_transaction)
   }
 }

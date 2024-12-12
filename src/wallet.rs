@@ -835,4 +835,269 @@ impl Wallet {
         .call("sendrawtransaction", &arguments)?,
     )
   }
+
+  pub fn create_unsigned_send_amount_transaction(
+    &self,
+    destination: Address,
+    amount: Amount,
+    fee_rate: FeeRate,
+  ) -> Result<Transaction> {
+    self.lock_non_cardinal_outputs()?;
+
+    let unfunded_transaction = Transaction {
+      version: Version(2),
+      lock_time: LockTime::ZERO,
+      input: Vec::new(),
+      output: vec![TxOut {
+        script_pubkey: destination.script_pubkey(),
+        value: amount,
+      }],
+    };
+
+    let unsigned_transaction = consensus::encode::deserialize(&fund_raw_transaction(
+      self.bitcoin_client(),
+      fee_rate,
+      &unfunded_transaction,
+    )?)?;
+
+    Ok(unsigned_transaction)
+  }
+
+  pub fn create_unsigned_send_satpoint_transaction(
+    &self,
+    destination: Address,
+    satpoint: SatPoint,
+    postage: Option<Amount>,
+    fee_rate: FeeRate,
+    sending_inscription: bool,
+  ) -> Result<Transaction> {
+    if !sending_inscription {
+      for inscription_satpoint in self.inscriptions().keys() {
+        if satpoint == *inscription_satpoint {
+          bail!("inscriptions must be sent by inscription ID");
+        }
+      }
+    }
+
+    let runic_outputs = self.get_runic_outputs()?;
+
+    ensure!(
+      !runic_outputs.contains(&satpoint.outpoint),
+      "runic outpoints may not be sent by satpoint"
+    );
+
+    let change = [self.get_change_address()?, self.get_change_address()?];
+
+    let postage = if let Some(postage) = postage {
+      Target::ExactPostage(postage)
+    } else {
+      Target::Postage
+    };
+
+    Ok(
+      TransactionBuilder::new(
+        satpoint,
+        self.inscriptions().clone(),
+        self.utxos().clone(),
+        self.locked_utxos().clone().into_keys().collect(),
+        runic_outputs,
+        destination.script_pubkey(),
+        change,
+        fee_rate,
+        postage,
+        self.chain().network(),
+      )
+      .build_transaction()?,
+    )
+  }
+
+  pub fn create_unsigned_send_or_burn_runes_transaction(
+    &self,
+    destination: Option<Address>,
+    spaced_rune: SpacedRune,
+    decimal: Decimal,
+    postage: Option<Amount>,
+    fee_rate: FeeRate,
+  ) -> Result<Transaction> {
+    ensure!(
+      self.has_rune_index(),
+      "sending runes with `ord send` requires index created with `--index-runes` flag",
+    );
+
+    self.lock_non_cardinal_outputs()?;
+
+    let (id, entry, _parent) = self
+      .get_rune(spaced_rune.rune)?
+      .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
+
+    let amount = decimal.to_integer(entry.divisibility)?;
+
+    let inscribed_outputs = self
+      .inscriptions()
+      .keys()
+      .map(|satpoint| satpoint.outpoint)
+      .collect::<HashSet<OutPoint>>();
+
+    let balances = self
+      .get_runic_outputs()?
+      .into_iter()
+      .filter(|output| !inscribed_outputs.contains(output))
+      .map(|output| {
+        self.get_runes_balances_in_output(&output).map(|balance| {
+          (
+            output,
+            balance
+              .into_iter()
+              .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
+              .collect(),
+          )
+        })
+      })
+      .collect::<Result<BTreeMap<OutPoint, BTreeMap<Rune, u128>>>>()?;
+
+    let mut inputs = Vec::new();
+    let mut input_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
+
+    for (output, runes) in balances {
+      if let Some(balance) = runes.get(&spaced_rune.rune) {
+        if *balance > 0 {
+          for (rune, balance) in runes {
+            *input_rune_balances.entry(rune).or_default() += balance;
+          }
+
+          inputs.push(output);
+
+          if input_rune_balances
+            .get(&spaced_rune.rune)
+            .cloned()
+            .unwrap_or_default()
+            >= amount
+          {
+            break;
+          }
+        }
+      }
+    }
+
+    let input_rune_balance = input_rune_balances
+      .get(&spaced_rune.rune)
+      .cloned()
+      .unwrap_or_default();
+
+    let needs_runes_change_output = input_rune_balance > amount || input_rune_balances.len() > 1;
+
+    ensure! {
+      input_rune_balance >= amount,
+      "insufficient `{}` balance, only {} in wallet",
+      spaced_rune,
+      Pile {
+        amount: input_rune_balance,
+        divisibility: entry.divisibility,
+        symbol: entry.symbol
+      },
+    }
+
+    let runestone;
+    let postage = postage.unwrap_or(TARGET_POSTAGE);
+
+    let unfunded_transaction = if let Some(destination) = destination {
+      runestone = Runestone {
+        edicts: vec![Edict {
+          amount,
+          id,
+          output: 2,
+        }],
+        ..default()
+      };
+
+      Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: inputs
+          .into_iter()
+          .map(|previous_output| TxIn {
+            previous_output,
+            script_sig: ScriptBuf::new(),
+            sequence: Sequence::MAX,
+            witness: Witness::new(),
+          })
+          .collect(),
+        output: if needs_runes_change_output {
+          vec![
+            TxOut {
+              script_pubkey: runestone.encipher(),
+              value: Amount::from_sat(0),
+            },
+            TxOut {
+              script_pubkey: self.get_change_address()?.script_pubkey(),
+              value: postage,
+            },
+            TxOut {
+              script_pubkey: destination.script_pubkey(),
+              value: postage,
+            },
+          ]
+        } else {
+          vec![TxOut {
+            script_pubkey: destination.script_pubkey(),
+            value: postage,
+          }]
+        },
+      }
+    } else {
+      runestone = Runestone {
+        edicts: vec![Edict {
+          amount,
+          id,
+          output: 0,
+        }],
+        ..default()
+      };
+
+      Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: inputs
+          .into_iter()
+          .map(|previous_output| TxIn {
+            previous_output,
+            script_sig: ScriptBuf::new(),
+            sequence: Sequence::MAX,
+            witness: Witness::new(),
+          })
+          .collect(),
+        output: if needs_runes_change_output {
+          vec![
+            TxOut {
+              script_pubkey: runestone.encipher(),
+              value: Amount::from_sat(0),
+            },
+            TxOut {
+              script_pubkey: self.get_change_address()?.script_pubkey(),
+              value: postage,
+            },
+          ]
+        } else {
+          vec![TxOut {
+            script_pubkey: runestone.encipher(),
+            value: Amount::from_sat(0),
+          }]
+        },
+      }
+    };
+
+    let unsigned_transaction =
+      fund_raw_transaction(self.bitcoin_client(), fee_rate, &unfunded_transaction)?;
+
+    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+
+    if needs_runes_change_output {
+      assert_eq!(
+        Runestone::decipher(&unsigned_transaction),
+        Some(Artifact::Runestone(runestone)),
+      );
+    }
+
+    Ok(unsigned_transaction)
+  }
 }
