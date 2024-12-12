@@ -598,3 +598,132 @@ fn burn_rune_with_many_assets_in_wallet() {
     }
   );
 }
+
+#[test]
+fn burning_rune_creates_change_output_for_non_burnt_runes() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let a = etch(&core, &ord, Rune(RUNE));
+  let b = etch(&core, &ord, Rune(RUNE + 1));
+
+  let (a_block, a_tx) = core.tx_index(a.output.reveal);
+  let (b_block, b_tx) = core.tx_index(b.output.reveal);
+
+  core.mine_blocks(1);
+
+  let address = CommandBuilder::new("--regtest wallet receive")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
+    .addresses
+    .into_iter()
+    .next()
+    .unwrap();
+
+  let merge = core.broadcast_tx(TransactionTemplate {
+    inputs: &[(a_block, a_tx, 1, default()), (b_block, b_tx, 1, default())],
+    recipient: Some(address.require_network(Network::Regtest).unwrap()),
+    ..default()
+  });
+
+  core.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  pretty_assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: [
+        (
+          SpacedRune::new(Rune(RUNE), 0),
+          [(
+            OutPoint {
+              txid: merge,
+              vout: 0
+            },
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        ),
+        (
+          SpacedRune::new(Rune(RUNE + 1), 0),
+          [(
+            OutPoint {
+              txid: merge,
+              vout: 0
+            },
+            Pile {
+              amount: 1000,
+              divisibility: 0,
+              symbol: Some('¢')
+            },
+          )]
+          .into()
+        ),
+      ]
+      .into()
+    }
+  );
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet burn --fee-rate 1 1000:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  pretty_assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: [(
+        SpacedRune::new(Rune(RUNE + 1), 0),
+        [(
+          OutPoint {
+            txid: output.txid,
+            vout: 1
+          },
+          Pile {
+            amount: 1000,
+            divisibility: 0,
+            symbol: Some('¢')
+          },
+        )]
+        .into()
+      )]
+      .into()
+    }
+  );
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest --index-runes wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 84999970000,
+      ordinal: 20000,
+      runes: Some([(SpacedRune::new(Rune(RUNE + 1), 0), "1000".parse().unwrap())].into()),
+      runic: Some(10000),
+      total: 17 * 50 * COIN_VALUE,
+    }
+  );
+}
