@@ -97,7 +97,7 @@ impl Burn {
       Outgoing::Rune { decimal, rune } => {
         ensure!(
           self.cbor_metadata.is_none() && self.json_metadata.is_none(),
-          "metadata not supported for burning runes"
+          "metadata not supported when burning runes"
         );
 
         (
