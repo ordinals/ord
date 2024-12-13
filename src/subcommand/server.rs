@@ -1057,11 +1057,17 @@ impl Server {
 
       let inscription_count = index.inscription_count(txid)?;
 
+      let runestone = Runestone::decipher(&transaction).and_then(|artifact| match artifact {
+        Artifact::Runestone(runestone) => Some(runestone),
+        Artifact::Cenotaph(_) => None,
+      });
+
       Ok(if accept_json {
         Json(api::Transaction {
           chain: server_config.chain,
           etching: index.get_etching(txid)?,
           inscription_count,
+          runestone,
           transaction,
           txid,
         })
@@ -1071,6 +1077,7 @@ impl Server {
           chain: server_config.chain,
           etching: index.get_etching(txid)?,
           inscription_count,
+          runestone,
           transaction,
           txid,
         }
