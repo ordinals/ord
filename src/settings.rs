@@ -858,7 +858,7 @@ mod tests {
       },
     );
     check_network_alias(
-      "testne4",
+      "testnet4",
       if cfg!(windows) {
         r"ord\testnet4"
       } else {
