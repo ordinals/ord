@@ -506,7 +506,7 @@ curl -s \
 
 ### Description
 
-Details of the first 100 child inscriptions.
+Details of first 100 child inscriptions of `INSCRIPTION_ID`.
 
 ### Example
 
@@ -558,7 +558,7 @@ curl -s \
 
 ### Description
 
-Details of the set of 100 child inscriptions on &lt;PAGE&gt;.
+Details of 100 child inscriptions of `INSCRIPTION_ID` paginated by `PAGE`.
 
 ### Example
 
@@ -739,7 +739,7 @@ curl -s \
 
 ### Description
 
-Details of the first 100 parent inscriptions.
+Details of first 100 parent inscriptions of `INSCRIPTION_ID`.
 
 ### Example
 
@@ -789,7 +789,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Details of the set of 100 parent inscriptions on &lt;PAGE&gt;.
+Details of 100 parent inscriptions of `INSCRIPTION_ID` paginated by `PAGE`.
 
 ### Example
 
