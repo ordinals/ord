@@ -155,7 +155,7 @@ impl Settings {
         .signet
         .then_some(Chain::Signet)
         .or(options.regtest.then_some(Chain::Regtest))
-        .or(options.testnet.then_some(Chain::Testnet3))
+        .or(options.testnet.then_some(Chain::Testnet))
         .or(options.chain_argument),
       commit_interval: options.commit_interval,
       config: options.config,
@@ -431,7 +431,7 @@ impl Settings {
         Ok(blockchain_info) => {
           break match blockchain_info.chain.to_string().as_str() {
             "bitcoin" => Chain::Mainnet,
-            "testnet" => Chain::Testnet3,
+            "testnet" => Chain::Testnet,
             "regtest" => Chain::Regtest,
             "signet" => Chain::Signet,
             other => bail!("Bitcoin RPC server on unknown chain: {other}"),
@@ -850,7 +850,7 @@ mod tests {
       },
     );
     check_network_alias(
-      "testnet3",
+      "testnet",
       if cfg!(windows) {
         r"ord\testnet3"
       } else {
@@ -881,8 +881,8 @@ mod tests {
 
     Arguments::try_parse_from(["ord", "--testnet", "--chain", "signet", "index", "update"])
       .unwrap_err();
-    assert_eq!(parse(&["--testnet"]).chain(), Chain::Testnet3);
-    assert_eq!(parse(&["-t"]).chain(), Chain::Testnet3);
+    assert_eq!(parse(&["--testnet"]).chain(), Chain::Testnet);
+    assert_eq!(parse(&["-t"]).chain(), Chain::Testnet);
   }
 
   #[test]

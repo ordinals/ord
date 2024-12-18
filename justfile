@@ -49,14 +49,14 @@ deploy-mainnet-charlie branch='master' remote='ordinals/ord': \
 deploy-signet branch='master' remote='ordinals/ord': \
   (deploy branch remote 'signet' 'signet.ordinals.net')
 
-deploy-testnet3 branch='master' remote='ordinals/ord': \
-  (deploy branch remote 'testnet3' 'testnet3.ordinals.net')
+deploy-testnet branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'testnet3' 'testnet.ordinals.net')
 
 deploy-testnet4 branch='master' remote='ordinals/ord': \
   (deploy branch remote 'testnet4' 'testnet4.ordinals.net')
 
 deploy-all: \
-  deploy-testnet3 \
+  deploy-testnet \
   deploy-testnet4 \
   deploy-signet \
   deploy-mainnet-alpha \
