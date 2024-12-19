@@ -218,7 +218,13 @@ impl Wallet {
   }
 
   pub(crate) fn get_inscriptions_in_output(&self, output: &OutPoint) -> Vec<InscriptionId> {
-    self.output_info.get(output).unwrap().inscriptions.clone()
+    self
+      .output_info
+      .get(output)
+      .unwrap()
+      .inscriptions
+      .clone()
+      .unwrap_or_default()
   }
 
   pub(crate) fn get_parent_info(&self, parents: &[InscriptionId]) -> Result<Vec<ParentInfo>> {
@@ -253,8 +259,8 @@ impl Wallet {
 
   pub(crate) fn get_runic_outputs(&self) -> Result<BTreeSet<OutPoint>> {
     let mut runic_outputs = BTreeSet::new();
-    for (output, info) in self.output_info.iter() {
-      if !info.runes.is_empty() {
+    for (output, info) in &self.output_info {
+      if !info.runes.clone().unwrap_or_default().is_empty() {
         runic_outputs.insert(*output);
       }
     }
@@ -265,7 +271,7 @@ impl Wallet {
   pub(crate) fn get_runes_balances_in_output(
     &self,
     output: &OutPoint,
-  ) -> Result<BTreeMap<SpacedRune, Pile>> {
+  ) -> Result<Option<BTreeMap<SpacedRune, Pile>>> {
     Ok(
       self
         .output_info
@@ -947,6 +953,7 @@ impl Wallet {
           (
             output,
             balance
+              .unwrap_or_default()
               .into_iter()
               .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
               .collect(),

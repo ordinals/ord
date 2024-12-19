@@ -759,12 +759,18 @@ impl Server {
             index
               .get_inscriptions_on_output_with_satpoints(output)?
               .is_empty()
-              && index.get_rune_balances_for_output(output)?.is_empty()
+              && index
+                .get_rune_balances_for_output(output)?
+                .unwrap_or_default()
+                .is_empty()
           }
           OutputType::Inscribed => !index
             .get_inscriptions_on_output_with_satpoints(output)?
             .is_empty(),
-          OutputType::Runic => !index.get_rune_balances_for_output(output)?.is_empty(),
+          OutputType::Runic => !index
+            .get_rune_balances_for_output(output)?
+            .unwrap_or_default()
+            .is_empty(),
         };
 
         if include {
@@ -3728,21 +3734,23 @@ mod tests {
         transaction: txid,
         sat_ranges: None,
         indexed: true,
-        inscriptions: Vec::new(),
+        inscriptions: None,
         outpoint: output,
-        runes: vec![(
-          SpacedRune {
-            rune: Rune(RUNE),
-            spacers: 0
-          },
-          Pile {
-            amount: 340282366920938463463374607431768211455,
-            divisibility: 1,
-            symbol: None,
-          }
-        )]
-        .into_iter()
-        .collect(),
+        runes: Some(
+          vec![(
+            SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0
+            },
+            Pile {
+              amount: 340282366920938463463374607431768211455,
+              divisibility: 1,
+              symbol: None,
+            }
+          )]
+          .into_iter()
+          .collect()
+        ),
         spent: false,
       }
     );

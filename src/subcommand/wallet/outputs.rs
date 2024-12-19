@@ -40,6 +40,7 @@ impl Outputs {
         Some(
           wallet
             .get_runes_balances_in_output(output)?
+            .unwrap_or_default()
             .iter()
             .map(|(rune, pile)| {
               (

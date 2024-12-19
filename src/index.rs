@@ -1019,7 +1019,11 @@ impl Index {
   pub fn get_rune_balances_for_output(
     &self,
     outpoint: OutPoint,
-  ) -> Result<BTreeMap<SpacedRune, Pile>> {
+  ) -> Result<Option<BTreeMap<SpacedRune, Pile>>> {
+    if !self.index_runes {
+      return Ok(None);
+    }
+
     let rtx = self.database.begin_read()?;
 
     let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
@@ -1027,7 +1031,7 @@ impl Index {
     let id_to_rune_entries = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
 
     let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
-      return Ok(BTreeMap::new());
+      return Ok(Some(BTreeMap::new()));
     };
 
     let balances_buffer = balances.value();
@@ -1050,7 +1054,7 @@ impl Index {
       );
     }
 
-    Ok(balances)
+    Ok(Some(balances))
   }
 
   pub fn get_rune_balance_map(&self) -> Result<BTreeMap<SpacedRune, BTreeMap<OutPoint, Pile>>> {
@@ -1546,14 +1550,21 @@ impl Index {
     )
   }
 
-  pub fn get_inscriptions_for_output(&self, outpoint: OutPoint) -> Result<Vec<InscriptionId>> {
-    Ok(
+  pub fn get_inscriptions_for_output(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Option<Vec<InscriptionId>>> {
+    if !self.index_inscriptions {
+      return Ok(None);
+    }
+
+    Ok(Some(
       self
         .get_inscriptions_on_output_with_satpoints(outpoint)?
         .iter()
         .map(|(_satpoint, inscription_id)| *inscription_id)
         .collect(),
-    )
+    ))
   }
 
   pub fn get_inscriptions_for_outputs(
@@ -2292,22 +2303,22 @@ impl Index {
     let mut runes = BTreeMap::new();
 
     for output in outputs {
-      let rune_balances = self.get_rune_balances_for_output(*output)?;
-
-      for (spaced_rune, pile) in rune_balances {
-        runes
-          .entry(spaced_rune)
-          .and_modify(|(decimal, _symbol): &mut (Decimal, Option<char>)| {
-            assert_eq!(decimal.scale, pile.divisibility);
-            decimal.value += pile.amount;
-          })
-          .or_insert((
-            Decimal {
-              value: pile.amount,
-              scale: pile.divisibility,
-            },
-            pile.symbol,
-          ));
+      if let Some(rune_balances) = self.get_rune_balances_for_output(*output)? {
+        for (spaced_rune, pile) in rune_balances {
+          runes
+            .entry(spaced_rune)
+            .and_modify(|(decimal, _symbol): &mut (Decimal, Option<char>)| {
+              assert_eq!(decimal.scale, pile.divisibility);
+              decimal.value += pile.amount;
+            })
+            .or_insert((
+              Decimal {
+                value: pile.amount,
+                scale: pile.divisibility,
+              },
+              pile.symbol,
+            ));
+        }
       }
     }
 

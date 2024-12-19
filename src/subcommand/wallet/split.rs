@@ -120,6 +120,7 @@ impl Split {
           (
             output,
             balance
+              .unwrap_or_default()
               .into_iter()
               .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
               .collect(),

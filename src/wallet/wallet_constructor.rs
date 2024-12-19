@@ -118,7 +118,7 @@ impl WalletConstructor {
 
     let inscriptions = output_info
       .iter()
-      .flat_map(|(_output, info)| info.inscriptions.clone())
+      .flat_map(|(_output, info)| info.inscriptions.clone().unwrap_or_default())
       .collect::<Vec<InscriptionId>>();
 
     let (inscriptions, inscription_info) = self.get_inscriptions(&inscriptions)?;
