@@ -3486,7 +3486,8 @@ mod tests {
         context
           .index
           .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         []
       );
 
@@ -3496,7 +3497,8 @@ mod tests {
         context
           .index
           .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         [inscription_id]
       );
 
@@ -3511,7 +3513,8 @@ mod tests {
         context
           .index
           .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         []
       );
 
@@ -3522,7 +3525,8 @@ mod tests {
             txid: send_id,
             vout: 0,
           })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         [inscription_id]
       );
     }
@@ -3552,7 +3556,8 @@ mod tests {
             txid: first,
             vout: 0
           })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         [inscription_id]
       );
 
