@@ -683,7 +683,7 @@ mod tests {
 
     assert_eq!(
       settings.bitcoin_rpc_client(None).unwrap_err().to_string(),
-      "Bitcoin RPC server is on testnet3 but ord is on mainnet"
+      "Bitcoin RPC server is on testnet but ord is on mainnet"
     );
   }
 
