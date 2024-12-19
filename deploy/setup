@@ -94,6 +94,8 @@ fi
 
 bitcoind --version
 
+rm -f /var/lib/bitcoind/settings.json
+
 if [[ ! -e ~/.cargo/env ]]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 fi
@@ -107,8 +109,6 @@ install --backup target/release/ord /usr/local/bin/ord
 
 id --user bitcoin || useradd --system bitcoin
 id --user ord || useradd --system ord
-
-# chown bitcoin:bitcoin /var/lib/bitcoind/settings.json
 
 cp deploy/bitcoind.service /etc/systemd/system/
 
