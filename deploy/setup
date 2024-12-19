@@ -41,7 +41,7 @@ case $CHAIN in
   main)
     COOKIE_FILE_DIR=/var/lib/bitcoind
     CSP_ORIGIN=ordinals.com
-    DISABE_JSON_API='--disable-json-api \'
+    DISABLE_JSON_API='--disable-json-api \'
     ufw allow 8333
     ;;
   regtest)
