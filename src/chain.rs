@@ -7,10 +7,10 @@ pub enum Chain {
   #[value(alias("main"))]
   Mainnet,
   #[value(alias("test"))]
+  Regtest,
+  Signet,
   Testnet,
   Testnet4,
-  Signet,
-  Regtest,
 }
 
 impl Chain {
@@ -77,10 +77,10 @@ impl Chain {
   pub(crate) fn join_with_data_dir(self, data_dir: impl AsRef<Path>) -> PathBuf {
     match self {
       Self::Mainnet => data_dir.as_ref().to_owned(),
+      Self::Regtest => data_dir.as_ref().join("regtest"),
+      Self::Signet => data_dir.as_ref().join("signet"),
       Self::Testnet => data_dir.as_ref().join("testnet3"),
       Self::Testnet4 => data_dir.as_ref().join("testnet4"),
-      Self::Signet => data_dir.as_ref().join("signet"),
-      Self::Regtest => data_dir.as_ref().join("regtest"),
     }
   }
 }

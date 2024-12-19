@@ -156,6 +156,7 @@ impl Settings {
         .then_some(Chain::Signet)
         .or(options.regtest.then_some(Chain::Regtest))
         .or(options.testnet.then_some(Chain::Testnet))
+        .or(options.testnet4.then_some(Chain::Testnet4))
         .or(options.chain_argument),
       commit_interval: options.commit_interval,
       config: options.config,
@@ -431,9 +432,10 @@ impl Settings {
         Ok(blockchain_info) => {
           break match blockchain_info.chain.to_string().as_str() {
             "bitcoin" => Chain::Mainnet,
-            "testnet" => Chain::Testnet,
             "regtest" => Chain::Regtest,
             "signet" => Chain::Signet,
+            "testnet" => Chain::Testnet,
+            "testnet4" => Chain::Testnet4,
             other => bail!("Bitcoin RPC server on unknown chain: {other}"),
           }
         }
@@ -759,6 +761,20 @@ mod tests {
       r"\Bitcoin\signet\.cookie"
     } else {
       "/Bitcoin/signet/.cookie"
+    }));
+
+    let cookie_file = parse(&["--testnet4"])
+      .cookie_file()
+      .unwrap()
+      .display()
+      .to_string();
+
+    assert!(cookie_file.ends_with(if cfg!(target_os = "linux") {
+      "/.bitcoin/testnet4/.cookie"
+    } else if cfg!(windows) {
+      r"\Bitcoin\testnet4\.cookie"
+    } else {
+      "/Bitcoin/testnet4/.cookie"
     }));
   }
 
