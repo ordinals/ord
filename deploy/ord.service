@@ -17,7 +17,7 @@ ExecStart=/usr/local/bin/ord \
   --index-runes \
   --index-sats \
   server \
-  ${DISABLE_JSON_API}
+  ${DISABLE_JSON_API} \
   --acme-contact mailto:casey@rodarmor.com \
   --csp-origin https://${CSP_ORIGIN} \
   --http \
