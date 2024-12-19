@@ -100,7 +100,8 @@ impl Reorg {
       .try_into()
       .unwrap();
 
-    if (height < SAVEPOINT_INTERVAL || height - last_save_point_height >= SAVEPOINT_INTERVAL)
+    if (height < SAVEPOINT_INTERVAL
+      || height.saturating_sub(last_save_point_height) >= SAVEPOINT_INTERVAL)
       && blocks.saturating_sub(height) <= CHAIN_TIP_DISTANCE
     {
       let wtx = index.begin_write()?;
