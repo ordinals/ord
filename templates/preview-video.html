@@ -3,9 +3,15 @@
   <head>
     <meta charset=utf-8>
     <link rel=stylesheet href=/static/preview-video.css>
+    <script type=module>
+      let video = document.getElementsByTagName('video')[0];
+      video.addEventListener('click', () => {
+        video.controls = true;
+      });
+    </script>
   </head>
   <body>
-    <video controls loop muted autoplay>
+    <video loop muted autoplay>
       <source src=/content/{{self.inscription_id}}>
     </video>
   </body>
