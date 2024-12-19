@@ -1,4 +1,3 @@
-let video = document.getElementsByTagName('video')[0];
-video.addEventListener('click', () => {
-  video.controls = true;
+document.getElementsByTagName('video')[0].addEventListener('click', (event) => {
+  event.target.controls = true;
 });
