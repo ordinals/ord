@@ -47,21 +47,25 @@ case $CHAIN in
   regtest)
     COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
     CSP_ORIGIN=regtest.ordinals.com
+    DISABLE_JSON_API='--polling-interval=5s'
     ufw allow 18444
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
     CSP_ORIGIN=signet.ordinals.com
+    DISABLE_JSON_API='--polling-interval=5s'
     ufw allow 38333
     ;;
   test)
     COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
     CSP_ORIGIN=testnet.ordinals.com
+    DISABLE_JSON_API='--polling-interval=5s'
     ufw allow 18333
     ;;
   testnet4)
     COOKIE_FILE_DIR=/var/lib/bitcoind/testnet4
     CSP_ORIGIN=testnet4.ordinals.com
+    DISABLE_JSON_API='--polling-interval=5s'
     ufw allow 48333
     ;;
   *)
