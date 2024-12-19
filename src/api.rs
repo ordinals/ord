@@ -89,6 +89,14 @@ pub struct ChildInscriptions {
   pub page: usize,
 }
 
+#[derive(Serialize)]
+pub struct AddressRecursive {
+  pub outputs: Vec<OutPoint>,
+  pub inscriptions: Vec<InscriptionId>,
+  pub sat_balance: u64,
+  pub runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Inscription {
   pub address: Option<String>,
