@@ -346,9 +346,10 @@ impl Handle {
   pub fn network(&self) -> String {
     match self.state().network {
       Network::Bitcoin => "mainnet".to_string(),
-      Network::Testnet => Network::Testnet.to_string(),
-      Network::Signet => Network::Signet.to_string(),
       Network::Regtest => Network::Regtest.to_string(),
+      Network::Signet => Network::Signet.to_string(),
+      Network::Testnet4 => Network::Testnet4.to_string(),
+      Network::Testnet => Network::Testnet.to_string(),
       _ => panic!(),
     }
   }

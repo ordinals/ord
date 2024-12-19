@@ -857,6 +857,14 @@ mod tests {
         "ord/testnet3"
       },
     );
+    check_network_alias(
+      "testnet4",
+      if cfg!(windows) {
+        r"ord\testnet4"
+      } else {
+        "ord/testnet4"
+      },
+    );
   }
 
   #[test]
