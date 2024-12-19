@@ -6,9 +6,9 @@ pub enum Chain {
   #[default]
   #[value(alias("main"))]
   Mainnet,
-  #[value(alias("test"))]
   Regtest,
   Signet,
+  #[value(alias("test"))]
   Testnet,
   Testnet4,
 }

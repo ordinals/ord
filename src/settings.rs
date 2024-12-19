@@ -833,6 +833,7 @@ mod tests {
 
   #[test]
   fn network_accepts_aliases() {
+    #[track_caller]
     fn check_network_alias(alias: &str, suffix: &str) {
       let data_dir = parse(&["--chain", alias]).data_dir().display().to_string();
 
