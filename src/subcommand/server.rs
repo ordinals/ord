@@ -228,6 +228,7 @@ impl Server {
           get(Self::parents_paginated),
         )
         .route("/preview/:inscription_id", get(Self::preview))
+        .route("/r/output/:output", get(Self::output_recursive))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
           "/r/blockhash/:height",
@@ -657,6 +658,21 @@ impl Server {
         .into_response()
       })
     })
+  }
+
+  async fn output_recursive(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult {
+    let accept_json = AcceptJson(true);
+    Self::output(
+      Extension(server_config),
+      Extension(index),
+      Path(outpoint),
+      accept_json,
+    )
+    .await
   }
 
   async fn satpoint(
@@ -6323,6 +6339,44 @@ next
 "
       ),
     );
+  }
+
+  #[test]
+  fn output_recursive_endpoint() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let inscription = Inscription {
+      content_type: Some("text/plain".into()),
+      body: Some("foo".into()),
+      ..default()
+    };
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription.to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+    let outpoint: OutPoint = OutPoint { txid, vout: 0 };
+
+    let output_response = server.get_json::<api::Output>(format!("/r/output/{}", outpoint));
+
+    assert_eq!(output_response.outpoint, outpoint);
+    assert!(!output_response.spent);
+    assert!(output_response.indexed);
+    assert_eq!(output_response.inscriptions, vec![inscription_id]);
+    assert!(output_response.address.is_some());
+    assert!(!output_response.script_pubkey.is_empty());
+    assert_eq!(output_response.transaction, txid);
+    assert!(output_response.value > 0);
+    assert!(output_response.runes.is_empty());
+    if let Some(sat_ranges) = &output_response.sat_ranges {
+      assert!(!sat_ranges.is_empty());
+    }
   }
 
   #[test]
