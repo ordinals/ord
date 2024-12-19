@@ -53,15 +53,16 @@ OP_ENDIF
 First the string `ord` is pushed, to disambiguate inscriptions from other uses
 of envelopes.
 
-`OP_PUSH 1` indicates that the next push contains the content type, and `OP_PUSH
-0` indicates that subsequent data pushes contain the content itself. Multiple data
-pushes must be used for large inscriptions, as one of taproot's few
-restrictions is that individual data pushes may not be larger than 520 bytes.
+`OP_PUSH 1` indicates that the next push contains the content type, and
+`OP_PUSH 0`indicates that subsequent data pushes contain the content itself.
+Multiple data pushes must be used for large inscriptions, as one of taproot's
+few restrictions is that individual data pushes may not be larger than 520
+bytes.
 
 The inscription content is contained within the input of a reveal transaction,
-and the inscription is made on the first sat of its input. This sat can
-then be tracked using the familiar rules of ordinal theory, allowing it to be
-transferred, bought, sold, lost to fees, and recovered.
+and the inscription is made on the first sat of its input if it has no pointer
+field. This sat can then be tracked using the familiar rules of ordinal
+theory, allowing it to be transferred, bought, sold, lost to fees, and recovered.
 
 Content
 -------
@@ -75,8 +76,15 @@ Fields
 Inscriptions may include fields before an optional body. Each field consists of
 two data pushes, a tag and a value.
 
-Currently, the only defined field is `content-type`, with a tag of `1`, whose
-value is the MIME type of the body.
+Currently, there are six defined fields:
+
+- `content_type`, with a tag of `1`, whose value is the MIME type of the body.
+- `pointer`, with a tag of `2`, see [pointer docs](inscriptions/pointer.md).
+- `parent`, with a tag of `3`, see [provenance](inscriptions/provenance.md).
+- `metadata`, with a tag of `5`, see [metadata](inscriptions/metadata.md).
+- `metaprotocol`, with a tag of `7`, whose value is the metaprotocol identifier.
+- `content_encoding`, with a tag of `9`, whose value is the encoding of the body.
+- `delegate`, with a tag of `11`, see [delegate](inscriptions/delegate.md).
 
 The beginning of the body and end of fields is indicated with an empty data
 push.
@@ -116,6 +124,22 @@ go through the inputs consecutively and look for all inscription `envelopes`.
 | 3     | 0                 |            |
 | 4     | 1                 | i6         |
 
+Inscription Numbers
+-------------------
+
+Inscriptions are assigned inscription numbers starting at zero, first by the
+order reveal transactions appear in blocks, and the order that reveal envelopes
+appear in those transactions.
+
+Due to a historical bug in `ord` which cannot be fixed without changing a great
+many inscription numbers, inscriptions which are revealed and then immediately
+spent to fees are numbered as if they appear last in the block in which they
+are revealed.
+
+Inscriptions which are cursed are numbered starting at negative one, counting
+down. Cursed inscriptions on and after the jubilee at block 824544 are
+vindicated, and are assigned positive inscription numbers.
+
 Sandboxing
 ----------
 
@@ -125,3 +149,36 @@ off-chain content, thus keeping inscriptions immutable and self-contained.
 This is accomplished by loading HTML and SVG inscriptions inside `iframes` with
 the `sandbox` attribute, as well as serving inscription content with
 `Content-Security-Policy` headers.
+
+Self-Reference
+--------------
+
+The content of the inscription with ID `INSCRIPTION_ID` must served from the
+URL path `/content/<INSCRIPTION_ID>`.
+
+This allows inscriptions to retrieve their own inscription ID with:
+
+```js
+let inscription_id = window.location.pathname.split("/").pop();
+```
+
+If an inscription with ID X delegates to an inscription with ID Y, that is to
+say, if inscription X contains a delegate field with value Y, the content of
+inscription X must be served from the URL path `/content/X`, *not*
+`/content/Y`.
+
+This allows delegating inscriptions to use their own inscription ID as a seed
+for generative delegate content.
+
+Reinscriptions
+--------------
+
+Previously inscribed sats can be reinscribed with the `--reinscribe` command if
+the inscription is present in the wallet. This will only append an inscription to
+a sat, not change the initial inscription.
+
+Reinscribe with satpoint:
+`ord wallet inscribe --fee-rate <FEE_RATE> --reinscribe --file <FILE> --satpoint <SATPOINT>`
+
+Reinscribe on a sat (requires sat index):
+`ord --index-sats wallet inscribe --fee-rate <FEE_RATE> --reinscribe --file <FILE> --sat <SAT>`

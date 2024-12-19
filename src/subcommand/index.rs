@@ -1,49 +1,25 @@
 use super::*;
 
+mod export;
+pub mod info;
+mod update;
+
 #[derive(Debug, Parser)]
 pub(crate) enum IndexSubcommand {
-  #[clap(about = "Write inscription numbers and ids to a tab-separated file")]
-  Export(Export),
-  #[clap(about = "Update the index")]
-  Run,
+  #[command(about = "Write inscription numbers and ids to a tab-separated file")]
+  Export(export::Export),
+  #[command(about = "Print index statistics")]
+  Info(info::Info),
+  #[command(about = "Update the index", alias = "run")]
+  Update,
 }
 
 impl IndexSubcommand {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     match self {
-      Self::Export(export) => export.run(options),
-      Self::Run => index::run(options),
+      Self::Export(export) => export.run(settings),
+      Self::Info(info) => info.run(settings),
+      Self::Update => update::run(settings),
     }
   }
-}
-
-#[derive(Debug, Parser)]
-pub(crate) struct Export {
-  #[clap(
-    long,
-    default_value = "inscription_number_to_id.tsv",
-    help = "<TSV> file to write to"
-  )]
-  tsv: String,
-  #[clap(long, help = "Whether to include addresses in export")]
-  include_addresses: bool,
-}
-
-impl Export {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
-    let index = Index::open(&options)?;
-
-    index.update()?;
-    index.export(&self.tsv, self.include_addresses)?;
-
-    Ok(Box::new(Empty {}))
-  }
-}
-
-pub(crate) fn run(options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
-
-  index.update()?;
-
-  Ok(Box::new(Empty {}))
 }

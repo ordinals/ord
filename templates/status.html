@@ -1,0 +1,55 @@
+<h1>Status</h1>
+<dl>
+  <dt>chain</dt>
+  <dd>{{ self.chain }}</dd>
+%% if let Some(height) = self.height {
+  <dt>height</dt>
+  <dd><a href=/block/{{ height }}>{{ height }}</a></dd>
+%% }
+  <dt>inscriptions</dt>
+  <dd><a href=/inscriptions>{{ self.inscriptions }}</a></dd>
+  <dt>blessed inscriptions</dt>
+  <dd>{{ self.blessed_inscriptions }}</dd>
+  <dt>cursed inscriptions</dt>
+  <dd>{{ self.cursed_inscriptions }}</dd>
+  <dt>runes</dt>
+  <dd><a href=/runes>{{ self.runes }}</a></dd>
+  <dt>lost sats</dt>
+  <dd>{{ self.lost_sats }}</dd>
+  <dt>started</dt>
+  <dd>{{ self.started }}</dd>
+  <dt>uptime</dt>
+  <dd>{{ humantime::format_duration(self.uptime) }}</dd>
+  <dt>initial sync time</dt>
+  <dd>{{ humantime::format_duration(self.initial_sync_time) }}</dd>
+  <dt>minimum rune for next block</dt>
+  <dd>{{ self.minimum_rune_for_next_block }}</dd>
+  <dt>version</dt>
+  <dd>{{ env!("CARGO_PKG_VERSION") }}</dd>
+  <dt>unrecoverably reorged</dt>
+  <dd>{{ self.unrecoverably_reorged }}</dd>
+  <dt>address index</dt>
+  <dd>{{ self.address_index }}</dd>
+  <dt>inscription index</dt>
+  <dd>{{ self.inscription_index }}</dd>
+  <dt>rune index</dt>
+  <dd>{{ self.rune_index }}</dd>
+  <dt>sat index</dt>
+  <dd>{{ self.sat_index }}</dd>
+  <dt>transaction index</dt>
+  <dd>{{ self.transaction_index }}</dd>
+  <dt>json api</dt>
+  <dd>{{ self.json_api }}</dd>
+%% if !env!("GIT_BRANCH").is_empty() {
+  <dt>git branch</dt>
+  <dd>{{ env!("GIT_BRANCH") }}</dd>
+%% }
+%% if !env!("GIT_COMMIT").is_empty() {
+  <dt>git commit</dt>
+  <dd>
+    <a class=collapse href=https://github.com/ordinals/ord/commit/{{ env!("GIT_COMMIT") }}>
+      {{ env!("GIT_COMMIT") }}
+    </a>
+  </dd>
+%% }
+</dl>

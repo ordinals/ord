@@ -1,32 +1,56 @@
 use super::*;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone, DeserializeFromStr, SerializeDisplay)]
 pub enum Object {
   Address(Address<NetworkUnchecked>),
   Hash([u8; 32]),
   InscriptionId(InscriptionId),
   Integer(u128),
   OutPoint(OutPoint),
+  Rune(SpacedRune),
   Sat(Sat),
   SatPoint(SatPoint),
 }
 
 impl FromStr for Object {
-  type Err = Error;
+  type Err = SnafuError;
 
-  fn from_str(s: &str) -> Result<Self> {
+  fn from_str(input: &str) -> Result<Self, Self::Err> {
     use Representation::*;
 
-    match Representation::from_str(s)? {
-      Address => Ok(Self::Address(s.parse()?)),
-      Decimal | Degree | Percentile | Name => Ok(Self::Sat(s.parse()?)),
-      Hash => Ok(Self::Hash(
-        bitcoin::hashes::sha256::Hash::from_str(s)?.to_byte_array(),
+    match input.parse::<Representation>()? {
+      Address => Ok(Self::Address(
+        input.parse().snafu_context(error::AddressParse { input })?,
       )),
-      InscriptionId => Ok(Self::InscriptionId(s.parse()?)),
-      Integer => Ok(Self::Integer(s.parse()?)),
-      OutPoint => Ok(Self::OutPoint(s.parse()?)),
-      SatPoint => Ok(Self::SatPoint(s.parse()?)),
+      Decimal | Degree | Percentile | Name => Ok(Self::Sat(
+        input.parse().snafu_context(error::SatParse { input })?,
+      )),
+      Hash => Ok(Self::Hash(
+        bitcoin::hashes::sha256::Hash::from_str(input)
+          .snafu_context(error::HashParse { input })?
+          .to_byte_array(),
+      )),
+      InscriptionId => Ok(Self::InscriptionId(
+        input
+          .parse()
+          .snafu_context(error::InscriptionIdParse { input })?,
+      )),
+      Integer => Ok(Self::Integer(
+        input.parse().snafu_context(error::IntegerParse { input })?,
+      )),
+      OutPoint => Ok(Self::OutPoint(
+        input
+          .parse()
+          .snafu_context(error::OutPointParse { input })?,
+      )),
+      Rune => Ok(Self::Rune(
+        input.parse().snafu_context(error::RuneParse { input })?,
+      )),
+      SatPoint => Ok(Self::SatPoint(
+        input
+          .parse()
+          .snafu_context(error::SatPointParse { input })?,
+      )),
     }
   }
 }
@@ -44,27 +68,10 @@ impl Display for Object {
       Self::InscriptionId(inscription_id) => write!(f, "{inscription_id}"),
       Self::Integer(integer) => write!(f, "{integer}"),
       Self::OutPoint(outpoint) => write!(f, "{outpoint}"),
+      Self::Rune(rune) => write!(f, "{rune}"),
       Self::Sat(sat) => write!(f, "{sat}"),
       Self::SatPoint(satpoint) => write!(f, "{satpoint}"),
     }
-  }
-}
-
-impl Serialize for Object {
-  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-  where
-    S: Serializer,
-  {
-    serializer.collect_str(self)
-  }
-}
-
-impl<'de> Deserialize<'de> for Object {
-  fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-  where
-    D: Deserializer<'de>,
-  {
-    Ok(DeserializeFromStr::deserialize(deserializer)?.0)
   }
 }
 
@@ -195,6 +202,20 @@ mod tests {
           .parse()
           .unwrap(),
       ),
+    );
+    case(
+      "A",
+      Object::Rune(SpacedRune {
+        rune: Rune(0),
+        spacers: 0,
+      }),
+    );
+    case(
+      "A•A",
+      Object::Rune(SpacedRune {
+        rune: Rune(26),
+        spacers: 1,
+      }),
     );
   }
 }

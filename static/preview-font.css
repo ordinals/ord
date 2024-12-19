@@ -1,0 +1,19 @@
+html, body, textarea {
+  background-color: #292c2f;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+}
+
+textarea {
+  border: 0;
+  box-sizing: border-box;
+  color: #a1adb8;
+  font-family: 'Inscription';
+  font-size: 24px;
+  padding: 5vmin;
+  resize: none;
+  width: 100%;
+}

@@ -1,7 +1,8 @@
 #![allow(
+  clippy::large_enum_variant,
+  clippy::result_large_err,
   clippy::too_many_arguments,
-  clippy::type_complexity,
-  clippy::result_large_err
+  clippy::type_complexity
 )]
 #![deny(
   clippy::cast_lossless,
@@ -14,53 +15,69 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    config::Config,
     decimal::Decimal,
-    degree::Degree,
     deserialize_from_str::DeserializeFromStr,
-    epoch::Epoch,
-    height::Height,
-    index::{Index, List},
-    inscription::Inscription,
-    inscription_id::InscriptionId,
-    media::Media,
-    options::Options,
+    index::BitcoinCoreRpcResultExt,
+    inscriptions::{
+      inscription_id,
+      media::{self, ImageRendering, Media},
+      teleburn, ParsedEnvelope,
+    },
+    into_usize::IntoUsize,
     outgoing::Outgoing,
     representation::Representation,
-    subcommand::{Subcommand, SubcommandResult},
+    settings::Settings,
+    signer::Signer,
+    subcommand::{OutputFormat, Subcommand, SubcommandResult},
     tally::Tally,
   },
-  anyhow::{anyhow, bail, Context, Error},
+  anyhow::{anyhow, bail, ensure, Context, Error},
   bip39::Mnemonic,
   bitcoin::{
     address::{Address, NetworkUnchecked},
-    blockdata::constants::COIN_VALUE,
+    blockdata::{
+      constants::{DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL},
+      locktime::absolute::LockTime,
+    },
     consensus::{self, Decodable, Encodable},
-    hash_types::BlockHash,
+    hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
+    policy::MAX_STANDARD_TX_WEIGHT,
+    script,
+    transaction::Version,
     Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
+    Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
-  chain::Chain,
   chrono::{DateTime, TimeZone, Utc},
+  ciborium::Value,
   clap::{ArgGroup, Parser},
-  derive_more::{Display, FromStr},
+  error::{ResultExt, SnafuError},
   html_escaper::{Escape, Trusted},
+  http::{HeaderMap, StatusCode},
   lazy_static::lazy_static,
+  ordinals::{
+    varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,
+    Sat, SatPoint, SpacedRune, Terms,
+  },
   regex::Regex,
-  serde::{Deserialize, Deserializer, Serialize, Serializer},
+  reqwest::Url,
+  serde::{Deserialize, Deserializer, Serialize},
+  serde_with::{DeserializeFromStr, SerializeDisplay},
+  snafu::{Backtrace, ErrorCompat, Snafu},
   std::{
+    backtrace::BacktraceStatus,
     cmp,
-    collections::{BTreeMap, HashSet, VecDeque},
+    collections::{BTreeMap, BTreeSet, HashSet},
     env,
     ffi::OsString,
     fmt::{self, Display, Formatter},
     fs::{self, File},
-    io,
-    net::{TcpListener, ToSocketAddrs},
-    ops::{Add, AddAssign, Sub},
+    io::{self, BufReader, Cursor, Read},
+    mem,
+    net::ToSocketAddrs,
     path::{Path, PathBuf},
-    process::{self, Command},
+    process::{self, Command, Stdio},
     str::FromStr,
     sync::{
       atomic::{self, AtomicBool},
@@ -69,14 +86,18 @@ use {
     thread,
     time::{Duration, Instant, SystemTime},
   },
-  sysinfo::{System, SystemExt},
-  tempfile::TempDir,
+  sysinfo::System,
   tokio::{runtime::Runtime, task},
 };
 
-pub use crate::{
-  fee_rate::FeeRate, object::Object, rarity::Rarity, sat::Sat, sat_point::SatPoint,
-  subcommand::wallet::transaction_builder::TransactionBuilder,
+pub use self::{
+  chain::Chain,
+  fee_rate::FeeRate,
+  index::{Index, RuneEntry},
+  inscriptions::{Envelope, Inscription, InscriptionId},
+  object::Object,
+  options::Options,
+  wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
 #[cfg(test)]
@@ -86,75 +107,143 @@ mod test;
 #[cfg(test)]
 use self::test::*;
 
-macro_rules! tprintln {
-    ($($arg:tt)*) => {
-
-      if cfg!(test) {
-        eprint!("==> ");
-        eprintln!($($arg)*);
-      }
-    };
-}
-
-mod arguments;
+pub mod api;
+pub mod arguments;
 mod blocktime;
-mod chain;
-mod config;
-mod decimal;
-mod degree;
+pub mod chain;
+pub mod decimal;
 mod deserialize_from_str;
-mod epoch;
+mod error;
 mod fee_rate;
-mod height;
-mod index;
-mod inscription;
-pub mod inscription_id;
-mod media;
+pub mod index;
+mod inscriptions;
+mod into_usize;
+mod macros;
 mod object;
-mod options;
-mod outgoing;
-mod page_config;
-pub mod rarity;
+pub mod options;
+pub mod outgoing;
+mod re;
 mod representation;
-pub mod sat;
-mod sat_point;
+pub mod runes;
+pub mod settings;
+mod signer;
 pub mod subcommand;
 mod tally;
 pub mod templates;
-mod wallet;
+pub mod wallet;
 
 type Result<T = (), E = Error> = std::result::Result<T, E>;
+type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
-const DIFFCHANGE_INTERVAL: u64 = bitcoin::blockdata::constants::DIFFCHANGE_INTERVAL as u64;
-const SUBSIDY_HALVING_INTERVAL: u64 =
-  bitcoin::blockdata::constants::SUBSIDY_HALVING_INTERVAL as u64;
-const CYCLE_EPOCHS: u64 = 6;
+const MAX_STANDARD_OP_RETURN_SIZE: usize = 83;
+const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
-static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(Option::None);
+static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
 
-fn integration_test() -> bool {
-  env::var_os("ORD_INTEGRATION_TEST")
-    .map(|value| value.len() > 0)
-    .unwrap_or(false)
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+fn fund_raw_transaction(
+  client: &Client,
+  fee_rate: FeeRate,
+  unfunded_transaction: &Transaction,
+) -> Result<Vec<u8>> {
+  let mut buffer = Vec::new();
+
+  {
+    unfunded_transaction.version.consensus_encode(&mut buffer)?;
+    unfunded_transaction.input.consensus_encode(&mut buffer)?;
+    unfunded_transaction.output.consensus_encode(&mut buffer)?;
+    unfunded_transaction
+      .lock_time
+      .consensus_encode(&mut buffer)?;
+  }
+
+  Ok(
+    client
+      .fund_raw_transaction(
+        &buffer,
+        Some(&bitcoincore_rpc::json::FundRawTransactionOptions {
+          // NB. This is `fundrawtransaction`'s `feeRate`, which is fee per kvB
+          // and *not* fee per vB. So, we multiply the fee rate given by the user
+          // by 1000.
+          fee_rate: Some(Amount::from_sat((fee_rate.n() * 1000.0).ceil() as u64)),
+          change_position: Some(unfunded_transaction.output.len().try_into()?),
+          ..default()
+        }),
+        Some(false),
+      )
+      .map_err(|err| {
+        if matches!(
+          err,
+          bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(
+            bitcoincore_rpc::jsonrpc::error::RpcError { code: -6, .. }
+          ))
+        ) {
+          anyhow!("not enough cardinal utxos")
+        } else {
+          err.into()
+        }
+      })?
+      .hex,
+  )
 }
 
-fn timestamp(seconds: u32) -> DateTime<Utc> {
-  Utc.timestamp_opt(seconds.into(), 0).unwrap()
+pub fn timestamp(seconds: u64) -> DateTime<Utc> {
+  Utc
+    .timestamp_opt(seconds.try_into().unwrap_or(i64::MAX), 0)
+    .unwrap()
 }
 
-fn unbound_outpoint() -> OutPoint {
+fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
+  BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
+}
+
+pub fn unbound_outpoint() -> OutPoint {
   OutPoint {
     txid: Hash::all_zeros(),
     vout: 0,
   }
 }
 
-fn gracefully_shutdown_indexer() {
+fn uncheck(address: &Address) -> Address<NetworkUnchecked> {
+  address.to_string().parse().unwrap()
+}
+
+fn default<T: Default>() -> T {
+  Default::default()
+}
+
+pub fn parse_ord_server_args(args: &str) -> (Settings, subcommand::server::Server) {
+  match Arguments::try_parse_from(args.split_whitespace()) {
+    Ok(arguments) => match arguments.subcommand {
+      Subcommand::Server(server) => (
+        Settings::merge(
+          arguments.options,
+          vec![("INTEGRATION_TEST".into(), "1".into())]
+            .into_iter()
+            .collect(),
+        )
+        .unwrap(),
+        server,
+      ),
+      subcommand => panic!("unexpected subcommand: {subcommand:?}"),
+    },
+    Err(err) => panic!("error parsing arguments: {err}"),
+  }
+}
+
+pub fn cancel_shutdown() {
+  SHUTTING_DOWN.store(false, atomic::Ordering::Relaxed);
+}
+
+pub fn shut_down() {
+  SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
+}
+
+fn gracefully_shut_down_indexer() {
   if let Some(indexer) = INDEXER.lock().unwrap().take() {
-    // We explicitly set this to true to notify the thread to not take on new work
-    SHUTTING_DOWN.store(true, atomic::Ordering::Relaxed);
+    shut_down();
     log::info!("Waiting for index thread to finish...");
     if indexer.join().is_err() {
       log::warn!("Index thread panicked; join failed");
@@ -170,36 +259,69 @@ pub fn main() {
       process::exit(1);
     }
 
-    println!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
+    eprintln!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
 
     LISTENERS
       .lock()
       .unwrap()
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+
+    gracefully_shut_down_indexer();
   })
   .expect("Error setting <CTRL-C> handler");
 
-  match Arguments::parse().run() {
+  let args = Arguments::parse();
+
+  let format = args.options.format;
+
+  match args.run() {
     Err(err) => {
       eprintln!("error: {err}");
-      err
-        .chain()
-        .skip(1)
-        .for_each(|cause| eprintln!("because: {cause}"));
-      if env::var_os("RUST_BACKTRACE")
-        .map(|val| val == "1")
-        .unwrap_or_default()
-      {
-        eprintln!("{}", err.backtrace());
+
+      if let SnafuError::Anyhow { err } = err {
+        for (i, err) in err.chain().skip(1).enumerate() {
+          if i == 0 {
+            eprintln!();
+            eprintln!("because:");
+          }
+
+          eprintln!("- {err}");
+        }
+
+        if env::var_os("RUST_BACKTRACE")
+          .map(|val| val == "1")
+          .unwrap_or_default()
+        {
+          eprintln!("{}", err.backtrace());
+        }
+      } else {
+        for (i, err) in err.iter_chain().skip(1).enumerate() {
+          if i == 0 {
+            eprintln!();
+            eprintln!("because:");
+          }
+
+          eprintln!("- {err}");
+        }
+
+        if let Some(backtrace) = err.backtrace() {
+          if backtrace.status() == BacktraceStatus::Captured {
+            eprintln!("backtrace:");
+            eprintln!("{backtrace}");
+          }
+        }
       }
 
-      gracefully_shutdown_indexer();
+      gracefully_shut_down_indexer();
 
       process::exit(1);
     }
-    Ok(output) => output.print_json(),
+    Ok(output) => {
+      if let Some(output) = output {
+        output.print(format.unwrap_or_default());
+      }
+      gracefully_shut_down_indexer();
+    }
   }
-
-  gracefully_shutdown_indexer();
 }

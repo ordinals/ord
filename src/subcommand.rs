@@ -1,85 +1,118 @@
 use super::*;
 
+pub mod balances;
+pub mod decode;
+pub mod env;
 pub mod epochs;
 pub mod find;
-mod index;
-pub mod info;
+pub mod index;
 pub mod list;
 pub mod parse;
-mod preview;
-mod server;
+pub mod runes;
+pub mod server;
+mod settings;
 pub mod subsidy;
 pub mod supply;
+pub mod teleburn;
 pub mod traits;
+pub mod verify;
 pub mod wallet;
+pub mod wallets;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
-  #[clap(about = "List the first satoshis of each reward epoch")]
+  #[command(about = "List all rune balances")]
+  Balances,
+  #[command(about = "Decode a transaction")]
+  Decode(decode::Decode),
+  #[command(about = "Start a regtest ord and bitcoind instance")]
+  Env(env::Env),
+  #[command(about = "List the first satoshis of each reward epoch")]
   Epochs,
-  #[clap(about = "Run an explorer server populated with inscriptions")]
-  Preview(preview::Preview),
-  #[clap(about = "Find a satoshi's current location")]
+  #[command(about = "Find a satoshi's current location")]
   Find(find::Find),
-  #[clap(subcommand, about = "Index commands")]
+  #[command(subcommand, about = "Index commands")]
   Index(index::IndexSubcommand),
-  #[clap(about = "Display index statistics")]
-  Info(info::Info),
-  #[clap(about = "List the satoshis in an output")]
+  #[command(about = "List the satoshis in an output")]
   List(list::List),
-  #[clap(about = "Parse a satoshi from ordinal notation")]
+  #[command(about = "Parse a satoshi from ordinal notation")]
   Parse(parse::Parse),
-  #[clap(about = "Display information about a block's subsidy")]
-  Subsidy(subsidy::Subsidy),
-  #[clap(about = "Run the explorer server")]
+  #[command(about = "List all runes")]
+  Runes,
+  #[command(about = "Run the explorer server")]
   Server(server::Server),
-  #[clap(about = "Display Bitcoin supply information")]
+  #[command(about = "Display settings")]
+  Settings,
+  #[command(about = "Display information about a block's subsidy")]
+  Subsidy(subsidy::Subsidy),
+  #[command(about = "Display Bitcoin supply information")]
   Supply,
-  #[clap(about = "Display satoshi traits")]
+  #[command(about = "Generate teleburn addresses")]
+  Teleburn(teleburn::Teleburn),
+  #[command(about = "Display satoshi traits")]
   Traits(traits::Traits),
-  #[clap(subcommand, about = "Wallet commands")]
-  Wallet(wallet::Wallet),
+  #[command(about = "Verify BIP322 signature")]
+  Verify(verify::Verify),
+  #[command(about = "Wallet commands")]
+  Wallet(wallet::WalletCommand),
+  #[command(about = "List all Bitcoin Core wallets")]
+  Wallets,
 }
 
 impl Subcommand {
-  pub(crate) fn run(self, options: Options) -> SubcommandResult {
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     match self {
+      Self::Balances => balances::run(settings),
+      Self::Decode(decode) => decode.run(settings),
+      Self::Env(env) => env.run(),
       Self::Epochs => epochs::run(),
-      Self::Preview(preview) => preview.run(),
-      Self::Find(find) => find.run(options),
-      Self::Index(index) => index.run(options),
-      Self::Info(info) => info.run(options),
-      Self::List(list) => list.run(options),
+      Self::Find(find) => find.run(settings),
+      Self::Index(index) => index.run(settings),
+      Self::List(list) => list.run(settings),
       Self::Parse(parse) => parse.run(),
-      Self::Subsidy(subsidy) => subsidy.run(),
+      Self::Runes => runes::run(settings),
       Self::Server(server) => {
-        let index = Arc::new(Index::open(&options)?);
+        let index = Arc::new(Index::open(&settings)?);
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
-        server.run(options, index, handle)
+        server.run(settings, index, handle)
       }
+      Self::Settings => settings::run(settings),
+      Self::Subsidy(subsidy) => subsidy.run(),
       Self::Supply => supply::run(),
+      Self::Teleburn(teleburn) => teleburn.run(),
       Self::Traits(traits) => traits.run(),
-      Self::Wallet(wallet) => wallet.run(options),
+      Self::Verify(verify) => verify.run(),
+      Self::Wallet(wallet) => wallet.run(settings),
+      Self::Wallets => wallets::run(settings),
     }
   }
 }
 
-#[derive(Serialize, Deserialize)]
-pub struct Empty {}
+#[derive(clap::ValueEnum, Debug, Clone, Copy, Serialize, Deserialize, Default)]
+pub enum OutputFormat {
+  #[default]
+  Json,
+  Yaml,
+  Minify,
+}
 
-pub(crate) trait Output: Send {
-  fn print_json(&self);
+pub trait Output: Send {
+  fn print(&self, format: OutputFormat);
 }
 
 impl<T> Output for T
 where
   T: Serialize + Send,
 {
-  fn print_json(&self) {
-    serde_json::to_writer_pretty(io::stdout(), self).ok();
+  fn print(&self, format: OutputFormat) {
+    match format {
+      OutputFormat::Json => serde_json::to_writer_pretty(io::stdout(), self).ok(),
+      OutputFormat::Yaml => serde_yaml::to_writer(io::stdout(), self).ok(),
+      OutputFormat::Minify => serde_json::to_writer(io::stdout(), self).ok(),
+    };
     println!();
   }
 }
 
-pub(crate) type SubcommandResult = Result<Box<dyn Output>>;
+pub(crate) type SubcommandResult = Result<Option<Box<dyn Output>>>;

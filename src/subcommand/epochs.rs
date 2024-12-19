@@ -11,5 +11,5 @@ pub(crate) fn run() -> SubcommandResult {
     starting_sats.push(sat);
   }
 
-  Ok(Box::new(Output { starting_sats }))
+  Ok(Some(Box::new(Output { starting_sats })))
 }

@@ -1,13 +1,20 @@
-use {super::*, ord::subcommand::wallet::receive::Output};
+use {super::*, ord::subcommand::wallet::receive};
 
 #[test]
 fn receive() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  create_wallet(&core, &ord);
 
   let output = CommandBuilder::new("wallet receive")
-    .rpc_server(&rpc_server)
-    .run_and_deserialize_output::<Output>();
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<receive::Output>();
 
-  assert!(output.address.is_valid_for_network(Network::Bitcoin));
+  assert!(output
+    .addresses
+    .first()
+    .unwrap()
+    .is_valid_for_network(Network::Bitcoin));
 }

@@ -1,4 +1,4 @@
-use {super::*, crate::wallet::Wallet};
+use super::*;
 
 #[derive(Serialize, Deserialize)]
 pub struct Output {
@@ -8,32 +8,29 @@ pub struct Output {
   pub postage: u64,
 }
 
-pub(crate) fn run(options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
-  index.update()?;
-
-  let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
-  let inscriptions = index.get_inscriptions(unspent_outputs.clone())?;
-
-  let explorer = match options.chain() {
+pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
+  let explorer = match wallet.chain() {
     Chain::Mainnet => "https://ordinals.com/inscription/",
     Chain::Regtest => "http://localhost/inscription/",
     Chain::Signet => "https://signet.ordinals.com/inscription/",
     Chain::Testnet => "https://testnet.ordinals.com/inscription/",
+    Chain::Testnet4 => "https://testnet4.ordinals.com/inscription/",
   };
 
   let mut output = Vec::new();
 
-  for (location, inscription) in inscriptions {
-    if let Some(postage) = unspent_outputs.get(&location.outpoint) {
-      output.push(Output {
-        location,
-        inscription,
-        explorer: format!("{explorer}{inscription}"),
-        postage: postage.to_sat(),
-      })
+  for (location, inscriptions) in wallet.inscriptions() {
+    if let Some(txout) = wallet.utxos().get(&location.outpoint) {
+      for inscription in inscriptions {
+        output.push(Output {
+          location: *location,
+          inscription: *inscription,
+          explorer: format!("{explorer}{inscription}"),
+          postage: txout.value.to_sat(),
+        })
+      }
     }
   }
 
-  Ok(Box::new(output))
+  Ok(Some(Box::new(output)))
 }

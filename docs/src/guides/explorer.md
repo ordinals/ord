@@ -1,9 +1,12 @@
 Ordinal Explorer
 ================
 
-The `ord` binary includes a block explorer. We host a instance of the block
-explorer on mainnet at [ordinals.com](https://ordinals.com), and on signet at
-[signet.ordinals.com](https://signet.ordinals.com).
+The `ord` binary includes a block explorer. We host an instance of the block
+explorer on mainnet at [ordinals.com](https://ordinals.com), on signet at
+[signet.ordinals.com](https://signet.ordinals.com), and on testnet at
+[testnet.ordinals.com](https://testnet.ordinals.com). As of version 0.16.0 the
+wallet needs `ord server` running in the background. This is analogous to how
+`bitcoin-cli` needs `bitcoind` running in the background.
 
 ### Running The Explorer
 The server can be run locally with:
@@ -14,9 +17,10 @@ To specify a port add the `--http-port` flag:
 
 `ord server --http-port 8080`
 
-To test how your inscriptions will look you can run:
+The JSON-API endpoints are enabled by default, to disable them add the
+`--disable-json-api` flag (see [here](api.md) for more info):
 
-`ord preview <FILE1> <FILE2> ...`
+`ord server --disable-json-api`
 
 Search
 ------
@@ -38,7 +42,7 @@ transaction:
 
 ### Outputs
 
-Transaction outputs can searched by outpoint, for example, the only output of
+Transaction outputs can be searched by outpoint, for example, the only output of
 the genesis block coinbase transaction:
 
 [4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0](https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0)
@@ -67,3 +71,5 @@ Or by percentile, the percentage of bitcoin's supply that has been or will have
 been issued when they are mined:
 
 [100%](https://ordinals.com/search/100%)
+
+```

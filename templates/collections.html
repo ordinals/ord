@@ -1,0 +1,18 @@
+<h1>Collections</h1>
+<div class=thumbnails>
+%% for id in &self.inscriptions {
+  {{Iframe::thumbnail(*id)}}
+%% }
+</div>
+<div class=center>
+%% if let Some(prev) = self.prev {
+<a class=prev href=/collections/{{prev}}>prev</a>
+%% } else {
+prev
+%% }
+%% if let Some(next) = self.next {
+<a class=next href=/collections/{{next}}>next</a>
+%% } else {
+next
+%% }
+</div>

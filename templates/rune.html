@@ -1,0 +1,79 @@
+<h1>{{ self.entry.spaced_rune }}</h1>
+%% if let Some(parent) = self.parent {
+  <div class=thumbnails>
+    {{Iframe::thumbnail(parent)}}
+  </div>
+%% }
+<dl>
+  <dt>number</dt>
+  <dd>{{ self.entry.number }}</dd>
+  <dt>timestamp</dt>
+  <dd><time>{{ timestamp(self.entry.timestamp) }}</time></dd>
+  <dt>id</dt>
+  <dd>{{ self.id }}</dd>
+  <dt>etching block</dt>
+  <dd><a href=/block/{{ self.id.block }}>{{ self.id.block }}</a></dd>
+  <dt>etching transaction</dt>
+  <dd>{{ self.id.tx }}</dd>
+  <dt>mint</dt>
+%% if let Some(terms) = self.entry.terms {
+  <dd>
+    <dl>
+      <dt>start</dt>
+%% if let Some(start) = self.entry.start() {
+      <dd><a href=/block/{{ start }}>{{ start }}</a></dd>
+%% } else {
+      <dd>none</dd>
+%% }
+      <dt>end</dt>
+%% if let Some(end) = self.entry.end() {
+      <dd><a href=/block/{{ end }}>{{ end }}</a></dd>
+%% } else {
+      <dd>none</dd>
+%% }
+      <dt>amount</dt>
+%% if let Some(amount) = terms.amount {
+      <dd>{{ self.entry.pile(amount) }}</dd>
+%% } else {
+      <dd>none</dd>
+%% }
+      <dt>mints</dt>
+      <dd>{{ self.entry.mints }}</dd>
+      <dt>cap</dt>
+      <dd>{{ terms.cap.unwrap_or_default() }}</dd>
+      <dt>remaining</dt>
+      <dd>{{ terms.cap.unwrap_or_default() - self.entry.mints }}</dd>
+      <dt>mintable</dt>
+      <dd>{{ self.mintable }}</dd>
+%% if let Some(mint_progress) = self.mint_progress() {
+      <dt>progress</dt>
+      <dd>{{ mint_progress }}%</dd>
+%% }
+    </dl>
+  </dd>
+%% } else {
+  <dd>no</dd>
+%% }
+  <dt>supply</dt>
+  <dd>{{ self.entry.pile(self.entry.supply()) }}</dd>
+  <dt>premine</dt>
+  <dd>{{ self.entry.pile(self.entry.premine) }}</dd>
+  <dt>premine percentage</dt>
+  <dd>{{ Decimal { value: ((self.entry.premine as f64 / self.entry.supply() as f64) * 10000.0) as u128, scale: 2 } }}%</dd>
+  <dt>burned</dt>
+  <dd>{{ self.entry.pile(self.entry.burned) }}</dd>
+  <dt>divisibility</dt>
+  <dd>{{ self.entry.divisibility }}</dd>
+%% if let Some(symbol) = self.entry.symbol {
+  <dt>symbol</dt>
+  <dd>{{ symbol }}</dd>
+%% }
+  <dt>turbo</dt>
+  <dd>{{ self.entry.turbo }}</dd>
+  <dt>etching</dt>
+  <dd><a class=collapse href=/tx/{{ self.entry.etching }}>{{ self.entry.etching }}</a></dd>
+%% if let Some(parent) = self.parent {
+  <dt>parent</dt>
+  <dd><a class=collapse href=/inscription/{{ parent }}>{{ parent }}</a></dd>
+%% }
+</dl>

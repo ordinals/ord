@@ -1,4 +1,4 @@
-use {super::*, crate::wallet::Wallet, std::collections::BTreeSet};
+use super::*;
 
 #[derive(Serialize, Deserialize)]
 pub struct CardinalUtxo {
@@ -6,31 +6,30 @@ pub struct CardinalUtxo {
   pub amount: u64,
 }
 
-pub(crate) fn run(options: Options) -> SubcommandResult {
-  let index = Index::open(&options)?;
-  index.update()?;
+pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
+  let unspent_outputs = wallet.utxos();
 
-  let unspent_outputs = index.get_unspent_outputs(Wallet::load(&options)?)?;
-
-  let inscribed_utxos = index
-    .get_inscriptions(unspent_outputs.clone())?
+  let inscribed_utxos = wallet
+    .inscriptions()
     .keys()
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
 
+  let runic_utxos = wallet.get_runic_outputs()?;
+
   let cardinal_utxos = unspent_outputs
     .iter()
-    .filter_map(|(output, amount)| {
-      if inscribed_utxos.contains(output) {
+    .filter_map(|(output, txout)| {
+      if inscribed_utxos.contains(output) || runic_utxos.contains(output) {
         None
       } else {
         Some(CardinalUtxo {
           output: *output,
-          amount: amount.to_sat(),
+          amount: txout.value.to_sat(),
         })
       }
     })
     .collect::<Vec<CardinalUtxo>>();
 
-  Ok(Box::new(cardinal_utxos))
+  Ok(Some(Box::new(cardinal_utxos)))
 }

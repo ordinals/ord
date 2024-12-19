@@ -2,7 +2,7 @@ use super::*;
 
 #[derive(Debug, Parser)]
 pub(crate) struct Parse {
-  #[clap(help = "Parse <OBJECT>.")]
+  #[arg(help = "Parse <OBJECT>.")]
   object: Object,
 }
 
@@ -13,8 +13,8 @@ pub struct Output {
 
 impl Parse {
   pub(crate) fn run(self) -> SubcommandResult {
-    Ok(Box::new(Output {
+    Ok(Some(Box::new(Output {
       object: self.object,
-    }))
+    })))
   }
 }

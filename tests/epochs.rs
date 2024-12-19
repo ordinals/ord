@@ -1,4 +1,4 @@
-use {super::*, ord::subcommand::epochs::Output, ord::Sat};
+use {super::*, ord::subcommand::epochs::Output, ordinals::Sat};
 
 #[test]
 fn empty() {

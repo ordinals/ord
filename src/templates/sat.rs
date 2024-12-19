@@ -2,28 +2,11 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct SatHtml {
-  pub(crate) sat: Sat,
-  pub(crate) satpoint: Option<SatPoint>,
+  pub(crate) address: Option<Address>,
   pub(crate) blocktime: Blocktime,
   pub(crate) inscriptions: Vec<InscriptionId>,
-}
-
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct SatJson {
-  pub number: u64,
-  pub decimal: String,
-  pub degree: String,
-  pub name: String,
-  pub block: u64,
-  pub cycle: u64,
-  pub epoch: u64,
-  pub period: u64,
-  pub offset: u64,
-  pub rarity: Rarity,
-  pub percentile: String,
-  pub satpoint: Option<SatPoint>,
-  pub timestamp: i64,
-  pub inscriptions: Vec<InscriptionId>,
+  pub(crate) sat: Sat,
+  pub(crate) satpoint: Option<SatPoint>,
 }
 
 impl PageContent for SatHtml {
@@ -40,6 +23,7 @@ mod tests {
   fn first() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -57,8 +41,14 @@ mod tests {
           <dt>period</dt><dd>0</dd>
           <dt>block</dt><dd><a href=/block/0>0</a></dd>
           <dt>offset</dt><dd>0</dd>
-          <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>rarity</dt><dd><span class=mythic>mythic</span></dd>
+          <dt>charms</dt>
+          <dd>
+            <span title=coin>🪙</span>
+            <span title=mythic>🎃</span>
+            <span title=palindrome>🦋</span>
+          </dd>
         </dl>
         .*
         prev
@@ -73,6 +63,7 @@ mod tests {
   fn last() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(2099999997689999),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -90,8 +81,12 @@ mod tests {
           <dt>period</dt><dd>3437</dd>
           <dt>block</dt><dd><a href=/block/6929999>6929999</a></dd>
           <dt>offset</dt><dd>0</dd>
-          <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
+          <dt>rarity</dt><dd><span class=uncommon>uncommon</span></dd>
+          <dt>charms</dt>
+          <dd>
+            <span title=uncommon>🌱</span>
+          </dd>
         </dl>
         .*
         <a class=prev href=/sat/2099999997689998>prev</a>
@@ -106,6 +101,7 @@ mod tests {
   fn sat_with_next_and_prev() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(1),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -119,6 +115,7 @@ mod tests {
   fn sat_with_inscription() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -140,6 +137,7 @@ mod tests {
   fn sat_with_reinscription() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -162,6 +160,7 @@ mod tests {
   fn last_sat_next_link_is_disabled() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat::LAST,
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -175,12 +174,27 @@ mod tests {
   fn sat_with_satpoint() {
     assert_regex_match!(
       SatHtml {
+        address: None,
         sat: Sat(0),
         satpoint: Some(satpoint(1, 0)),
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
       },
-      "<h1>Sat 0</h1>.*<dt>location</dt><dd class=monospace>1{64}:1:0</dd>.*",
+      "<h1>Sat 0</h1>.*<dt>location</dt><dd><a class=collapse href=/satpoint/1{64}:1:0>1{64}:1:0</a></dd>.*",
+    );
+  }
+
+  #[test]
+  fn sat_with_address() {
+    assert_regex_match!(
+      SatHtml {
+        address: Some(address(0)),
+        sat: Sat(0),
+        satpoint: Some(satpoint(1, 0)),
+        blocktime: Blocktime::confirmed(0),
+        inscriptions: Vec::new(),
+      },
+      "<h1>Sat 0</h1>.*<dt>address</dt><dd class=monospace><a href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>.*",
     );
   }
 }

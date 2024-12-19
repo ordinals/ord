@@ -13,7 +13,7 @@ sudo \
   --bin ord \
   -- \
   --chain signet \
-  --data-dir . \
+  --datadir . \
   --height-limit 0 \
   index
 
@@ -27,7 +27,7 @@ rm -f flamegraph.svg
   --bin ord \
   -- \
   --chain signet \
-  --data-dir . \
+  --datadir . \
   --height-limit 5000 \
   index
 

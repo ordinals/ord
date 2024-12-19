@@ -1,10 +1,7 @@
 use {
-  crate::Options,
-  anyhow::{anyhow, Result},
+  super::*,
   base64::Engine,
-  bitcoin::{Transaction, Txid},
   hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
-  serde::Deserialize,
   serde_json::{json, Value},
 };
 
@@ -28,18 +25,18 @@ struct JsonError {
 }
 
 impl Fetcher {
-  pub(crate) fn new(options: &Options) -> Result<Self> {
+  pub(crate) fn new(settings: &Settings) -> Result<Self> {
     let client = Client::new();
 
-    let url = if options.rpc_url().starts_with("http://") {
-      options.rpc_url()
+    let url = if settings.bitcoin_rpc_url(None).starts_with("http://") {
+      settings.bitcoin_rpc_url(None)
     } else {
-      "http://".to_string() + &options.rpc_url()
+      "http://".to_string() + &settings.bitcoin_rpc_url(None)
     };
 
     let url = Uri::try_from(&url).map_err(|e| anyhow!("Invalid rpc url {url}: {e}"))?;
 
-    let (user, password) = options.auth()?.get_user_pass()?;
+    let (user, password) = settings.bitcoin_credentials()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
     let auth = format!(
       "Basic {}",
@@ -82,10 +79,7 @@ impl Fetcher {
 
           log::info!("failed to fetch raw transactions, retrying: {}", error);
 
-          tokio::time::sleep(tokio::time::Duration::from_millis(
-            100 * u64::pow(2, retries),
-          ))
-          .await;
+          tokio::time::sleep(Duration::from_millis(100 * u64::pow(2, retries))).await;
           retries += 1;
           continue;
         }
@@ -116,7 +110,7 @@ impl Fetcher {
               .map_err(|e| anyhow!("Result for batched JSON-RPC response not valid hex: {e}"))
           })
           .and_then(|hex| {
-            bitcoin::consensus::deserialize(&hex).map_err(|e| {
+            consensus::deserialize(&hex).map_err(|e| {
               anyhow!("Result for batched JSON-RPC response not valid bitcoin tx: {e}")
             })
           })

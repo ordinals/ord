@@ -29,8 +29,15 @@ For more details on ordinal theory, see the [overview](overview.md).
 For more details on inscriptions, see [inscriptions](inscriptions.md).
 
 When you're ready to get your hands dirty, a good place to start is with
-[inscriptions](guides/inscriptions.md), a curious species of digital artifact
+[inscriptions](guides/wallet.md), a curious species of digital artifact
 enabled by ordinal theory.
+
+
+Authors
+-------
+
+- [Casey Rodarmor](https://github.com/casey)
+- [Raph Japh](https://github.com/raphjaph)
 
 Links
 -----
@@ -38,6 +45,8 @@ Links
 - [GitHub](https://github.com/ordinals/ord/)
 - [BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki)
 - [Discord](https://discord.gg/ordinals)
+- [Open Ordinals Institute Website](https://ordinals.org/)
+- [Open Ordinals Institute X](https://x.com/ordinalsorg)
 - [Mainnet Block Explorer](https://ordinals.com)
 - [Signet Block Explorer](https://signet.ordinals.com)
 
@@ -46,4 +55,3 @@ Videos
 
 - [Ordinal Theory Explained: Satoshi Serial Numbers and NFTs on Bitcoin](https://www.youtube.com/watch?v=rSS0O2KQpsI)
 - [Ordinals Workshop with Rodarmor](https://www.youtube.com/watch?v=MC_haVa6N3I)
-- [Ordinal Art: Mint Your own NFTs on Bitcoin w/ @rodarmor](https://www.youtube.com/watch?v=j5V33kV3iqo)

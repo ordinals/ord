@@ -15,12 +15,31 @@ debug = 1
 
 [dependencies]
 arbitrary = { version = "1", features = ["derive"] }
-bitcoin = { version = "0.30.0", features = ["rand"] }
+bitcoin = { version = "0.30.1", features = ["rand"] }
 libfuzzer-sys = "0.4"
 ord = { path = ".." }
+ordinals = { path = "../crates/ordinals" }
+
+[[bin]]
+name = "runestone-decipher"
+path = "fuzz_targets/runestone_decipher.rs"
+test = false
+doc = false
 
 [[bin]]
 name = "transaction-builder"
 path = "fuzz_targets/transaction_builder.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "varint-encode"
+path = "fuzz_targets/varint_encode.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "varint-decode"
+path = "fuzz_targets/varint_decode.rs"
 test = false
 doc = false

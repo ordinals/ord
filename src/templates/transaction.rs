@@ -1,29 +1,12 @@
 use super::*;
 
-#[derive(Boilerplate)]
-pub(crate) struct TransactionHtml {
-  blockhash: Option<BlockHash>,
-  chain: Chain,
-  inscription: Option<InscriptionId>,
-  transaction: Transaction,
-  txid: Txid,
-}
-
-impl TransactionHtml {
-  pub(crate) fn new(
-    transaction: Transaction,
-    blockhash: Option<BlockHash>,
-    inscription: Option<InscriptionId>,
-    chain: Chain,
-  ) -> Self {
-    Self {
-      txid: transaction.txid(),
-      blockhash,
-      chain,
-      inscription,
-      transaction,
-    }
-  }
+#[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
+pub struct TransactionHtml {
+  pub chain: Chain,
+  pub etching: Option<SpacedRune>,
+  pub inscription_count: u32,
+  pub transaction: Transaction,
+  pub txid: Txid,
 }
 
 impl PageContent for TransactionHtml {
@@ -34,15 +17,12 @@ impl PageContent for TransactionHtml {
 
 #[cfg(test)]
 mod tests {
-  use {
-    super::*,
-    bitcoin::{blockdata::script, locktime::absolute::LockTime, TxOut},
-  };
+  use {super::*, bitcoin::blockdata::script};
 
   #[test]
   fn html() {
     let transaction = Transaction {
-      version: 0,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         sequence: Default::default(),
@@ -52,31 +32,39 @@ mod tests {
       }],
       output: vec![
         TxOut {
-          value: 50 * COIN_VALUE,
+          value: Amount::from_sat(50 * COIN_VALUE),
           script_pubkey: script::Builder::new().push_int(0).into_script(),
         },
         TxOut {
-          value: 50 * COIN_VALUE,
+          value: Amount::from_sat(50 * COIN_VALUE),
           script_pubkey: script::Builder::new().push_int(1).into_script(),
         },
       ],
     };
 
-    let txid = transaction.txid();
+    let txid = transaction.compute_txid();
 
     pretty_assert_eq!(
-      TransactionHtml::new(transaction, None, None, Chain::Mainnet).to_string(),
+      TransactionHtml {
+        chain: Chain::Mainnet,
+        etching: None,
+        inscription_count: 0,
+        txid: transaction.compute_txid(),
+        transaction,
+      }.to_string(),
       format!(
         "
         <h1>Transaction <span class=monospace>{txid}</span></h1>
+        <dl>
+        </dl>
         <h2>1 Input</h2>
         <ul>
-          <li><a class=monospace href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
+          <li><a class=collapse href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
         </ul>
         <h2>2 Outputs</h2>
         <ul class=monospace>
           <li>
-            <a href=/output/{txid}:0 class=monospace>
+            <a href=/output/{txid}:0 class=collapse>
               {txid}:0
             </a>
             <dl>
@@ -85,7 +73,7 @@ mod tests {
             </dl>
           </li>
           <li>
-            <a href=/output/{txid}:1 class=monospace>
+            <a href=/output/{txid}:1 class=collapse>
               {txid}:1
             </a>
             <dl>
@@ -96,38 +84,6 @@ mod tests {
         </ul>
       "
       )
-      .unindent()
-    );
-  }
-
-  #[test]
-  fn with_blockhash() {
-    let transaction = Transaction {
-      version: 0,
-      lock_time: LockTime::ZERO,
-      input: Vec::new(),
-      output: vec![
-        TxOut {
-          value: 50 * COIN_VALUE,
-          script_pubkey: script::Builder::new().push_int(0).into_script(),
-        },
-        TxOut {
-          value: 50 * COIN_VALUE,
-          script_pubkey: script::Builder::new().push_int(1).into_script(),
-        },
-      ],
-    };
-
-    assert_regex_match!(
-      TransactionHtml::new(transaction, Some(blockhash(0)), None, Chain::Mainnet),
-      "
-        <h1>Transaction <span class=monospace>[[:xdigit:]]{64}</span></h1>
-        <dl>
-          <dt>block</dt>
-          <dd><a href=/block/0{64} class=monospace>0{64}</a></dd>
-        </dl>
-        .*
-      "
       .unindent()
     );
   }

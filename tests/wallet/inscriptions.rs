@@ -5,18 +5,19 @@ use {
 
 #[test]
 fn inscriptions() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
+  let core = mockcore::spawn();
 
-  let Inscribe {
-    reveal,
-    inscription,
-    ..
-  } = inscribe(&rpc_server);
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, reveal) = inscribe(&core, &ord);
 
   let output = CommandBuilder::new("wallet inscriptions")
-    .rpc_server(&rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output.len(), 1);
@@ -27,25 +28,30 @@ fn inscriptions() {
     format!("https://ordinals.com/inscription/{inscription}")
   );
 
-  let address = CommandBuilder::new("wallet receive")
-    .rpc_server(&rpc_server)
+  let addresses = CommandBuilder::new("wallet receive")
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<receive::Output>()
-    .address;
+    .addresses;
+
+  let destination = addresses.first().unwrap();
 
   let txid = CommandBuilder::new(format!(
     "wallet send --fee-rate 1 {} {inscription}",
-    address.assume_checked()
+    destination.clone().assume_checked()
   ))
-  .rpc_server(&rpc_server)
+  .core(&core)
+  .ord(&ord)
   .expected_exit_code(0)
   .stdout_regex(".*")
   .run_and_deserialize_output::<send::Output>()
-  .transaction;
+  .txid;
 
-  rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let output = CommandBuilder::new("wallet inscriptions")
-    .rpc_server(&rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output.len(), 1);
@@ -55,26 +61,26 @@ fn inscriptions() {
 
 #[test]
 fn inscriptions_includes_locked_utxos() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
+  let core = mockcore::spawn();
 
-  rpc_server.mine_blocks(1);
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
 
-  let Inscribe {
-    inscription,
-    reveal,
-    ..
-  } = inscribe(&rpc_server);
+  create_wallet(&core, &ord);
 
-  rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
-  rpc_server.lock(OutPoint {
+  let (inscription, reveal) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  core.lock(OutPoint {
     txid: reveal,
     vout: 0,
   });
 
   let output = CommandBuilder::new("wallet inscriptions")
-    .rpc_server(&rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output.len(), 1);
@@ -84,36 +90,46 @@ fn inscriptions_includes_locked_utxos() {
 
 #[test]
 fn inscriptions_with_postage() {
-  let rpc_server = test_bitcoincore_rpc::spawn();
-  create_wallet(&rpc_server);
-  rpc_server.mine_blocks(1);
+  let core = mockcore::spawn();
 
-  let Inscribe { inscription, .. } = inscribe(&rpc_server);
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
 
   let output = CommandBuilder::new("wallet inscriptions")
-    .rpc_server(&rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output[0].postage, 10000);
 
-  let address = CommandBuilder::new("wallet receive")
-    .rpc_server(&rpc_server)
+  let addresses = CommandBuilder::new("wallet receive")
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<receive::Output>()
-    .address;
+    .addresses;
+
+  let destination = addresses.first().unwrap();
 
   CommandBuilder::new(format!(
     "wallet send --fee-rate 1 {} {inscription}",
-    address.assume_checked()
+    destination.clone().assume_checked()
   ))
-  .rpc_server(&rpc_server)
+  .core(&core)
+  .ord(&ord)
   .expected_exit_code(0)
   .stdout_regex(".*")
   .run_and_extract_stdout();
 
-  rpc_server.mine_blocks(1);
+  core.mine_blocks(1);
 
   let output = CommandBuilder::new("wallet inscriptions")
-    .rpc_server(&rpc_server)
+    .core(&core)
+    .ord(&ord)
     .run_and_deserialize_output::<Vec<inscriptions::Output>>();
 
   assert_eq!(output[0].postage, 9889);

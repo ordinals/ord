@@ -52,30 +52,40 @@ Let's imagine a transaction with three inputs and two outputs. The inputs are
 on the left of the arrow and the outputs are on the right, all labeled with
 their values:
 
-    [2] [1] [3] → [4] [2]
+```
+[2] [1] [3] → [4] [2]
+```
 
 Now let's label the same transaction with the ordinal numbers of the satoshis
 that each input contains, and question marks for each output slot. Ordinal
 numbers are large, so let's use letters to represent them:
 
-    [a b] [c] [d e f] → [? ? ? ?] [? ?]
+```
+[a b] [c] [d e f] → [? ? ? ?] [? ?]
+```
 
 To figure out which satoshi goes to which output, go through the input satoshis
 in order and assign each to a question mark:
 
-    [a b] [c] [d e f] → [a b c d] [e f]
+```
+[a b] [c] [d e f] → [a b c d] [e f]
+```
 
 What about fees, you might ask? Good question! Let's imagine the same
 transaction, this time with a two satoshi fee. Transactions with fees send more
 satoshis in the inputs than are received by the outputs, so to make our
 transaction into one that pays fees, we'll remove the second output:
 
-    [2] [1] [3] → [4]
+```
+[2] [1] [3] → [4]
+```
 
 The satoshis <var>e</var> and <var>f</var> now have nowhere to go in the
 outputs:
 
-    [a b] [c] [d e f] → [a b c d]
+```
+[a b] [c] [d e f] → [a b c d]
+```
 
 So they go to the miner who mined the block as fees. [The
 BIP](https://github.com/ordinals/ord/blob/master/bip.mediawiki) has the details,
@@ -84,7 +94,9 @@ coinbase transaction, and are ordered how their corresponding transactions are
 ordered in the block. The coinbase transaction of the block might look like
 this:
 
-    [SUBSIDY] [e f] → [SUBSIDY e f]
+```
+[SUBSIDY] [e f] → [SUBSIDY e f]
+```
 
 Where can I find the nitty-gritty details?
 ------------------------------------------
