@@ -50,7 +50,7 @@ deploy-signet branch='master' remote='ordinals/ord': \
   (deploy branch remote 'signet' 'signet.ordinals.net')
 
 deploy-testnet branch='master' remote='ordinals/ord': \
-  (deploy branch remote 'testnet3' 'testnet.ordinals.net')
+  (deploy branch remote 'test' 'testnet.ordinals.net')
 
 deploy-testnet4 branch='master' remote='ordinals/ord': \
   (deploy branch remote 'testnet4' 'testnet4.ordinals.net')

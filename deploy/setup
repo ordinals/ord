@@ -53,7 +53,7 @@ case $CHAIN in
     CSP_ORIGIN=signet.ordinals.com
     ufw allow 38333
     ;;
-  testnet3)
+  test)
     COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
     CSP_ORIGIN=testnet.ordinals.com
     ufw allow 18333
