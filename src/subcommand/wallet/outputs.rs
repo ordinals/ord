@@ -30,16 +30,12 @@ impl Outputs {
         .ok()
         .map(|address| address.as_unchecked().clone());
 
-      let inscriptions = if wallet.has_inscription_index() {
-        Some(wallet.get_inscriptions_in_output(output))
-      } else {
-        None
-      };
+      let inscriptions = wallet.get_inscriptions_in_output(output);
 
-      let runes = if wallet.has_rune_index() {
-        Some(
-          wallet
-            .get_runes_balances_in_output(output)?
+      let runes = wallet
+        .get_runes_balances_in_output(output)?
+        .map(|balances| {
+          balances
             .iter()
             .map(|(rune, pile)| {
               (
@@ -50,11 +46,8 @@ impl Outputs {
                 },
               )
             })
-            .collect(),
-        )
-      } else {
-        None
-      };
+            .collect()
+        });
 
       let sat_ranges = if wallet.has_sat_index() && self.ranges {
         Some(
