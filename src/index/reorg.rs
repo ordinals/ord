@@ -83,12 +83,12 @@ impl Reorg {
       return Ok(());
     }
 
-    let last_save_point_height: u32 = index
+    let last_savepoint_height: u32 = index
       .begin_read()?
       .0
       .open_table(STATISTIC_TO_COUNT)?
       .get(&Statistic::LastSavePointHeight.key())?
-      .map(|last_save_point_height| last_save_point_height.value())
+      .map(|last_savepoint_height| last_savepoint_height.value())
       .unwrap_or(0)
       .try_into()
       .unwrap();
@@ -101,7 +101,7 @@ impl Reorg {
       .unwrap();
 
     if (height < SAVEPOINT_INTERVAL
-      || height.saturating_sub(last_save_point_height) >= SAVEPOINT_INTERVAL)
+      || height.saturating_sub(last_savepoint_height) >= SAVEPOINT_INTERVAL)
       && blocks.saturating_sub(height) <= CHAIN_TIP_DISTANCE
     {
       let wtx = index.begin_write()?;
