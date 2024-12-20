@@ -14,7 +14,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 
   let mut result = Vec::new();
 
-  for (output, _) in unspent_outputs.iter() {
+  for (output, _) in &unspent_outputs {
     if runic_utxos.contains(output) {
       let rune_balances = wallet
         .get_runes_balances_in_output(output)?
