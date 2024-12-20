@@ -83,26 +83,21 @@ impl Reorg {
       return Ok(());
     }
 
-    let last_savepoint_height: u32 = index
+    let height = u64::from(height);
+
+    let last_savepoint_height = index
       .begin_read()?
       .0
       .open_table(STATISTIC_TO_COUNT)?
       .get(&Statistic::LastSavepointHeight.key())?
       .map(|last_savepoint_height| last_savepoint_height.value())
-      .unwrap_or(0)
-      .try_into()
-      .unwrap();
+      .unwrap_or(0);
 
-    let blocks: u32 = index
-      .client
-      .get_blockchain_info()?
-      .headers
-      .try_into()
-      .unwrap();
+    let blocks = index.client.get_blockchain_info()?.headers;
 
-    if (height < SAVEPOINT_INTERVAL
-      || height.saturating_sub(last_savepoint_height) >= SAVEPOINT_INTERVAL)
-      && blocks.saturating_sub(height) <= CHAIN_TIP_DISTANCE
+    if (height < SAVEPOINT_INTERVAL.into()
+      || height.saturating_sub(last_savepoint_height) >= SAVEPOINT_INTERVAL.into())
+      && blocks.saturating_sub(height) <= CHAIN_TIP_DISTANCE.into()
     {
       let wtx = index.begin_write()?;
 
@@ -122,7 +117,7 @@ impl Reorg {
 
       wtx
         .open_table(STATISTIC_TO_COUNT)?
-        .insert(&Statistic::LastSavepointHeight.key(), &u64::from(height))?;
+        .insert(&Statistic::LastSavepointHeight.key(), &height)?;
 
       Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
       wtx.commit()?;
