@@ -12,39 +12,35 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     bail!("`ord wallet runics` requires index created with `--index-runes`")
   };
 
-  let runic_utxos = unspent_outputs
-    .iter()
-    .filter_map(|(output, _)| {
-      if runic_utxos.contains(output) {
-        let rune_balances = wallet
-          .get_runes_balances_in_output(output)
-          .ok()?
-          .unwrap_or_default();
+  let mut result = Vec::new();
 
-        let mut runes = BTreeMap::new();
+  for (output, _) in unspent_outputs.iter() {
+    if runic_utxos.contains(output) {
+      let rune_balances = wallet
+        .get_runes_balances_in_output(output)?
+        .unwrap_or_default();
 
-        for (spaced_rune, pile) in rune_balances {
-          runes
-            .entry(spaced_rune)
-            .and_modify(|decimal: &mut Decimal| {
-              assert_eq!(decimal.scale, pile.divisibility);
-              decimal.value += pile.amount;
-            })
-            .or_insert(Decimal {
-              value: pile.amount,
-              scale: pile.divisibility,
-            });
-        }
+      let mut runes = BTreeMap::new();
 
-        Some(RunicUtxo {
-          output: *output,
-          runes,
-        })
-      } else {
-        None
+      for (spaced_rune, pile) in rune_balances {
+        runes
+          .entry(spaced_rune)
+          .and_modify(|decimal: &mut Decimal| {
+            assert_eq!(decimal.scale, pile.divisibility);
+            decimal.value += pile.amount;
+          })
+          .or_insert(Decimal {
+            value: pile.amount,
+            scale: pile.divisibility,
+          });
       }
-    })
-    .collect::<Vec<RunicUtxo>>();
 
-  Ok(Some(Box::new(runic_utxos)))
+      result.push(RunicUtxo {
+        output: *output,
+        runes,
+      });
+    }
+  }
+
+  Ok(Some(Box::new(result)))
 }
