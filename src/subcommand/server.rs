@@ -3734,7 +3734,7 @@ mod tests {
         transaction: txid,
         sat_ranges: None,
         indexed: true,
-        inscriptions: None,
+        inscriptions: Some(Vec::new()),
         outpoint: output,
         runes: Some(
           vec![(

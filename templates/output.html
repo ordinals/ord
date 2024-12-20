@@ -1,14 +1,16 @@
 <h1>Output <span class=monospace>{{self.outpoint}}</span></h1>
 <dl>
-%% if let Some(inscriptions) = &self.inscriptions {
+%% let inscriptions = self.inscriptions.clone().unwrap_or_default();
+%% if !inscriptions.is_empty() {
   <dt>inscriptions</dt>
   <dd class=thumbnails>
-%% for inscription in inscriptions {
+%% for inscription in &inscriptions {
     {{Iframe::thumbnail(*inscription)}}
 %% }
   </dd>
 %% }
-%% if let Some(runes) = &self.runes {
+%% let runes = self.runes.clone().unwrap_or_default();
+%% if !runes.is_empty() {
   <dt>runes</dt>
   <dd>
     <table>
@@ -16,7 +18,7 @@
         <th>rune</th>
         <th>balance</th>
       </tr>
-%% for (rune, balance) in runes {
+%% for (rune, balance) in &runes {
       <tr>
         <td><a href=/rune/{{ rune }}>{{ rune }}</a></td>
         <td>{{ balance }}</td>
