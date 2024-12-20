@@ -144,7 +144,7 @@ impl Burn {
     script_pubkey: ScriptBuf,
     burn_amount: Amount,
   ) -> Result<Transaction> {
-    let runic_outputs = wallet.get_runic_outputs()?;
+    let runic_outputs = wallet.get_runic_outputs()?.unwrap_or_default();
 
     ensure!(
       !runic_outputs.contains(&satpoint.outpoint),

@@ -8,13 +8,19 @@ pub struct RunicUtxo {
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let unspent_outputs = wallet.utxos();
-  let runic_utxos = wallet.get_runic_outputs()?;
+  let Some(runic_utxos) = wallet.get_runic_outputs()? else {
+    bail!("`ord wallet runics` requires index created with `--index-runes`")
+  };
 
   let runic_utxos = unspent_outputs
     .iter()
     .filter_map(|(output, _)| {
       if runic_utxos.contains(output) {
-        let rune_balances = wallet.get_runes_balances_in_output(output).ok()?;
+        let rune_balances = wallet
+          .get_runes_balances_in_output(output)
+          .ok()?
+          .unwrap_or_default();
+
         let mut runes = BTreeMap::new();
 
         for (spaced_rune, pile) in rune_balances {

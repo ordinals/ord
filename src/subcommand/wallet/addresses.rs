@@ -16,16 +16,12 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   for (output, txout) in wallet.utxos() {
     let address = wallet.chain().address_from_script(&txout.script_pubkey)?;
 
-    let inscriptions = if wallet.has_inscription_index() {
-      Some(wallet.get_inscriptions_in_output(output))
-    } else {
-      None
-    };
+    let inscriptions = wallet.get_inscriptions_in_output(output);
 
-    let runes = if wallet.has_rune_index() {
-      Some(
-        wallet
-          .get_runes_balances_in_output(output)?
+    let runes = wallet
+      .get_runes_balances_in_output(output)?
+      .map(|balances| {
+        balances
           .iter()
           .map(|(rune, pile)| {
             (
@@ -36,11 +32,8 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
               },
             )
           })
-          .collect(),
-      )
-    } else {
-      None
-    };
+          .collect()
+      });
 
     let output = Output {
       output: *output,

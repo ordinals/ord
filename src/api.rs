@@ -178,11 +178,11 @@ pub struct Output {
 impl Output {
   pub fn new(
     chain: Chain,
-    inscriptions: Vec<InscriptionId>,
+    inscriptions: Option<Vec<InscriptionId>>,
     outpoint: OutPoint,
     tx_out: TxOut,
     indexed: bool,
-    runes: BTreeMap<SpacedRune, Pile>,
+    runes: Option<BTreeMap<SpacedRune, Pile>>,
     sat_ranges: Option<Vec<(u64, u64)>>,
     spent: bool,
   ) -> Self {
@@ -239,7 +239,7 @@ pub struct SatInscriptions {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct AddressInfo {
   pub outputs: Vec<OutPoint>,
-  pub inscriptions: Vec<InscriptionId>,
+  pub inscriptions: Option<Vec<InscriptionId>>,
   pub sat_balance: u64,
-  pub runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
+  pub runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
 }

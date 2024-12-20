@@ -3,10 +3,10 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct OutputHtml {
   pub(crate) chain: Chain,
-  pub(crate) inscriptions: Vec<InscriptionId>,
+  pub(crate) inscriptions: Option<Vec<InscriptionId>>,
   pub(crate) outpoint: OutPoint,
   pub(crate) output: TxOut,
-  pub(crate) runes: BTreeMap<SpacedRune, Pile>,
+  pub(crate) runes: Option<BTreeMap<SpacedRune, Pile>>,
   pub(crate) sat_ranges: Option<Vec<(u64, u64)>>,
   pub(crate) spent: bool,
 }
@@ -29,10 +29,10 @@ mod tests {
     assert_regex_match!(
       OutputHtml {
         chain: Chain::Mainnet,
-        inscriptions: Vec::new(),
+        inscriptions: Some(Vec::new()),
         outpoint: outpoint(1),
         output: TxOut { value: Amount::from_sat(3), script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
-        runes: BTreeMap::new(),
+        runes: Some(BTreeMap::new()),
         sat_ranges: Some(vec![(0, 1), (1, 3)]),
         spent: false,
       },
@@ -60,13 +60,13 @@ mod tests {
     assert_regex_match!(
       OutputHtml {
         chain: Chain::Mainnet,
-        inscriptions: Vec::new(),
+        inscriptions: None,
         outpoint: outpoint(1),
         output: TxOut {
           value: Amount::from_sat(1),
           script_pubkey: script::Builder::new().push_int(0).into_script(),
         },
-        runes: BTreeMap::new(),
+        runes: None,
         sat_ranges: None,
         spent: true,
       },
@@ -88,10 +88,10 @@ mod tests {
     assert_regex_match!(
       OutputHtml {
         chain: Chain::Mainnet,
-        inscriptions: Vec::new(),
+        inscriptions: None,
         outpoint: outpoint(1),
         output: TxOut { value: Amount::from_sat(3), script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
-        runes: BTreeMap::new(),
+        runes: None,
         sat_ranges: Some(vec![(0, 1), (1, 3)]),
         spent: true,
       },
@@ -119,10 +119,10 @@ mod tests {
     assert_regex_match!(
       OutputHtml {
         chain: Chain::Mainnet,
-        inscriptions: Vec::new(),
+        inscriptions: None,
         outpoint: outpoint(1),
         output: TxOut { value: Amount::from_sat(3), script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
-        runes: BTreeMap::new(),
+        runes: None,
         sat_ranges: None,
         spent: false,
       }
@@ -146,13 +146,13 @@ mod tests {
     assert_regex_match!(
       OutputHtml {
         chain: Chain::Mainnet,
-        inscriptions: vec![inscription_id(1)],
+        inscriptions: Some(vec![inscription_id(1)]),
         outpoint: outpoint(1),
         output: TxOut {
           value: Amount::from_sat(3),
           script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
-        runes: BTreeMap::new(),
+        runes: None,
         sat_ranges: None,
         spent: false,
       },
@@ -175,25 +175,27 @@ mod tests {
     assert_regex_match!(
       OutputHtml {
         chain: Chain::Mainnet,
-        inscriptions: Vec::new(),
+        inscriptions: None,
         outpoint: outpoint(1),
         output: TxOut {
           value: Amount::from_sat(3),
           script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
-        runes: vec![(
-          SpacedRune {
-            rune: Rune(26),
-            spacers: 1
-          },
-          Pile {
-            amount: 11,
-            divisibility: 1,
-            symbol: None,
-          }
-        )]
-        .into_iter()
-        .collect(),
+        runes: Some(
+          vec![(
+            SpacedRune {
+              rune: Rune(26),
+              spacers: 1
+            },
+            Pile {
+              amount: 11,
+              divisibility: 1,
+              symbol: None,
+            }
+          )]
+          .into_iter()
+          .collect()
+        ),
         sat_ranges: None,
         spent: false,
       },

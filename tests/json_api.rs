@@ -406,13 +406,13 @@ fn get_output() {
           .unwrap()
       ),
       outpoint: OutPoint { txid, vout: 0 },
-      inscriptions: vec![
+      inscriptions: Some(vec![
         InscriptionId { txid, index: 0 },
         InscriptionId { txid, index: 1 },
         InscriptionId { txid, index: 2 },
-      ],
+      ]),
       indexed: true,
-      runes: BTreeMap::new(),
+      runes: None,
       sat_ranges: Some(vec![
         (5000000000, 10000000000,),
         (10000000000, 15000000000,),
@@ -809,13 +809,13 @@ fn outputs_address() {
     cardinals_json,
     vec![api::Output {
       address: Some(address.parse().unwrap()),
-      inscriptions: vec![],
+      inscriptions: Some(vec![]),
       outpoint: OutPoint {
         txid: cardinal_send.txid,
         vout: 0
       },
       indexed: true,
-      runes: BTreeMap::new(),
+      runes: Some(BTreeMap::new()),
       sat_ranges: None,
       script_pubkey: ScriptBuf::from(
         address
@@ -853,13 +853,13 @@ fn outputs_address() {
     runes_json,
     vec![api::Output {
       address: Some(address.parse().unwrap()),
-      inscriptions: vec![],
+      inscriptions: Some(vec![]),
       outpoint: OutPoint {
         txid: rune_send.txid,
         vout: 0
       },
       indexed: true,
-      runes: expected_runes,
+      runes: Some(expected_runes),
       sat_ranges: None,
       script_pubkey: ScriptBuf::from(
         address
@@ -884,16 +884,16 @@ fn outputs_address() {
     inscriptions_json,
     vec![api::Output {
       address: Some(address.parse().unwrap()),
-      inscriptions: vec![InscriptionId {
+      inscriptions: Some(vec![InscriptionId {
         txid: reveal,
         index: 0
-      },],
+      },]),
       outpoint: OutPoint {
         txid: inscription_send.txid,
         vout: 0
       },
       indexed: true,
-      runes: BTreeMap::new(),
+      runes: Some(BTreeMap::new()),
       sat_ranges: None,
       script_pubkey: ScriptBuf::from(
         address
@@ -924,11 +924,16 @@ fn outputs_address() {
   .unwrap();
 
   assert_eq!(any.len(), 3);
-  assert!(any.iter().any(|output| output.runes.len() == 1));
-  assert!(any.iter().any(|output| output.inscriptions.len() == 1));
   assert!(any
     .iter()
-    .any(|output| output.inscriptions.is_empty() && output.runes.is_empty()));
+    .any(|output| output.runes.clone().unwrap_or_default().len() == 1));
+  assert!(any
+    .iter()
+    .any(|output| output.inscriptions.clone().unwrap_or_default().len() == 1));
+  assert!(any.iter().any(
+    |output| output.inscriptions.clone().unwrap_or_default().is_empty()
+      && output.runes.clone().unwrap_or_default().is_empty()
+  ));
   assert_eq!(any, default);
 }
 
