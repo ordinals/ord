@@ -2,18 +2,16 @@
 <dl>
   <dt>sat balance</dt>
   <dd>{{ self.sat_balance }}</dd>
-%% let inscriptions = self.inscriptions.clone().unwrap_or_default();
-%% if !inscriptions.is_empty() {
+%% if let Some(inscriptions) = self.inscriptions.as_ref().filter(|inscriptions| !inscriptions.is_empty()) {
   <dt>inscriptions</dt>
   <dd class=thumbnails>
-%% for inscription in &inscriptions {
+%% for inscription in inscriptions {
     {{Iframe::thumbnail(*inscription)}}
 %% }
   </dd>
 %% }
-%% let runes_balances = self.runes_balances.clone().unwrap_or_default();
-%% if !runes_balances.is_empty() {
-  <dt>runes balances</dt>
+%% if let Some(runes_balances) = self.runes_balances.as_ref().filter(|runes_balances| !runes_balances.is_empty()) {
+  <dt>rune balances</dt>
 %% for (rune, decimal, symbol) in runes_balances.iter() {
 %% if let Some(symbol) = symbol {
   <dd><a class=monospace href=/rune/{{ rune }}>{{ rune }}</a>: {{ decimal }}{{ symbol }}</dd>
