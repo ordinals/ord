@@ -180,7 +180,7 @@ impl Wallet {
       .utxos()
       .keys()
       .filter(|utxo| inscriptions.contains(utxo))
-      .chain(self.get_runic_outputs()?.iter())
+      .chain(self.get_runic_outputs()?.unwrap_or_default().iter())
       .cloned()
       .filter(|utxo| !locked.contains(utxo))
       .collect::<Vec<OutPoint>>();
@@ -250,15 +250,19 @@ impl Wallet {
     Ok(parent_info)
   }
 
-  pub(crate) fn get_runic_outputs(&self) -> Result<BTreeSet<OutPoint>> {
+  pub(crate) fn get_runic_outputs(&self) -> Result<Option<BTreeSet<OutPoint>>> {
     let mut runic_outputs = BTreeSet::new();
     for (output, info) in &self.output_info {
-      if !info.runes.clone().unwrap_or_default().is_empty() {
+      let Some(runes) = &info.runes else {
+        return Ok(None);
+      };
+
+      if !runes.is_empty() {
         runic_outputs.insert(*output);
       }
     }
 
-    Ok(runic_outputs)
+    Ok(Some(runic_outputs))
   }
 
   pub(crate) fn get_runes_balances_in_output(
@@ -874,7 +878,7 @@ impl Wallet {
       }
     }
 
-    let runic_outputs = self.get_runic_outputs()?;
+    let runic_outputs = self.get_runic_outputs()?.unwrap_or_default();
 
     ensure!(
       !runic_outputs.contains(&satpoint.outpoint),
@@ -935,6 +939,7 @@ impl Wallet {
 
     let balances = self
       .get_runic_outputs()?
+      .unwrap_or_default()
       .into_iter()
       .filter(|output| !inscribed_outputs.contains(output))
       .map(|output| {

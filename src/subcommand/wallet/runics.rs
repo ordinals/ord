@@ -8,7 +8,9 @@ pub struct RunicUtxo {
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let unspent_outputs = wallet.utxos();
-  let runic_utxos = wallet.get_runic_outputs()?;
+  let Some(runic_utxos) = wallet.get_runic_outputs()? else {
+    bail!("`ord wallet runics` requires index created with `--index-runes`")
+  };
 
   let runic_utxos = unspent_outputs
     .iter()

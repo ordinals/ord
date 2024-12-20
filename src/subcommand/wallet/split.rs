@@ -113,6 +113,7 @@ impl Split {
 
     let balances = wallet
       .get_runic_outputs()?
+      .unwrap_or_default()
       .into_iter()
       .filter(|output| !inscribed_outputs.contains(output))
       .map(|output| {
