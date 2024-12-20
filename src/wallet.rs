@@ -75,7 +75,6 @@ pub(crate) enum Maturity {
 pub(crate) struct Wallet {
   bitcoin_client: Client,
   database: Database,
-  has_inscription_index: bool,
   has_rune_index: bool,
   has_sat_index: bool,
   rpc_url: Url,
@@ -309,10 +308,6 @@ impl Wallet {
         .context("could not get change addresses from wallet")?
         .require_network(self.chain().network())?,
     )
-  }
-
-  pub(crate) fn has_inscription_index(&self) -> bool {
-    self.has_inscription_index
   }
 
   pub(crate) fn has_sat_index(&self) -> bool {
