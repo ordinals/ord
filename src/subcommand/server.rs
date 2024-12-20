@@ -228,6 +228,7 @@ impl Server {
           get(Self::parents_paginated),
         )
         .route("/preview/:inscription_id", get(Self::preview))
+        .route("/r/output/:output", get(Self::output_recursive))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
           "/r/blockhash/:height",
@@ -656,6 +657,29 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn output_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let (info, _) = index
+        .get_output_info(outpoint)?
+        .ok_or_not_found(|| format!("output {outpoint}"))?;
+
+      Ok(
+        Json(api::OutputRecursive {
+          address: info.address,
+          inscriptions: info.inscriptions,
+          runes: info.runes,
+          sat_ranges: info.sat_ranges,
+          script_pubkey: info.script_pubkey,
+          value: info.value,
+        })
+        .into_response(),
+      )
     })
   }
 
@@ -6332,6 +6356,74 @@ next
 .*
 "
       ),
+    );
+  }
+
+  #[test]
+  fn output_recursive_endpoint_all() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .index_runes()
+      .build();
+
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+    let outpoint: OutPoint = OutPoint { txid, vout: 0 };
+
+    let output_recursive =
+      server.get_json::<api::OutputRecursive>(format!("/r/output/{}", outpoint));
+
+    pretty_assert_eq!(
+      output_recursive,
+      api::OutputRecursive {
+        address: None,
+        inscriptions: Some(vec![inscription_id]),
+        runes: Some(BTreeMap::new()),
+        sat_ranges: Some(vec![(50 * COIN_VALUE, 100 * COIN_VALUE)]),
+        script_pubkey: ScriptBuf::new(),
+        value: 50 * COIN_VALUE,
+      }
+    );
+  }
+
+  #[test]
+  fn output_recursive_endpoint_only_inscriptions() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+    let outpoint: OutPoint = OutPoint { txid, vout: 0 };
+
+    let output_recursive =
+      server.get_json::<api::OutputRecursive>(format!("/r/output/{}", outpoint));
+
+    pretty_assert_eq!(
+      output_recursive,
+      api::OutputRecursive {
+        address: None,
+        inscriptions: Some(vec![inscription_id]),
+        runes: None,
+        sat_ranges: None,
+        script_pubkey: ScriptBuf::new(),
+        value: 50 * COIN_VALUE,
+      }
     );
   }
 
