@@ -80,7 +80,7 @@ mod tests {
   #[test]
   fn test_runes_balances_rendering() {
     let address_html = setup();
-    let expected_pattern = r#".*<dt>runes balances</dt>\n\s*<dd><a class=monospace href=/rune/TEEEEEEEEESTRUNE>TEEEEEEEEESTRUNE</a>: 20000R</dd>\n\s*<dd><a class=monospace href=/rune/ANOTHERTEESTRUNE>ANOTHERTEESTRUNE</a>: 10000F</dd>.*"#;
+    let expected_pattern = r#".*<dt>rune balances</dt>\n\s*<dd><a class=monospace href=/rune/TEEEEEEEEESTRUNE>TEEEEEEEEESTRUNE</a>: 20000R</dd>\n\s*<dd><a class=monospace href=/rune/ANOTHERTEESTRUNE>ANOTHERTEESTRUNE</a>: 10000F</dd>.*"#;
     assert_regex_match!(address_html, expected_pattern);
   }
 
