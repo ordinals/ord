@@ -364,7 +364,7 @@ inscriptions:
         },
       ]),
       indexed: true,
-      runes: Some(BTreeMap::new()),
+      runes: None,
       sat_ranges: Some(vec![(5_000_000_000, 5_000_030_000)]),
       script_pubkey: destination.assume_checked_ref().script_pubkey(),
       spent: false,
