@@ -91,7 +91,7 @@ pub(crate) enum Statistic {
   Runes = 13,
   SatRanges = 14,
   UnboundInscriptions = 16,
-  LastSavePointHeight = 17,
+  LastSavepointHeight = 17,
 }
 
 impl Statistic {

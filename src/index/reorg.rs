@@ -87,7 +87,7 @@ impl Reorg {
       .begin_read()?
       .0
       .open_table(STATISTIC_TO_COUNT)?
-      .get(&Statistic::LastSavePointHeight.key())?
+      .get(&Statistic::LastSavepointHeight.key())?
       .map(|last_savepoint_height| last_savepoint_height.value())
       .unwrap_or(0)
       .try_into()
@@ -122,7 +122,7 @@ impl Reorg {
 
       wtx
         .open_table(STATISTIC_TO_COUNT)?
-        .insert(&Statistic::LastSavePointHeight.key(), &u64::from(height))?;
+        .insert(&Statistic::LastSavepointHeight.key(), &u64::from(height))?;
 
       Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
       wtx.commit()?;
