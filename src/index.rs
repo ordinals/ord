@@ -1559,14 +1559,12 @@ impl Index {
     &self,
     outpoint: OutPoint,
   ) -> Result<Option<Vec<InscriptionId>>> {
-    if !self.index_inscriptions {
+    let Some(inscriptions) = self.get_inscriptions_on_output_with_satpoints(outpoint)? else {
       return Ok(None);
-    }
+    };
 
     Ok(Some(
-      self
-        .get_inscriptions_on_output_with_satpoints(outpoint)?
-        .unwrap_or_default()
+      inscriptions
         .iter()
         .map(|(_satpoint, inscription_id)| *inscription_id)
         .collect(),
