@@ -1575,22 +1575,20 @@ impl Index {
     &self,
     outpoints: &Vec<OutPoint>,
   ) -> Result<Option<Vec<InscriptionId>>> {
-    if !self.index_inscriptions {
-      return Ok(None);
-    }
-
-    let mut inscriptions = Vec::new();
+    let mut result = Vec::new();
     for outpoint in outpoints {
-      inscriptions.extend(
-        self
-          .get_inscriptions_on_output_with_satpoints(*outpoint)?
-          .unwrap_or_default()
+      let Some(inscriptions) = self.get_inscriptions_on_output_with_satpoints(*outpoint)? else {
+        return Ok(None);
+      };
+
+      result.extend(
+        inscriptions
           .iter()
           .map(|(_satpoint, inscription_id)| *inscription_id),
       );
     }
 
-    Ok(Some(inscriptions))
+    Ok(Some(result))
   }
 
   pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
