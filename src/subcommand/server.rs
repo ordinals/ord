@@ -6378,12 +6378,12 @@ next
     assert_eq!(output_response.outpoint, outpoint);
     assert!(!output_response.spent);
     assert!(output_response.indexed);
-    assert_eq!(output_response.inscriptions, vec![inscription_id]);
+    assert_eq!(output_response.inscriptions, Some(vec![inscription_id]));
     assert!(output_response.address.is_some());
     assert!(!output_response.script_pubkey.is_empty());
     assert_eq!(output_response.transaction, txid);
     assert!(output_response.value > 0);
-    assert!(output_response.runes.is_empty());
+    assert!(output_response.runes.unwrap_or_default().is_empty());
     if let Some(sat_ranges) = &output_response.sat_ranges {
       assert!(!sat_ranges.is_empty());
     }
