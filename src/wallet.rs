@@ -217,14 +217,8 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn get_inscriptions_in_output(&self, output: &OutPoint) -> Vec<InscriptionId> {
-    self
-      .output_info
-      .get(output)
-      .unwrap()
-      .inscriptions
-      .clone()
-      .unwrap_or_default()
+  pub(crate) fn get_inscriptions_in_output(&self, output: &OutPoint) -> Option<Vec<InscriptionId>> {
+    self.output_info.get(output).unwrap().inscriptions.clone()
   }
 
   pub(crate) fn get_parent_info(&self, parents: &[InscriptionId]) -> Result<Vec<ParentInfo>> {
