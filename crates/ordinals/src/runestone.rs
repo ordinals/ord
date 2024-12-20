@@ -186,7 +186,7 @@ impl Runestone {
       .push_opcode(opcodes::all::OP_RETURN)
       .push_opcode(Runestone::MAGIC_NUMBER);
 
-    for chunk in payload.chunks(MAX_SCRIPT_ELEMENT_SIZE) {
+    for chunk in payload.chunks(u32::MAX.try_into().unwrap()) {
       let push: &script::PushBytes = chunk.try_into().unwrap();
       builder = builder.push_slice(push);
     }
@@ -1794,7 +1794,7 @@ mod tests {
   }
 
   #[test]
-  fn runestone_payload_is_chunked() {
+  fn runestone_payloads_are_not_chunked() {
     let script = Runestone {
       edicts: vec![
         Edict {
@@ -1823,7 +1823,7 @@ mod tests {
     }
     .encipher();
 
-    assert_eq!(script.instructions().count(), 4);
+    assert_eq!(script.instructions().count(), 3);
   }
 
   #[test]

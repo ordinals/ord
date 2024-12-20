@@ -115,8 +115,6 @@ ol, ul {
 }
 
 .block-list {
-  font-family: monospace, monospace;
-  list-style-position: inside;
   white-space: nowrap;
 }
 
@@ -139,6 +137,14 @@ ol, ul {
 
 .center {
   text-align: center;
+}
+
+.collapse {
+  font-family: monospace, monospace;
+}
+
+.collapse:not(a) {
+  user-select: all;
 }
 
 .monospace {

@@ -1,7 +1,7 @@
 use {
   super::*,
   base64::Engine,
-  bitcoin::{consensus::Decodable, psbt::Psbt, Witness},
+  bitcoin::{consensus::Decodable, opcodes, psbt::Psbt, script::Instruction, Witness},
   bitcoincore_rpc::json::StringOrStringArray,
 };
 
@@ -476,12 +476,20 @@ impl Api for Server {
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
-    _utxos: Option<Vec<SignRawTransactionInput>>,
+    utxos: Option<Vec<SignRawTransactionInput>>,
     sighash_type: Option<()>,
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
     let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
+    if let Some(utxos) = &utxos {
+      // sign for zero-value UTXOs produced by `ord wallet sign`
+      if utxos[0].amount == Some(Amount::ZERO) {
+        transaction.input[0].witness = self.state().wallet.sign_bip322(&utxos[0], &transaction);
+      }
+    }
+
     for input in &mut transaction.input {
       if input.witness.is_empty() {
         input.witness = Witness::from_slice(&[&[0; 64]]);
@@ -498,8 +506,35 @@ impl Api for Server {
     )
   }
 
-  fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error> {
+  fn send_raw_transaction(
+    &self,
+    tx: String,
+    maxfeerate: Option<()>,
+    maxburnamount: Option<f64>,
+  ) -> Result<String, jsonrpc_core::Error> {
+    assert!(
+      maxfeerate.is_none(),
+      "sendrawtransaction: maxfeerate is not supported"
+    );
+
     let tx: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
+    let burnt = tx
+      .output
+      .iter()
+      .filter(|tx_out| {
+        tx_out.script_pubkey.instructions().next()
+          == Some(Ok(Instruction::Op(opcodes::all::OP_RETURN)))
+      })
+      .map(|tx_out| tx_out.value)
+      .sum::<Amount>();
+
+    let maxburnamount = Amount::from_btc(maxburnamount.unwrap_or_default()).unwrap();
+
+    assert!(
+      burnt <= maxburnamount,
+      "burnt amount greater than maxburnamount: {burnt} > {maxburnamount}",
+    );
 
     let mut state = self.state.lock().unwrap();
 
@@ -803,10 +838,11 @@ impl Api for Server {
     &self,
     req: Vec<ImportDescriptors>,
   ) -> Result<Vec<ImportMultiResult>, jsonrpc_core::Error> {
-    self
-      .state()
-      .descriptors
-      .extend(req.into_iter().map(|params| params.descriptor));
+    self.state().descriptors.extend(
+      req
+        .into_iter()
+        .map(|params| (params.descriptor, params.timestamp)),
+    );
 
     Ok(vec![ImportMultiResult {
       success: true,
@@ -901,9 +937,9 @@ impl Api for Server {
         .state()
         .descriptors
         .iter()
-        .map(|desc| Descriptor {
+        .map(|(desc, timestamp)| Descriptor {
           desc: desc.to_string(),
-          timestamp: Timestamp::Now,
+          timestamp: *timestamp,
           active: true,
           internal: None,
           range: None,

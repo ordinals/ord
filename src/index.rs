@@ -50,7 +50,7 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 29;
+const SCHEMA_VERSION: u64 = 30;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
@@ -91,6 +91,7 @@ pub(crate) enum Statistic {
   Runes = 13,
   SatRanges = 14,
   UnboundInscriptions = 16,
+  LastSavepointHeight = 17,
 }
 
 impl Statistic {
@@ -303,6 +304,7 @@ impl Index {
         let mut tx = database.begin_write()?;
 
         tx.set_durability(durability);
+        tx.set_quick_repair(true);
 
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
@@ -684,7 +686,7 @@ impl Index {
   }
 
   pub fn export(&self, filename: &String, include_addresses: bool) -> Result {
-    let mut writer = BufWriter::new(fs::File::create(filename)?);
+    let mut writer = BufWriter::new(File::create(filename)?);
     let rtx = self.database.begin_read()?;
 
     let blocks_indexed = rtx
@@ -773,6 +775,7 @@ impl Index {
   fn begin_write(&self) -> Result<WriteTransaction> {
     let mut tx = self.database.begin_write()?;
     tx.set_durability(self.durability);
+    tx.set_quick_repair(true);
     Ok(tx)
   }
 
@@ -2128,6 +2131,7 @@ impl Index {
         satpoint,
         timestamp: timestamp(entry.timestamp.into()).timestamp(),
         value: output.as_ref().map(|o| o.value.to_sat()),
+        metaprotocol: inscription.metaprotocol().map(|s| s.to_string()),
       },
       output,
       inscription,

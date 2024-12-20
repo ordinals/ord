@@ -38,7 +38,7 @@ pub(crate) struct Spawn {
 
 impl Spawn {
   #[track_caller]
-  fn run(self) -> (TempDir, String) {
+  fn run(self) -> (Arc<TempDir>, String) {
     let output = self.child.wait_with_output().unwrap();
 
     let stdout = str::from_utf8(&output.stdout).unwrap();
@@ -53,7 +53,7 @@ impl Spawn {
     self.expected_stderr.assert_match(stderr);
     self.expected_stdout.assert_match(stdout);
 
-    (Arc::try_unwrap(self.tempdir).unwrap(), stdout.into())
+    (self.tempdir, stdout.into())
   }
 
   #[track_caller]
@@ -263,7 +263,7 @@ impl CommandBuilder {
   }
 
   #[track_caller]
-  fn run(self) -> (TempDir, String) {
+  pub(crate) fn run(self) -> (Arc<TempDir>, String) {
     self.spawn().run()
   }
 

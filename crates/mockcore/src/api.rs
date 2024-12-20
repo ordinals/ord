@@ -87,7 +87,12 @@ pub trait Api {
   ) -> Result<Value, jsonrpc_core::Error>;
 
   #[rpc(name = "sendrawtransaction")]
-  fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error>;
+  fn send_raw_transaction(
+    &self,
+    tx: String,
+    maxfeerate: Option<()>,
+    maxburnamount: Option<f64>,
+  ) -> Result<String, jsonrpc_core::Error>;
 
   #[rpc(name = "sendtoaddress")]
   fn send_to_address(

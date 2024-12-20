@@ -58,6 +58,11 @@ case $CHAIN in
     CSP_ORIGIN=testnet.ordinals.com
     ufw allow 18333
     ;;
+  testnet4)
+    COOKIE_FILE_DIR=/var/lib/bitcoind/testnet4
+    CSP_ORIGIN=testnet4.ordinals.com
+    ufw allow 48333
+    ;;
   *)
     echo "Unknown chain: $CHAIN"
     exit 1
