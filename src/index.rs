@@ -2281,18 +2281,19 @@ impl Index {
 
     inscriptions.sort_by_key(|(sequence_number, _)| *sequence_number);
 
-    let mut result = Vec::new();
-    for (sequence_number, offset) in inscriptions.into_iter() {
-      let entry = sequence_number_to_inscription_entry
-        .get(sequence_number)?
-        .unwrap();
+    inscriptions
+      .into_iter()
+      .map(|(sequence_number, offset)| {
+        let entry = sequence_number_to_inscription_entry
+          .get(sequence_number)?
+          .unwrap();
 
-      let satpoint = SatPoint { outpoint, offset };
+        let satpoint = SatPoint { outpoint, offset };
 
-      result.push((satpoint, InscriptionEntry::load(entry.value()).id))
-    }
-
-    Ok(Some(result))
+        Ok((satpoint, InscriptionEntry::load(entry.value()).id))
+      })
+      .collect::<Result<_>>()
+      .map(Some)
   }
 
   pub fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
