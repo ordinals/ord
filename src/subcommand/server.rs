@@ -758,6 +758,7 @@ impl Server {
           OutputType::Cardinal => {
             index
               .get_inscriptions_on_output_with_satpoints(output)?
+              .unwrap_or_default()
               .is_empty()
               && index
                 .get_rune_balances_for_output(output)?
@@ -766,6 +767,7 @@ impl Server {
           }
           OutputType::Inscribed => !index
             .get_inscriptions_on_output_with_satpoints(output)?
+            .unwrap_or_default()
             .is_empty(),
           OutputType::Runic => !index
             .get_rune_balances_for_output(output)?

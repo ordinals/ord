@@ -1538,7 +1538,11 @@ impl Index {
   pub fn get_inscriptions_on_output_with_satpoints(
     &self,
     outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
+  ) -> Result<Option<Vec<(SatPoint, InscriptionId)>>> {
+    if !self.index_inscriptions {
+      return Ok(None);
+    }
+
     let rtx = self.database.begin_read()?;
     let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
     let sequence_number_to_inscription_entry =
@@ -1562,6 +1566,7 @@ impl Index {
     Ok(Some(
       self
         .get_inscriptions_on_output_with_satpoints(outpoint)?
+        .unwrap_or_default()
         .iter()
         .map(|(_satpoint, inscription_id)| *inscription_id)
         .collect(),
@@ -1571,18 +1576,23 @@ impl Index {
   pub fn get_inscriptions_for_outputs(
     &self,
     outpoints: &Vec<OutPoint>,
-  ) -> Result<Vec<InscriptionId>> {
+  ) -> Result<Option<Vec<InscriptionId>>> {
+    if !self.index_inscriptions {
+      return Ok(None);
+    }
+
     let mut inscriptions = Vec::new();
     for outpoint in outpoints {
       inscriptions.extend(
         self
           .get_inscriptions_on_output_with_satpoints(*outpoint)?
+          .unwrap_or_default()
           .iter()
           .map(|(_satpoint, inscription_id)| *inscription_id),
       );
     }
 
-    Ok(inscriptions)
+    Ok(Some(inscriptions))
   }
 
   pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
@@ -2258,29 +2268,31 @@ impl Index {
     outpoint_to_utxo_entry: &'a impl ReadableTable<&'static OutPointValue, &'static UtxoEntry>,
     sequence_number_to_inscription_entry: &'a impl ReadableTable<u32, InscriptionEntryValue>,
     outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
+  ) -> Result<Option<Vec<(SatPoint, InscriptionId)>>> {
     if !self.index_inscriptions {
-      return Ok(Vec::new());
+      return Ok(None);
     }
 
     let Some(utxo_entry) = outpoint_to_utxo_entry.get(&outpoint.store())? else {
-      return Ok(Vec::new());
+      return Ok(Some(Vec::new()));
     };
 
     let mut inscriptions = utxo_entry.value().parse(self).parse_inscriptions();
 
     inscriptions.sort_by_key(|(sequence_number, _)| *sequence_number);
 
-    inscriptions
-      .into_iter()
-      .map(|(sequence_number, offset)| {
-        let entry = sequence_number_to_inscription_entry
-          .get(sequence_number)?
-          .unwrap();
-        let satpoint = SatPoint { outpoint, offset };
-        Ok((satpoint, InscriptionEntry::load(entry.value()).id))
-      })
-      .collect::<Result<_>>()
+    let mut result = Vec::new();
+    for (sequence_number, offset) in inscriptions.into_iter() {
+      let entry = sequence_number_to_inscription_entry
+        .get(sequence_number)?
+        .unwrap();
+
+      let satpoint = SatPoint { outpoint, offset };
+
+      result.push((satpoint, InscriptionEntry::load(entry.value()).id))
+    }
+
+    Ok(Some(result))
   }
 
   pub fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
@@ -2300,35 +2312,37 @@ impl Index {
   pub(crate) fn get_aggregated_rune_balances_for_outputs(
     &self,
     outputs: &Vec<OutPoint>,
-  ) -> Result<Vec<(SpacedRune, Decimal, Option<char>)>> {
+  ) -> Result<Option<Vec<(SpacedRune, Decimal, Option<char>)>>> {
     let mut runes = BTreeMap::new();
 
     for output in outputs {
-      if let Some(rune_balances) = self.get_rune_balances_for_output(*output)? {
-        for (spaced_rune, pile) in rune_balances {
-          runes
-            .entry(spaced_rune)
-            .and_modify(|(decimal, _symbol): &mut (Decimal, Option<char>)| {
-              assert_eq!(decimal.scale, pile.divisibility);
-              decimal.value += pile.amount;
-            })
-            .or_insert((
-              Decimal {
-                value: pile.amount,
-                scale: pile.divisibility,
-              },
-              pile.symbol,
-            ));
-        }
+      let Some(rune_balances) = self.get_rune_balances_for_output(*output)? else {
+        return Ok(None);
+      };
+
+      for (spaced_rune, pile) in rune_balances {
+        runes
+          .entry(spaced_rune)
+          .and_modify(|(decimal, _symbol): &mut (Decimal, Option<char>)| {
+            assert_eq!(decimal.scale, pile.divisibility);
+            decimal.value += pile.amount;
+          })
+          .or_insert((
+            Decimal {
+              value: pile.amount,
+              scale: pile.divisibility,
+            },
+            pile.symbol,
+          ));
       }
     }
 
-    Ok(
+    Ok(Some(
       runes
         .into_iter()
         .map(|(spaced_rune, (decimal, symbol))| (spaced_rune, decimal, symbol))
         .collect(),
-    )
+    ))
   }
 
   pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<u64> {
@@ -4436,6 +4450,7 @@ mod tests {
           .index
           .get_inscriptions_on_output_with_satpoints(OutPoint { txid, vout: 0 })
           .unwrap()
+          .unwrap_or_default()
           .iter()
           .map(|(_satpoint, inscription_id)| *inscription_id)
           .collect::<Vec<InscriptionId>>()
@@ -4500,6 +4515,7 @@ mod tests {
           .index
           .get_inscriptions_on_output_with_satpoints(OutPoint { txid, vout: 0 })
           .unwrap()
+          .unwrap_or_default()
       )
     }
   }
@@ -4549,6 +4565,7 @@ mod tests {
             vout: 0
           })
           .unwrap()
+          .unwrap_or_default()
       )
     }
   }

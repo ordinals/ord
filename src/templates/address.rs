@@ -4,9 +4,9 @@ use super::*;
 pub(crate) struct AddressHtml {
   pub(crate) address: Address,
   pub(crate) outputs: Vec<OutPoint>,
-  pub(crate) inscriptions: Vec<InscriptionId>,
+  pub(crate) inscriptions: Option<Vec<InscriptionId>>,
   pub(crate) sat_balance: u64,
-  pub(crate) runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
+  pub(crate) runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
 }
 
 impl PageContent for AddressHtml {
@@ -26,9 +26,9 @@ mod tests {
         .require_network(Network::Bitcoin)
         .unwrap(),
       outputs: vec![outpoint(1), outpoint(2)],
-      inscriptions: vec![inscription_id(1)],
+      inscriptions: Some(vec![inscription_id(1)]),
       sat_balance: 99,
-      runes_balances: vec![
+      runes_balances: Some(vec![
         (
           SpacedRune {
             rune: Rune::from_str("TEEEEEEEEESTRUNE").unwrap(),
@@ -51,7 +51,7 @@ mod tests {
           },
           Some('F'),
         ),
-      ],
+      ]),
     }
   }
 
