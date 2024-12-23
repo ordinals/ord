@@ -3382,7 +3382,7 @@ Get assets held by an unspent transaction output.
 
 ### Examples
 
-Genesis UTXO with server running without any indices.
+Unspent transaction output with no indices:
 
 ```bash
 curl -s -H "Accept: application/json" \
@@ -3398,7 +3398,7 @@ curl -s -H "Accept: application/json" \
 }
 ```
 
-Server running with runes, inscriptions and sats index:
+With rune, inscription, and sat index:
 
 ```bash
 curl -s -H "Accept: application/json" \
