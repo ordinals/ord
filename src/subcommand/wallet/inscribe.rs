@@ -95,7 +95,7 @@ impl Inscribe {
     }
     .inscribe(
       &wallet.locked_utxos().clone().into_keys().collect(),
-      wallet.get_runic_outputs()?,
+      wallet.get_runic_outputs()?.unwrap_or_default(),
       wallet.utxos(),
       &wallet,
     )
