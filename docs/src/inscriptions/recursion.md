@@ -3378,7 +3378,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Information about a UTXO.
+Information about an unspent transaction output (UTXO).
 
 ### Examples
 
@@ -3425,7 +3425,7 @@ curl -s -H "Accept: application/json" \
 }
 ```
 
-Multiple assets in output with server running with runes and inscriptions index
+Multiple assets inside UTXO with server running with runes and inscriptions index
 but no sats index:
 
 ```bash
