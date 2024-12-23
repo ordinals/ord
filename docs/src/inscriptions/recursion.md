@@ -3378,11 +3378,11 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Information about an unspent transaction output (UTXO).
+Availabe information about an unspent transaction output.
 
 ### Examples
 
-Genesis UTXO with server running only inscriptions index:
+Genesis UTXO with server running without any indices.
 
 ```bash
 curl -s -H "Accept: application/json" \
@@ -3391,7 +3391,7 @@ curl -s -H "Accept: application/json" \
 
 ```json
 {
-  "inscriptions": [],
+  "inscriptions": null,
   "runes": null,
   "sat_ranges": null,
   "value": 5000000000
@@ -3399,34 +3399,6 @@ curl -s -H "Accept: application/json" \
 ```
 
 Server running with runes, inscriptions and sats index:
-
-```bash
-curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/r/utxo/626860df36c1047194866c6812f04c15ab84f3690e7cc06fd600c841f1943e05:0
-```
-
-```json
-{
-  "inscriptions": [],
-  "runes": {
-    "UNCOMMON•GOODS": {
-      "amount": 6845,
-      "divisibility": 0,
-      "symbol": "⧉"
-    }
-  },
-  "sat_ranges": [
-    [
-      1905800627509113,
-      1905800627509443
-    ]
-  ],
-  "value": 330
-}
-```
-
-Multiple assets inside UTXO with server running with runes and inscriptions index
-but no sats index:
 
 ```bash
 curl -s -H "Accept: application/json" \
@@ -3445,7 +3417,12 @@ curl -s -H "Accept: application/json" \
       "symbol": "⧉"
     }
   },
-  "sat_ranges": null,
+  "sat_ranges": [
+    [
+      1905800627509113,
+      1905800627509443
+    ]
+  ],
   "value": 330
 }
 ```
