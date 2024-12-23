@@ -16,7 +16,6 @@ Changelog
 - Do not update index for info command ([#4128](https://github.com/ordinals/ord/pull/4128) by [raphjaph](https://github.com/raphjaph))
 - Wait for wallet to load ([#4095](https://github.com/ordinals/ord/pull/4095) by [raphjaph](https://github.com/raphjaph))
 
-
 ### Misc
 - Show overflow of `<ol>` in /blocks list ([#4142](https://github.com/ordinals/ord/pull/4142) by [casey](https://github.com/casey))
 - Create savepoints more robustly ([#2365](https://github.com/ordinals/ord/pull/2365) by [gmart7t2](https://github.com/gmart7t2))
