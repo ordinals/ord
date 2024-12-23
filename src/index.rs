@@ -2358,6 +2358,27 @@ impl Index {
     Ok(acc)
   }
 
+  pub(crate) fn get_utxo_recursive(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Option<api::UtxoRecursive>> {
+    let Some(utxo_entry) = self
+      .database
+      .begin_read()?
+      .open_table(OUTPOINT_TO_UTXO_ENTRY)?
+      .get(&outpoint.store())?
+    else {
+      return Ok(None);
+    };
+
+    Ok(Some(api::UtxoRecursive {
+      inscriptions: self.get_inscriptions_for_output(outpoint)?,
+      runes: self.get_rune_balances_for_output(outpoint)?,
+      sat_ranges: self.list(outpoint)?,
+      value: utxo_entry.value().parse(self).total_value(),
+    }))
+  }
+
   pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
     let sat_ranges = self.list(outpoint)?;
 

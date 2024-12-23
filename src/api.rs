@@ -152,6 +152,14 @@ pub struct Inscriptions {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct UtxoRecursive {
+  pub inscriptions: Option<Vec<InscriptionId>>,
+  pub runes: Option<BTreeMap<SpacedRune, Pile>>,
+  pub sat_ranges: Option<Vec<(u64, u64)>>,
+  pub value: u64,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,

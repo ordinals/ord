@@ -272,6 +272,7 @@ impl Server {
           "/r/sat/:sat_number/at/:index",
           get(Self::sat_inscription_at_index),
         )
+        .route("/r/utxo/:outpoint", get(Self::utxo_recursive))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
@@ -656,6 +657,22 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn utxo_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(
+        Json(
+          index
+            .get_utxo_recursive(outpoint)?
+            .ok_or_not_found(|| format!("output {outpoint}"))?,
+        )
+        .into_response(),
+      )
     })
   }
 
@@ -6332,6 +6349,126 @@ next
 .*
 "
       ),
+    );
+  }
+
+  #[test]
+  fn utxo_recursive_endpoint_all() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .index_runes()
+      .build();
+
+    let rune = Rune(RUNE);
+
+    let (txid, id) = server.etch(
+      Runestone {
+        edicts: vec![Edict {
+          id: RuneId::default(),
+          amount: u128::MAX,
+          output: 0,
+        }],
+        etching: Some(Etching {
+          divisibility: Some(1),
+          rune: Some(rune),
+          premine: Some(u128::MAX),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+      None,
+    );
+
+    pretty_assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          divisibility: 1,
+          etching: txid,
+          spaced_rune: SpacedRune { rune, spacers: 0 },
+          premine: u128::MAX,
+          timestamp: id.block,
+          ..default()
+        }
+      )]
+    );
+
+    server.mine_blocks(1);
+
+    // merge rune with two inscriptions
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (6, 0, 0, inscription("text/plain", "foo").to_witness()),
+        (7, 0, 0, inscription("text/plain", "bar").to_witness()),
+        (7, 1, 0, Witness::new()),
+      ],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+    let second_inscription_id = InscriptionId { txid, index: 1 };
+    let outpoint: OutPoint = OutPoint { txid, vout: 0 };
+
+    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{}", outpoint));
+
+    pretty_assert_eq!(
+      utxo_recursive,
+      api::UtxoRecursive {
+        inscriptions: Some(vec![inscription_id, second_inscription_id]),
+        runes: Some(
+          [(
+            SpacedRune { rune, spacers: 0 },
+            Pile {
+              amount: u128::MAX,
+              divisibility: 1,
+              symbol: None
+            }
+          )]
+          .into_iter()
+          .collect()
+        ),
+        sat_ranges: Some(vec![
+          (6 * 50 * COIN_VALUE, 7 * 50 * COIN_VALUE),
+          (7 * 50 * COIN_VALUE, 8 * 50 * COIN_VALUE),
+          (50 * COIN_VALUE, 2 * 50 * COIN_VALUE)
+        ]),
+        value: 150 * COIN_VALUE,
+      }
+    );
+  }
+
+  #[test]
+  fn utxo_recursive_endpoint_only_inscriptions() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+    let outpoint: OutPoint = OutPoint { txid, vout: 0 };
+
+    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{}", outpoint));
+
+    pretty_assert_eq!(
+      utxo_recursive,
+      api::UtxoRecursive {
+        inscriptions: Some(vec![inscription_id]),
+        runes: None,
+        sat_ranges: None,
+        value: 50 * COIN_VALUE,
+      }
     );
   }
 
