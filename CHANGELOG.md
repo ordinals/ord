@@ -1,6 +1,30 @@
 Changelog
 =========
 
+[0.22.1](https://github.com/ordinals/ord/releases/tag/0.22.1) - 2024-12-23
+--------------------------------------------------------------------------
+
+### Added
+- Add `/r/utxo/:outpoint` endpoint (#4148)
+- Add testnet4 (#4135)
+- Enable rune burning in wallet (#4117)
+- Enable redb quick-repair mode (#4084)
+
+### Changed
+- Return `None` for assets when asset index does not exist (#4141)
+- Show inscription preview video controls on click (#4139)
+- Do not update index for info command (#4128)
+- Wait for wallet to load (#4095)
+
+
+### Misc
+- Show overflow of `<ol>` in /blocks list (#4142)
+- Create savepoints more robustly (#2365)
+- Fix deploy for testnet3 (#4137)
+- Improve wallet sync error messages (#4126)
+- Link inscription burning documentation (#4131)
+- Bump ordinals crate and index schema versions (#4127)
+
 [0.22.0](https://github.com/ordinals/ord/releases/tag/0.22.0) - 2024-12-10
 --------------------------------------------------------------------------
 
