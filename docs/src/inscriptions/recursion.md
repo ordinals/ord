@@ -3426,8 +3426,7 @@ curl -s -H "Accept: application/json" \
 ```
 
 Multiple assets in output with server running with runes and inscriptions index
-but no sats index.
-sats index:
+but no sats index:
 
 ```bash
 curl -s -H "Accept: application/json" \
