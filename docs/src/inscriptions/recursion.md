@@ -3382,7 +3382,7 @@ Get assets held by an unspent transaction output.
 
 ### Examples
 
-Unspent transaction output with no indices:
+Unspent transaction output with server without any indices:
 
 ```bash
 curl -s -H "Accept: application/json" \
