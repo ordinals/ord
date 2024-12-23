@@ -2490,10 +2490,6 @@ mod tests {
       self.ord_flag("--index-sats")
     }
 
-    fn index_addresses(self) -> Self {
-      self.ord_flag("--index-addresses")
-    }
-
     fn redirect_http_to_https(self) -> Self {
       self.server_flag("--redirect-http-to-https")
     }
@@ -6360,7 +6356,6 @@ next
   fn utxo_recursive_endpoint_all() {
     let server = TestServer::builder()
       .chain(Chain::Regtest)
-      .index_addresses()
       .index_sats()
       .index_runes()
       .build();

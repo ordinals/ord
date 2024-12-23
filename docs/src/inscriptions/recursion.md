@@ -3202,7 +3202,6 @@ curl -s -H "Accept: application/json" \
 ```
 </details>
 
-
 <details>
   <summary>
     <code>GET</code>
