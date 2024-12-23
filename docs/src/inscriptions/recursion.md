@@ -3378,7 +3378,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Availabe information about an unspent transaction output.
+Get assets held by an unspent transaction output.
 
 ### Examples
 
