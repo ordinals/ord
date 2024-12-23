@@ -5,25 +5,24 @@ Changelog
 --------------------------------------------------------------------------
 
 ### Added
-- Add `/r/utxo/:outpoint` endpoint (#4148)
-- Add testnet4 (#4135)
-- Enable rune burning in wallet (#4117)
-- Enable redb quick-repair mode (#4084)
+- Add `/r/utxo/:outpoint` endpoint ([#4148](https://github.com/ordinals/ord/pull/4148) by [raphjaph](https://github.com/raphjaph))
+- Add testnet4 ([#4135](https://github.com/ordinals/ord/pull/4135) by [raphjaph](https://github.com/raphjaph))
+- Enable rune burning in wallet ([#4117](https://github.com/ordinals/ord/pull/4117) by [raphjaph](https://github.com/raphjaph))
+- Enable redb quick-repair mode ([#4084](https://github.com/ordinals/ord/pull/4084) by [partialord](https://github.com/partialord))
 
 ### Changed
-- Return `None` for assets when asset index does not exist (#4141)
-- Show inscription preview video controls on click (#4139)
-- Do not update index for info command (#4128)
-- Wait for wallet to load (#4095)
+- Return `None` for assets when asset index does not exist ([#4141](https://github.com/ordinals/ord/pull/4141) by [raphjaph](https://github.com/raphjaph))
+- Show inscription preview video controls on click ([#4139](https://github.com/ordinals/ord/pull/4139) by [casey](https://github.com/casey))
+- Do not update index for info command ([#4128](https://github.com/ordinals/ord/pull/4128) by [raphjaph](https://github.com/raphjaph))
+- Wait for wallet to load ([#4095](https://github.com/ordinals/ord/pull/4095) by [raphjaph](https://github.com/raphjaph))
 
 
 ### Misc
-- Show overflow of `<ol>` in /blocks list (#4142)
-- Create savepoints more robustly (#2365)
-- Fix deploy for testnet3 (#4137)
-- Improve wallet sync error messages (#4126)
-- Link inscription burning documentation (#4131)
-- Bump ordinals crate and index schema versions (#4127)
+- Show overflow of `<ol>` in /blocks list ([#4142](https://github.com/ordinals/ord/pull/4142) by [casey](https://github.com/casey))
+- Create savepoints more robustly ([#2365](https://github.com/ordinals/ord/pull/2365) by [gmart7t2](https://github.com/gmart7t2))
+- Fix deploy for testnet3 ([#4137](https://github.com/ordinals/ord/pull/4137) by [raphjaph](https://github.com/raphjaph))
+- Improve wallet sync error messages ([#4126](https://github.com/ordinals/ord/pull/4126) by [raphjaph](https://github.com/raphjaph))
+- Link inscription burning documentation ([#4131](https://github.com/ordinals/ord/pull/4131) by [raphjaph](https://github.com/raphjaph))
 
 [0.22.0](https://github.com/ordinals/ord/releases/tag/0.22.0) - 2024-12-10
 --------------------------------------------------------------------------
