@@ -482,14 +482,12 @@ checksum = "d965446196e3b7decd44aa7ee49e31d630118f90ef12f97900f262eb915c951d"
 
 [[package]]
 name = "bip322"
-version = "0.0.8"
+version = "0.0.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e218244320153598ead280c261e603b18ad07d8740fae9c3a5fc809b312ebd2"
+checksum = "f05fd969833f0181470a254c9aed7389537f3fe6068bc8d7bcd9afef1cc7a049"
 dependencies = [
  "base64 0.22.1",
  "bitcoin",
- "hex",
- "miniscript",
  "snafu",
 ]
 
