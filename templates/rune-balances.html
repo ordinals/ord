@@ -11,10 +11,10 @@
       <table>
 %% for (outpoint, balance) in balances {
         <tr>
-          <td class=monospace>
-            <a href=/output/{{ outpoint }}>{{ outpoint }}</a>
+          <td>
+            <a class=collapse href=/output/{{ outpoint }}>{{ outpoint }}</a>
           </td>
-          <td class=monospace>
+          <td class=collapse>
             {{ balance }}
           </td>
         </tr>

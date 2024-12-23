@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -euxo pipefail
+
+die() {
+  echo "$1"
+  exit 1
+}
+
+new=/var/lib/ord/index.redb.new
+current=/var/lib/ord/index.redb
+old=/var/lib/ord/index.redb.old
+
+[[ -f $new ]] || die "new index missing: $new"
+[[ -f $current ]] || die "old index missing: $current"
+[[ ! -f $old ]] || die "backup index already exists: $old"
+
+systemctl stop ord
+
+chown ord:ord $new
+
+mv $current $old
+mv $new $current
+
+systemctl restart ord

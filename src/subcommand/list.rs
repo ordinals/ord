@@ -10,8 +10,8 @@ pub(crate) struct List {
 pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
-  pub inscriptions: Vec<InscriptionId>,
-  pub runes: BTreeMap<SpacedRune, Pile>,
+  pub inscriptions: Option<Vec<InscriptionId>>,
+  pub runes: Option<BTreeMap<SpacedRune, Pile>>,
   pub sat_ranges: Option<Vec<Range>>,
   pub script_pubkey: String,
   pub spent: bool,

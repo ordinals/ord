@@ -110,6 +110,7 @@ pub struct Inscription {
   pub satpoint: SatPoint,
   pub timestamp: i64,
   pub value: Option<u64>,
+  pub metaprotocol: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -151,11 +152,20 @@ pub struct Inscriptions {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
+pub struct UtxoRecursive {
+  pub inscriptions: Option<Vec<InscriptionId>>,
+  pub runes: Option<BTreeMap<SpacedRune, Pile>>,
+  pub sat_ranges: Option<Vec<(u64, u64)>>,
+  pub value: u64,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
-  pub inscriptions: Vec<InscriptionId>,
-  pub runes: BTreeMap<SpacedRune, Pile>,
+  pub inscriptions: Option<Vec<InscriptionId>>,
+  pub outpoint: OutPoint,
+  pub runes: Option<BTreeMap<SpacedRune, Pile>>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub script_pubkey: ScriptBuf,
   pub spent: bool,
@@ -166,11 +176,11 @@ pub struct Output {
 impl Output {
   pub fn new(
     chain: Chain,
-    inscriptions: Vec<InscriptionId>,
+    inscriptions: Option<Vec<InscriptionId>>,
     outpoint: OutPoint,
     tx_out: TxOut,
     indexed: bool,
-    runes: BTreeMap<SpacedRune, Pile>,
+    runes: Option<BTreeMap<SpacedRune, Pile>>,
     sat_ranges: Option<Vec<(u64, u64)>>,
     spent: bool,
   ) -> Self {
@@ -181,6 +191,7 @@ impl Output {
         .map(|address| uncheck(&address)),
       indexed,
       inscriptions,
+      outpoint,
       runes,
       sat_ranges,
       script_pubkey: tx_out.script_pubkey,
@@ -193,6 +204,7 @@ impl Output {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Sat {
+  pub address: Option<String>,
   pub block: u32,
   pub charms: Vec<Charm>,
   pub cycle: u32,
@@ -225,7 +237,7 @@ pub struct SatInscriptions {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct AddressInfo {
   pub outputs: Vec<OutPoint>,
-  pub inscriptions: Vec<InscriptionId>,
+  pub inscriptions: Option<Vec<InscriptionId>>,
   pub sat_balance: u64,
-  pub runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
+  pub runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
 }

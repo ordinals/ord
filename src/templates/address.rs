@@ -4,9 +4,9 @@ use super::*;
 pub(crate) struct AddressHtml {
   pub(crate) address: Address,
   pub(crate) outputs: Vec<OutPoint>,
-  pub(crate) inscriptions: Vec<InscriptionId>,
+  pub(crate) inscriptions: Option<Vec<InscriptionId>>,
   pub(crate) sat_balance: u64,
-  pub(crate) runes_balances: Vec<(SpacedRune, Decimal, Option<char>)>,
+  pub(crate) runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
 }
 
 impl PageContent for AddressHtml {
@@ -26,9 +26,9 @@ mod tests {
         .require_network(Network::Bitcoin)
         .unwrap(),
       outputs: vec![outpoint(1), outpoint(2)],
-      inscriptions: vec![inscription_id(1)],
+      inscriptions: Some(vec![inscription_id(1)]),
       sat_balance: 99,
-      runes_balances: vec![
+      runes_balances: Some(vec![
         (
           SpacedRune {
             rune: Rune::from_str("TEEEEEEEEESTRUNE").unwrap(),
@@ -51,7 +51,7 @@ mod tests {
           },
           Some('F'),
         ),
-      ],
+      ]),
     }
   }
 
@@ -80,14 +80,14 @@ mod tests {
   #[test]
   fn test_runes_balances_rendering() {
     let address_html = setup();
-    let expected_pattern = r#".*<dt>runes balances</dt>\n\s*<dd><a class=monospace href=/rune/TEEEEEEEEESTRUNE>TEEEEEEEEESTRUNE</a>: 20000R</dd>\n\s*<dd><a class=monospace href=/rune/ANOTHERTEESTRUNE>ANOTHERTEESTRUNE</a>: 10000F</dd>.*"#;
+    let expected_pattern = r#".*<dt>rune balances</dt>\n\s*<dd><a class=monospace href=/rune/TEEEEEEEEESTRUNE>TEEEEEEEEESTRUNE</a>: 20000R</dd>\n\s*<dd><a class=monospace href=/rune/ANOTHERTEESTRUNE>ANOTHERTEESTRUNE</a>: 10000F</dd>.*"#;
     assert_regex_match!(address_html, expected_pattern);
   }
 
   #[test]
   fn test_outputs_rendering() {
     let address_html = setup();
-    let expected_pattern = r#".*<dt>outputs</dt>\n\s*<dd>\n\s*<ul>\n\s*<li><a class=monospace href=/output/1{64}:1>1{64}:1</a></li>\n\s*<li><a class=monospace href=/output/2{64}:2>2{64}:2</a></li>\n\s*</ul>\n\s*</dd>.*"#;
+    let expected_pattern = r#".*<dt>outputs</dt>\n\s*<dd>\n\s*<ul>\n\s*<li><a class=collapse href=/output/1{64}:1>1{64}:1</a></li>\n\s*<li><a class=collapse href=/output/2{64}:2>2{64}:2</a></li>\n\s*</ul>\n\s*</dd>.*"#;
     assert_regex_match!(address_html, expected_pattern);
   }
 }

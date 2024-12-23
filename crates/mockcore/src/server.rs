@@ -1,7 +1,7 @@
 use {
   super::*,
   base64::Engine,
-  bitcoin::{consensus::Decodable, psbt::Psbt, Witness},
+  bitcoin::{consensus::Decodable, opcodes, psbt::Psbt, script::Instruction, Witness},
   bitcoincore_rpc::json::StringOrStringArray,
 };
 
@@ -506,8 +506,35 @@ impl Api for Server {
     )
   }
 
-  fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error> {
+  fn send_raw_transaction(
+    &self,
+    tx: String,
+    maxfeerate: Option<()>,
+    maxburnamount: Option<f64>,
+  ) -> Result<String, jsonrpc_core::Error> {
+    assert!(
+      maxfeerate.is_none(),
+      "sendrawtransaction: maxfeerate is not supported"
+    );
+
     let tx: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
+    let burnt = tx
+      .output
+      .iter()
+      .filter(|tx_out| {
+        tx_out.script_pubkey.instructions().next()
+          == Some(Ok(Instruction::Op(opcodes::all::OP_RETURN)))
+      })
+      .map(|tx_out| tx_out.value)
+      .sum::<Amount>();
+
+    let maxburnamount = Amount::from_btc(maxburnamount.unwrap_or_default()).unwrap();
+
+    assert!(
+      burnt <= maxburnamount,
+      "burnt amount greater than maxburnamount: {burnt} > {maxburnamount}",
+    );
 
     let mut state = self.state.lock().unwrap();
 

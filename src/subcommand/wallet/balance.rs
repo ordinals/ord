@@ -26,7 +26,9 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut runic = 0;
 
   for (output, txout) in unspent_outputs {
-    let rune_balances = wallet.get_runes_balances_in_output(output)?;
+    let rune_balances = wallet
+      .get_runes_balances_in_output(output)?
+      .unwrap_or_default();
 
     let is_ordinal = inscription_outputs.contains(output);
     let is_runic = !rune_balances.is_empty();

@@ -64,7 +64,7 @@ impl Batch {
     }
     .inscribe(
       &locked_utxos.into_keys().collect(),
-      wallet.get_runic_outputs()?,
+      wallet.get_runic_outputs()?.unwrap_or_default(),
       utxos,
       &wallet,
     )

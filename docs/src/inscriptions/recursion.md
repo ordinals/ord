@@ -39,13 +39,16 @@ Recursion has a number of interesting use-cases:
   </summary>
 
 ### Description
-The content of the inscription with `<INSCRIPTION_ID>`
+
+The content of the inscription with `<INSCRIPTION_ID>`.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 > skull.jpg
 ```
+
 <i>no terminal output, just file creation</i>
 </details>
 
@@ -63,6 +66,7 @@ Latest block hash.
 curl -s  \
   http://0.0.0.0:80/r/blockhash
 ```
+
 ```json
 "00000000000000000002891b440944e0ce40b37b6ccaa138c280e9edfc319d5d"
 ```
@@ -75,13 +79,16 @@ curl -s  \
   </summary>
 
 ### Description
+
 Block hash at given block height as JSON string.
 
 ### Example
+
 ```bash
 curl -s  \
   http://0.0.0.0:80/r/blockhash/840000
 ```
+
 ```json
 "0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5"
 ```
@@ -94,13 +101,16 @@ curl -s  \
   </summary>
 
 ### Description
+
 Latest block height.
 
 ### Example
+
 ```bash
 curl -s  \
   http://0.0.0.0:80/r/blockheight
 ```
+
 ```json
 866393
 ```
@@ -113,13 +123,16 @@ curl -s  \
   </summary>
 
 ### Description
+
 Block info. `<QUERY>` may be a block height or block hash.
 
 ### Example (blockheight)
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/blockinfo/0
 ```
+
 ```json
 {
   "average_fee": 0,
@@ -158,11 +171,14 @@ curl -s -H "Accept: application/json" \
   "version": 1
 }
 ```
+
 ### Example (blockhash)
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/blockinfo/0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5
 ```
+
 ```json
 {
   "average_fee": 1234031,
@@ -213,13 +229,16 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 UNIX time stamp of latest block.
 
 ### Example
+
 ```bash
 curl -s  \
   http://0.0.0.0:80/r/blocktime
 ```
+
 ```json
 1729362253
 ```
@@ -232,13 +251,16 @@ curl -s  \
   </summary>
 
 ### Description
+
 The first 100 child inscription ids.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0
 ```
+
 ```json
 {
   "ids": [
@@ -356,13 +378,16 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 The set of 100 child inscription ids on `<PAGE>`.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/9
 ```
+
 ```json
 {
   "ids": [
@@ -480,13 +505,16 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 Details of the first 100 child inscriptions.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions
 ```
+
 ```json
 {
   "children": [
@@ -1802,14 +1830,18 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 Details of the set of 100 child inscriptions on &lt;PAGE&gt;.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions/9
 ```
-```json{
+
+```json
+{
   "children": [
     {
       "charms": [
@@ -3125,6 +3157,7 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 Undelegated content of an inscription.
 
 </details>
@@ -3137,13 +3170,16 @@ Undelegated content of an inscription.
   </summary>
 
 ### Description
+
 Information about an inscription.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/inscriptions/13130e4b299ed361f2a734f6433844ef0f0211cd504e0ca8f4d4ab20f51b8127i0
 ```
+
 ```json
 {
   "charms": [
@@ -3166,6 +3202,7 @@ curl -s -H "Accept: application/json" \
 ```
 </details>
 
+
 <details>
   <summary>
     <code>GET</code>
@@ -3173,6 +3210,7 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 JSON string containing the hex-encoded CBOR metadata.
 
 ### Example
@@ -3180,6 +3218,7 @@ JSON string containing the hex-encoded CBOR metadata.
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/metadata/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 ```
+
 ```json
 "ac6c50484f544f475241504845526a5041524b4552204441596643414d4552416c43414e4f4e20454f532d31566446494c4d6f4b4f44414b20454b54415220313030644c454e53781a5a4549535320504c414e415220542a2038354d4d20462f312e346d5348555454455220535045454465312f31323568415045525455524563462f38664d4f44454c5318646650484f544f531903e8684c4f434154494f4e774c4f5320414e47454c45532c2043414c49464f524e49416443524557a36a415353495354414e4345826e41524941532042555244454c4c49684e4153204e495858664d414b45555087754544454e2053594d4f4e45204c415454414e5a494f6a4d494d49204d455945526e53414d414e544841204c455052456f4c4953455454452053414e54414e416e4a45535349434120564552474f4e63504f4e724d415941204e414b415241205352554f4348644841495283694a414b4920494348556c4a4f43454c594e2056454741724a4546464552534f4e2054414e475241444966504154524f4e6e434153455920524f4441524d4f52674c4943454e534563434330"
 ```
@@ -3192,13 +3231,16 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 The first 100 parent inscription ids.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 ```
+
 ```json
 {
   "ids": [
@@ -3217,13 +3259,16 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 The set of 100 parent inscription ids on `<PAGE>`.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/9
 ```
+
 ```json
 {
   "ids": [],
@@ -3240,13 +3285,16 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 The first 100 inscription ids on a sat. Requires index with `--index-sats` flag.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/sat/153899938226999
 ```
+
 ```json
 {
   "ids": [
@@ -3268,13 +3316,16 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 The set of 100 inscription ids on `<PAGE>`. Requires index with `--index-sats` flag.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/sat/1499676120331756/1
 ```
+
 ```json
 {
   "ids": [
@@ -3303,16 +3354,101 @@ curl -s -H "Accept: application/json" \
   </summary>
 
 ### Description
+
 The inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. Requires index with `--index-sats` flag.
 
 ### Example
+
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/sat/153899938226999/at/-1
 ```
+
 ```json
 {
   "id": "488c32e4dfcdc0fa376c2c2af2d572a12f4d33d3245689d1a9f74167f1e14678i0"
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/utxo/&lt;OUTPOINT&gt;</b></code>
+  </summary>
+
+### Description
+
+Information about a UTXO.
+
+### Examples
+
+Genesis UTXO with server running only inscriptions index:
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/utxo/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
+```
+
+```json
+{
+  "inscriptions": [],
+  "runes": null,
+  "sat_ranges": null,
+  "value": 5000000000
+}
+```
+
+Server running with runes, inscriptions and sats index:
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/utxo/626860df36c1047194866c6812f04c15ab84f3690e7cc06fd600c841f1943e05:0
+```
+
+```json
+{
+  "inscriptions": [],
+  "runes": {
+    "UNCOMMON•GOODS": {
+      "amount": 6845,
+      "divisibility": 0,
+      "symbol": "⧉"
+    }
+  },
+  "sat_ranges": [
+    [
+      1905800627509113,
+      1905800627509443
+    ]
+  ],
+  "value": 330
+}
+```
+
+Multiple assets in output with server running with runes and inscriptions index
+but no sats index.
+sats index:
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/utxo/626860df36c1047194866c6812f04c15ab84f3690e7cc06fd600c841f1943e05:0
+```
+
+```json
+{
+  "inscriptions": [
+    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
+  ],
+  "runes": {
+    "UNCOMMON•GOODS": {
+      "amount": 6845,
+      "divisibility": 0,
+      "symbol": "⧉"
+    }
+  },
+  "sat_ranges": null,
+  "value": 330
 }
 ```
 </details>

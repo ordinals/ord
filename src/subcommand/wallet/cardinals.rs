@@ -15,7 +15,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
 
-  let runic_utxos = wallet.get_runic_outputs()?;
+  let runic_utxos = wallet.get_runic_outputs()?.unwrap_or_default();
 
   let cardinal_utxos = unspent_outputs
     .iter()
