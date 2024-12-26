@@ -49,6 +49,7 @@ mod tests {
       TransactionHtml {
         chain: Chain::Mainnet,
         etching: None,
+        runestone: None,
         inscription_count: 0,
         txid: transaction.compute_txid(),
         transaction,
