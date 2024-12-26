@@ -73,14 +73,14 @@ mkdir -p \
   /etc/systemd/system/bitcoind.service.d \
   /etc/systemd/system/ord.service.d
 
-override=/etc/systemd/system/ord.service.d/override.conf
+OVERRIDE=/etc/systemd/system/ord.service.d/override.conf
 
-echo "[Service]" > $override
-printf "Environment=CHAIN=%s\n" $CHAIN > $override
-printf "Environment=CSP_ORIGIN=%s\n" $CSP_ORIGIN > $override
+echo '[Service]' > $OVERRIDE
+echo "Environment=CHAIN=$CHAIN" > $OVERRIDE
+echo "Environment=CSP_ORIGIN=$CSP_ORIGIN" > $OVERRIDE
 
-if [[ $chain == main ]]; then
-  printf "Environment=ORD_SERVER_DISABLE_JSON_API=true\n" > $override
+if [[ $CHAIN == main ]]; then
+  echo Environment=ORD_SERVER_DISABLE_JSON_API=true > $OVERRIDE
 fi
 
 cp $override /etc/systemd/system/bitcoind.service.d/override.conf
