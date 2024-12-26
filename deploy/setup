@@ -41,31 +41,31 @@ case $CHAIN in
   main)
     COOKIE_FILE_DIR=/var/lib/bitcoind
     CSP_ORIGIN=ordinals.com
-    DISABLE_JSON_API='--disable-json-api'
+    JSON_API='--disable-json-api'
     ufw allow 8333
     ;;
   regtest)
     COOKIE_FILE_DIR=/var/lib/bitcoind/regtest
     CSP_ORIGIN=regtest.ordinals.com
-    DISABLE_JSON_API='--polling-interval=5s'
+    JSON_API='--enable-json-api'
     ufw allow 18444
     ;;
   signet)
     COOKIE_FILE_DIR=/var/lib/bitcoind/signet
     CSP_ORIGIN=signet.ordinals.com
-    DISABLE_JSON_API='--polling-interval=5s'
+    JSON_API='--enable-json-api'
     ufw allow 38333
     ;;
   test)
     COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
     CSP_ORIGIN=testnet.ordinals.com
-    DISABLE_JSON_API='--polling-interval=5s'
+    JSON_API='--enable-json-api'
     ufw allow 18333
     ;;
   testnet4)
     COOKIE_FILE_DIR=/var/lib/bitcoind/testnet4
     CSP_ORIGIN=testnet4.ordinals.com
-    DISABLE_JSON_API='--polling-interval=5s'
+    JSON_API='--enable-json-api'
     ufw allow 48333
     ;;
   *)
@@ -78,7 +78,7 @@ mkdir -p \
   /etc/systemd/system/bitcoind.service.d \
   /etc/systemd/system/ord.service.d
 
-printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=CSP_ORIGIN=%s\nEnvironment=DISABLE_JSON_API=%s\n" $CHAIN $CSP_ORIGIN $DISABLE_JSON_API \
+printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=CSP_ORIGIN=%s\nEnvironment=JSON_API=%s\n" $CHAIN $CSP_ORIGIN $JSON_API \
   | tee /etc/systemd/system/bitcoind.service.d/override.conf \
   > /etc/systemd/system/ord.service.d/override.conf
 

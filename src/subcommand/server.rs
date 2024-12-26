@@ -100,7 +100,21 @@ pub struct Server {
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
   pub(crate) decompress: bool,
-  #[arg(long, help = "Disable JSON API.")]
+  #[arg(
+    long,
+    default_value_t = true,
+    action = clap::ArgAction::SetFalse,
+    conflicts_with = "disable_json_api",
+    help = "Enable JSON API (enabled by default)"
+  )]
+  pub(crate) enable_json_api: bool,
+  #[arg(
+    long,
+    default_value_t = false,
+    action = clap::ArgAction::SetTrue,
+    conflicts_with = "enable_json_api",
+    help = "Disable JSON API"
+  )]
   pub(crate) disable_json_api: bool,
   #[arg(
     long,
@@ -173,7 +187,7 @@ impl Server {
         decompress: self.decompress,
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
-        json_api_enabled: !self.disable_json_api,
+        json_api_enabled: self.enable_json_api && !self.disable_json_api,
         proxy: self.proxy.clone(),
       });
 
