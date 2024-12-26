@@ -73,9 +73,17 @@ mkdir -p \
   /etc/systemd/system/bitcoind.service.d \
   /etc/systemd/system/ord.service.d
 
-printf "[Service]\nEnvironment=CHAIN=%s\nEnvironment=CSP_ORIGIN=%s\n" $CHAIN $CSP_ORIGIN \
-  | tee /etc/systemd/system/bitcoind.service.d/override.conf \
-  > /etc/systemd/system/ord.service.d/override.conf
+OVERRIDE=/etc/systemd/system/ord.service.d/override.conf
+
+echo '[Service]' > $OVERRIDE
+echo "Environment=CHAIN=$CHAIN" >> $OVERRIDE
+echo "Environment=CSP_ORIGIN=$CSP_ORIGIN" >> $OVERRIDE
+
+if [[ $CHAIN == main ]]; then
+  echo Environment=ORD_SERVER_DISABLE_JSON_API=true >> $OVERRIDE
+fi
+
+cp $OVERRIDE /etc/systemd/system/bitcoind.service.d/override.conf
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 sshd -t
@@ -89,7 +97,7 @@ fi
 
 bitcoind --version
 
-chown bitcoin:bitcoin /var/lib/bitcoind/settings.json
+rm -f /var/lib/bitcoind/settings.json
 
 if [[ ! -e ~/.cargo/env ]]; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y

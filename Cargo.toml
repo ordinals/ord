@@ -31,7 +31,7 @@ boilerplate = { version = "1.0.0", features = ["axum"] }
 brotli = "7.0.0"
 chrono = { version = "0.4.19", features = ["serde"] }
 ciborium = "0.2.1"
-clap = { version = "4.4.2", features = ["derive"] }
+clap = { version = "4.4.2", features = ["derive", "env"] }
 colored = "2.0.4"
 ctrlc = { version = "3.2.1", features = ["termination"] }
 dirs = "5.0.0"
