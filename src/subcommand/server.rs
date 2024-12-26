@@ -103,7 +103,6 @@ pub struct Server {
   #[arg(
     long,
     default_value_t = true,
-    action = clap::ArgAction::SetFalse,
     conflicts_with = "disable_json_api",
     help = "Enable JSON API (enabled by default)"
   )]
@@ -111,7 +110,6 @@ pub struct Server {
   #[arg(
     long,
     default_value_t = false,
-    action = clap::ArgAction::SetTrue,
     conflicts_with = "enable_json_api",
     help = "Disable JSON API"
   )]
