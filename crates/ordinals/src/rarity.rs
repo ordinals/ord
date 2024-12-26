@@ -24,9 +24,9 @@ impl Rarity {
 
   pub fn supply(self) -> u64 {
     match self {
-      Self::Common => 2099999990760000,
-      Self::Uncommon => 6926535,
-      Self::Rare => 3432,
+      Self::Common => 2_099_999_990_760_000,
+      Self::Uncommon => 6_926_535,
+      Self::Rare => 3_432,
       Self::Epic => 27,
       Self::Legendary => 5,
       Self::Mythic => 1,
