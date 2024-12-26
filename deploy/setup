@@ -76,14 +76,14 @@ mkdir -p \
 OVERRIDE=/etc/systemd/system/ord.service.d/override.conf
 
 echo '[Service]' > $OVERRIDE
-echo "Environment=CHAIN=$CHAIN" > $OVERRIDE
-echo "Environment=CSP_ORIGIN=$CSP_ORIGIN" > $OVERRIDE
+echo "Environment=CHAIN=$CHAIN" >> $OVERRIDE
+echo "Environment=CSP_ORIGIN=$CSP_ORIGIN" >> $OVERRIDE
 
 if [[ $CHAIN == main ]]; then
-  echo Environment=ORD_SERVER_DISABLE_JSON_API=true > $OVERRIDE
+  echo Environment=ORD_SERVER_DISABLE_JSON_API=true >> $OVERRIDE
 fi
 
-cp $override /etc/systemd/system/bitcoind.service.d/override.conf
+cp $OVERRIDE /etc/systemd/system/bitcoind.service.d/override.conf
 
 sed -i -E 's/#?PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
 sshd -t
