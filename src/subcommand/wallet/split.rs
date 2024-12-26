@@ -113,6 +113,7 @@ impl Split {
 
     let balances = wallet
       .get_runic_outputs()?
+      .unwrap_or_default()
       .into_iter()
       .filter(|output| !inscribed_outputs.contains(output))
       .map(|output| {
@@ -120,6 +121,7 @@ impl Split {
           (
             output,
             balance
+              .unwrap_or_default()
               .into_iter()
               .map(|(spaced_rune, pile)| (spaced_rune.rune, pile.amount))
               .collect(),
@@ -145,7 +147,7 @@ impl Split {
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 
     let (txid, psbt, fee) =
-      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run)?;
+      wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run, None)?;
 
     Ok(Some(Box::new(Output { txid, psbt, fee })))
   }

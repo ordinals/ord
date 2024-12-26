@@ -74,7 +74,7 @@ pub fn builder() -> Builder {
   Builder {
     fail_lock_unspent: false,
     network: Network::Bitcoin,
-    version: 240000,
+    version: 250000,
   }
 }
 
@@ -198,7 +198,7 @@ pub struct FundRawTransactionResult {
   pub change_position: i32,
 }
 
-impl<'a> Default for TransactionTemplate<'a> {
+impl Default for TransactionTemplate<'_> {
   fn default() -> Self {
     Self {
       fee: 0,
@@ -346,9 +346,10 @@ impl Handle {
   pub fn network(&self) -> String {
     match self.state().network {
       Network::Bitcoin => "mainnet".to_string(),
-      Network::Testnet => Network::Testnet.to_string(),
-      Network::Signet => Network::Signet.to_string(),
       Network::Regtest => Network::Regtest.to_string(),
+      Network::Signet => Network::Signet.to_string(),
+      Network::Testnet4 => Network::Testnet4.to_string(),
+      Network::Testnet => Network::Testnet.to_string(),
       _ => panic!(),
     }
   }

@@ -349,7 +349,7 @@ inscriptions:
         txid: reveal_txid,
         vout: 0
       },
-      inscriptions: vec![
+      inscriptions: Some(vec![
         InscriptionId {
           txid: reveal_txid,
           index: 0
@@ -362,9 +362,9 @@ inscriptions:
           txid: reveal_txid,
           index: 2
         },
-      ],
+      ]),
       indexed: true,
-      runes: BTreeMap::new(),
+      runes: None,
       sat_ranges: Some(vec![(5_000_000_000, 5_000_030_000)]),
       script_pubkey: destination.assume_checked_ref().script_pubkey(),
       spent: false,
@@ -671,7 +671,7 @@ fn send_dry_run() {
     .to_sat(),
     output.fee
   );
-  assert_eq!(output.outgoing, Outgoing::InscriptionId(inscription));
+  assert_eq!(output.asset, Outgoing::InscriptionId(inscription));
 }
 
 #[test]

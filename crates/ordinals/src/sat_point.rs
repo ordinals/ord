@@ -44,7 +44,7 @@ impl Encodable for SatPoint {
 }
 
 impl Decodable for SatPoint {
-  fn consensus_decode<D: bitcoin::io::Read + bitcoin::io::BufRead + ?Sized>(
+  fn consensus_decode<D: bitcoin::io::Read + ?Sized>(
     d: &mut D,
   ) -> Result<Self, bitcoin::consensus::encode::Error> {
     Ok(SatPoint {

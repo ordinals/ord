@@ -6,7 +6,7 @@ pub(crate) struct Info {
   transactions: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct TransactionsOutput {
   pub start: u32,
   pub end: u32,
@@ -17,8 +17,6 @@ pub struct TransactionsOutput {
 impl Info {
   pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     let index = Index::open(&settings)?;
-
-    index.update()?;
 
     let info = index.info()?;
 

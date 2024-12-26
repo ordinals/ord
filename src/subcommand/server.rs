@@ -10,7 +10,7 @@ use {
     InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
     PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
     PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
+    PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -272,6 +272,7 @@ impl Server {
           "/r/sat/:sat_number/at/:index",
           get(Self::sat_inscription_at_index),
         )
+        .route("/r/utxo/:outpoint", get(Self::utxo_recursive))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
@@ -570,31 +571,55 @@ impl Server {
 
       let charms = sat.charms();
 
+      let address = if let Some(satpoint) = satpoint {
+        if satpoint.outpoint == unbound_outpoint() {
+          None
+        } else {
+          let tx = index
+            .get_transaction(satpoint.outpoint.txid)?
+            .context("could not get transaction for sat")?;
+
+          let tx_out = tx
+            .output
+            .get::<usize>(satpoint.outpoint.vout.try_into().unwrap())
+            .context("could not get vout for sat")?;
+
+          server_config
+            .chain
+            .address_from_script(&tx_out.script_pubkey)
+            .ok()
+        }
+      } else {
+        None
+      };
+
       Ok(if accept_json {
         Json(api::Sat {
-          number: sat.0,
+          address: address.map(|address| address.to_string()),
+          block: sat.height().0,
+          charms: Charm::charms(charms),
+          cycle: sat.cycle(),
           decimal: sat.decimal().to_string(),
           degree: sat.degree().to_string(),
-          name: sat.name(),
-          block: sat.height().0,
-          cycle: sat.cycle(),
           epoch: sat.epoch().0,
-          period: sat.period(),
+          inscriptions,
+          name: sat.name(),
+          number: sat.0,
           offset: sat.third(),
-          rarity: sat.rarity(),
           percentile: sat.percentile(),
+          period: sat.period(),
+          rarity: sat.rarity(),
           satpoint,
           timestamp: blocktime.timestamp().timestamp(),
-          inscriptions,
-          charms: Charm::charms(charms),
         })
         .into_response()
       } else {
         SatHtml {
-          sat,
-          satpoint,
+          address,
           blocktime,
           inscriptions,
+          sat,
+          satpoint,
         }
         .page(server_config)
         .into_response()
@@ -632,6 +657,22 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn utxo_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(
+        Json(
+          index
+            .get_utxo_recursive(outpoint)?
+            .ok_or_not_found(|| format!("output {outpoint}"))?,
+        )
+        .into_response(),
+      )
     })
   }
 
@@ -734,13 +775,21 @@ impl Server {
           OutputType::Cardinal => {
             index
               .get_inscriptions_on_output_with_satpoints(output)?
+              .unwrap_or_default()
               .is_empty()
-              && index.get_rune_balances_for_output(output)?.is_empty()
+              && index
+                .get_rune_balances_for_output(output)?
+                .unwrap_or_default()
+                .is_empty()
           }
           OutputType::Inscribed => !index
             .get_inscriptions_on_output_with_satpoints(output)?
+            .unwrap_or_default()
             .is_empty(),
-          OutputType::Runic => !index.get_rune_balances_for_output(output)?.is_empty(),
+          OutputType::Runic => !index
+            .get_rune_balances_for_output(output)?
+            .unwrap_or_default()
+            .is_empty(),
         };
 
         if include {
@@ -783,9 +832,21 @@ impl Server {
           .ok_or_not_found(|| format!("rune number {number}"))?,
       };
 
-      let (id, entry, parent) = index
-        .rune(rune)?
-        .ok_or_not_found(|| format!("rune {rune}"))?;
+      let Some((id, entry, parent)) = index.rune(rune)? else {
+        return Ok(if accept_json {
+          StatusCode::NOT_FOUND.into_response()
+        } else {
+          (
+            StatusCode::NOT_FOUND,
+            RuneNotFoundHtml {
+              rune,
+              unlock_height: rune.unlock_height(server_config.chain.network()),
+            }
+            .page(server_config),
+          )
+            .into_response()
+        });
+      };
 
       let block_height = index.block_height()?.unwrap_or(Height(0));
 
@@ -2573,14 +2634,19 @@ mod tests {
 
     #[track_caller]
     fn assert_html(&self, path: impl AsRef<str>, content: impl PageContent) {
+      self.assert_html_status(path, StatusCode::OK, content);
+    }
+
+    #[track_caller]
+    fn assert_html_status(
+      &self,
+      path: impl AsRef<str>,
+      status: StatusCode,
+      content: impl PageContent,
+    ) {
       let response = self.get(path);
 
-      assert_eq!(
-        response.status(),
-        StatusCode::OK,
-        "{}",
-        response.text().unwrap()
-      );
+      assert_eq!(response.status(), status, "{}", response.text().unwrap());
 
       let expected_response = PageHtml::new(
         content,
@@ -3193,6 +3259,44 @@ mod tests {
   }
 
   #[test]
+  fn rune_not_etched_shows_unlock_height() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
+
+    server.mine_blocks(1);
+
+    server.assert_html_status(
+      "/rune/A",
+      StatusCode::NOT_FOUND,
+      RuneNotFoundHtml {
+        rune: Rune(0),
+        unlock_height: Some(Height(209999)),
+      },
+    );
+  }
+
+  #[test]
+  fn reserved_rune_not_etched_shows_reserved_status() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
+
+    server.mine_blocks(1);
+
+    server.assert_html_status(
+      format!("/rune/{}", Rune(Rune::RESERVED)),
+      StatusCode::NOT_FOUND,
+      RuneNotFoundHtml {
+        rune: Rune(Rune::RESERVED),
+        unlock_height: None,
+      },
+    );
+  }
+
+  #[test]
   fn runes_are_displayed_on_runes_page() {
     let server = TestServer::builder()
       .chain(Chain::Regtest)
@@ -3656,21 +3760,23 @@ mod tests {
         transaction: txid,
         sat_ranges: None,
         indexed: true,
-        inscriptions: Vec::new(),
+        inscriptions: Some(Vec::new()),
         outpoint: output,
-        runes: vec![(
-          SpacedRune {
-            rune: Rune(RUNE),
-            spacers: 0
-          },
-          Pile {
-            amount: 340282366920938463463374607431768211455,
-            divisibility: 1,
-            symbol: None,
-          }
-        )]
-        .into_iter()
-        .collect(),
+        runes: Some(
+          vec![(
+            SpacedRune {
+              rune: Rune(RUNE),
+              spacers: 0
+            },
+            Pile {
+              amount: 340282366920938463463374607431768211455,
+              divisibility: 1,
+              symbol: None,
+            }
+          )]
+          .into_iter()
+          .collect()
+        ),
         spent: false,
       }
     );
@@ -6250,6 +6356,126 @@ next
 .*
 "
       ),
+    );
+  }
+
+  #[test]
+  fn utxo_recursive_endpoint_all() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .index_runes()
+      .build();
+
+    let rune = Rune(RUNE);
+
+    let (txid, id) = server.etch(
+      Runestone {
+        edicts: vec![Edict {
+          id: RuneId::default(),
+          amount: u128::MAX,
+          output: 0,
+        }],
+        etching: Some(Etching {
+          divisibility: Some(1),
+          rune: Some(rune),
+          premine: Some(u128::MAX),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+      None,
+    );
+
+    pretty_assert_eq!(
+      server.index.runes().unwrap(),
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          divisibility: 1,
+          etching: txid,
+          spaced_rune: SpacedRune { rune, spacers: 0 },
+          premine: u128::MAX,
+          timestamp: id.block,
+          ..default()
+        }
+      )]
+    );
+
+    server.mine_blocks(1);
+
+    // merge rune with two inscriptions
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (6, 0, 0, inscription("text/plain", "foo").to_witness()),
+        (7, 0, 0, inscription("text/plain", "bar").to_witness()),
+        (7, 1, 0, Witness::new()),
+      ],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+    let second_inscription_id = InscriptionId { txid, index: 1 };
+    let outpoint: OutPoint = OutPoint { txid, vout: 0 };
+
+    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{}", outpoint));
+
+    pretty_assert_eq!(
+      utxo_recursive,
+      api::UtxoRecursive {
+        inscriptions: Some(vec![inscription_id, second_inscription_id]),
+        runes: Some(
+          [(
+            SpacedRune { rune, spacers: 0 },
+            Pile {
+              amount: u128::MAX,
+              divisibility: 1,
+              symbol: None
+            }
+          )]
+          .into_iter()
+          .collect()
+        ),
+        sat_ranges: Some(vec![
+          (6 * 50 * COIN_VALUE, 7 * 50 * COIN_VALUE),
+          (7 * 50 * COIN_VALUE, 8 * 50 * COIN_VALUE),
+          (50 * COIN_VALUE, 2 * 50 * COIN_VALUE)
+        ]),
+        value: 150 * COIN_VALUE,
+      }
+    );
+  }
+
+  #[test]
+  fn utxo_recursive_endpoint_only_inscriptions() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let inscription_id = InscriptionId { txid, index: 0 };
+    let outpoint: OutPoint = OutPoint { txid, vout: 0 };
+
+    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{}", outpoint));
+
+    pretty_assert_eq!(
+      utxo_recursive,
+      api::UtxoRecursive {
+        inscriptions: Some(vec![inscription_id]),
+        runes: None,
+        sat_ranges: None,
+        value: 50 * COIN_VALUE,
+      }
     );
   }
 
