@@ -200,6 +200,22 @@ impl Wallet {
     self.inscription_info.clone()
   }
 
+  pub(crate) fn get_inscription(&self, inscription_id: InscriptionId) -> Result<api::Inscription> {
+    let response = self
+      .ord_client
+      .get(
+        self
+          .rpc_url
+          .join(&format!("/inscription/{inscription_id}"))
+          .unwrap(),
+      )
+      .send()?;
+
+    let inscription: api::Inscription = serde_json::from_str(&response.text()?)?;
+
+    Ok(inscription)
+  }
+
   pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
     Ok(
       !self
