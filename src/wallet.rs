@@ -832,7 +832,7 @@ impl Wallet {
     Ok((txid, psbt, fee))
   }
 
-  fn send_raw_transaction<R: bitcoincore_rpc::RawTx>(
+  pub(crate) fn send_raw_transaction<R: bitcoincore_rpc::RawTx>(
     &self,
     tx: R,
     burn_amount: Option<Amount>,
