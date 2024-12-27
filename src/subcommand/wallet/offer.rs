@@ -5,7 +5,7 @@ mod create;
 #[derive(Debug, Parser)]
 pub(crate) enum Offer {
   #[command(about = "Create an offer to buy an inscription")]
-   Create(create::Create),
+  Create(create::Create),
 }
 
 impl Offer {
