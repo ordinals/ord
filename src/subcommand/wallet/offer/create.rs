@@ -75,9 +75,7 @@ impl Create {
     let unsigned_transaction =
       Transaction::consensus_decode(&mut unsigned_transaction_hex.as_slice())?;
 
-    dbg!(&unsigned_transaction);
-
-    let unsigned_psbt = Psbt::from_unsigned_tx(unsigned_transaction)?;
+    let unsigned_psbt = Psbt::from_unsigned_tx(unsigned_transaction.clone())?;
 
     let result = wallet.bitcoin_client().wallet_process_psbt(
       &base64::engine::general_purpose::STANDARD.encode(unsigned_psbt.serialize()),
@@ -86,16 +84,18 @@ impl Create {
       None,
     )?;
 
-    let final_psbt = wallet
+    let signed_tx = wallet
       .bitcoin_client()
-      .finalize_psbt(&result.psbt, None)?
-      .psbt
-      .unwrap();
+      .sign_raw_transaction_with_wallet(&unsigned_transaction.clone(), None, None)?
+      .transaction()?;
 
-    assert!(!result.complete);
+    let mut final_psbt =
+      Psbt::deserialize(&base64::engine::general_purpose::STANDARD.decode(result.psbt)?)?;
+
+    final_psbt.inputs[1].final_script_witness = Some(signed_tx.input[1].witness.clone());
 
     Ok(Some(Box::new(Output {
-      psbt: final_psbt,
+      psbt: base64::engine::general_purpose::STANDARD.encode(final_psbt.serialize()),
       inscription: self.inscription,
       seller_address,
     })))
