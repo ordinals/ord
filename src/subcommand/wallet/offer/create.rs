@@ -41,6 +41,10 @@ impl Create {
       bail!("{} not owned by an usable address", self.inscription);
     };
 
+    let Some(postage) = inscription.value else {
+      bail!("inscription is unbound");
+    };
+
     let unsigned_transaction = Transaction {
       version: Version(2),
       lock_time: LockTime::ZERO,
@@ -52,7 +56,7 @@ impl Create {
       }],
       output: vec![
         TxOut {
-          value: Amount::from_sat(inscription.value.unwrap()),
+          value: Amount::from_sat(postage),
           script_pubkey: wallet.get_change_address()?.into(),
         },
         TxOut {
