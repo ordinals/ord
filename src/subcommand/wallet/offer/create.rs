@@ -77,12 +77,15 @@ impl Create {
 
     let unsigned_psbt = Psbt::from_unsigned_tx(unsigned_transaction.clone())?;
 
-    let result = wallet.bitcoin_client().wallet_process_psbt(
-      &base64::engine::general_purpose::STANDARD.encode(unsigned_psbt.serialize()),
-      Some(true),
-      None,
-      None,
-    )?;
+    let encoded_psbt = base64::engine::general_purpose::STANDARD.encode(unsigned_psbt.serialize());
+
+    let result = wallet
+      .bitcoin_client()
+      .call::<String>("utxoupdatepsbt", &[encoded_psbt.into()])?;
+
+    let result = wallet
+      .bitcoin_client()
+      .wallet_process_psbt(&result, Some(true), None, None)?;
 
     let signed_tx = wallet
       .bitcoin_client()
