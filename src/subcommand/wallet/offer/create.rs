@@ -63,8 +63,7 @@ impl Create {
           value: self.amount,
           script_pubkey: seller_address
             .clone()
-            .require_network(wallet.chain().network())
-            .unwrap()
+            .require_network(wallet.chain().network())?
             .into(),
         },
       ],
