@@ -23,6 +23,7 @@ pub enum BlockRarity {
   Block666,
   Taproot,
   PaliblockPalindrome,
+  SilkRoad,
 }
 
 impl Display for BlockRarity {
@@ -50,6 +51,7 @@ impl Display for BlockRarity {
         Self::Block666 => "block666",
         Self::Taproot => "taproot",
         Self::PaliblockPalindrome => "paliblock_palindrome",
+        Self::SilkRoad => "silk_road",
       }
     )
   }
@@ -118,6 +120,9 @@ impl From<Sat> for Vec<BlockRarity> {
     if is_hitman_sat(&sat) {
       res.push(BlockRarity::Hitman);
     }
+    if is_silk_road_sat(&sat) {
+      res.push(BlockRarity::SilkRoad);
+    }
 
     res
   }
@@ -147,6 +152,7 @@ impl FromStr for BlockRarity {
       "block666" => Ok(Self::Block666),
       "taproot" => Ok(Self::Taproot),
       "paliblock_palindrome" => Ok(Self::PaliblockPalindrome),
+      "silk_road" => Ok(Self::SilkRoad),
       _ => Err(format!("invalid rarity: {s}")),
     }
   }
@@ -280,6 +286,14 @@ pub fn is_uniform_palindrome(palindrome: &str) -> bool {
   false
 }
 
+fn is_silk_road_sat(sat: &Sat) -> bool {
+  let block_height = sat.height().n();
+  if let Some(silk_road_sat_range) = SILK_ROAD_RANGE_MAP.get(&block_height) {
+    return in_range(&sat.n(), silk_road_sat_range);
+  }
+  false
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -378,6 +392,7 @@ mod tests {
     case("block9", BlockRarity::Block9);
     case("block78", BlockRarity::Block78);
     case("palindrome", BlockRarity::Palindrome);
+    case("silk_road", BlockRarity::SilkRoad);
   }
 
   #[test]
@@ -417,6 +432,13 @@ mod tests {
   }
 
   #[test]
+  fn test_is_silk_road_sat() {
+    assert!(is_silk_road_sat(&Sat(390039123225)));
+    assert!(!is_silk_road_sat(&Sat(390188453225)));
+    assert!(!is_silk_road_sat(&Sat(10000)));
+  }
+
+  #[test]
   fn test_paliblock_palindrome() {
     assert_eq!(
       Sat(340932717239043).block_rarities(),
@@ -438,6 +460,15 @@ mod tests {
       Sat(3331366203412).block_rarities(),
       [BlockRarity::Vintage, BlockRarity::Block666,]
     );
+  }
+
+  #[test]
+  fn test_silk_road_sat() {
+    assert_eq!(
+      Sat(1264166614916632).block_rarities(),
+      [BlockRarity::SilkRoad]
+    );
+    assert_eq!(Sat(1264166615137432).block_rarities(), []);
   }
 }
 
@@ -483,6 +514,18 @@ lazy_static! {
       let block_height = Sat(start).height().n();
       let ranges = map.entry(block_height).or_insert(vec![]);
       ranges.push((start, end));
+    }
+    map
+  };
+  pub static ref SILK_ROAD_RANGE_MAP: HashMap<u32, Vec<(u64, u64)>> = {
+    let mut map = HashMap::with_capacity(silk_road_range::SILK_ROAD_RANGES.len());
+    // We use a reference to `silk_road_range::SILK_ROAD_RANGES` here to prevent a stack overflow
+    // during unit tests. In an unoptimized build, Rust copies the entire array to the stack,
+    // which can lead to a stack overflow if the array is too large.
+    for (start, end) in &silk_road_range::SILK_ROAD_RANGES {
+      let block_height = Sat(*start).height().n();
+      let ranges = map.entry(block_height).or_insert(vec![]);
+      ranges.push((*start, *end));
     }
     map
   };

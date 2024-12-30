@@ -20,6 +20,7 @@
   --block9: #00ff00;
   --block78: #ffff00;
   --palindrome: #0000ff;
+  --silkroad: #3f3f3f;
 }
 
 html {
@@ -206,7 +207,7 @@ a.mythic {
   color: var(--mythic);
 }
 
-span.vintage, span.nakamoto, span.firsttransaction, span.pizza, span.block9, span.block78, span.palindrome {
+span.vintage, span.nakamoto, span.firsttransaction, span.pizza, span.block9, span.block78, span.palindrome span.silkroad {
   border-radius: 0.25rem;
   color: white;
   padding: 0.125rem 0.25rem;
@@ -240,6 +241,10 @@ span.palindrome {
   background-color: var(--palindrome);
 }
 
+span.silkroad {
+  background-color: var(--silkroad);
+}
+
 a.vintage {
   color: var(--vintage);
 }
@@ -266,6 +271,10 @@ a.block78 {
 
 a.palindrome {
   color: var(--palindrome);
+}
+
+a.silkroad {
+  color: var(--silkroad);
 }
 
 .thumbnails {

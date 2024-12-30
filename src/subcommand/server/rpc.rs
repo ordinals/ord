@@ -12,7 +12,8 @@ use ordinals::{
     is_palindrome, is_perfect_palindrome, is_uniform_palindrome, BLOCK286_BLOCK_HEIGHT,
     BLOCK666_BLOCK_HEIGHT, BLOCK78_BLOCK_HEIGHT, BLOCK9_450_SAT_RANGE, BLOCK9_BLOCK_HEIGHT,
     FIRST_TRANSACTION_SAT_RANGE, HITMAN_RANGE_MAP, JPEG_BLOCK_HEIGHTS, LEGACY_RANGE_MAP,
-    NAKAMOTO_BLOCK_HEIGHTS, PIZZA_RANGE_MAP, TAPROOT_BLOCK_HEIGHT, VINTAGE_BLOCK_HEIGHT,
+    NAKAMOTO_BLOCK_HEIGHTS, PIZZA_RANGE_MAP, SILK_ROAD_RANGE_MAP, TAPROOT_BLOCK_HEIGHT,
+    VINTAGE_BLOCK_HEIGHT,
   },
   BlockRarity,
 };
@@ -185,6 +186,7 @@ fn get_block_rarities(start: u64, end: u64) -> Result<Vec<BlockRarityInfo>> {
     BlockRarity::Block666,
     // BlockRarity::Taproot,
     BlockRarity::PaliblockPalindrome,
+    BlockRarity::SilkRoad,
   ] {
     let rarities = get_block_rarity_chunks(block_rarity, start, end);
     for (rarity, chunks) in rarities {
@@ -338,6 +340,21 @@ fn get_block_rarity_chunks(
     BlockRarity::Taproot => {
       if block_height == TAPROOT_BLOCK_HEIGHT {
         res.push((block_rarity.clone(), vec![(start, end)]))
+      }
+    }
+    BlockRarity::SilkRoad => {
+      if let Some(silk_road_sat_ranges) = SILK_ROAD_RANGE_MAP.get(&block_height) {
+        let mut chunks = vec![];
+        for range in silk_road_sat_ranges {
+          if (start >= range.1) || (end <= range.0) {
+            continue;
+          }
+          chunks.push((max(range.0, start), min(range.1, end)));
+        }
+
+        if !chunks.is_empty() {
+          res.push((block_rarity.clone(), chunks));
+        }
       }
     }
     _ => { /* ignore */ }
@@ -777,5 +794,16 @@ mod tests {
     assert_eq!(palindromes, vec![20000000000002]);
     palindromes = get_palindromes_from_sat_range(3153515_6000000, 3153515_7000000);
     assert_eq!(palindromes.len(), 0);
+  }
+
+  #[test]
+  fn test_silk_road_range() {
+    assert_eq!(
+      get_block_rarities(1264166614916632, 1264166615137432).unwrap(),
+      vec![BlockRarityInfo {
+        block_rarity: BlockRarity::SilkRoad,
+        chunks: vec![(1264166614916632, 1264166615137432),]
+      },]
+    );
   }
 }
