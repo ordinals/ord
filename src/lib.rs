@@ -212,8 +212,12 @@ fn uncheck(address: &Address) -> Address<NetworkUnchecked> {
 
 fn base64_encode(data: impl AsRef<[u8]>) -> String {
   use base64::Engine;
-
   base64::engine::general_purpose::STANDARD.encode(data)
+}
+
+fn base64_decode(s: &str) -> Result<Vec<u8>> {
+  use base64::Engine;
+  Ok(base64::engine::general_purpose::STANDARD.decode(s)?)
 }
 
 fn default<T: Default>() -> T {

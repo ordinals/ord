@@ -1,8 +1,5 @@
 use super::*;
 
-// todo:
-// - assert that only owned UTXOs in PSBT is our inscription
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub txid: Txid,
@@ -12,13 +9,63 @@ pub struct Output {
 pub(crate) struct Accept {
   #[arg(long, help = "Accept <PSBT>")]
   psbt: String,
+  #[arg(long)]
+  inscription: InscriptionId,
+  #[arg(long)]
+  net: Amount,
 }
 
 impl Accept {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
+    let psbt = Psbt::deserialize(&base64_decode(&self.psbt)?)?;
+
+    let mut outgoing = BTreeSet::new();
+
+    for input in &psbt.unsigned_tx.input {
+      if wallet.utxos().contains_key(&input.previous_output) {
+        outgoing.insert(input.previous_output);
+      }
+    }
+
+    ensure! {
+      outgoing.len() <= 1,
+      "PSBT contains {} inputs owned by wallet", outgoing.len(),
+    }
+
+    let Some(outgoing) = outgoing.into_iter().next() else {
+      bail!("PSBT contains no inputs owned by wallet");
+    };
+
+    if let Some(runes) = wallet.get_runes_balances_in_output(&outgoing)? {
+      ensure! {
+        runes.is_empty(),
+        "outgoing input {} contains runes", outgoing,
+      }
+    }
+
+    let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing) else {
+      bail! {
+        "index must have inscription index to accept PSBT",
+      }
+    };
+
+    ensure! {
+      inscriptions.len() <= 1,
+      "outgoing input {} contains {} inscriptions", outgoing, inscriptions.len(),
+    }
+
+    let Some(inscription) = inscriptions.into_iter().next() else {
+      bail!("outgoing input contains no inscriptions");
+    };
+
+    ensure! {
+      inscription == self.inscription,
+      "unexpected outgoing inscription {inscription}",
+    }
+
     let psbt = wallet
       .bitcoin_client()
-      .wallet_process_psbt(&self.psbt, Some(true), None, None)?
+      .wallet_process_psbt(&base64_encode(psbt.serialize()), Some(true), None, None)?
       .psbt;
 
     let signed_tx = wallet
