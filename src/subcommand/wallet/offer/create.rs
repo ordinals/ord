@@ -25,31 +25,33 @@ impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
     ensure!(
       !wallet.inscription_info().contains_key(&self.inscription),
-      "{} in our wallet",
+      "inscription {} already in our wallet",
       self.inscription
     );
 
     let inscription = wallet.get_inscription(self.inscription)?;
 
-    let utxo = inscription.satpoint.outpoint;
-
     let Some(seller_address) = inscription.address else {
-      bail!("{} not owned by an address", self.inscription);
+      bail!(
+        "inscription {} script pubkey not valid address",
+        self.inscription,
+      );
     };
 
-    let Ok(seller_address) = Address::from_str(&seller_address) else {
-      bail!("{} not owned by an usable address", self.inscription);
-    };
+    let seller_address = seller_address
+      .parse::<Address<NetworkUnchecked>>()
+      .unwrap()
+      .require_network(wallet.chain().network())?;
 
     let Some(postage) = inscription.value else {
-      bail!("inscription is unbound");
+      bail!("inscription {} unbound", self.inscription);
     };
 
-    let unsigned_transaction = Transaction {
+    let tx = Transaction {
       version: Version(2),
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
-        previous_output: utxo,
+        previous_output: inscription.satpoint.outpoint,
         script_sig: ScriptBuf::new(),
         sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
         witness: Witness::new(),
@@ -61,41 +63,34 @@ impl Create {
         },
         TxOut {
           value: self.amount,
-          script_pubkey: seller_address
-            .clone()
-            .require_network(wallet.chain().network())?
-            .into(),
+          script_pubkey: seller_address.clone().into(),
         },
       ],
     };
 
-    let unsigned_transaction_hex = fund_raw_transaction(
-      wallet.bitcoin_client(),
-      self.fee_rate,
-      &unsigned_transaction,
-    )?;
+    let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &tx)?;
 
-    let unsigned_transaction =
-      Transaction::consensus_decode(&mut unsigned_transaction_hex.as_slice())?;
+    let tx = Transaction::consensus_decode(&mut tx.as_slice())?;
 
-    let unsigned_psbt = Psbt::from_unsigned_tx(unsigned_transaction.clone())?;
-
-    let encoded_psbt = base64_encode(unsigned_psbt.serialize());
+    let psbt = Psbt::from_unsigned_tx(tx)?;
 
     let result = wallet
       .bitcoin_client()
-      .call::<String>("utxoupdatepsbt", &[encoded_psbt.into()])?;
+      .call::<String>("utxoupdatepsbt", &[base64_encode(psbt.serialize()).into()])?;
 
     let result = wallet
       .bitcoin_client()
       .wallet_process_psbt(&result, Some(true), None, None)?;
 
-    assert!(result.complete);
+    ensure! {
+      !result.complete,
+      "PSBT unexpectedly complete after processing with wallet",
+    }
 
     Ok(Some(Box::new(Output {
       psbt: base64_encode(result.psbt),
       inscription: self.inscription,
-      seller_address,
+      seller_address: seller_address.into_unchecked(),
     })))
   }
 }
