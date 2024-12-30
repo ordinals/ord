@@ -1,6 +1,5 @@
 use {
   super::*,
-  base64::Engine,
   hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
   serde_json::{json, Value},
 };
@@ -38,10 +37,7 @@ impl Fetcher {
 
     let (user, password) = settings.bitcoin_credentials()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
-    let auth = format!(
-      "Basic {}",
-      &base64::engine::general_purpose::STANDARD.encode(auth)
-    );
+    let auth = format!("Basic {}", &base64_encode(auth));
     Ok(Fetcher { client, url, auth })
   }
 
