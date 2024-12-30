@@ -40,7 +40,7 @@ pub(super) struct RuneUpdater<'a, 'db, 'tx> {
   pub(super) updates: HashMap<RuneId, RuneUpdate>,
 }
 
-impl<'a, 'db, 'tx> RuneUpdater<'a, 'db, 'tx> {
+impl RuneUpdater<'_, '_, '_> {
   pub(super) fn index_runes(&mut self, index: usize, tx: &Transaction, txid: Txid) -> Result<()> {
     let runestone = Runestone::from_transaction(tx);
 

@@ -172,7 +172,7 @@ pub struct FundRawTransactionResult {
   pub change_position: i32,
 }
 
-impl<'a> Default for TransactionTemplate<'a> {
+impl Default for TransactionTemplate<'_> {
   fn default() -> Self {
     Self {
       fee: 0,

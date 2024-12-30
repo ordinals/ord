@@ -74,7 +74,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) block_hash: BlockHash,
 }
 
-impl<'a, 'db, 'tx> InscriptionUpdater<'a, 'db, 'tx> {
+impl InscriptionUpdater<'_, '_, '_> {
   pub(super) fn index_inscriptions(
     &mut self,
     tx: &Transaction,
