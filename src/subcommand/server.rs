@@ -2437,7 +2437,6 @@ mod tests {
         .or(serde_yaml::from_str::<Settings>(&self.config).unwrap())
         .or_defaults()
         .unwrap();
-
       let index = Arc::new(Index::open(&settings).unwrap());
       let ord_server_handle = Handle::new();
 

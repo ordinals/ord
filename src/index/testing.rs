@@ -37,7 +37,7 @@ impl ContextBuilder {
       self.event_sender,
     )?;
 
-    index.update().unwrap();
+    index.update()?;
 
     Ok(Context {
       index,
