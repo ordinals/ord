@@ -92,7 +92,7 @@ impl Create {
     }
 
     Ok(Some(Box::new(Output {
-      psbt: base64_encode(result.psbt),
+      psbt: result.psbt,
       inscription: self.inscription,
       seller_address: seller_address.into_unchecked(),
     })))
