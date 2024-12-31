@@ -47,6 +47,8 @@ impl Create {
       bail!("inscription {} unbound", self.inscription);
     };
 
+    let postage = Amount::from_sat(postage);
+
     let tx = Transaction {
       version: Version(2),
       lock_time: LockTime::ZERO,
@@ -58,11 +60,11 @@ impl Create {
       }],
       output: vec![
         TxOut {
-          value: Amount::from_sat(postage),
+          value: postage,
           script_pubkey: wallet.get_change_address()?.into(),
         },
         TxOut {
-          value: self.amount,
+          value: self.amount + postage,
           script_pubkey: seller_address.clone().into(),
         },
       ],

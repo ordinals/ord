@@ -12,7 +12,18 @@ pub(crate) struct Accept {
   #[arg(long)]
   inscription: InscriptionId,
   #[arg(long)]
-  net: Amount,
+  amount: Amount,
+}
+
+#[derive(Deserialize)]
+struct SimulateRawTransactionResult {
+  #[serde(with = "bitcoin::amount::serde::as_btc")]
+  balance_change: Amount,
+}
+
+#[derive(Serialize)]
+struct SimulateRawTransactionOptions {
+  include_watchonly: bool,
 }
 
 impl Accept {
@@ -61,6 +72,31 @@ impl Accept {
     ensure! {
       inscription == self.inscription,
       "unexpected outgoing inscription {inscription}",
+    }
+
+    let unsigned_tx_hex = {
+      let mut buffer = Vec::new();
+      psbt.unsigned_tx.consensus_encode(&mut buffer).unwrap();
+      hex::encode(buffer)
+    };
+
+    let simulation = wallet
+      .bitcoin_client()
+      .call::<SimulateRawTransactionResult>(
+        "simulaterawtransaction",
+        &[
+          [unsigned_tx_hex].into(),
+          serde_json::to_value(SimulateRawTransactionOptions {
+            include_watchonly: false,
+          })
+          .unwrap(),
+        ],
+      )?;
+
+    ensure! {
+      simulation.balance_change == self.amount,
+      "unexpected simulated balance change of {}",
+      simulation.balance_change,
     }
 
     let psbt = wallet
