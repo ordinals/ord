@@ -23,7 +23,7 @@ impl WalletConstructor {
     );
 
     if let Some((username, password)) = settings.credentials() {
-      let credentials = base64_encode(format!("{username}:{password}"));
+      let credentials = base64_encode(format!("{username}:{password}").as_bytes());
       headers.insert(
         header::AUTHORIZATION,
         header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),

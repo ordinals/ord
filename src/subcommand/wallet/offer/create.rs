@@ -80,7 +80,7 @@ impl Create {
 
     let result = wallet
       .bitcoin_client()
-      .call::<String>("utxoupdatepsbt", &[base64_encode(psbt.serialize()).into()])?;
+      .call::<String>("utxoupdatepsbt", &[base64_encode(&psbt.serialize()).into()])?;
 
     let result = wallet
       .bitcoin_client()

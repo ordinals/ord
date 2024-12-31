@@ -72,7 +72,7 @@ impl Accept {
 
     let psbt = wallet
       .bitcoin_client()
-      .wallet_process_psbt(&base64_encode(psbt.serialize()), Some(true), None, None)?
+      .wallet_process_psbt(&base64_encode(&psbt.serialize()), Some(true), None, None)?
       .psbt;
 
     let signed_tx = wallet

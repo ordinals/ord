@@ -786,7 +786,7 @@ impl Wallet {
       let psbt = self
         .bitcoin_client()
         .wallet_process_psbt(
-          &base64_encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+          &base64_encode(&Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
           Some(false),
           None,
           None,
@@ -798,7 +798,7 @@ impl Wallet {
       let psbt = self
         .bitcoin_client()
         .wallet_process_psbt(
-          &base64_encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+          &base64_encode(&Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
           Some(true),
           None,
           None,

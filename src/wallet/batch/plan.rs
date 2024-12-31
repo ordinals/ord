@@ -68,7 +68,7 @@ impl Plan {
         .bitcoin_client()
         .wallet_process_psbt(
           &base64_encode(
-            Psbt::from_unsigned_tx(Self::remove_witnesses(commit_tx.clone()))?.serialize(),
+            &Psbt::from_unsigned_tx(Self::remove_witnesses(commit_tx.clone()))?.serialize(),
           ),
           Some(false),
           None,
@@ -83,7 +83,7 @@ impl Plan {
         Some(commit_psbt),
         reveal_tx.compute_txid(),
         false,
-        Some(base64_encode(reveal_psbt.serialize())),
+        Some(base64_encode(&reveal_psbt.serialize())),
         total_fees,
         self.inscriptions.clone(),
         rune,
