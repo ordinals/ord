@@ -54,7 +54,7 @@ impl RuneUpdater<'_, '_, '_> {
 
           // edicts with output values greater than the number of outputs
           // should never be produced by the edict parser
-          let output = usize::try_from(output).unwrap();
+          let output = usize::try_from(output)?;
           assert!(output <= tx.output.len());
 
           let id = if id == RuneId::default() {
