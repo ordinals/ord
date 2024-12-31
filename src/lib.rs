@@ -45,8 +45,8 @@ use {
     policy::MAX_STANDARD_TX_WEIGHT,
     script,
     transaction::Version,
-    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
-    Witness,
+    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, SignedAmount, Transaction, TxIn,
+    TxOut, Txid, Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chrono::{DateTime, TimeZone, Utc},
@@ -208,6 +208,16 @@ pub fn unbound_outpoint() -> OutPoint {
 
 fn uncheck(address: &Address) -> Address<NetworkUnchecked> {
   address.to_string().parse().unwrap()
+}
+
+fn base64_encode(data: &[u8]) -> String {
+  use base64::Engine;
+  base64::engine::general_purpose::STANDARD.encode(data)
+}
+
+fn base64_decode(s: &str) -> Result<Vec<u8>> {
+  use base64::Engine;
+  Ok(base64::engine::general_purpose::STANDARD.decode(s)?)
 }
 
 fn default<T: Default>() -> T {

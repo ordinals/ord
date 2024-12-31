@@ -1,6 +1,5 @@
 use {
   super::*,
-  base64::{self, Engine},
   batch::ParentInfo,
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, Xpriv},
@@ -198,6 +197,22 @@ impl Wallet {
 
   pub(crate) fn inscription_info(&self) -> BTreeMap<InscriptionId, api::Inscription> {
     self.inscription_info.clone()
+  }
+
+  pub(crate) fn get_inscription(&self, inscription_id: InscriptionId) -> Result<api::Inscription> {
+    let response = self
+      .ord_client
+      .get(
+        self
+          .rpc_url
+          .join(&format!("/inscription/{inscription_id}"))
+          .unwrap(),
+      )
+      .send()?;
+
+    let inscription: api::Inscription = serde_json::from_str(&response.text()?)?;
+
+    Ok(inscription)
   }
 
   pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
@@ -771,8 +786,7 @@ impl Wallet {
       let psbt = self
         .bitcoin_client()
         .wallet_process_psbt(
-          &base64::engine::general_purpose::STANDARD
-            .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+          &base64_encode(&Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
           Some(false),
           None,
           None,
@@ -784,8 +798,7 @@ impl Wallet {
       let psbt = self
         .bitcoin_client()
         .wallet_process_psbt(
-          &base64::engine::general_purpose::STANDARD
-            .encode(Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
+          &base64_encode(&Psbt::from_unsigned_tx(unsigned_transaction.clone())?.serialize()),
           Some(true),
           None,
           None,
@@ -816,7 +829,7 @@ impl Wallet {
     Ok((txid, psbt, fee))
   }
 
-  fn send_raw_transaction<R: bitcoincore_rpc::RawTx>(
+  pub(crate) fn send_raw_transaction<R: bitcoincore_rpc::RawTx>(
     &self,
     tx: R,
     burn_amount: Option<Amount>,
@@ -1100,5 +1113,40 @@ impl Wallet {
     }
 
     Ok(unsigned_transaction)
+  }
+
+  pub(crate) fn simulate_transaction(&self, tx: &Transaction) -> Result<SignedAmount> {
+    #[derive(Deserialize)]
+    struct SimulateRawTransactionResult {
+      #[serde(with = "bitcoin::amount::serde::as_btc")]
+      balance_change: SignedAmount,
+    }
+
+    #[derive(Serialize)]
+    struct SimulateRawTransactionOptions {
+      include_watchonly: bool,
+    }
+
+    let tx = {
+      let mut buffer = Vec::new();
+      tx.consensus_encode(&mut buffer).unwrap();
+      hex::encode(buffer)
+    };
+
+    Ok(
+      self
+        .bitcoin_client()
+        .call::<SimulateRawTransactionResult>(
+          "simulaterawtransaction",
+          &[
+            [tx].into(),
+            serde_json::to_value(SimulateRawTransactionOptions {
+              include_watchonly: false,
+            })
+            .unwrap(),
+          ],
+        )?
+        .balance_change,
+    )
   }
 }
