@@ -2,7 +2,7 @@
   BIP: ?
   Layer: Applications
   Title: Ordinal Numbers
-  Author: Casey Rodarmor <casey@rodarmor.com>
+  Marris Lih
   Comments-Summary: No comments yet.
   Comments-URI: https://github.com/ordinals/ord/discussions/126
   Status: Draft
