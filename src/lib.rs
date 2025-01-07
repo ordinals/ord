@@ -24,6 +24,7 @@ use {
       teleburn, ParsedEnvelope,
     },
     into_usize::IntoUsize,
+    offer::Offer,
     outgoing::Outgoing,
     representation::Representation,
     settings::Settings,
@@ -119,6 +120,7 @@ mod inscriptions;
 mod into_usize;
 mod macros;
 mod object;
+mod offer;
 pub mod options;
 pub mod outgoing;
 mod re;

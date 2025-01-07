@@ -153,6 +153,40 @@ impl Wallet {
     &self.bitcoin_client
   }
 
+  pub(crate) fn offer(&self, psbt: Psbt) -> Result<Offer> {
+    let mut outgoing = BTreeSet::new();
+
+    for input in &psbt.unsigned_tx.input {
+      if self.utxos().contains_key(&input.previous_output) {
+        outgoing.insert(input.previous_output);
+      }
+    }
+
+    let mut runes = BTreeMap::<Rune, u128>::new();
+    let mut inscriptions = BTreeSet::new();
+
+    for outgoing in &outgoing {
+      if let Some(balances) = self.get_runes_balances_in_output(&outgoing)? {
+        for (spaced_rune, pile) in balances {
+          *runes.entry(spaced_rune.rune).or_default() += pile.amount;
+        }
+      }
+
+      if let Some(output_inscriptions) = self.get_inscriptions_in_output(&outgoing) {
+        inscriptions.extend(output_inscriptions);
+      };
+    }
+
+    let balance_change = self.simulate_transaction(&psbt.unsigned_tx)?;
+
+    Ok(Offer {
+      balance_change,
+      inscriptions,
+      outgoing,
+      runes,
+    })
+  }
+
   pub(crate) fn utxos(&self) -> &BTreeMap<OutPoint, TxOut> {
     &self.utxos
   }
