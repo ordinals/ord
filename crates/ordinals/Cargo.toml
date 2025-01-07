@@ -1,20 +1,22 @@
 [package]
 name = "ordinals"
 version = "0.0.14"
-edition = "2021"
 description = "Library for interoperating with ordinals and inscriptions"
-homepage = "https://github.com/ordinals/ord"
-repository = "https://github.com/ordinals/ord"
-license = "CC0-1.0"
-rust-version = "1.74.0"
+
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-bitcoin = { version = "0.32.5", features = ["rand"] }
+bitcoin.workspace = true
 derive_more = { version = "1.0.0", features = ["display", "from_str"] }
-serde = { version = "1.0.137", features = ["derive"] }
-serde_with = "3.7.0"
+serde.workspace = true
+serde_with.workspace = true
 thiserror = "2.0.0"
 
 [dev-dependencies]
-serde_json = { version = "1.0.81", features = ["preserve_order"] }
-pretty_assertions = "1.2.1"
+pretty_assertions.workspace = true
+serde_json.workspace = true
