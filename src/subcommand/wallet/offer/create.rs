@@ -1,9 +1,5 @@
 use super::*;
 
-// TODO:
-// - [ ] add a --dry-run flag that doesn't sign our inputs in the PSBT
-// - [ ] pub fee: u64,
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub psbt: String,
