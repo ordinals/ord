@@ -1050,4 +1050,8 @@ impl Api for Server {
       complete: true,
     })
   }
+
+  fn utxo_update_psbt(&self, psbt: String) -> Result<String, jsonrpc_core::Error> {
+    Ok(psbt)
+  }
 }

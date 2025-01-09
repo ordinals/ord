@@ -4,7 +4,10 @@ use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bitcoin::{
     address::{Address, NetworkUnchecked},
-    opcodes, script, Amount, Network, OutPoint, Sequence, TxOut, Txid, Witness,
+    blockdata::locktime::absolute::LockTime,
+    opcodes, script,
+    transaction::Version,
+    Amount, Network, OutPoint, Psbt, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
   },
   chrono::{DateTime, Utc},
   executable_path::executable_path,

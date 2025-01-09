@@ -16,7 +16,7 @@ pub mod inscribe;
 pub mod inscriptions;
 mod label;
 pub mod mint;
-mod offer;
+pub mod offer;
 pub mod outputs;
 pub mod pending;
 pub mod receive;

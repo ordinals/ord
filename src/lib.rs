@@ -216,7 +216,7 @@ fn base64_encode(data: &[u8]) -> String {
   base64::engine::general_purpose::STANDARD.encode(data)
 }
 
-fn base64_decode(s: &str) -> Result<Vec<u8>> {
+pub fn base64_decode(s: &str) -> Result<Vec<u8>> {
   use base64::Engine;
   Ok(base64::engine::general_purpose::STANDARD.decode(s)?)
 }
