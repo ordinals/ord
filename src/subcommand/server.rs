@@ -14,7 +14,7 @@ use {
   },
   axum::{
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
-    http::{self, header, HeaderMap, HeaderValue, StatusCode, Uri},
+    http::{self, header, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
     Router,
@@ -1561,31 +1561,34 @@ impl Server {
     Redirect::to("https://docs.ordinals.com/bounties")
   }
 
-  fn proxy(_proxy: &Url, _path: &str) -> ServerResult<Response> {
-    //    let response = reqwest::blocking::Client::new()
-    //      .get(format!("{}{}", proxy, path))
-    //      .send()
-    //      .map_err(|err| anyhow!(err))?;
-    //
-    //    let mut headers = response.headers().clone();
-    //
-    //    headers.insert(
-    //      reqwest::header::CONTENT_SECURITY_POLICY,
-    //      reqwest::header::HeaderValue::from_str(&format!(
-    //        "default-src 'self' {proxy} 'unsafe-eval' 'unsafe-inline' data: blob:"
-    //      ))
-    //      .map_err(|err| ServerError::Internal(Error::from(err)))?,
-    //    );
-    //
-    //    Ok(
-    //      (
-    //        response.status(),
-    //        headers,
-    //        response.bytes().map_err(|err| anyhow!(err))?,
-    //      )
-    //        .into_response(),
-    //    )
-    panic!()
+  fn proxy(proxy: &Url, path: &str) -> ServerResult<Response> {
+    let response = reqwest::blocking::Client::new()
+      .get(format!("{}{}", proxy, path))
+      .send()
+      .map_err(|err| anyhow!(err))?;
+
+    let status = StatusCode::from_u16(response.status().as_u16())
+      .map_err(|e| anyhow!("Invalid status code: {}", e))?;
+
+    let mut headers = HeaderMap::new();
+    for (name, value) in response.headers() {
+      headers.insert(
+        HeaderName::from_str(name.as_str()).map_err(|err| anyhow!(err))?,
+        HeaderValue::from_bytes(value.clone().as_bytes()).map_err(|err| anyhow!(err))?,
+      );
+    }
+
+    headers.insert(
+      axum::http::header::CONTENT_SECURITY_POLICY,
+      HeaderValue::from_str(&format!(
+        "default-src 'self' {proxy} 'unsafe-eval' 'unsafe-inline' data: blob:"
+      ))
+      .map_err(|err| anyhow!(err))?,
+    );
+
+    let body = response.bytes().map_err(|err| anyhow!(err))?;
+
+    Ok((status, headers, body).into_response())
   }
 
   async fn content(
