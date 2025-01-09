@@ -11,7 +11,7 @@ where
   type Rejection = (StatusCode, &'static str);
 
   async fn from_request_parts(
-    parts: &mut axum::http::request::Parts,
+    parts: &mut http::request::Parts,
     _state: &S,
   ) -> Result<Self, Self::Rejection> {
     Ok(Self(

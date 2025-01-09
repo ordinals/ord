@@ -10,7 +10,7 @@ where
   type Rejection = (StatusCode, &'static str);
 
   async fn from_request_parts(
-    parts: &mut axum::http::request::Parts,
+    parts: &mut http::request::Parts,
     state: &S,
   ) -> Result<Self, Self::Rejection> {
     let state = Arc::from_ref(state);
