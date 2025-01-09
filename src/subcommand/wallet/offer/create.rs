@@ -21,7 +21,7 @@ impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
     ensure!(
       !wallet.inscription_info().contains_key(&self.inscription),
-      "inscription {} already in our wallet",
+      "inscription {} already in wallet",
       self.inscription
     );
 

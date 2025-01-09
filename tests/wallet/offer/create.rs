@@ -8,8 +8,6 @@ fn inscription_must_exist() {
 
   create_wallet(&core, &ord);
 
-  core.mine_blocks(1);
-
   CommandBuilder::new(
     "wallet offer create --inscription 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 --amount 1btc --fee-rate 1",
   )
@@ -21,9 +19,25 @@ fn inscription_must_exist() {
 }
 
 #[test]
-#[ignore]
 fn inscription_must_not_be_in_wallet() {
-  todo!()
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  CommandBuilder::new(format!(
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr(format!(
+    "error: inscription {inscription} already in wallet\n"
+  ))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
 }
 
 #[test]
