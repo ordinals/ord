@@ -2527,7 +2527,6 @@ dependencies = [
  "bitcoincore-rpc",
  "boilerplate",
  "brotli",
- "bytes",
  "chrono",
  "ciborium",
  "clap",

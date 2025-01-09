@@ -1,9 +1,8 @@
 use {
   super::*,
   base64::Engine,
-  bytes::Bytes,
   http_body_util::{BodyExt, Full},
-  hyper::{Method, Request, Uri},
+  hyper::{body::Bytes, Method, Request, Uri},
   hyper_util::{
     client::legacy::{connect::HttpConnector, Client},
     rt::TokioExecutor,
