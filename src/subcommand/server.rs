@@ -14,7 +14,7 @@ use {
   },
   axum::{
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
-    http::{self, header, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
+    http::{self, header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
     Router,
@@ -1568,16 +1568,9 @@ impl Server {
       .send()
       .map_err(|err| anyhow!(err))?;
 
-    let status = StatusCode::from_u16(response.status().as_u16())
-      .map_err(|e| anyhow!("Invalid status code: {}", e))?;
+    let status = response.status();
 
-    let mut headers = HeaderMap::new();
-    for (name, value) in response.headers() {
-      headers.insert(
-        HeaderName::from_str(name.as_str()).map_err(|err| anyhow!(err))?,
-        HeaderValue::from_bytes(value.clone().as_bytes()).map_err(|err| anyhow!(err))?,
-      );
-    }
+    let mut headers = response.headers().clone();
 
     headers.insert(
       header::CONTENT_SECURITY_POLICY,
@@ -1587,7 +1580,9 @@ impl Server {
       .map_err(|err| anyhow!(err))?,
     );
 
-    let body = response.bytes().map_err(|err| anyhow!(err))?;
+    let body = axum::body::Body::new(http_body_util::Full::new(
+      response.bytes().map_err(|err| anyhow!(err))?,
+    ));
 
     Ok((status, headers, body).into_response())
   }
