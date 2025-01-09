@@ -14,7 +14,6 @@ use {
   log::log_enabled,
   miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
   redb::{Database, DatabaseError, ReadableTable, RepairSession, StorageError, TableDefinition},
-  reqwest::header,
   std::sync::Once,
   transaction_builder::TransactionBuilder,
 };

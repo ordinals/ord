@@ -18,15 +18,15 @@ impl WalletConstructor {
   ) -> Result<Wallet> {
     let mut headers = HeaderMap::new();
     headers.insert(
-      header::ACCEPT,
-      header::HeaderValue::from_static("application/json"),
+      reqwest::header::ACCEPT,
+      reqwest::header::HeaderValue::from_static("application/json"),
     );
 
     if let Some((username, password)) = settings.credentials() {
       let credentials = base64_encode(format!("{username}:{password}").as_bytes());
       headers.insert(
-        header::AUTHORIZATION,
-        header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),
+        reqwest::header::AUTHORIZATION,
+        reqwest::header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),
       );
     }
 
