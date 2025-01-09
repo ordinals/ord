@@ -2536,6 +2536,7 @@ dependencies = [
  "colored",
  "criterion",
  "ctrlc",
+ "derive_more",
  "dirs",
  "env_logger",
  "executable-path",
