@@ -25,7 +25,9 @@ impl Create {
       self.inscription
     );
 
-    let inscription = wallet.get_inscription(self.inscription)?;
+    let Some(inscription) = wallet.get_inscription(self.inscription)? else {
+      bail!("inscription {} does not exist", self.inscription);
+    };
 
     let Some(seller_address) = inscription.address else {
       bail!(

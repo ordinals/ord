@@ -8,17 +8,16 @@ fn inscription_must_exist() {
 
   create_wallet(&core, &ord);
 
-  // core.mine_blocks(1);
+  core.mine_blocks(1);
 
   CommandBuilder::new(format!(
-    "wallet offer create --inscription 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
+    "wallet offer create --inscription 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 --amount 1btc --fee-rate 1",
   ))
   .core(&core)
   .ord(&ord)
+  .expected_stderr("error: inscription 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 does not exist\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
-
-  todo!()
 }
 
 #[test]
@@ -73,5 +72,10 @@ fn payment_input_is_signed() {
 
 #[test]
 fn payment_output_uses_inscription_address() {
+  todo!()
+}
+
+#[test]
+fn psbt_must_use_fee_rate_argument() {
   todo!()
 }
