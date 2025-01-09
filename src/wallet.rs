@@ -167,13 +167,13 @@ impl Wallet {
     let mut inscriptions = BTreeSet::new();
 
     for outgoing in &outgoing {
-      if let Some(balances) = self.get_runes_balances_in_output(&outgoing)? {
+      if let Some(balances) = self.get_runes_balances_in_output(outgoing)? {
         for (spaced_rune, pile) in balances {
           *runes.entry(spaced_rune.rune).or_default() += pile.amount;
         }
       }
 
-      if let Some(output_inscriptions) = self.get_inscriptions_in_output(&outgoing) {
+      if let Some(output_inscriptions) = self.get_inscriptions_in_output(outgoing) {
         inscriptions.extend(output_inscriptions);
       };
     }
