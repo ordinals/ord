@@ -54,7 +54,6 @@ use {
   clap::{ArgGroup, Parser},
   error::{ResultExt, SnafuError},
   html_escaper::{Escape, Trusted},
-  // http::{HeaderMap, StatusCode},
   lazy_static::lazy_static,
   ordinals::{
     varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,

@@ -42,7 +42,6 @@ tempfile = "3.2.0"
 
 [dependencies]
 anyhow = { version = "1.0.90", features = ["backtrace"] }
-# async-trait = "0.1.72"
 axum = { version = "0.8.1", features = ["http2"] }
 axum-server = "0.7.1"
 base64.workspace = true

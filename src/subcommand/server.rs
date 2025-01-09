@@ -13,7 +13,6 @@ use {
     PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml, TransactionHtml,
   },
   axum::{
-    body,
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
     http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
@@ -283,8 +282,8 @@ impl Server {
         .route("/sat/{sat}", get(Self::sat))
         .route("/satpoint/{satpoint}", get(Self::satpoint))
         .route("/search", get(Self::search_by_query))
-        .route("/search/*query", get(Self::search_by_path))
-        .route("/static/*path", get(Self::static_asset))
+        .route("/search/{*query}", get(Self::search_by_path))
+        .route("/static/{*path}", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/{txid}", get(Self::transaction))
         .route("/decode/{txid}", get(Self::decode))
@@ -1555,14 +1554,14 @@ impl Server {
   }
 
   async fn faq() -> Redirect {
-    Redirect::to("https://docs.ordinals.com/faq.html")
+    Redirect::to("https://docs.ordinals.com/faq")
   }
 
   async fn bounties() -> Redirect {
-    Redirect::to("https://docs.ordinals.com/bounty/")
+    Redirect::to("https://docs.ordinals.com/bounties")
   }
 
-  fn proxy(proxy: &Url, path: &String) -> ServerResult<Response> {
+  fn proxy(_proxy: &Url, _path: &str) -> ServerResult<Response> {
     //    let response = reqwest::blocking::Client::new()
     //      .get(format!("{}{}", proxy, path))
     //      .send()
@@ -1586,7 +1585,7 @@ impl Server {
     //      )
     //        .into_response(),
     //    )
-    todo!()
+    panic!()
   }
 
   async fn content(
@@ -2917,12 +2916,12 @@ mod tests {
 
   #[test]
   fn bounties_redirects_to_docs_site() {
-    TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounty/");
+    TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounties");
   }
 
   #[test]
   fn faq_redirects_to_docs_site() {
-    TestServer::new().assert_redirect("/faq", "https://docs.ordinals.com/faq/");
+    TestServer::new().assert_redirect("/faq", "https://docs.ordinals.com/faq");
   }
 
   #[test]
@@ -4030,7 +4029,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/foo:0",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: error parsing TXID",
+      "Invalid URL: Cannot parse `output` with value `foo:0`: error parsing TXID",
     );
   }
 
@@ -4172,7 +4171,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/foo:0",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: error parsing TXID",
+      "Invalid URL: Cannot parse `output` with value `foo:0`: error parsing TXID",
     );
   }
 

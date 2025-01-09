@@ -3,8 +3,7 @@ use {
   base64::Engine,
   bytes::Bytes,
   http_body_util::{BodyExt, Full},
-  // hyper::{client::HttpConnector, Body, Method, Request, Uri},
-  hyper::{body::Body, Method, Request, Uri},
+  hyper::{Method, Request, Uri},
   hyper_util::{
     client::legacy::{connect::HttpConnector, Client},
     rt::TokioExecutor,
