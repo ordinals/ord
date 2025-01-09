@@ -61,7 +61,7 @@ use {
     Sat, SatPoint, SpacedRune, Terms,
   },
   regex::Regex,
-  reqwest::{header::HeaderMap, Url, StatusCode},
+  reqwest::{header::HeaderMap, StatusCode, Url},
   serde::{Deserialize, Deserializer, Serialize},
   serde_with::{DeserializeFromStr, SerializeDisplay},
   snafu::{Backtrace, ErrorCompat, Snafu},
