@@ -41,20 +41,38 @@ fn inscription_must_not_be_in_wallet() {
 }
 
 #[test]
-#[ignore]
 fn inscription_must_have_valid_address() {
-  todo!()
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  CommandBuilder::new(format!("wallet burn {inscription} --fee-rate 1",))
+    .core(&core)
+    .ord(&ord)
+    .stdout_regex(".*")
+    .run_and_extract_stdout();
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr(format!(
+    "error: inscription {inscription} script pubkey not valid address\n"
+  ))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
 }
 
 #[test]
 #[ignore]
 fn inscription_must_be_bound() {
-  todo!()
-}
-
-#[test]
-#[ignore]
-fn bound_inscription_must_have_valid_address() {
   todo!()
 }
 
