@@ -3,7 +3,7 @@ use {
   anyhow::ensure,
   bitcoin::blockdata::opcodes,
   brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
-  http::header::HeaderValue,
+  axum::http::header::HeaderValue,
   io::Write,
   std::str,
 };

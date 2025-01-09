@@ -15,7 +15,7 @@ use {
   axum::{
     body,
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
-    http::{header, HeaderValue, StatusCode, Uri},
+    http::{header, HeaderMap, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
     Router,
@@ -179,112 +179,115 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
-        .route("/address/:address", get(Self::address))
-        .route("/block/:query", get(Self::block))
+        .route("/address/{address}", get(Self::address))
+        .route("/block/{query}", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockhash", get(Self::block_hash))
-        .route("/blockhash/:height", get(Self::block_hash_from_height))
+        .route("/blockhash/{height}", get(Self::block_hash_from_height))
         .route("/blockheight", get(Self::block_height))
         .route("/blocks", get(Self::blocks))
         .route("/blocktime", get(Self::block_time))
         .route("/bounties", get(Self::bounties))
-        .route("/children/:inscription_id", get(Self::children))
+        .route("/children/{inscription_id}", get(Self::children))
         .route(
-          "/children/:inscription_id/:page",
+          "/children/{inscription_id}/{page}",
           get(Self::children_paginated),
         )
         .route("/clock", get(Self::clock))
         .route("/collections", get(Self::collections))
-        .route("/collections/:page", get(Self::collections_paginated))
-        .route("/content/:inscription_id", get(Self::content))
+        .route("/collections/{page}", get(Self::collections_paginated))
+        .route("/content/{inscription_id}", get(Self::content))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
-        .route("/input/:block/:transaction/:input", get(Self::input))
-        .route("/inscription/:inscription_query", get(Self::inscription))
+        .route("/input/{block}/{transaction}/{input}", get(Self::input))
+        .route("/inscription/{inscription_query}", get(Self::inscription))
         .route(
-          "/inscription/:inscription_query/:child",
+          "/inscription/{inscription_query}/{child}",
           get(Self::inscription_child),
         )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions", post(Self::inscriptions_json))
-        .route("/inscriptions/:page", get(Self::inscriptions_paginated))
+        .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route(
-          "/inscriptions/block/:height",
+          "/inscriptions/block/{height}",
           get(Self::inscriptions_in_block),
         )
         .route(
-          "/inscriptions/block/:height/:page",
+          "/inscriptions/block/{height}/{page}",
           get(Self::inscriptions_in_block_paginated),
         )
         .route("/install.sh", get(Self::install_script))
-        .route("/ordinal/:sat", get(Self::ordinal))
-        .route("/output/:output", get(Self::output))
+        .route("/ordinal/{sat}", get(Self::ordinal))
+        .route("/output/{output}", get(Self::output))
         .route("/outputs", post(Self::outputs))
-        .route("/outputs/:address", get(Self::outputs_address))
-        .route("/parents/:inscription_id", get(Self::parents))
+        .route("/outputs/{address}", get(Self::outputs_address))
+        .route("/parents/{inscription_id}", get(Self::parents))
         .route(
-          "/parents/:inscription_id/:page",
+          "/parents/{inscription_id}/{page}",
           get(Self::parents_paginated),
         )
-        .route("/preview/:inscription_id", get(Self::preview))
+        .route("/preview/{inscription_id}", get(Self::preview))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
-          "/r/blockhash/:height",
+          "/r/blockhash/{height}",
           get(Self::block_hash_from_height_json),
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
-        .route("/r/blockinfo/:query", get(Self::block_info))
+        .route("/r/blockinfo/{query}", get(Self::block_info))
         .route(
-          "/r/inscription/:inscription_id",
+          "/r/inscription/{inscription_id}",
           get(Self::inscription_recursive),
         )
-        .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
-          "/r/children/:inscription_id/:page",
+          "/r/children/{inscription_id}",
+          get(Self::children_recursive),
+        )
+        .route(
+          "/r/children/{inscription_id}/{page}",
           get(Self::children_recursive_paginated),
         )
         .route(
-          "/r/children/:inscription_id/inscriptions",
+          "/r/children/{inscription_id}/inscriptions",
           get(Self::child_inscriptions_recursive),
         )
         .route(
-          "/r/children/:inscription_id/inscriptions/:page",
+          "/r/children/{inscription_id}/inscriptions/{page}",
           get(Self::child_inscriptions_recursive_paginated),
         )
         .route(
-          "/r/undelegated-content/:inscription_id",
+          "/r/undelegated-content/{inscription_id}",
           get(Self::undelegated_content),
         )
-        .route("/r/metadata/:inscription_id", get(Self::metadata))
-        .route("/r/parents/:inscription_id", get(Self::parents_recursive))
+        .route("/r/metadata/{inscription_id}", get(Self::metadata))
+        .route("/r/parents/{inscription_id}", get(Self::parents_recursive))
         .route(
-          "/r/parents/:inscription_id/:page",
+          "/r/parents/{inscription_id}/{page}",
           get(Self::parents_recursive_paginated),
         )
-        .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
+        .route("/r/sat/{sat_number}", get(Self::sat_inscriptions))
         .route(
-          "/r/sat/:sat_number/:page",
+          "/r/sat/{sat_number}/{page}",
           get(Self::sat_inscriptions_paginated),
         )
         .route(
-          "/r/sat/:sat_number/at/:index",
+          "/r/sat/{sat_number}/at/{index}",
           get(Self::sat_inscription_at_index),
         )
-        .route("/r/utxo/:outpoint", get(Self::utxo_recursive))
+        .route("/r/utxo/{outpoint}", get(Self::utxo_recursive))
         .route("/rare.txt", get(Self::rare_txt))
-        .route("/rune/:rune", get(Self::rune))
+        .route("/rune/{rune}", get(Self::rune))
         .route("/runes", get(Self::runes))
-        .route("/runes/:page", get(Self::runes_paginated))
-        .route("/sat/:sat", get(Self::sat))
-        .route("/satpoint/:satpoint", get(Self::satpoint))
+        .route("/runes/{page}", get(Self::runes_paginated))
+        .route("/sat/{sat}", get(Self::sat))
+        .route("/satpoint/{satpoint}", get(Self::satpoint))
         .route("/search", get(Self::search_by_query))
         .route("/search/*query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
         .route("/status", get(Self::status))
-        .route("/tx/:txid", get(Self::transaction))
-        .route("/decode/:txid", get(Self::decode))
+        .route("/tx/{txid}", get(Self::transaction))
+        .route("/decode/{txid}", get(Self::decode))
         .route("/update", get(Self::update))
         .fallback(Self::fallback)
         .layer(Extension(index))
@@ -1371,12 +1374,12 @@ impl Server {
       &path
     })
     .ok_or_not_found(|| format!("asset {path}"))?;
-    let body = body::boxed(body::Full::from(content.data));
+    // let body = body::boxed(body::Full::from(content.data));
     let mime = mime_guess::from_path(path).first_or_octet_stream();
     Ok(
       Response::builder()
         .header(header::CONTENT_TYPE, mime.as_ref())
-        .body(body)
+        .body(content.data.into())
         .unwrap(),
     )
   }
@@ -1552,7 +1555,7 @@ impl Server {
   }
 
   async fn faq() -> Redirect {
-    Redirect::to("https://docs.ordinals.com/faq/")
+    Redirect::to("https://docs.ordinals.com/faq.html")
   }
 
   async fn bounties() -> Redirect {
@@ -1560,29 +1563,30 @@ impl Server {
   }
 
   fn proxy(proxy: &Url, path: &String) -> ServerResult<Response> {
-    let response = reqwest::blocking::Client::new()
-      .get(format!("{}{}", proxy, path))
-      .send()
-      .map_err(|err| anyhow!(err))?;
-
-    let mut headers = response.headers().clone();
-
-    headers.insert(
-      header::CONTENT_SECURITY_POLICY,
-      HeaderValue::from_str(&format!(
-        "default-src 'self' {proxy} 'unsafe-eval' 'unsafe-inline' data: blob:"
-      ))
-      .map_err(|err| ServerError::Internal(Error::from(err)))?,
-    );
-
-    Ok(
-      (
-        response.status(),
-        headers,
-        response.bytes().map_err(|err| anyhow!(err))?,
-      )
-        .into_response(),
-    )
+    //    let response = reqwest::blocking::Client::new()
+    //      .get(format!("{}{}", proxy, path))
+    //      .send()
+    //      .map_err(|err| anyhow!(err))?;
+    //
+    //    let mut headers = response.headers().clone();
+    //
+    //    headers.insert(
+    //      reqwest::header::CONTENT_SECURITY_POLICY,
+    //      reqwest::header::HeaderValue::from_str(&format!(
+    //        "default-src 'self' {proxy} 'unsafe-eval' 'unsafe-inline' data: blob:"
+    //      ))
+    //      .map_err(|err| ServerError::Internal(Error::from(err)))?,
+    //    );
+    //
+    //    Ok(
+    //      (
+    //        response.status(),
+    //        headers,
+    //        response.bytes().map_err(|err| anyhow!(err))?,
+    //      )
+    //        .into_response(),
+    //    )
+    todo!()
   }
 
   async fn content(
@@ -2306,7 +2310,14 @@ impl Server {
 #[cfg(test)]
 mod tests {
   use {
-    super::*, reqwest::Url, serde::de::DeserializeOwned, std::net::TcpListener, tempfile::TempDir,
+    super::*,
+    reqwest::{
+      header::{self, HeaderMap},
+      StatusCode, Url,
+    },
+    serde::de::DeserializeOwned,
+    std::net::TcpListener,
+    tempfile::TempDir,
   };
 
   const RUNE: u128 = 99246114928149462;

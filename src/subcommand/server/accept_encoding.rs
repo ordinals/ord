@@ -3,7 +3,7 @@ use {super::*, axum::extract::FromRef};
 #[derive(Default, Debug)]
 pub(crate) struct AcceptEncoding(pub(crate) Option<String>);
 
-#[async_trait::async_trait]
+// #[async_trait::async_trait]
 impl<S> axum::extract::FromRequestParts<S> for AcceptEncoding
 where
   Arc<ServerConfig>: FromRef<S>,
@@ -12,7 +12,7 @@ where
   type Rejection = (StatusCode, &'static str);
 
   async fn from_request_parts(
-    parts: &mut http::request::Parts,
+    parts: &mut axum::http::request::Parts,
     _state: &S,
   ) -> Result<Self, Self::Rejection> {
     Ok(Self(

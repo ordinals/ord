@@ -2,7 +2,7 @@ use {super::*, axum::extract::FromRef};
 
 pub(crate) struct AcceptJson(pub(crate) bool);
 
-#[async_trait::async_trait]
+// #[async_trait::async_trait]
 impl<S> axum::extract::FromRequestParts<S> for AcceptJson
 where
   Arc<ServerConfig>: FromRef<S>,
@@ -11,7 +11,7 @@ where
   type Rejection = (StatusCode, &'static str);
 
   async fn from_request_parts(
-    parts: &mut http::request::Parts,
+    parts: &mut axum::http::request::Parts,
     state: &S,
   ) -> Result<Self, Self::Rejection> {
     let state = Arc::from_ref(state);
