@@ -1841,12 +1841,14 @@ impl Server {
 
       let inscription_info = index.inscription_info(query, child)?;
 
-      // let (info, txout, inscription) = index
-      //   .inscription_info(query, child)?
-      //   .ok_or_not_found(|| format!("inscription {query}"))?;
-
       Ok(if accept_json {
-        Json(inscription_info.map(|info| info.0)).into_response()
+        let status_code = if inscription_info.is_none() {
+          StatusCode::NOT_FOUND
+        } else {
+          StatusCode::OK
+        };
+
+        (status_code, Json(inscription_info.map(|info| info.0))).into_response()
       } else {
         let (info, txout, inscription) =
           inscription_info.ok_or_not_found(|| format!("inscription {query}"))?;
