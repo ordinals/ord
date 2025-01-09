@@ -1580,7 +1580,7 @@ impl Server {
     }
 
     headers.insert(
-      axum::http::header::CONTENT_SECURITY_POLICY,
+      header::CONTENT_SECURITY_POLICY,
       HeaderValue::from_str(&format!(
         "default-src 'self' {proxy} 'unsafe-eval' 'unsafe-inline' data: blob:"
       ))
