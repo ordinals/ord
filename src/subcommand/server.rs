@@ -1577,14 +1577,17 @@ impl Server {
       HeaderValue::from_str(&format!(
         "default-src 'self' {proxy} 'unsafe-eval' 'unsafe-inline' data: blob:"
       ))
-      .map_err(|err| anyhow!(err))?,
+      .map_err(|err| ServerError::Internal(Error::from(err)))?,
     );
 
-    let body = axum::body::Body::new(http_body_util::Full::new(
-      response.bytes().map_err(|err| anyhow!(err))?,
-    ));
-
-    Ok((status, headers, body).into_response())
+    Ok(
+      (
+        status,
+        headers,
+        response.bytes().map_err(|err| anyhow!(err))?,
+      )
+        .into_response(),
+    )
   }
 
   async fn content(
