@@ -153,6 +153,7 @@ impl Wallet {
     &self.bitcoin_client
   }
 
+  #[allow(dead_code)]
   pub(crate) fn offer(&self, psbt: Psbt) -> Result<Offer> {
     let mut outgoing = BTreeSet::new();
 
@@ -1183,6 +1184,7 @@ impl Wallet {
     )
   }
 
+  #[allow(dead_code)]
   pub(crate) fn get_output(self, output: &OutPoint) -> Result<api::Output> {
     Ok(serde_json::from_str::<api::Output>(
       &self
