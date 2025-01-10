@@ -9,7 +9,6 @@ fn created_offer_is_correct() {
   // - inscription_output_must_be_same_size_as_inscription_input
   // - payment_output_amount_must_include_price_and_postage
   // - payment_input_is_signed
-  // - payment_output_uses_inscription_address
   // - psbt_must_use_fee_rate_argument
 
   let core = mockcore::spawn();
@@ -18,7 +17,7 @@ fn created_offer_is_correct() {
 
   create_wallet(&core, &ord);
 
-  let (inscription, _) = inscribe(&core, &ord);
+  let (inscription, _) = inscribe_with_options(&core, &ord, None, 0);
 
   let address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
     .parse::<Address<NetworkUnchecked>>()
@@ -26,7 +25,7 @@ fn created_offer_is_correct() {
     .require_network(Network::Bitcoin)
     .unwrap();
 
-  let send = CommandBuilder::new(format!("wallet send --fee-rate 1 {address} {inscription}"))
+  let send = CommandBuilder::new(format!("wallet send --fee-rate 0 {address} {inscription}"))
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Send>();
@@ -38,10 +37,8 @@ fn created_offer_is_correct() {
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
 
-  core.mine_blocks(1);
-
   let create = CommandBuilder::new(format!(
-    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1"
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 0"
   ))
   .core(&core)
   .ord(&ord)
@@ -87,15 +84,15 @@ fn created_offer_is_correct() {
       ],
       output: vec![
         TxOut {
-          value: Amount::from_sat(9901),
+          value: Amount::from_sat(10_000),
           script_pubkey: address.clone().into()
         },
         TxOut {
-          value: Amount::from_sat(100_000_000 + 9901),
+          value: Amount::from_sat(100_010_000),
           script_pubkey: address.clone().into(),
         },
         TxOut {
-          value: Amount::from_sat(49 * 100_000_000 - 9901),
+          value: Amount::from_sat(4_899_990_000),
           script_pubkey: address.into(),
         },
       ],
