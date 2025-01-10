@@ -1,3 +1,5 @@
+use std::mem;
+
 use super::*;
 
 #[derive(Debug)]
@@ -52,8 +54,19 @@ impl State {
     }
   }
 
+  pub fn clear_wallet_addresses(&mut self) -> BTreeSet<Address> {
+    mem::take(&mut self.receive_addresses)
+      .into_iter()
+      .chain(mem::take(&mut self.change_addresses))
+      .collect()
+  }
+
   pub fn remove_wallet_address(&mut self, address: Address) {
     assert!(self.receive_addresses.remove(&address) || self.change_addresses.remove(&address));
+  }
+
+  pub fn add_wallet_address(&mut self, address: Address) {
+    self.receive_addresses.insert(address);
   }
 
   pub(crate) fn new_address(&mut self, change: bool) -> Address {

@@ -2,7 +2,6 @@ use super::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
-  pub psbt: String,
   pub txid: Txid,
 }
 
@@ -82,12 +81,8 @@ impl Accept {
       .hex
       .ok_or_else(|| anyhow!("unable to sign transaction"))?;
 
-    let psbt = finalized
-      .psbt
-      .ok_or_else(|| anyhow!("unable to sign transaction"))?;
-
     let txid = wallet.send_raw_transaction(&signed_tx, None)?;
 
-    Ok(Some(Box::new(Output { psbt, txid })))
+    Ok(Some(Box::new(Output { txid })))
   }
 }

@@ -1165,17 +1165,6 @@ impl Wallet {
   }
 
   pub(crate) fn simulate_transaction(&self, tx: &Transaction) -> Result<SignedAmount> {
-    #[derive(Deserialize)]
-    struct SimulateRawTransactionResult {
-      #[serde(with = "bitcoin::amount::serde::as_btc")]
-      balance_change: SignedAmount,
-    }
-
-    #[derive(Serialize)]
-    struct SimulateRawTransactionOptions {
-      include_watchonly: bool,
-    }
-
     let tx = {
       let mut buffer = Vec::new();
       tx.consensus_encode(&mut buffer).unwrap();

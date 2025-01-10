@@ -2282,6 +2282,7 @@ dependencies = [
  "jsonrpc-core",
  "jsonrpc-derive",
  "jsonrpc-http-server",
+ "ord",
  "ord-bitcoincore-rpc",
  "reqwest",
  "serde",

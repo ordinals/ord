@@ -143,6 +143,19 @@ static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
 
+#[doc(hidden)]
+#[derive(Deserialize, Serialize)]
+pub struct SimulateRawTransactionResult {
+  #[serde(with = "bitcoin::amount::serde::as_btc")]
+  pub balance_change: SignedAmount,
+}
+
+#[doc(hidden)]
+#[derive(Deserialize, Serialize)]
+pub struct SimulateRawTransactionOptions {
+  include_watchonly: bool,
+}
+
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn fund_raw_transaction(
   client: &Client,
