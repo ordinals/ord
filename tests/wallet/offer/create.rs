@@ -5,9 +5,6 @@ type Create = ord::subcommand::wallet::offer::create::Output;
 #[test]
 fn created_offer_is_correct() {
   // todo:
-  // - inscription_must_be_sent_to_wallet_change_output
-  // - inscription_output_must_be_same_size_as_inscription_input
-  // - payment_output_amount_must_include_price_and_postage
   // - payment_input_is_signed
   // - psbt_must_use_fee_rate_argument
 
@@ -17,7 +14,7 @@ fn created_offer_is_correct() {
 
   create_wallet(&core, &ord);
 
-  let (inscription, _) = inscribe_with_options(&core, &ord, None, 0);
+  let (inscription, _) = inscribe_with_options(&core, &ord, Some(9000), 0);
 
   let address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
     .parse::<Address<NetworkUnchecked>>()
@@ -38,7 +35,7 @@ fn created_offer_is_correct() {
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
 
   let create = CommandBuilder::new(format!(
-    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 0"
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1"
   ))
   .core(&core)
   .ord(&ord)
@@ -59,6 +56,21 @@ fn created_offer_is_correct() {
   let payment_input = psbt.unsigned_tx.input[1].previous_output;
 
   assert!(outputs.iter().any(|output| output.output == payment_input));
+
+  for (i, output) in psbt.unsigned_tx.output.iter().enumerate() {
+    if i != 1 {
+      assert!(core.state().is_wallet_address(
+        &Address::from_script(&output.script_pubkey, Network::Bitcoin).unwrap()
+      ));
+    }
+  }
+
+  let payment = 100_009_000;
+  let fee = 226;
+
+  let fee_rate = fee as f64 / psbt.unsigned_tx.vsize() as f64;
+
+  assert!((fee_rate - 1.0).abs() < 0.1);
 
   pretty_assertions::assert_eq!(
     psbt.unsigned_tx,
@@ -84,16 +96,16 @@ fn created_offer_is_correct() {
       ],
       output: vec![
         TxOut {
-          value: Amount::from_sat(10_000),
-          script_pubkey: address.clone().into()
+          value: Amount::from_sat(9_000),
+          script_pubkey: psbt.unsigned_tx.output[0].script_pubkey.clone(),
         },
         TxOut {
-          value: Amount::from_sat(100_010_000),
+          value: Amount::from_sat(payment),
           script_pubkey: address.clone().into(),
         },
         TxOut {
-          value: Amount::from_sat(4_899_990_000),
-          script_pubkey: address.into(),
+          value: Amount::from_sat(5_000_000_000 - payment - fee),
+          script_pubkey: psbt.unsigned_tx.output[2].script_pubkey.clone(),
         },
       ],
     }
