@@ -29,6 +29,10 @@ impl Create {
       bail!("inscription {} does not exist", self.inscription);
     };
 
+    let Some(postage) = inscription.value else {
+      bail!("inscription {} unbound", self.inscription);
+    };
+
     let Some(seller_address) = inscription.address else {
       bail!(
         "inscription {} script pubkey not valid address",
@@ -40,10 +44,6 @@ impl Create {
       .parse::<Address<NetworkUnchecked>>()
       .unwrap()
       .require_network(wallet.chain().network())?;
-
-    let Some(postage) = inscription.value else {
-      bail!("inscription {} unbound", self.inscription);
-    };
 
     let postage = Amount::from_sat(postage);
 

@@ -166,7 +166,7 @@ fn inscription_must_have_valid_address() {
 
   let (inscription, _) = inscribe(&core, &ord);
 
-  CommandBuilder::new(format!("wallet burn {inscription} --fee-rate 1",))
+  CommandBuilder::new(format!("wallet burn {inscription} --fee-rate 1"))
     .core(&core)
     .ord(&ord)
     .stdout_regex(".*")
@@ -184,22 +184,4 @@ fn inscription_must_have_valid_address() {
   ))
   .expected_exit_code(1)
   .run_and_extract_stdout();
-}
-
-#[test]
-#[ignore]
-fn inscription_must_not_share_output_with_other_inscriptions() {
-  todo!()
-}
-
-#[test]
-#[ignore]
-fn non_cardinal_outputs_are_not_selected() {
-  todo!()
-}
-
-#[test]
-#[ignore]
-fn inscription_must_be_bound() {
-  todo!()
 }
