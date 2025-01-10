@@ -15,8 +15,8 @@ pub struct State {
   pub txid_to_block_height: BTreeMap<Txid, u32>,
   pub utxos: BTreeMap<OutPoint, Amount>,
   pub version: usize,
-  pub receive_addresses: Vec<Address>,
-  pub change_addresses: Vec<Address>,
+  pub receive_addresses: BTreeSet<Address>,
+  pub change_addresses: BTreeSet<Address>,
   pub wallets: BTreeSet<String>,
   pub wallet: Wallet,
 }
@@ -33,7 +33,7 @@ impl State {
 
     Self {
       blocks,
-      change_addresses: Vec::new(),
+      change_addresses: BTreeSet::new(),
       descriptors: Vec::new(),
       fail_lock_unspent,
       hashes,
@@ -42,7 +42,7 @@ impl State {
       mempool: Vec::new(),
       network,
       nonce: 0,
-      receive_addresses: Vec::new(),
+      receive_addresses: BTreeSet::new(),
       transactions: BTreeMap::new(),
       txid_to_block_height: BTreeMap::new(),
       utxos: BTreeMap::new(),
@@ -50,6 +50,10 @@ impl State {
       wallets: BTreeSet::new(),
       wallet: Wallet::new(network),
     }
+  }
+
+  pub fn remove_wallet_address(&mut self, address: Address) {
+    assert!(self.receive_addresses.remove(&address) || self.change_addresses.remove(&address));
   }
 
   pub(crate) fn new_address(&mut self, change: bool) -> Address {
@@ -60,7 +64,7 @@ impl State {
     } else {
       &mut self.receive_addresses
     }
-    .push(address.clone());
+    .insert(address.clone());
 
     address
   }

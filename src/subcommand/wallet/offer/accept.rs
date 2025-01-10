@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
+  pub psbt: String,
   pub txid: Txid,
 }
 
@@ -75,14 +76,18 @@ impl Accept {
       .wallet_process_psbt(&base64_encode(&psbt.serialize()), Some(true), None, None)?
       .psbt;
 
-    let signed_tx = wallet
-      .bitcoin_client()
-      .finalize_psbt(&psbt, None)?
+    let finalized = wallet.bitcoin_client().finalize_psbt(&psbt, None)?;
+
+    let signed_tx = finalized
       .hex
+      .ok_or_else(|| anyhow!("unable to sign transaction"))?;
+
+    let psbt = finalized
+      .psbt
       .ok_or_else(|| anyhow!("unable to sign transaction"))?;
 
     let txid = wallet.send_raw_transaction(&signed_tx, None)?;
 
-    Ok(Some(Box::new(Output { txid })))
+    Ok(Some(Box::new(Output { psbt, txid })))
   }
 }
