@@ -660,7 +660,7 @@ fn send_dry_run() {
 
   assert!(core.mempool().is_empty());
   assert_eq!(
-    Psbt::deserialize(&ord::base64_decode(&output.psbt).unwrap())
+    Psbt::deserialize(&base64_decode(&output.psbt).unwrap())
       .unwrap()
       .fee()
       .unwrap()

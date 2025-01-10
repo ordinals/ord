@@ -75,14 +75,97 @@ fn accepted_offer_works() {
   );
 }
 
+#[track_caller]
+fn error_case(core: &mockcore::Handle, ord: &TestServer, tx: Transaction, message: &str) {
+  let psbt = Psbt::from_unsigned_tx(tx).unwrap();
+
+  let base64 = base64_encode(&psbt.serialize());
+
+  CommandBuilder::new([
+    "wallet",
+    "offer",
+    "accept",
+    "--inscription",
+    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
+    "--amount",
+    "1btc",
+    "--psbt",
+    &base64,
+  ])
+  .core(core)
+  .ord(ord)
+  .expected_exit_code(1)
+  .expected_stderr(message)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn psbt_may_not_contain_no_inputs_owned_by_wallet() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  error_case(
+    &core,
+    &ord,
+    Transaction {
+      version: Version(2),
+      lock_time: LockTime::ZERO,
+      input: Vec::new(),
+      output: Vec::new(),
+    },
+    "error: PSBT contains no inputs owned by wallet\n",
+  );
+}
+
+#[test]
+fn psbt_may_not_contain_more_than_one_input_owned_by_wallet() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(2);
+
+  let outputs = CommandBuilder::new("wallet outputs")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
+
+  error_case(
+    &core,
+    &ord,
+    Transaction {
+      version: Version(2),
+      lock_time: LockTime::ZERO,
+      input: vec![
+        TxIn {
+          previous_output: outputs[0].output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },
+        TxIn {
+          previous_output: outputs[1].output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },
+      ],
+      output: Vec::new(),
+    },
+    "error: PSBT contains 2 inputs owned by wallet\n",
+  );
+}
+
 #[test]
 fn error_on_base64_psbt_decode() {}
 
 #[test]
 fn error_on_psbt_deserialize() {}
-
-#[test]
-fn psbt_contains_exactly_one_input_owned_by_wallet() {}
 
 #[test]
 fn outgoing_does_not_contain_runes() {}

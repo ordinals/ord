@@ -47,7 +47,7 @@ fn created_offer_is_correct() {
 
   assert_eq!(create.inscription, inscription);
 
-  let psbt = Psbt::deserialize(&ord::base64_decode(&create.psbt).unwrap()).unwrap();
+  let psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
 
   let payment_input = psbt.unsigned_tx.input[1].previous_output;
 

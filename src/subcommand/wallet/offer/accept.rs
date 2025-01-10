@@ -17,7 +17,9 @@ pub(crate) struct Accept {
 
 impl Accept {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let psbt = Psbt::deserialize(&base64_decode(&self.psbt)?)?;
+    let psbt = base64_decode(&self.psbt).context("failed to base64 decode PSBT")?;
+
+    let psbt = Psbt::deserialize(&psbt).context("failed to deserialize PSBT")?;
 
     let mut outgoing = BTreeSet::new();
 
