@@ -1014,7 +1014,15 @@ impl Api for Server {
     if let Some(sign) = sign {
       if sign {
         for input in psbt.inputs.iter_mut() {
-          input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+          let address = Address::from_script(
+            &input.witness_utxo.as_ref().unwrap().script_pubkey,
+            self.network,
+          )
+          .unwrap();
+
+          if self.state().is_wallet_address(&address) {
+            input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+          }
         }
       }
     }

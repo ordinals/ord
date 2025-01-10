@@ -4,10 +4,6 @@ type Create = ord::subcommand::wallet::offer::create::Output;
 
 #[test]
 fn created_offer_is_correct() {
-  // todo:
-  // - payment_input_is_signed
-  // - psbt_must_use_fee_rate_argument
-
   let core = mockcore::spawn();
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
@@ -29,7 +25,7 @@ fn created_offer_is_correct() {
 
   core.mine_blocks(1);
 
-  let outputs = CommandBuilder::new(format!("wallet outputs"))
+  let outputs = CommandBuilder::new("wallet outputs")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
@@ -110,6 +106,14 @@ fn created_offer_is_correct() {
       ],
     }
   );
+
+  for (i, input) in psbt.inputs.iter().enumerate() {
+    if i == 0 {
+      assert_eq!(input.final_script_witness, None);
+    } else {
+      assert!(input.final_script_witness.is_some());
+    }
+  }
 }
 
 #[test]
