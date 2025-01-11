@@ -77,6 +77,12 @@ impl Accept {
     let txid = if self.dry_run {
       psbt.unsigned_tx.compute_txid()
     } else {
+      let mut old_signatures = 0;
+      for input in &psbt.inputs {
+        old_signatures += u64::from(input.final_script_sig.is_some())
+          + u64::from(input.final_script_witness.is_some());
+      }
+
       let psbt = wallet
         .bitcoin_client()
         .wallet_process_psbt(&base64_encode(&psbt.serialize()), Some(true), None, None)?
@@ -87,6 +93,22 @@ impl Accept {
       let signed_tx = finalized
         .hex
         .ok_or_else(|| anyhow!("unable to sign transaction"))?;
+
+      {
+        let tx = Transaction::consensus_decode(&mut signed_tx.as_slice())
+          .context("unable to decode finalized transction")?;
+
+        let mut new_signatures = 0;
+        for input in &tx.input {
+          new_signatures +=
+            u64::from(!input.witness.is_empty()) + u64::from(!input.script_sig.is_empty());
+        }
+
+        ensure! {
+          new_signatures == old_signatures + 1,
+          "unexpected additional new signatures",
+        }
+      }
 
       wallet.send_raw_transaction(&signed_tx, None)?
     };
