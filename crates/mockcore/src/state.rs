@@ -69,7 +69,7 @@ impl State {
     self.receive_addresses.insert(address);
   }
 
-  pub(crate) fn new_address(&mut self, change: bool) -> Address {
+  pub fn new_address(&mut self, change: bool) -> Address {
     let address = self.wallet.new_address();
 
     if change {

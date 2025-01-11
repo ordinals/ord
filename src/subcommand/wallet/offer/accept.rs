@@ -69,7 +69,7 @@ impl Accept {
 
     ensure! {
       balance_change == self.amount.to_signed()?,
-      "unexpected simulated balance change of {balance_change}",
+      "unexpected balance change of {balance_change}",
     }
 
     let psbt = wallet
