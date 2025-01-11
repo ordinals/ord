@@ -83,15 +83,17 @@ impl Accept {
     let signatures = Self::psbt_signatures(&psbt)?;
 
     for (i, signature) in signatures.iter().enumerate() {
+      let outpoint = psbt.unsigned_tx.input[i].previous_output;
+
       if i == index {
         ensure! {
           signature.is_none(),
-          "seller input {i} is signed: seller input must not be signed",
+          "seller input `{outpoint}` is signed: seller input must not be signed",
         }
       } else {
         ensure! {
           signature.is_some(),
-          "buyer input {i} unsigned: buyer inputs must be signed",
+          "buyer input `{outpoint}` is unsigned: buyer inputs must be signed",
         }
       }
     }
@@ -125,15 +127,17 @@ impl Accept {
           .zip(Self::tx_signatures(&signed_tx)?)
           .enumerate()
         {
+          let outpoint = signed_tx.input[i].previous_output;
+
           if i == index {
             ensure! {
               new.is_some(),
-              "seller input not signed",
+              "seller input `{outpoint}` was not signed by wallet",
             }
           } else {
             ensure! {
               old == new,
-              "unexpected signature change on input {i}",
+              "buyer input `{outpoint}` signature changed after signing",
             }
           }
         }

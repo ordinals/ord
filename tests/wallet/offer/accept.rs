@@ -527,3 +527,107 @@ fn must_have_inscription_index_to_accept() {
   .expected_stderr("error: index must have inscription index to accept PSBT\n")
   .run_and_extract_stdout();
 }
+
+#[test]
+fn buyer_inputs_must_be_signed() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let postage = 9000;
+
+  let (inscription, txid) = inscribe_with_options(&core, &ord, Some(postage), 0);
+
+  let inscription_address = Address::from_script(
+    &core.tx_by_id(txid).output[0].script_pubkey,
+    Network::Bitcoin,
+  )
+  .unwrap();
+
+  core
+    .state()
+    .remove_wallet_address(inscription_address.clone());
+
+  let create = CommandBuilder::new(format!(
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 0"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Create>();
+
+  let mut psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
+
+  psbt.inputs[1].final_script_witness = None;
+
+  let mut buyer_addresses = core.state().clear_wallet_addresses();
+  buyer_addresses.remove(&inscription_address);
+
+  core.state().add_wallet_address(inscription_address.clone());
+
+  CommandBuilder::new(format!(
+    "wallet offer accept --inscription {inscription} --amount 1btc --psbt {} --dry-run",
+    base64_encode(&psbt.serialize()),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: buyer input `{}` is unsigned: buyer inputs must be signed\n",
+    psbt.unsigned_tx.input[1].previous_output,
+  ))
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn seller_input_must_not_be_signed() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let postage = 9000;
+
+  let (inscription, txid) = inscribe_with_options(&core, &ord, Some(postage), 0);
+
+  let inscription_address = Address::from_script(
+    &core.tx_by_id(txid).output[0].script_pubkey,
+    Network::Bitcoin,
+  )
+  .unwrap();
+
+  core
+    .state()
+    .remove_wallet_address(inscription_address.clone());
+
+  let create = CommandBuilder::new(format!(
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 0"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Create>();
+
+  let mut psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
+
+  psbt.inputs[0].final_script_witness = Some(default());
+
+  let mut buyer_addresses = core.state().clear_wallet_addresses();
+  buyer_addresses.remove(&inscription_address);
+
+  core.state().add_wallet_address(inscription_address.clone());
+
+  CommandBuilder::new(format!(
+    "wallet offer accept --inscription {inscription} --amount 1btc --psbt {} --dry-run",
+    base64_encode(&psbt.serialize()),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: seller input `{}` is signed: seller input must not be signed\n",
+    psbt.unsigned_tx.input[0].previous_output,
+  ))
+  .run_and_extract_stdout();
+}
