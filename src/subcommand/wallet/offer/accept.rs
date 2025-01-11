@@ -1,5 +1,11 @@
 use super::*;
 
+#[derive(PartialEq)]
+enum Signature<'a> {
+  Script(&'a Script),
+  Witness(&'a Witness),
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub txid: Txid,
@@ -23,11 +29,11 @@ impl Accept {
 
     let psbt = Psbt::deserialize(&psbt).context("failed to deserialize PSBT")?;
 
-    let mut outgoing = BTreeSet::new();
+    let mut outgoing = BTreeMap::new();
 
-    for input in &psbt.unsigned_tx.input {
+    for (index, input) in psbt.unsigned_tx.input.iter().enumerate() {
       if wallet.utxos().contains_key(&input.previous_output) {
-        outgoing.insert(input.previous_output);
+        outgoing.insert(index, input.previous_output);
       }
     }
 
@@ -36,7 +42,7 @@ impl Accept {
       "PSBT contains {} inputs owned by wallet", outgoing.len(),
     }
 
-    let Some(outgoing) = outgoing.into_iter().next() else {
+    let Some((index, outgoing)) = outgoing.into_iter().next() else {
       bail!("PSBT contains no inputs owned by wallet");
     };
 
@@ -74,39 +80,62 @@ impl Accept {
       "unexpected balance change of {balance_change}",
     }
 
+    let signatures = Self::psbt_signatures(&psbt)?;
+
+    for (i, signature) in signatures.iter().enumerate() {
+      if i == index {
+        ensure! {
+          !signature.is_some(),
+          "seller input {i} is signed: seller input must not be signed",
+        }
+      } else {
+        ensure! {
+          signature.is_none(),
+          "buyer input {i} unsigned: buyer inputs must be signed",
+        }
+      }
+    }
+
     let txid = if self.dry_run {
       psbt.unsigned_tx.compute_txid()
     } else {
-      let mut old_signatures = 0;
-      for input in &psbt.inputs {
-        old_signatures += u64::from(input.final_script_sig.is_some())
-          + u64::from(input.final_script_witness.is_some());
-      }
-
-      let psbt = wallet
+      let signed_psbt = wallet
         .bitcoin_client()
         .wallet_process_psbt(&base64_encode(&psbt.serialize()), Some(true), None, None)?
         .psbt;
 
-      let finalized = wallet.bitcoin_client().finalize_psbt(&psbt, None)?;
-
-      let signed_tx = finalized
+      let signed_tx = wallet
+        .bitcoin_client()
+        .finalize_psbt(&signed_psbt, None)?
         .hex
         .ok_or_else(|| anyhow!("unable to sign transaction"))?;
 
       {
-        let tx = Transaction::consensus_decode(&mut signed_tx.as_slice())
+        let signed_tx = Transaction::consensus_decode(&mut signed_tx.as_slice())
           .context("unable to decode finalized transction")?;
 
-        let mut new_signatures = 0;
-        for input in &tx.input {
-          new_signatures +=
-            u64::from(!input.witness.is_empty()) + u64::from(!input.script_sig.is_empty());
+        ensure! {
+          signed_tx.input.len() == psbt.inputs.len() &&
+          signed_tx.input.len() == psbt.unsigned_tx.input.len(),
+          "signed transaction input length mismatch",
         }
 
-        ensure! {
-          new_signatures == old_signatures + 1,
-          "unexpected additional new signatures",
+        for (i, (old, new)) in signatures
+          .into_iter()
+          .zip(Self::tx_signatures(&signed_tx)?)
+          .enumerate()
+        {
+          if i == index {
+            ensure! {
+              new.is_some(),
+              "seller input not signed",
+            }
+          } else {
+            ensure! {
+              old == new,
+              "unexpected signature change on input {i}",
+            }
+          }
         }
       }
 
@@ -114,5 +143,37 @@ impl Accept {
     };
 
     Ok(Some(Box::new(Output { txid })))
+  }
+
+  fn psbt_signatures(psbt: &Psbt) -> Result<Vec<Option<Signature>>> {
+    psbt
+      .inputs
+      .iter()
+      .map(
+        |input| match (&input.final_script_sig, &input.final_script_witness) {
+          (None, None) => Ok(None),
+          (Some(script), None) => Ok(Some(Signature::Script(script))),
+          (None, Some(witness)) => Ok(Some(Signature::Witness(witness))),
+          (Some(_), Some(_)) => bail!("input contains both scriptsig and witness"),
+        },
+      )
+      .collect()
+  }
+
+  fn tx_signatures(tx: &Transaction) -> Result<Vec<Option<Signature>>> {
+    tx.input
+      .iter()
+      .map(|input| {
+        match (
+          (!input.script_sig.is_empty()).then_some(&input.script_sig),
+          (!input.witness.is_empty()).then_some(&input.witness),
+        ) {
+          (None, None) => Ok(None),
+          (Some(script), None) => Ok(Some(Signature::Script(script))),
+          (None, Some(witness)) => Ok(Some(Signature::Witness(witness))),
+          (Some(_), Some(_)) => bail!("input contains both scriptsig and witness"),
+        }
+      })
+      .collect()
   }
 }
