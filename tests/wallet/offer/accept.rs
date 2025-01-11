@@ -387,7 +387,7 @@ fn outgoing_does_not_contain_runes() {
 
   let a = etch(&core, &ord, Rune(RUNE));
 
-  let (a_block, a_tx) = core.tx_index(a.output.reveal);
+  let (block, tx) = core.tx_index(a.output.reveal);
 
   core.mine_blocks(1);
 
@@ -401,7 +401,7 @@ fn outgoing_does_not_contain_runes() {
     .unwrap();
 
   let merge = core.broadcast_tx(TransactionTemplate {
-    inputs: &[(a_block, a_tx, 0, default()), (a_block, a_tx, 1, default())],
+    inputs: &[(block, tx, 0, default()), (block, tx, 1, default())],
     recipient: Some(address.require_network(Network::Regtest).unwrap()),
     ..default()
   });
@@ -452,34 +452,20 @@ fn outgoing_does_not_contain_runes() {
 }
 
 #[test]
-#[ignore]
 fn must_have_inscription_index_to_accept() {
   let core = mockcore::spawn();
 
-  let ord = TestServer::spawn_with_server_args(&core, &["--no-index-inscriptions"], &[]);
+  let ord = TestServer::spawn_with_server_args(
+    &core,
+    &["--no-index-inscriptions", "--index-addresses"],
+    &[],
+  );
 
   create_wallet(&core, &ord);
 
   core.mine_blocks(1);
 
   let (inscription, txid) = inscribe_with_options(&core, &ord, None, 0);
-
-  // error_case(
-  //   &core,
-  //   &ord,
-  //   Transaction {
-  //     version: Version(2),
-  //     lock_time: LockTime::ZERO,
-  //     input: vec![TxIn {
-  //       previous_output: OutPoint { txid, vout: 0 },
-  //       script_sig: ScriptBuf::new(),
-  //       sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-  //       witness: Witness::new(),
-  //     }],
-  //     output: Vec::new(),
-  //   },
-  //   "error: index must have inscription index to accept PSBT\n",
-  // );
 
   let tx = Transaction {
     version: Version(2),
