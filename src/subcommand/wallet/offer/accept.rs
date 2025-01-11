@@ -85,12 +85,12 @@ impl Accept {
     for (i, signature) in signatures.iter().enumerate() {
       if i == index {
         ensure! {
-          !signature.is_some(),
+          signature.is_none(),
           "seller input {i} is signed: seller input must not be signed",
         }
       } else {
         ensure! {
-          signature.is_none(),
+          signature.is_some(),
           "buyer input {i} unsigned: buyer inputs must be signed",
         }
       }
