@@ -43,7 +43,7 @@ use {
   state::State,
   std::{
     collections::{BTreeMap, BTreeSet, HashMap},
-    fs,
+    fs, mem,
     path::PathBuf,
     sync::{Arc, Mutex, MutexGuard},
     thread,
