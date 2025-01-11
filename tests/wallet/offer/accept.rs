@@ -81,6 +81,15 @@ fn accepted_offer_works() {
     core.state().add_wallet_address(address);
   }
 
+  let inscriptions = CommandBuilder::new("wallet inscriptions")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Inscriptions>();
+
+  assert!(inscriptions
+    .iter()
+    .any(|output| output.inscription == inscription));
+
   let balance = CommandBuilder::new("wallet balance")
     .core(&core)
     .ord(&ord)
