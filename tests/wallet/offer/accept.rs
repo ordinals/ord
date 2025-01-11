@@ -53,7 +53,7 @@ fn accepted_offer_works() {
     .run_and_deserialize_output::<Balance>();
 
   assert_eq!(balance.ordinal, 0);
-  assert_eq!(balance.cardinal, 50 * COIN_VALUE + 1 * COIN_VALUE + postage);
+  assert_eq!(balance.cardinal, 50 * COIN_VALUE + COIN_VALUE + postage);
 
   core
     .state()
@@ -71,7 +71,7 @@ fn accepted_offer_works() {
   assert_eq!(balance.ordinal, postage);
   assert_eq!(
     balance.cardinal,
-    3 * 50 * COIN_VALUE - postage * 2 - 1 * COIN_VALUE
+    3 * 50 * COIN_VALUE - postage * 2 - COIN_VALUE
   );
 }
 
