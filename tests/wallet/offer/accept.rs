@@ -277,7 +277,7 @@ fn expected_outgoing_inscription() {
 }
 
 #[test]
-fn expected_balance_change() {
+fn unexpected_balance_change() {
   let core = mockcore::spawn();
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
@@ -326,7 +326,56 @@ fn expected_balance_change() {
 }
 
 #[test]
-fn outgoing_may_not_contain_more_than_one_inscription() {}
+fn outgoing_may_not_contain_more_than_one_inscription() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let batch = CommandBuilder::new("wallet batch --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("meow.wav", [0; 12_031])
+    .write(
+      "batch.yaml",
+      "mode: shared-output
+inscriptions:
+  - file: inscription.txt
+  - file: meow.wav
+",
+    )
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let outpoint = batch.inscriptions[0].location.outpoint;
+
+  let tx = Transaction {
+    version: Version(2),
+    lock_time: LockTime::ZERO,
+    input: vec![TxIn {
+      previous_output: outpoint,
+      script_sig: ScriptBuf::new(),
+      sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+      witness: Witness::new(),
+    }],
+    output: vec![TxOut {
+      value: Amount::from_sat(100),
+      script_pubkey: core.state().new_address(true).into(),
+    }],
+  };
+
+  error_case(
+    &core,
+    &ord,
+    tx,
+    &format!("error: outgoing input {outpoint} contains 2 inscriptions\n"),
+  );
+}
 
 #[test]
 fn outgoing_does_not_contain_runes() {}
