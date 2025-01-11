@@ -1149,16 +1149,4 @@ impl Wallet {
         .balance_change,
     )
   }
-
-  #[allow(dead_code)]
-  pub(crate) fn get_output(self, output: &OutPoint) -> Result<api::Output> {
-    Ok(serde_json::from_str::<api::Output>(
-      &self
-        .ord_client
-        .get(self.rpc_url.join(&format!("/output/{output}"))?)
-        .send()
-        .map_err(|err| anyhow!(err))?
-        .text()?,
-    )?)
-  }
 }
