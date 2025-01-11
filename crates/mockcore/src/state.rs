@@ -3,6 +3,7 @@ use super::*;
 #[derive(Debug)]
 pub struct State {
   pub blocks: BTreeMap<BlockHash, Block>,
+  pub change_addresses: BTreeSet<Address>,
   pub descriptors: Vec<(String, bitcoincore_rpc::json::Timestamp)>,
   pub fail_lock_unspent: bool,
   pub hashes: Vec<BlockHash>,
@@ -11,14 +12,13 @@ pub struct State {
   pub mempool: Vec<Transaction>,
   pub network: Network,
   pub nonce: u32,
+  pub receive_addresses: BTreeSet<Address>,
   pub transactions: BTreeMap<Txid, Transaction>,
   pub txid_to_block_height: BTreeMap<Txid, u32>,
   pub utxos: BTreeMap<OutPoint, Amount>,
   pub version: usize,
-  pub receive_addresses: Vec<Address>,
-  pub change_addresses: Vec<Address>,
-  pub wallets: BTreeSet<String>,
   pub wallet: Wallet,
+  pub wallets: BTreeSet<String>,
 }
 
 impl State {
@@ -33,7 +33,7 @@ impl State {
 
     Self {
       blocks,
-      change_addresses: Vec::new(),
+      change_addresses: BTreeSet::new(),
       descriptors: Vec::new(),
       fail_lock_unspent,
       hashes,
@@ -42,17 +42,32 @@ impl State {
       mempool: Vec::new(),
       network,
       nonce: 0,
-      receive_addresses: Vec::new(),
+      receive_addresses: BTreeSet::new(),
       transactions: BTreeMap::new(),
       txid_to_block_height: BTreeMap::new(),
       utxos: BTreeMap::new(),
       version,
-      wallets: BTreeSet::new(),
       wallet: Wallet::new(network),
+      wallets: BTreeSet::new(),
     }
   }
 
-  pub(crate) fn new_address(&mut self, change: bool) -> Address {
+  pub fn clear_wallet_addresses(&mut self) -> BTreeSet<Address> {
+    mem::take(&mut self.receive_addresses)
+      .into_iter()
+      .chain(mem::take(&mut self.change_addresses))
+      .collect()
+  }
+
+  pub fn remove_wallet_address(&mut self, address: Address) {
+    assert!(self.receive_addresses.remove(&address) || self.change_addresses.remove(&address));
+  }
+
+  pub fn add_wallet_address(&mut self, address: Address) {
+    self.receive_addresses.insert(address);
+  }
+
+  pub fn new_address(&mut self, change: bool) -> Address {
     let address = self.wallet.new_address();
 
     if change {
@@ -60,7 +75,7 @@ impl State {
     } else {
       &mut self.receive_addresses
     }
-    .push(address.clone());
+    .insert(address.clone());
 
     address
   }

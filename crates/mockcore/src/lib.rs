@@ -2,6 +2,7 @@
 
 use {
   api::Api,
+  base64::Engine,
   bitcoin::{
     address::{Address, NetworkUnchecked},
     amount::SignedAmount,
@@ -9,11 +10,15 @@ use {
     block::Header,
     blockdata::{script, transaction::Version},
     consensus::encode::{deserialize, serialize},
+    consensus::Decodable,
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
     key::{Keypair, Secp256k1, TapTweak, XOnlyPublicKey},
     locktime::absolute::LockTime,
+    opcodes,
     pow::CompactTarget,
+    psbt::Psbt,
+    script::Instruction,
     secp256k1::{self, rand},
     sighash::{self, SighashCache, TapSighashType},
     Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
@@ -27,17 +32,18 @@ use {
     GetTransactionResult, GetTransactionResultDetail, GetTransactionResultDetailCategory,
     GetTxOutResult, GetWalletInfoResult, ImportDescriptors, ImportMultiResult,
     ListTransactionResult, ListUnspentResultEntry, ListWalletDirItem, ListWalletDirResult,
-    LoadWalletResult, SignRawTransactionInput, SignRawTransactionResult, Timestamp,
-    WalletProcessPsbtResult, WalletTxInfo,
+    LoadWalletResult, SignRawTransactionInput, SignRawTransactionResult, StringOrStringArray,
+    Timestamp, WalletProcessPsbtResult, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
+  ord::{SimulateRawTransactionOptions, SimulateRawTransactionResult},
   serde::{Deserialize, Serialize},
   server::Server,
   state::State,
   std::{
     collections::{BTreeMap, BTreeSet, HashMap},
-    fs,
+    fs, mem,
     path::PathBuf,
     sync::{Arc, Mutex, MutexGuard},
     thread,
@@ -53,6 +59,22 @@ mod api;
 mod server;
 mod state;
 mod wallet;
+
+fn parse_hex_tx(tx: String) -> Transaction {
+  let mut cursor = bitcoin::io::Cursor::new(hex::decode(tx).unwrap());
+
+  let version = Version(i32::consensus_decode_from_finite_reader(&mut cursor).unwrap());
+  let input = Vec::<TxIn>::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+  let output = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+  let lock_time = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+
+  Transaction {
+    version,
+    input,
+    output,
+    lock_time,
+  }
+}
 
 #[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
 pub struct Descriptor {

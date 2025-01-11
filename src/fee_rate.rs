@@ -1,6 +1,8 @@
 use super::*;
 
-#[derive(Debug, PartialEq, Clone, Copy)]
+#[derive(
+  Debug, PartialEq, Clone, Copy, derive_more::Display, DeserializeFromStr, SerializeDisplay,
+)]
 pub struct FeeRate(f64);
 
 impl FromStr for FeeRate {

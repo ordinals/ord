@@ -45,8 +45,8 @@ use {
     policy::MAX_STANDARD_TX_WEIGHT,
     script,
     transaction::Version,
-    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
-    Witness,
+    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, SignedAmount, Transaction, TxIn,
+    TxOut, Txid, Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chrono::{DateTime, TimeZone, Utc},
@@ -141,6 +141,19 @@ static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
 
+#[doc(hidden)]
+#[derive(Deserialize, Serialize)]
+pub struct SimulateRawTransactionResult {
+  #[serde(with = "bitcoin::amount::serde::as_btc")]
+  pub balance_change: SignedAmount,
+}
+
+#[doc(hidden)]
+#[derive(Deserialize, Serialize)]
+pub struct SimulateRawTransactionOptions {
+  include_watchonly: bool,
+}
+
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 fn fund_raw_transaction(
   client: &Client,
@@ -207,6 +220,16 @@ pub fn unbound_outpoint() -> OutPoint {
 
 fn uncheck(address: &Address) -> Address<NetworkUnchecked> {
   address.to_string().parse().unwrap()
+}
+
+pub fn base64_encode(data: &[u8]) -> String {
+  use base64::Engine;
+  base64::engine::general_purpose::STANDARD.encode(data)
+}
+
+pub fn base64_decode(s: &str) -> Result<Vec<u8>> {
+  use base64::Engine;
+  Ok(base64::engine::general_purpose::STANDARD.decode(s)?)
 }
 
 fn default<T: Default>() -> T {

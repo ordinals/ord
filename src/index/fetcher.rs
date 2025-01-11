@@ -1,6 +1,5 @@
 use {
   super::*,
-  base64::Engine,
   http_body_util::{BodyExt, Full},
   hyper::{body::Bytes, Method, Request, Uri},
   hyper_util::{
@@ -43,10 +42,7 @@ impl Fetcher {
 
     let (user, password) = settings.bitcoin_credentials()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
-    let auth = format!(
-      "Basic {}",
-      &base64::engine::general_purpose::STANDARD.encode(auth)
-    );
+    let auth = format!("Basic {}", &base64_encode(auth.as_bytes()));
     Ok(Fetcher { client, url, auth })
   }
 
