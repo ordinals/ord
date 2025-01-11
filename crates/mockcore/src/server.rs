@@ -1055,9 +1055,7 @@ impl Api for Server {
   ) -> Result<SimulateRawTransactionResult, jsonrpc_core::Error> {
     let mut balance_change: i64 = 0;
 
-    let transactions = txs.into_iter().map(parse_hex_tx);
-
-    for tx in transactions {
+    for tx in txs.into_iter().map(parse_hex_tx) {
       for input in tx.input {
         let tx = self
           .state()
