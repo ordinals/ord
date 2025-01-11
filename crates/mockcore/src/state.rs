@@ -3,6 +3,7 @@ use super::*;
 #[derive(Debug)]
 pub struct State {
   pub blocks: BTreeMap<BlockHash, Block>,
+  pub change_addresses: BTreeSet<Address>,
   pub descriptors: Vec<(String, bitcoincore_rpc::json::Timestamp)>,
   pub fail_lock_unspent: bool,
   pub hashes: Vec<BlockHash>,
@@ -11,14 +12,13 @@ pub struct State {
   pub mempool: Vec<Transaction>,
   pub network: Network,
   pub nonce: u32,
+  pub receive_addresses: BTreeSet<Address>,
   pub transactions: BTreeMap<Txid, Transaction>,
   pub txid_to_block_height: BTreeMap<Txid, u32>,
   pub utxos: BTreeMap<OutPoint, Amount>,
   pub version: usize,
-  pub receive_addresses: BTreeSet<Address>,
-  pub change_addresses: BTreeSet<Address>,
-  pub wallets: BTreeSet<String>,
   pub wallet: Wallet,
+  pub wallets: BTreeSet<String>,
 }
 
 impl State {
@@ -47,8 +47,8 @@ impl State {
       txid_to_block_height: BTreeMap::new(),
       utxos: BTreeMap::new(),
       version,
-      wallets: BTreeSet::new(),
       wallet: Wallet::new(network),
+      wallets: BTreeSet::new(),
     }
   }
 
