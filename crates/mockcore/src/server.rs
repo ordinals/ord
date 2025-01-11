@@ -1064,19 +1064,19 @@ impl Api for Server {
           .unwrap()
           .clone();
 
-        let txout = &tx.output[input.previous_output.vout as usize];
+        let txout = &tx.output[usize::try_from(input.previous_output.vout).unwrap()];
 
         let address = Address::from_script(&txout.script_pubkey, Network::Bitcoin).unwrap();
 
         if self.state().is_wallet_address(&address) {
-          balance_change -= txout.value.to_sat() as i64;
+          balance_change -= i64::try_from(txout.value.to_sat()).unwrap();
         }
       }
 
       for output in tx.output {
         let address = Address::from_script(&output.script_pubkey, Network::Bitcoin).unwrap();
         if self.state().is_wallet_address(&address) {
-          balance_change += output.value.to_sat() as i64;
+          balance_change += i64::try_from(output.value.to_sat()).unwrap();
         }
       }
     }
