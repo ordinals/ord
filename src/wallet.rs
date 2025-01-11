@@ -173,7 +173,7 @@ impl Wallet {
         }
       }
 
-      if let Some(output_inscriptions) = self.get_inscriptions_in_output(outgoing) {
+      if let Some(output_inscriptions) = self.get_inscriptions_in_output(outgoing)? {
         inscriptions.extend(output_inscriptions);
       };
     }
@@ -267,8 +267,18 @@ impl Wallet {
     )
   }
 
-  pub(crate) fn get_inscriptions_in_output(&self, output: &OutPoint) -> Option<Vec<InscriptionId>> {
-    self.output_info.get(output).unwrap().inscriptions.clone()
+  pub(crate) fn get_inscriptions_in_output(
+    &self,
+    output: &OutPoint,
+  ) -> Result<Option<Vec<InscriptionId>>> {
+    Ok(
+      self
+        .output_info
+        .get(output)
+        .ok_or(anyhow!("outpout not found in wallet"))?
+        .inscriptions
+        .clone(),
+    )
   }
 
   pub(crate) fn get_parent_info(&self, parents: &[InscriptionId]) -> Result<Vec<ParentInfo>> {

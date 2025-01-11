@@ -47,7 +47,7 @@ impl Accept {
       }
     }
 
-    let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing) else {
+    let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing)? else {
       bail! {
         "index must have inscription index to accept PSBT",
       }
