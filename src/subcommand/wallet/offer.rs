@@ -5,9 +5,9 @@ pub mod create;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Offer {
-  #[command(about = "Accept an offer to buy an inscription")]
+  #[command(about = "Accept offer to buy inscription")]
   Accept(accept::Accept),
-  #[command(about = "Create an offer to buy an inscription")]
+  #[command(about = "Create offer to buy inscription")]
   Create(create::Create),
 }
 
