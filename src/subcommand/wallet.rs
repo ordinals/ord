@@ -70,7 +70,7 @@ pub(crate) enum Subcommand {
   Label,
   #[command(about = "Mint a rune")]
   Mint(mint::Mint),
-  #[command(subcommand, about = "Offer subcommands")]
+  #[command(subcommand, about = "Offer commands")]
   Offer(offer::Offer),
   #[command(about = "List all unspent outputs in wallet")]
   Outputs(outputs::Outputs),
