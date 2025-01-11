@@ -31,6 +31,7 @@ rust-version = "1.79.0"
 base64 = "0.22.0"
 bitcoin = { version = "0.32.5", features = ["rand"] }
 colored = "3"
+derive_more = { version = "1.0.0", features = ["display", "from_str"] }
 hex = "0.4.3"
 pretty_assertions = "1.2.1"
 regex = "1.6.0"
@@ -56,7 +57,7 @@ ciborium = "0.2.1"
 clap = { version = "4.4.2", features = ["derive", "env"] }
 colored.workspace = true
 ctrlc = { version = "3.2.1", features = ["termination"] }
-derive_more = "1.0.0"
+derive_more.workspace = true
 dirs = "5.0.0"
 env_logger = "0.11.0"
 futures = "0.3.21"
