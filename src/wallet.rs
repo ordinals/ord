@@ -237,19 +237,6 @@ impl Wallet {
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Option<api::Inscription>> {
-    // "inscription 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 not found"
-
-    // let inscription = dbg!(self
-    //   .ord_client
-    //   .get(
-    //     self
-    //       .rpc_url
-    //       .join(&format!("/inscription/{inscription_id}"))
-    //       .unwrap(),
-    //   )
-    //   .send()?
-    //   .text()?);
-
     let inscription = self
       .ord_client
       .get(
