@@ -7,12 +7,14 @@ pub struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Accept {
-  #[arg(long, help = "Accept <PSBT>")]
-  psbt: String,
-  #[arg(long)]
-  inscription: InscriptionId,
-  #[arg(long)]
+  #[arg(long, help = "Assert offer is for <AMOUNT>")]
   amount: Amount,
+  #[arg(long, help = "Don't sign or broadcast transaction")]
+  dry_run: bool,
+  #[arg(long, help = "Assert offer is for <INSCRIPTION>")]
+  inscription: InscriptionId,
+  #[arg(long, help = "Accept <PSBT> offer")]
+  psbt: String,
 }
 
 impl Accept {
@@ -72,18 +74,22 @@ impl Accept {
       "unexpected balance change of {balance_change}",
     }
 
-    let psbt = wallet
-      .bitcoin_client()
-      .wallet_process_psbt(&base64_encode(&psbt.serialize()), Some(true), None, None)?
-      .psbt;
+    let txid = if self.dry_run {
+      psbt.unsigned_tx.compute_txid()
+    } else {
+      let psbt = wallet
+        .bitcoin_client()
+        .wallet_process_psbt(&base64_encode(&psbt.serialize()), Some(true), None, None)?
+        .psbt;
 
-    let finalized = wallet.bitcoin_client().finalize_psbt(&psbt, None)?;
+      let finalized = wallet.bitcoin_client().finalize_psbt(&psbt, None)?;
 
-    let signed_tx = finalized
-      .hex
-      .ok_or_else(|| anyhow!("unable to sign transaction"))?;
+      let signed_tx = finalized
+        .hex
+        .ok_or_else(|| anyhow!("unable to sign transaction"))?;
 
-    let txid = wallet.send_raw_transaction(&signed_tx, None)?;
+      wallet.send_raw_transaction(&signed_tx, None)?
+    };
 
     Ok(Some(Box::new(Output { txid })))
   }

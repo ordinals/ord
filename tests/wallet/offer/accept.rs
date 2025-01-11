@@ -38,6 +38,24 @@ fn accepted_offer_works() {
   core.state().add_wallet_address(inscription_address.clone());
 
   CommandBuilder::new(format!(
+    "wallet offer accept --inscription {inscription} --amount 1btc --psbt {} --dry-run",
+    create.psbt
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Accept>();
+
+  core.mine_blocks(1);
+
+  let balance = CommandBuilder::new("wallet balance")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Balance>();
+
+  assert_eq!(balance.ordinal, postage);
+  assert_eq!(balance.cardinal, 50 * COIN_VALUE);
+
+  CommandBuilder::new(format!(
     "wallet offer accept --inscription {inscription} --amount 1btc --psbt {}",
     create.psbt
   ))
@@ -53,7 +71,7 @@ fn accepted_offer_works() {
     .run_and_deserialize_output::<Balance>();
 
   assert_eq!(balance.ordinal, 0);
-  assert_eq!(balance.cardinal, 50 * COIN_VALUE + COIN_VALUE + postage);
+  assert_eq!(balance.cardinal, 2 * 50 * COIN_VALUE + COIN_VALUE + postage);
 
   core
     .state()
@@ -71,7 +89,7 @@ fn accepted_offer_works() {
   assert_eq!(balance.ordinal, postage);
   assert_eq!(
     balance.cardinal,
-    3 * 50 * COIN_VALUE - postage * 2 - COIN_VALUE
+    4 * 50 * COIN_VALUE - postage * 2 - COIN_VALUE
   );
 }
 
