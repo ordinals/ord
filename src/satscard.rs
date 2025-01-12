@@ -89,6 +89,53 @@ pub(crate) struct Query {
   pub(crate) signature: Signature,
 }
 
+impl Query {
+  pub(crate) fn address(&self) -> Address {
+    use secp256k1::{
+      ecdsa::{RecoverableSignature, RecoveryId},
+      Message,
+    };
+
+    use bitcoin::CompressedPublicKey;
+
+    // todo: is this expensive?
+    let secp = secp256k1::Secp256k1::new();
+
+    let signature = self.signature.0.serialize_compact();
+
+    let mut msg = Vec::<u8>::new();
+    msg.extend(b"OPENDIME");
+    msg.extend(self.nonce);
+    msg.push(0);
+
+    let digest = bitcoin::hashes::sha256::Hash::hash(&msg);
+
+    let message = Message::from_digest(*digest.as_ref());
+
+    for id in 3.. {
+      let Ok(id) = RecoveryId::from_i32(id) else {
+        break;
+      };
+
+      let signature = RecoverableSignature::from_compact(&signature, id).unwrap();
+
+      let public_key = secp.recover_ecdsa(&message, &signature).unwrap();
+
+      let public_key = bitcoin::key::PublicKey::new(public_key);
+
+      let public_key = CompressedPublicKey::try_from(public_key).unwrap();
+
+      let address = Address::p2wpkh(&public_key, bitcoin::KnownHrp::Mainnet);
+
+      if address.to_string().ends_with(&self.address_suffix) {
+        return address;
+      }
+    }
+
+    panic!()
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
