@@ -88,3 +88,19 @@ pub(crate) struct Query {
   #[serde(rename = "s")]
   pub(crate) signature: Signature,
 }
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn query_deserialize() {
+    // test string:
+    // ?u=S
+    // &o=0
+    // &r=a5x2tplf
+    // &n=7664168a4ef7b8e8
+    // &s=42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53
+    todo!()
+  }
+}
