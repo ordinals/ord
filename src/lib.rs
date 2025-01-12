@@ -124,6 +124,7 @@ pub mod outgoing;
 mod re;
 mod representation;
 pub mod runes;
+mod satscard;
 pub mod settings;
 mod signer;
 pub mod subcommand;
