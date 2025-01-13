@@ -485,6 +485,10 @@ impl Server {
 
     let mut state = config.state();
 
+    rustls::crypto::aws_lc_rs::default_provider()
+      .install_default()
+      .expect("failed to install crypto provider");
+
     let mut server_config = rustls::ServerConfig::builder()
       .with_no_client_auth()
       .with_cert_resolver(state.resolver());
