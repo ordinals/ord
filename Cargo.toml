@@ -25,7 +25,7 @@ edition = "2021"
 homepage = "https://github.com/ordinals/ord"
 license = "CC0-1.0"
 repository = "https://github.com/ordinals/ord"
-rust-version = "1.79.0"
+rust-version = "1.80.0"
 
 [workspace.dependencies]
 base64 = "0.22.0"
@@ -81,7 +81,7 @@ regex.workspace = true
 reqwest.workspace = true
 rss = "2.0.1"
 rust-embed = "8.0.0"
-rustls = "0.23.20"
+rustls = { version  = "0.23.20", features = ["ring"] }
 rustls-acme = { version = "0.12.1", features = ["axum"] }
 serde-hex = "0.1.0"
 serde.workspace = true
