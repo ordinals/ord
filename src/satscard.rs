@@ -3,6 +3,16 @@ use {
   serde_hex::{SerHex, Strict},
 };
 
+// todo:
+// - copy and paste coinkite URI
+//
+// - append URI as query
+//
+// - append URI as fragment
+//   - just need a little JS to redirect as query
+//
+// - enter into form field
+
 #[derive(Debug, DeserializeFromStr, PartialEq)]
 pub(crate) enum State {
   Error,
