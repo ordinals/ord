@@ -1,13 +1,17 @@
 use {
   super::*,
-  base64::Engine,
-  hyper::{client::HttpConnector, Body, Client, Method, Request, Uri},
+  http_body_util::{BodyExt, Full},
+  hyper::{body::Bytes, Method, Request, Uri},
+  hyper_util::{
+    client::legacy::{connect::HttpConnector, Client},
+    rt::TokioExecutor,
+  },
   serde_json::{json, Value},
 };
 
 pub(crate) struct Fetcher {
   auth: String,
-  client: Client<HttpConnector>,
+  client: Client<HttpConnector, Full<Bytes>>,
   url: Uri,
 }
 
@@ -26,7 +30,7 @@ struct JsonError {
 
 impl Fetcher {
   pub(crate) fn new(settings: &Settings) -> Result<Self> {
-    let client = Client::new();
+    let client = Client::builder(TokioExecutor::new()).build_http();
 
     let url = if settings.bitcoin_rpc_url(None).starts_with("http://") {
       settings.bitcoin_rpc_url(None)
@@ -38,10 +42,7 @@ impl Fetcher {
 
     let (user, password) = settings.bitcoin_credentials()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
-    let auth = format!(
-      "Basic {}",
-      &base64::engine::general_purpose::STANDARD.encode(auth)
-    );
+    let auth = format!("Basic {}", &base64_encode(auth.as_bytes()));
     Ok(Fetcher { client, url, auth })
   }
 
@@ -125,11 +126,11 @@ impl Fetcher {
       .uri(&self.url)
       .header(hyper::header::AUTHORIZATION, &self.auth)
       .header(hyper::header::CONTENT_TYPE, "application/json")
-      .body(Body::from(body))?;
+      .body(Full::new(Bytes::from(body)))?;
 
     let response = self.client.request(req).await?;
 
-    let buf = hyper::body::to_bytes(response).await?;
+    let buf = response.into_body().collect().await?.to_bytes();
 
     let results: Vec<JsonResponse<String>> = match serde_json::from_slice(&buf) {
       Ok(results) => results,

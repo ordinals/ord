@@ -18,16 +18,15 @@ impl WalletConstructor {
   ) -> Result<Wallet> {
     let mut headers = HeaderMap::new();
     headers.insert(
-      header::ACCEPT,
-      header::HeaderValue::from_static("application/json"),
+      reqwest::header::ACCEPT,
+      reqwest::header::HeaderValue::from_static("application/json"),
     );
 
     if let Some((username, password)) = settings.credentials() {
-      let credentials =
-        base64::engine::general_purpose::STANDARD.encode(format!("{username}:{password}"));
+      let credentials = base64_encode(format!("{username}:{password}").as_bytes());
       headers.insert(
-        header::AUTHORIZATION,
-        header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),
+        reqwest::header::AUTHORIZATION,
+        reqwest::header::HeaderValue::from_str(&format!("Basic {credentials}")).unwrap(),
       );
     }
 
@@ -148,10 +147,15 @@ impl WalletConstructor {
       bail!("wallet failed get outputs: {}", response.text()?);
     }
 
-    let output_info: BTreeMap<OutPoint, api::Output> = outputs
-      .into_iter()
-      .zip(serde_json::from_str::<Vec<api::Output>>(&response.text()?)?)
-      .collect();
+    let response_outputs = serde_json::from_str::<Vec<api::Output>>(&response.text()?)?;
+
+    ensure! {
+      response_outputs.len() == outputs.len(),
+      "unexpected server `/outputs` response length",
+    }
+
+    let output_info: BTreeMap<OutPoint, api::Output> =
+      outputs.into_iter().zip(response_outputs).collect();
 
     for (output, info) in &output_info {
       if !info.indexed {

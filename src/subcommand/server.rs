@@ -13,9 +13,8 @@ use {
     PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml, TransactionHtml,
   },
   axum::{
-    body,
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
-    http::{header, HeaderValue, StatusCode, Uri},
+    http::{self, header, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
     Router,
@@ -100,7 +99,7 @@ pub struct Server {
     help = "Decompress encoded content. Currently only supports brotli. Be careful using this on production instances. A decompressed inscription may be arbitrarily large, making decompression a DoS vector."
   )]
   pub(crate) decompress: bool,
-  #[arg(long, help = "Disable JSON API.")]
+  #[arg(long, env = "ORD_SERVER_DISABLE_JSON_API", help = "Disable JSON API.")]
   pub(crate) disable_json_api: bool,
   #[arg(
     long,
@@ -179,112 +178,115 @@ impl Server {
 
       let router = Router::new()
         .route("/", get(Self::home))
-        .route("/address/:address", get(Self::address))
-        .route("/block/:query", get(Self::block))
+        .route("/address/{address}", get(Self::address))
+        .route("/block/{query}", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockhash", get(Self::block_hash))
-        .route("/blockhash/:height", get(Self::block_hash_from_height))
+        .route("/blockhash/{height}", get(Self::block_hash_from_height))
         .route("/blockheight", get(Self::block_height))
         .route("/blocks", get(Self::blocks))
         .route("/blocktime", get(Self::block_time))
         .route("/bounties", get(Self::bounties))
-        .route("/children/:inscription_id", get(Self::children))
+        .route("/children/{inscription_id}", get(Self::children))
         .route(
-          "/children/:inscription_id/:page",
+          "/children/{inscription_id}/{page}",
           get(Self::children_paginated),
         )
         .route("/clock", get(Self::clock))
         .route("/collections", get(Self::collections))
-        .route("/collections/:page", get(Self::collections_paginated))
-        .route("/content/:inscription_id", get(Self::content))
+        .route("/collections/{page}", get(Self::collections_paginated))
+        .route("/content/{inscription_id}", get(Self::content))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
-        .route("/input/:block/:transaction/:input", get(Self::input))
-        .route("/inscription/:inscription_query", get(Self::inscription))
+        .route("/input/{block}/{transaction}/{input}", get(Self::input))
+        .route("/inscription/{inscription_query}", get(Self::inscription))
         .route(
-          "/inscription/:inscription_query/:child",
+          "/inscription/{inscription_query}/{child}",
           get(Self::inscription_child),
         )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions", post(Self::inscriptions_json))
-        .route("/inscriptions/:page", get(Self::inscriptions_paginated))
+        .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route(
-          "/inscriptions/block/:height",
+          "/inscriptions/block/{height}",
           get(Self::inscriptions_in_block),
         )
         .route(
-          "/inscriptions/block/:height/:page",
+          "/inscriptions/block/{height}/{page}",
           get(Self::inscriptions_in_block_paginated),
         )
         .route("/install.sh", get(Self::install_script))
-        .route("/ordinal/:sat", get(Self::ordinal))
-        .route("/output/:output", get(Self::output))
+        .route("/ordinal/{sat}", get(Self::ordinal))
+        .route("/output/{output}", get(Self::output))
         .route("/outputs", post(Self::outputs))
-        .route("/outputs/:address", get(Self::outputs_address))
-        .route("/parents/:inscription_id", get(Self::parents))
+        .route("/outputs/{address}", get(Self::outputs_address))
+        .route("/parents/{inscription_id}", get(Self::parents))
         .route(
-          "/parents/:inscription_id/:page",
+          "/parents/{inscription_id}/{page}",
           get(Self::parents_paginated),
         )
-        .route("/preview/:inscription_id", get(Self::preview))
+        .route("/preview/{inscription_id}", get(Self::preview))
         .route("/r/blockhash", get(Self::block_hash_json))
         .route(
-          "/r/blockhash/:height",
+          "/r/blockhash/{height}",
           get(Self::block_hash_from_height_json),
         )
         .route("/r/blockheight", get(Self::block_height))
         .route("/r/blocktime", get(Self::block_time))
-        .route("/r/blockinfo/:query", get(Self::block_info))
+        .route("/r/blockinfo/{query}", get(Self::block_info))
         .route(
-          "/r/inscription/:inscription_id",
+          "/r/inscription/{inscription_id}",
           get(Self::inscription_recursive),
         )
-        .route("/r/children/:inscription_id", get(Self::children_recursive))
         .route(
-          "/r/children/:inscription_id/:page",
+          "/r/children/{inscription_id}",
+          get(Self::children_recursive),
+        )
+        .route(
+          "/r/children/{inscription_id}/{page}",
           get(Self::children_recursive_paginated),
         )
         .route(
-          "/r/children/:inscription_id/inscriptions",
+          "/r/children/{inscription_id}/inscriptions",
           get(Self::child_inscriptions_recursive),
         )
         .route(
-          "/r/children/:inscription_id/inscriptions/:page",
+          "/r/children/{inscription_id}/inscriptions/{page}",
           get(Self::child_inscriptions_recursive_paginated),
         )
         .route(
-          "/r/undelegated-content/:inscription_id",
+          "/r/undelegated-content/{inscription_id}",
           get(Self::undelegated_content),
         )
-        .route("/r/metadata/:inscription_id", get(Self::metadata))
-        .route("/r/parents/:inscription_id", get(Self::parents_recursive))
+        .route("/r/metadata/{inscription_id}", get(Self::metadata))
+        .route("/r/parents/{inscription_id}", get(Self::parents_recursive))
         .route(
-          "/r/parents/:inscription_id/:page",
+          "/r/parents/{inscription_id}/{page}",
           get(Self::parents_recursive_paginated),
         )
-        .route("/r/sat/:sat_number", get(Self::sat_inscriptions))
+        .route("/r/sat/{sat_number}", get(Self::sat_inscriptions))
         .route(
-          "/r/sat/:sat_number/:page",
+          "/r/sat/{sat_number}/{page}",
           get(Self::sat_inscriptions_paginated),
         )
         .route(
-          "/r/sat/:sat_number/at/:index",
+          "/r/sat/{sat_number}/at/{index}",
           get(Self::sat_inscription_at_index),
         )
-        .route("/r/utxo/:outpoint", get(Self::utxo_recursive))
+        .route("/r/utxo/{outpoint}", get(Self::utxo_recursive))
         .route("/rare.txt", get(Self::rare_txt))
-        .route("/rune/:rune", get(Self::rune))
+        .route("/rune/{rune}", get(Self::rune))
         .route("/runes", get(Self::runes))
-        .route("/runes/:page", get(Self::runes_paginated))
-        .route("/sat/:sat", get(Self::sat))
-        .route("/satpoint/:satpoint", get(Self::satpoint))
+        .route("/runes/{page}", get(Self::runes_paginated))
+        .route("/sat/{sat}", get(Self::sat))
+        .route("/satpoint/{satpoint}", get(Self::satpoint))
         .route("/search", get(Self::search_by_query))
-        .route("/search/*query", get(Self::search_by_path))
-        .route("/static/*path", get(Self::static_asset))
+        .route("/search/{*query}", get(Self::search_by_path))
+        .route("/static/{*path}", get(Self::static_asset))
         .route("/status", get(Self::status))
-        .route("/tx/:txid", get(Self::transaction))
-        .route("/decode/:txid", get(Self::decode))
+        .route("/tx/{txid}", get(Self::transaction))
+        .route("/decode/{txid}", get(Self::decode))
         .route("/update", get(Self::update))
         .fallback(Self::fallback)
         .layer(Extension(index))
@@ -469,6 +471,12 @@ impl Server {
   }
 
   fn acceptor(&self, settings: &Settings) -> Result<AxumAcceptor> {
+    static RUSTLS_PROVIDER_INSTALLED: LazyLock<bool> = LazyLock::new(|| {
+      rustls::crypto::ring::default_provider()
+        .install_default()
+        .is_ok()
+    });
+
     let config = AcmeConfig::new(self.acme_domains()?)
       .contact(&self.acme_contact)
       .cache_option(Some(DirCache::new(Self::acme_cache(
@@ -482,6 +490,11 @@ impl Server {
       });
 
     let mut state = config.state();
+
+    ensure! {
+      *RUSTLS_PROVIDER_INSTALLED,
+      "failed to install rustls ring crypto provider",
+    }
 
     let mut server_config = rustls::ServerConfig::builder()
       .with_no_client_auth()
@@ -1371,12 +1384,13 @@ impl Server {
       &path
     })
     .ok_or_not_found(|| format!("asset {path}"))?;
-    let body = body::boxed(body::Full::from(content.data));
+
     let mime = mime_guess::from_path(path).first_or_octet_stream();
+
     Ok(
       Response::builder()
         .header(header::CONTENT_TYPE, mime.as_ref())
-        .body(body)
+        .body(content.data.into())
         .unwrap(),
     )
   }
@@ -1552,18 +1566,20 @@ impl Server {
   }
 
   async fn faq() -> Redirect {
-    Redirect::to("https://docs.ordinals.com/faq/")
+    Redirect::to("https://docs.ordinals.com/faq")
   }
 
   async fn bounties() -> Redirect {
-    Redirect::to("https://docs.ordinals.com/bounty/")
+    Redirect::to("https://docs.ordinals.com/bounties")
   }
 
-  fn proxy(proxy: &Url, path: &String) -> ServerResult<Response> {
+  fn proxy(proxy: &Url, path: &str) -> ServerResult<Response> {
     let response = reqwest::blocking::Client::new()
       .get(format!("{}{}", proxy, path))
       .send()
       .map_err(|err| anyhow!(err))?;
+
+    let status = response.status();
 
     let mut headers = response.headers().clone();
 
@@ -1577,7 +1593,7 @@ impl Server {
 
     Ok(
       (
-        response.status(),
+        status,
         headers,
         response.bytes().map_err(|err| anyhow!(err))?,
       )
@@ -1834,13 +1850,20 @@ impl Server {
         }
       }
 
-      let (info, txout, inscription) = index
-        .inscription_info(query, child)?
-        .ok_or_not_found(|| format!("inscription {query}"))?;
+      let inscription_info = index.inscription_info(query, child)?;
 
       Ok(if accept_json {
-        Json(info).into_response()
+        let status_code = if inscription_info.is_none() {
+          StatusCode::NOT_FOUND
+        } else {
+          StatusCode::OK
+        };
+
+        (status_code, Json(inscription_info.map(|info| info.0))).into_response()
       } else {
+        let (info, txout, inscription) =
+          inscription_info.ok_or_not_found(|| format!("inscription {query}"))?;
+
         InscriptionHtml {
           chain: server_config.chain,
           charms: Charm::Vindicated.unset(info.charms.iter().fold(0, |mut acc, charm| {
@@ -2306,7 +2329,14 @@ impl Server {
 #[cfg(test)]
 mod tests {
   use {
-    super::*, reqwest::Url, serde::de::DeserializeOwned, std::net::TcpListener, tempfile::TempDir,
+    super::*,
+    reqwest::{
+      header::{self, HeaderMap},
+      StatusCode, Url,
+    },
+    serde::de::DeserializeOwned,
+    std::net::TcpListener,
+    tempfile::TempDir,
   };
 
   const RUNE: u128 = 99246114928149462;
@@ -2906,12 +2936,12 @@ mod tests {
 
   #[test]
   fn bounties_redirects_to_docs_site() {
-    TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounty/");
+    TestServer::new().assert_redirect("/bounties", "https://docs.ordinals.com/bounties");
   }
 
   #[test]
   fn faq_redirects_to_docs_site() {
-    TestServer::new().assert_redirect("/faq", "https://docs.ordinals.com/faq/");
+    TestServer::new().assert_redirect("/faq", "https://docs.ordinals.com/faq");
   }
 
   #[test]
@@ -4019,7 +4049,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/foo:0",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: error parsing TXID",
+      "Invalid URL: Cannot parse `output` with value `foo:0`: error parsing TXID",
     );
   }
 
@@ -4161,7 +4191,7 @@ mod tests {
     TestServer::new().assert_response(
       "/output/foo:0",
       StatusCode::BAD_REQUEST,
-      "Invalid URL: error parsing TXID",
+      "Invalid URL: Cannot parse `output` with value `foo:0`: error parsing TXID",
     );
   }
 

@@ -412,7 +412,7 @@ fn inscription_content() {
       .headers()
       .get_all("content-security-policy")
       .into_iter()
-      .collect::<Vec<&http::HeaderValue>>(),
+      .collect::<Vec<&reqwest::header::HeaderValue>>(),
     &[
       "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
       "default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:",

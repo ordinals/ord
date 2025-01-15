@@ -2,7 +2,6 @@ use {super::*, axum::extract::FromRef};
 
 pub(crate) struct AcceptJson(pub(crate) bool);
 
-#[async_trait::async_trait]
 impl<S> axum::extract::FromRequestParts<S> for AcceptJson
 where
   Arc<ServerConfig>: FromRef<S>,

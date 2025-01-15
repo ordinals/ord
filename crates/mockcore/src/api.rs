@@ -209,4 +209,14 @@ pub trait Api {
     psbt: String,
     extract: Option<bool>,
   ) -> Result<FinalizePsbtResult, jsonrpc_core::Error>;
+
+  #[rpc(name = "utxoupdatepsbt")]
+  fn utxo_update_psbt(&self, psbt: String) -> Result<String, jsonrpc_core::Error>;
+
+  #[rpc(name = "simulaterawtransaction")]
+  fn simulate_raw_transaction(
+    &self,
+    txs: Vec<String>,
+    options: Option<SimulateRawTransactionOptions>,
+  ) -> Result<SimulateRawTransactionResult, jsonrpc_core::Error>;
 }
