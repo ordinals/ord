@@ -1,6 +1,24 @@
 <h1>Satscard</h1>
 
-%% if let Some(Satscard { address, nonce, slot, state, }) = &self.satscard {
+<form>
+  <label for=url>Coinkite SATSCARD URL</label>
+  <input
+    type=text
+    id=url
+    name=url
+    pattern='^https://getsatscard.com/start#.*$'
+    required
+    title='The URL should begin with "https://getsatscard.com/start#".'
+%% if let Some(value) = self.form_value() {
+    value='{{ value }}'
+%% }
+  >
+  <input type="submit" value="Submit">
+</form>
+
+<hr>
+
+%% if let Some(Satscard { address, nonce, slot, state, .. }) = &self.satscard {
 <dl>
   <dt>slot</dt>
   <dd>{{ slot }}</dd>
@@ -15,15 +33,6 @@
 
 <hr>
 
-<form>
-  <label for=url>Coinkite SATSCARD URL</label>
-  <input
-    type=text
-    id=url
-    name=url
-    pattern='^https://getsatscard.com/start#.*$'
-    required
-    title='The URL should begin with "https://getsatscard.com/start#".'
-  >
-  <input type="submit" value="Submit">
-</form>
+%% if let Some(address_info) = &self.address_info {
+{{ Trusted(address_info) }}
+%% }

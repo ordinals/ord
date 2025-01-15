@@ -83,6 +83,7 @@ pub(crate) struct Satscard {
   pub(crate) nonce: [u8; 8],
   pub(crate) slot: u8,
   pub(crate) state: State,
+  pub(crate) parameters: String,
 }
 
 impl Satscard {
@@ -148,6 +149,7 @@ impl Satscard {
       nonce: nonce.unwrap(),
       slot: slot.unwrap(),
       state: state.unwrap(),
+      parameters: parameters.into(),
     })
   }
 

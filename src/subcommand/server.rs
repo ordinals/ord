@@ -555,15 +555,20 @@ impl Server {
     })
   }
 
-  async fn satscard(Extension(server_config): Extension<Arc<ServerConfig>>, uri: Uri) -> Response {
+  async fn satscard(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    uri: Uri,
+  ) -> ServerResult<Response> {
     #[derive(Debug, Deserialize)]
     struct Form {
       url: DeserializeFromStr<Url>,
     }
 
     if let Ok(form) = Query::<Form>::try_from_uri(&uri) {
-      return Redirect::to(&format!("/satscard?{}", form.url.0.fragment().unwrap()))
-        .into_response();
+      return Ok(
+        Redirect::to(&format!("/satscard?{}", form.url.0.fragment().unwrap())).into_response(),
+      );
     }
 
     let satscard = if let Some(query) = uri.query() {
@@ -572,9 +577,36 @@ impl Server {
       None
     };
 
-    SatscardHtml { satscard }
+    let address_info = if let Some(satscard) = &satscard {
+      if let Some(api::AddressInfo {
+        outputs,
+        inscriptions,
+        sat_balance,
+        runes_balances,
+      }) = Self::address_info(&index, &satscard.address)?
+      {
+        Some(AddressHtml {
+          address: satscard.address.clone(),
+          inscriptions,
+          outputs,
+          runes_balances,
+          sat_balance,
+        })
+      } else {
+        None
+      }
+    } else {
+      None
+    };
+
+    Ok(
+      SatscardHtml {
+        address_info,
+        satscard,
+      }
       .page(server_config)
-      .into_response()
+      .into_response(),
+    )
   }
 
   async fn sat(
@@ -997,35 +1029,26 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      if !index.has_address_index() {
-        return Err(ServerError::NotFound(
-          "this server has no address index".to_string(),
-        ));
-      }
-
       let address = address
         .require_network(server_config.chain.network())
         .map_err(|err| ServerError::BadRequest(err.to_string()))?;
 
-      let mut outputs = index.get_address_info(&address)?;
-
-      outputs.sort();
-
-      let sat_balance = index.get_sat_balances_for_outputs(&outputs)?;
-
-      let inscriptions = index.get_inscriptions_for_outputs(&outputs)?;
-
-      let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
+      let Some(info) = Self::address_info(&index, &address)? else {
+        return Err(ServerError::NotFound(
+          "this server has no address index".to_string(),
+        ));
+      };
 
       Ok(if accept_json {
-        Json(api::AddressInfo {
+        Json(info).into_response()
+      } else {
+        let api::AddressInfo {
           sat_balance,
           outputs,
           inscriptions,
           runes_balances,
-        })
-        .into_response()
-      } else {
+        } = info;
+
         AddressHtml {
           address,
           outputs,
@@ -1037,6 +1060,29 @@ impl Server {
         .into_response()
       })
     })
+  }
+
+  fn address_info(index: &Index, address: &Address) -> ServerResult<Option<api::AddressInfo>> {
+    if !index.has_address_index() {
+      return Ok(None);
+    }
+
+    let mut outputs = index.get_address_info(&address)?;
+
+    outputs.sort();
+
+    let sat_balance = index.get_sat_balances_for_outputs(&outputs)?;
+
+    let inscriptions = index.get_inscriptions_for_outputs(&outputs)?;
+
+    let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
+
+    Ok(Some(api::AddressInfo {
+      sat_balance,
+      outputs,
+      inscriptions,
+      runes_balances,
+    }))
   }
 
   async fn block(
