@@ -2,12 +2,12 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub(crate) struct SatscardHtml {
-  pub(crate) query: Option<crate::satscard::Query>,
+  pub(crate) satscard: Option<Satscard>,
 }
 
 impl PageContent for SatscardHtml {
   fn title(&self) -> String {
-    // inlude address, slot, and state?
+    // todo: inlude address, slot, and state?
     "SATSCARD".into()
   }
 }

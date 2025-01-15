@@ -1,11 +1,6 @@
 <h1>Satscard</h1>
 
-%% if let Some(crate::satscard::Query {
-%%   address,
-%%   nonce,
-%%   slot,
-%%   state,
-%% }) = &self.query {
+%% if let Some(Satscard { address, nonce, slot, state, }) = &self.satscard {
 <dl>
   <dt>slot</dt>
   <dd>{{ slot }}</dd>
@@ -17,6 +12,8 @@
   <dd>{{ hex::encode(nonce) }}</dd>
 </dl>
 %% }
+
+<hr>
 
 <form>
   <label for=url>Coinkite SATSCARD URL</label>

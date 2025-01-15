@@ -50,7 +50,6 @@ pub(crate) enum Error {
   Parameter {
     parameter: String,
   },
-  NoFragment,
   State {
     value: String,
   },
@@ -79,14 +78,14 @@ pub(crate) enum Error {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct Query {
+pub(crate) struct Satscard {
   pub(crate) address: Address,
   pub(crate) nonce: [u8; 8],
   pub(crate) slot: u8,
   pub(crate) state: State,
 }
 
-impl Query {
+impl Satscard {
   pub(crate) fn from_query(parameters: &str) -> Result<Self, Error> {
     let mut address_suffix = None;
     let mut nonce = Option::<[u8; 8]>::None;
@@ -152,10 +151,6 @@ impl Query {
     })
   }
 
-  pub(crate) fn from_url_with_fragment(s: &str) -> Result<Self, Error> {
-    Self::from_query(s.split_once('#').snafu_context(NoFragmentError)?.1)
-  }
-
   fn recover_address(
     signature: &secp256k1::ecdsa::Signature,
     address_suffix: &str,
@@ -210,7 +205,7 @@ mod tests {
   #[test]
   fn query_from_coinkite_url() {
     assert_eq!(
-      Query::from_url_with_fragment(concat!(
+      Satscard::from_url_with_fragment(concat!(
         "https://getsatscard.com/start",
         "#u=S",
         "&o=0",
@@ -221,7 +216,7 @@ mod tests {
         "17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53",
       ))
       .unwrap(),
-      Query {
+      Satscard {
         address: "bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf"
           .parse::<Address<NetworkUnchecked>>()
           .unwrap()

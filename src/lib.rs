@@ -27,6 +27,7 @@ use {
     option_ext::OptionExt,
     outgoing::Outgoing,
     representation::Representation,
+    satscard::Satscard,
     settings::Settings,
     signer::Signer,
     subcommand::{OutputFormat, Subcommand, SubcommandResult},

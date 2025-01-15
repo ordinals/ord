@@ -555,24 +555,26 @@ impl Server {
     })
   }
 
-  async fn satscard(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
-    uri: Uri,
-  ) -> PageHtml<SatscardHtml> {
+  async fn satscard(Extension(server_config): Extension<Arc<ServerConfig>>, uri: Uri) -> Response {
     #[derive(Debug, Deserialize)]
     struct Form {
-      url: String,
+      url: DeserializeFromStr<Url>,
     }
 
-    let query = if let Ok(form) = Query::<Form>::try_from_uri(&uri) {
-      Some(satscard::Query::from_url_with_fragment(&form.url).unwrap())
-    } else if let Some(query) = uri.query() {
-      Some(satscard::Query::from_query(query).unwrap())
+    if let Ok(form) = Query::<Form>::try_from_uri(&uri) {
+      return Redirect::to(&format!("/satscard?{}", form.url.0.fragment().unwrap()))
+        .into_response();
+    }
+
+    let satscard = if let Some(query) = uri.query() {
+      Some(Satscard::from_query(query).unwrap())
     } else {
       None
     };
 
-    SatscardHtml { query }.page(server_config)
+    SatscardHtml { satscard }
+      .page(server_config)
+      .into_response()
   }
 
   async fn sat(
