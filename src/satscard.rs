@@ -114,6 +114,136 @@ pub(crate) struct Query {
   pub(crate) state: State,
 }
 
+impl Query {
+  fn from_coinkite_uri(s: &str) -> Self {
+    let parameters = s.splitn(2, '#').skip(1).next().unwrap();
+
+    let mut address_suffix = None;
+    let mut nonce = Option::<[u8; 8]>::None;
+    let mut signature = None;
+    let mut slot = None;
+    let mut state = None;
+
+    let mut keys = BTreeSet::new();
+
+    for (key, value) in parameters
+      .split('&')
+      .map(|item| item.split_once('=').unwrap())
+    {
+      if !keys.insert(key) {
+        panic!("duplicate key");
+      }
+
+      match key {
+        "u" => {
+          state = Some(match value {
+            "S" => State::Sealed,
+            "E" => State::Error,
+            "U" => State::Unsealed,
+            _ => panic!("unknown state"),
+          })
+        }
+        "o" => slot = Some(value.parse::<u8>().unwrap()),
+        "r" => address_suffix = Some(value),
+        "n" => nonce = Some(hex::decode(value).unwrap().try_into().unwrap()),
+        "s" => {
+          signature =
+            Some(secp256k1::ecdsa::Signature::from_compact(&hex::decode(value).unwrap()).unwrap())
+        }
+        _ => panic!("unknown key {key}"),
+      }
+    }
+
+    let signature = signature.unwrap();
+    let address_suffix = address_suffix.unwrap();
+
+    let address = Self::recover_address(&signature, &address_suffix, parameters).unwrap();
+
+    Self {
+      address,
+      address_suffix: address_suffix.into(),
+      nonce: nonce.unwrap(),
+      signature: Signature(signature),
+      slot: slot.unwrap(),
+      state: state.unwrap(),
+    }
+  }
+
+  fn recover_address(
+    signature: &secp256k1::ecdsa::Signature,
+    address_suffix: &str,
+    parameters: &str,
+  ) -> Result<Address, AddressRecoveryError> {
+    use {
+      bitcoin::{key::PublicKey, CompressedPublicKey},
+      secp256k1::{
+        ecdsa::{RecoverableSignature, RecoveryId},
+        Message, Secp256k1,
+      },
+    };
+
+    dbg!(signature);
+    dbg!(address_suffix);
+    dbg!(parameters);
+
+    // todo: is this expensive? use global context?
+    let secp = Secp256k1::new();
+
+    let signature_compact = signature.serialize_compact();
+
+    let preimage = &parameters[0..parameters.rfind('=').unwrap() + 1];
+
+    dbg!(preimage);
+
+    let digest = bitcoin::hashes::sha256::Hash::hash(&preimage.as_bytes());
+
+    let message = Message::from_digest(*digest.as_ref());
+
+    for i in 0.. {
+      eprintln!("trying recovery ID {i}");
+
+      let Ok(id) = RecoveryId::from_i32(i) else {
+        break;
+      };
+
+      let recoverable_signature =
+        RecoverableSignature::from_compact(&signature_compact, id).unwrap();
+
+      eprintln!("    recovered signature");
+
+      let Ok(public_key) = secp.recover_ecdsa(&message, &recoverable_signature) else {
+        eprintln!("    recovery failed");
+        continue;
+      };
+
+      eprintln!("    recovered public key");
+
+      secp
+        .verify_ecdsa(&message, &signature, &public_key)
+        .unwrap();
+
+      eprintln!("    verified signature with recovered public key");
+
+      let public_key = PublicKey::new(public_key);
+
+      let public_key = CompressedPublicKey::try_from(public_key).unwrap();
+
+      let address = Address::p2wpkh(&public_key, bitcoin::KnownHrp::Mainnet);
+
+      eprintln!("    recovered address {address}");
+
+      if address.to_string().ends_with(&address_suffix) {
+        eprintln!("    address match");
+        return Ok(address);
+      }
+
+      eprintln!("    address mismatch");
+    }
+
+    Err(AddressRecoveryError::Input)
+  }
+}
+
 impl<'de> Deserialize<'de> for Query {
   fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
   where
@@ -259,5 +389,10 @@ mod tests {
       axum::extract::Query::<Query>::try_from_uri(&uri).unwrap().0,
       test_query(),
     );
+  }
+
+  #[test]
+  fn query_from_coinkite_uri() {
+    let query = Query::from_coinkite_uri(TEST_URI);
   }
 }
