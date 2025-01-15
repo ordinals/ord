@@ -1,18 +1,32 @@
 <h1>Satscard</h1>
 
-%% let crate::satscard::Query { state, slot, address_suffix, nonce, signature, address } = &self.query;
-
+%% if let Some(crate::satscard::Query {
+%%   address,
+%%   nonce,
+%%   slot,
+%%   state,
+%% }) = &self.query {
 <dl>
-  <dt>state</dt>
-  <dd>{{ state }}</dd>
   <dt>slot</dt>
   <dd>{{ slot }}</dd>
-  <dt>address suffix</dt>
-  <dd>{{ address_suffix }}</dd>
-  <dt>nonce</dt>
-  <dd>{{ hex::encode(nonce) }}</dd>
-  <dt>signature</dt>
-  <dd>{{ signature }}</dd>
+  <dt>state</dt>
+  <dd>{{ state }}</dd>
   <dt>address</dt>
   <dd>{{ address }}</dd>
+  <dt>nonce</dt>
+  <dd>{{ hex::encode(nonce) }}</dd>
 </dl>
+%% }
+
+<form>
+  <label for=url>Coinkite SATSCARD URL</label>
+  <input
+    type=text
+    id=url
+    name=url
+    pattern='^https://getsatscard.com/start#.*$'
+    required
+    title='The URL should begin with "https://getsatscard.com/start#".'
+  >
+  <input type="submit" value="Submit">
+</form>
