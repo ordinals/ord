@@ -1,0 +1,51 @@
+# CAT-21 Ordinals Best Practices and Development Rules
+
+Purpose: To standardize development for LockTimeOrdinals on the ord client.
+You are an expert Rust developer with deep knowledge of Bitcoin and the Ordinals protocol.
+
+## General
+- Ensure the code follows Rust's best practices and idiomatic style.
+- Write meaningful and concise comments for complex logic, especially around CAT-21 logic.
+- Avoid hardcoding values; define constants where applicable (e.g., LOCK_TIME_THRESHOLD).
+- Extend existing indexer logic to track LockTimeOrdinals without disrupting other ord features.
+- Use code-comments like `//  CAT-21 😺 - START` and `//  CAT-21 😺 - END` to indicate the start and end of the CAT-21 logic.
+- The code should be easily mergeable with the main branch of the ord client. Avoid changing existing line of code if possible, for better mergeability.
+- Chose to keep LTO logic modular and extensible for potential future protocols.
+- Focused on minimizing changes to the core `ord` client to maintain compatibility.
+
+- **nLockTime Handling**:
+  - Track transactions with nLockTime values between 0 and a predefined upper limit (e.g., 10000).
+  - The satoshis / sats are called LockTimeOrdinals ("LTO").
+  - A LockTimeOrdinal is always created / minted for the the first satoshi of the first output of the transaction.
+  - LTOs are tied to the first sat of the first output, ignoring whether it is an OP_RETURN output,
+    but introduces cases where LTOs are "burned" on creation
+
+- **Integration with ord Client**:
+  - Reuse existing SatPoint tracking mechanisms wherever possible to avoid duplicating logic.
+  - Mimic inscription tracking logic to extend functionality for LockTimeOrdinals.
+
+# Database and Indexing
+Rules for interacting with the database:
+- Use `WriteTransaction` for all atomic operations related to indexing.
+- Commit transactions only after all operations for a LockTimeOrdinal are complete.
+- Ensure database schemas are extendable to accommodate future changes.
+- Ensure all LockTimeOrdinal entities are stored in `LOCKTIME_ORDINAL_TABLE` and `LOCK_TIME_TO_NUMBER` and other tables.
+
+
+# Error Handling
+Guidelines for handling errors:
+- Use `Result` types consistently for error propagation.
+- Provide detailed error messages, especially when dealing with database transactions.
+- Write unit tests for edge cases, such as transactions with no outputs or invalid lockTime values.
+
+# Testing
+- Write robust tests to validate all features
+- Use mock transactions for testing to avoid reliance on live Bitcoin RPC data.
+
+# Documentation
+Maintain clear and concise documentation:
+- Document all new structs, enums, and functions related to LockTimeOrdinals.
+- Keep in mind the `docs-cat21/developer-howto.md` file for onboarding developers. Update it when relevant.
+- Keep in mind the `docs-cat21/development-summary.md` file for for a detailed documentation of this project and notable changes to the ord client. Update it when relevant.
+- Include inline comments where complex logic is implemented.
+- Further Documentation, see the `docs-cat21` folder.

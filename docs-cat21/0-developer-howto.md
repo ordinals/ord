@@ -1,8 +1,13 @@
-`cat21-ord`
-=====
+# Developer HowTo for `cat21-ord`
 
 Super quick howto to jump into coding (or building the executable).
-Generally, this is a great start: https://code.visualstudio.com/docs/languages/rust
+
+
+## 0. Prerequisites
+
+VS Code and/or Cursor is recommended for development.
+Read more about Rust development with VS Code here:
+https://code.visualstudio.com/docs/languages/rust
 
 
 ## 1. Clone the repo
@@ -101,7 +106,7 @@ cd cat21-ord
 > You want this option when you want to build the full damn index.
 > On a beafy server, 64 GB RAM, 2TB SSD. Do not try lower hardware!
 
-1. Bitcoin must be up and running, see [Mac/Linux beginner's guide for ORD development](https://gist.github.com/hans-crypto/30d05b9dcb3c05940e9a8db2e365da1e)
+1. Bitcoin must be up and running, see `1_bitcoin-guide-for-mac.md` or `1_bitcoin-guide-for-linux.md`.
 
     Feel free to use the files in `deploy-ord-dev` for a fast setup:
 

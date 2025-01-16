@@ -1,0 +1,13 @@
+*.redb
+.idea/
+.vagrant
+docs/build
+env
+fuzz/artifacts
+fuzz/corpus
+fuzz/coverage
+fuzz/target
+*.log
+target
+test-times.txt
+tmp
