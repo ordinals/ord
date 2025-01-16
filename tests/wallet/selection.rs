@@ -210,3 +210,104 @@ fn sending_rune_does_not_send_inscription() {
   .expected_stderr("error: not enough cardinal utxos\n")
   .run_and_extract_stdout();
 }
+
+#[test]
+fn split_does_not_select_inscribed_or_runic_utxos() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let rune = Rune(RUNE);
+
+  etch(&core, &ord, rune);
+
+  etch(&core, &ord, Rune(RUNE + 1));
+
+  drain(&core, &ord);
+
+  pretty_assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 0,
+      ordinal: 20000,
+      runic: Some(20000),
+      runes: Some(
+        [
+          (SpacedRune { rune, spacers: 0 }, "1000".parse().unwrap()),
+          (
+            SpacedRune {
+              rune: Rune(RUNE + 1),
+              spacers: 0
+            },
+            "1000".parse().unwrap()
+          ),
+        ]
+        .into()
+      ),
+      total: 40000,
+    }
+  );
+
+  CommandBuilder::new("--regtest wallet split --fee-rate 0 --splits splits.yaml")
+    .core(&core)
+    .ord(&ord)
+    .write(
+      "splits.yaml",
+      format!(
+        "
+outputs:
+- address: bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw
+  value: 20000 sat
+  runes:
+    {rune}: 1000
+"
+      ),
+    )
+    .expected_exit_code(1)
+    .expected_stderr("error: not enough cardinal utxos\n")
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn offer_create_does_not_select_non_cardinal_utxos() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let etch = etch(&core, &ord, Rune(RUNE));
+
+  let inscription = etch.output.inscriptions[0].id;
+
+  CommandBuilder::new(format!(
+    "--regtest \
+    --index-runes \
+    wallet \
+    send \
+    --fee-rate 0 \
+    bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw \
+    {inscription}"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  drain(&core, &ord);
+
+  CommandBuilder::new(format!(
+    "--regtest --index-runes wallet offer create --fee-rate 0 --inscription {inscription} --amount 1sat",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_exit_code(1)
+  .expected_stderr("error: not enough cardinal utxos\n")
+  .run_and_extract_stdout();
+}

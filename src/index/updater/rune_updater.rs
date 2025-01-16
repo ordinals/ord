@@ -17,7 +17,7 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) transaction_id_to_rune: &'a mut Table<'tx, &'static TxidValue, u128>,
 }
 
-impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
+impl RuneUpdater<'_, '_, '_> {
   pub(super) fn index_runes(&mut self, tx_index: u32, tx: &Transaction, txid: Txid) -> Result<()> {
     let artifact = Runestone::decipher(tx);
 
@@ -438,7 +438,7 @@ impl<'a, 'tx, 'client> RuneUpdater<'a, 'tx, 'client> {
         let taproot = tx_info.vout[input.previous_output.vout.into_usize()]
           .script_pub_key
           .script()?
-          .is_v1_p2tr();
+          .is_p2tr();
 
         if !taproot {
           continue;

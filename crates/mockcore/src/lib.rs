@@ -2,56 +2,101 @@
 
 use {
   api::Api,
+  base64::Engine,
   bitcoin::{
     address::{Address, NetworkUnchecked},
     amount::SignedAmount,
+    bip32::{ChildNumber, DerivationPath, Xpriv},
     block::Header,
-    blockdata::constants::COIN_VALUE,
-    blockdata::{block::Version, script},
+    blockdata::{script, transaction::Version},
     consensus::encode::{deserialize, serialize},
+    consensus::Decodable,
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
+    key::{Keypair, Secp256k1, TapTweak, XOnlyPublicKey},
     locktime::absolute::LockTime,
+    opcodes,
     pow::CompactTarget,
-    Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
-    Wtxid,
+    psbt::Psbt,
+    script::Instruction,
+    secp256k1::{self, rand},
+    sighash::{self, SighashCache, TapSighashType},
+    Amount, Block, Network, OutPoint, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid,
+    WPubkeyHash, Witness, Wtxid,
   },
   bitcoincore_rpc::json::{
-    Bip125Replaceable, CreateRawTransactionInput, Descriptor, EstimateMode, FeeRatePercentiles,
+    Bip125Replaceable, CreateRawTransactionInput, EstimateMode, FeeRatePercentiles,
     FinalizePsbtResult, GetBalancesResult, GetBalancesResultEntry, GetBlockHeaderResult,
     GetBlockStatsResult, GetBlockchainInfoResult, GetDescriptorInfoResult, GetNetworkInfoResult,
     GetRawTransactionResult, GetRawTransactionResultVout, GetRawTransactionResultVoutScriptPubKey,
     GetTransactionResult, GetTransactionResultDetail, GetTransactionResultDetailCategory,
     GetTxOutResult, GetWalletInfoResult, ImportDescriptors, ImportMultiResult,
-    ListDescriptorsResult, ListTransactionResult, ListUnspentResultEntry, ListWalletDirItem,
-    ListWalletDirResult, LoadWalletResult, SignRawTransactionInput, SignRawTransactionResult,
+    ListTransactionResult, ListUnspentResultEntry, ListWalletDirItem, ListWalletDirResult,
+    LoadWalletResult, SignRawTransactionInput, SignRawTransactionResult, StringOrStringArray,
     Timestamp, WalletProcessPsbtResult, WalletTxInfo,
   },
   jsonrpc_core::{IoHandler, Value},
   jsonrpc_http_server::{CloseHandle, ServerBuilder},
+  ord::{SimulateRawTransactionOptions, SimulateRawTransactionResult},
   serde::{Deserialize, Serialize},
   server::Server,
   state::State,
   std::{
     collections::{BTreeMap, BTreeSet, HashMap},
-    fs,
+    fs, mem,
     path::PathBuf,
     sync::{Arc, Mutex, MutexGuard},
     thread,
     time::Duration,
   },
   tempfile::TempDir,
+  wallet::Wallet,
 };
+
+const COIN_VALUE: u64 = 100_000_000;
 
 mod api;
 mod server;
 mod state;
+mod wallet;
+
+fn parse_hex_tx(tx: String) -> Transaction {
+  let mut cursor = bitcoin::io::Cursor::new(hex::decode(tx).unwrap());
+
+  let version = Version(i32::consensus_decode_from_finite_reader(&mut cursor).unwrap());
+  let input = Vec::<TxIn>::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+  let output = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+  let lock_time = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
+
+  Transaction {
+    version,
+    input,
+    output,
+    lock_time,
+  }
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct Descriptor {
+  pub desc: String,
+  pub timestamp: Timestamp,
+  pub active: bool,
+  pub internal: Option<bool>,
+  pub range: Option<(u64, u64)>,
+  pub next: Option<u64>,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
+pub struct ListDescriptorsResult {
+  pub wallet_name: String,
+  pub descriptors: Vec<Descriptor>,
+}
 
 pub fn builder() -> Builder {
   Builder {
     fail_lock_unspent: false,
     network: Network::Bitcoin,
-    version: 240000,
+    version: 250000,
   }
 }
 
@@ -137,6 +182,7 @@ pub struct TransactionTemplate<'a> {
   pub output_values: &'a [u64],
   pub outputs: usize,
   pub p2tr: bool,
+  pub recipient: Option<Address>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -174,7 +220,7 @@ pub struct FundRawTransactionResult {
   pub change_position: i32,
 }
 
-impl<'a> Default for TransactionTemplate<'a> {
+impl Default for TransactionTemplate<'_> {
   fn default() -> Self {
     Self {
       fee: 0,
@@ -185,6 +231,7 @@ impl<'a> Default for TransactionTemplate<'a> {
       output_values: &[],
       outputs: 1,
       p2tr: false,
+      recipient: None,
     }
   }
 }
@@ -275,16 +322,43 @@ impl Handle {
       .clone()
   }
 
+  #[track_caller]
+  pub fn tx_index(&self, txid: Txid) -> (usize, usize) {
+    let state = self.state();
+
+    for (block_hash, block) in &state.blocks {
+      for (t, tx) in block.txdata.iter().enumerate() {
+        if tx.compute_txid() == txid {
+          let b = state
+            .hashes
+            .iter()
+            .enumerate()
+            .find(|(_b, hash)| *hash == block_hash)
+            .unwrap()
+            .0;
+          return (b, t);
+        }
+      }
+    }
+
+    panic!("unknown transaction");
+  }
+
   pub fn mempool(&self) -> Vec<Transaction> {
     self.state().mempool().to_vec()
   }
 
   pub fn descriptors(&self) -> Vec<String> {
-    self.state().descriptors.clone()
+    self
+      .state()
+      .descriptors
+      .iter()
+      .map(|(descriptor, _timestamp)| descriptor.clone())
+      .collect()
   }
 
   pub fn import_descriptor(&self, desc: String) {
-    self.state().descriptors.push(desc);
+    self.state().descriptors.push((desc, Timestamp::Now));
   }
 
   pub fn lock(&self, output: OutPoint) {
@@ -294,9 +368,10 @@ impl Handle {
   pub fn network(&self) -> String {
     match self.state().network {
       Network::Bitcoin => "mainnet".to_string(),
-      Network::Testnet => Network::Testnet.to_string(),
-      Network::Signet => Network::Signet.to_string(),
       Network::Regtest => Network::Regtest.to_string(),
+      Network::Signet => Network::Signet.to_string(),
+      Network::Testnet4 => Network::Testnet4.to_string(),
+      Network::Testnet => Network::Testnet.to_string(),
       _ => panic!(),
     }
   }

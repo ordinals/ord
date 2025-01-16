@@ -46,32 +46,31 @@ deploy-mainnet-bravo branch='master' remote='ordinals/ord': \
 deploy-mainnet-charlie branch='master' remote='ordinals/ord': \
   (deploy branch remote 'main' 'charlie.ordinals.net')
 
-deploy-regtest branch='master' remote='ordinals/ord': \
-  (deploy branch remote 'regtest' 'regtest.ordinals.net')
-
 deploy-signet branch='master' remote='ordinals/ord': \
   (deploy branch remote 'signet' 'signet.ordinals.net')
 
 deploy-testnet branch='master' remote='ordinals/ord': \
   (deploy branch remote 'test' 'testnet.ordinals.net')
 
+deploy-testnet4 branch='master' remote='ordinals/ord': \
+  (deploy branch remote 'testnet4' 'testnet4.ordinals.net')
+
 deploy-all: \
-  deploy-regtest \
   deploy-testnet \
+  deploy-testnet4 \
   deploy-signet \
   deploy-mainnet-alpha \
   deploy-mainnet-bravo \
   deploy-mainnet-charlie
 
 delete-indices: \
-  (delete-index "regtest.ordinals.net") \
   (delete-index "signet.ordinals.net") \
   (delete-index "testnet.ordinals.net")
 
 delete-index domain:
   ssh root@{{domain}} 'systemctl stop ord && rm -f /var/lib/ord/*/index.redb'
 
-servers := 'alpha bravo charlie regtest signet testnet'
+servers := 'alpha bravo charlie signet testnet3 testnet4'
 
 initialize-server-keys:
   #!/usr/bin/env bash
@@ -161,7 +160,10 @@ publish-tag-and-crate revision='master':
   rm -rf tmp/release
 
 outdated:
-  cargo outdated -R --workspace
+  cargo outdated --root-deps-only --workspace
+
+unused:
+  cargo +nightly udeps --workspace
 
 update-modern-normalize:
   curl \
@@ -219,3 +221,11 @@ benchmark-server:
 
 update-contributors:
   cargo run --release --package update-contributors
+
+replicate:
+  rsync --archive bin/replicate root@charlie.ordinals.net:replicate
+  ssh root@charlie.ordinals.net ./replicate
+
+swap host:
+  rsync --archive bin/swap root@{{ host }}.ordinals.net:swap
+  ssh root@{{ host }}.ordinals.net ./swap

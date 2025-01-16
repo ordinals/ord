@@ -6,7 +6,8 @@ pub(crate) struct Batch {
   shared: SharedArgs,
   #[arg(
     long,
-    help = "Inscribe multiple inscriptions and rune defined in YAML <BATCH_FILE>."
+    help = "Inscribe multiple inscriptions and rune defined in YAML <BATCH_FILE>.",
+    value_name = "BATCH_FILE"
   )]
   pub(crate) batch: PathBuf,
 }
@@ -17,12 +18,15 @@ impl Batch {
 
     let batchfile = batch::File::load(&self.batch)?;
 
-    let parent_info = wallet.get_parent_info(batchfile.parent)?;
+    let parent_info = wallet.get_parent_info(&batchfile.parents)?;
 
     let (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(
       &wallet,
       utxos,
-      parent_info.as_ref().map(|info| info.tx_out.value),
+      parent_info
+        .iter()
+        .map(|info| info.tx_out.value.to_sat())
+        .collect(),
       self.shared.compress,
     )?;
 
@@ -60,7 +64,7 @@ impl Batch {
     }
     .inscribe(
       &locked_utxos.into_keys().collect(),
-      wallet.get_runic_outputs()?,
+      wallet.get_runic_outputs()?.unwrap_or_default(),
       utxos,
       &wallet,
     )
@@ -204,7 +208,8 @@ mod tests {
       &batch_path,
       format!(
         "mode: separate-outputs
-parent: {parent}
+parents:
+- {parent}
 inscriptions:
 - file: {}
   metadata:
@@ -241,7 +246,7 @@ inscriptions:
             ..default()
           }
         ],
-        parent: Some(parent),
+        parents: vec![parent],
         ..default()
       }
     );

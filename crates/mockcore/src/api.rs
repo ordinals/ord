@@ -87,7 +87,12 @@ pub trait Api {
   ) -> Result<Value, jsonrpc_core::Error>;
 
   #[rpc(name = "sendrawtransaction")]
-  fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error>;
+  fn send_raw_transaction(
+    &self,
+    tx: String,
+    maxfeerate: Option<()>,
+    maxburnamount: Option<f64>,
+  ) -> Result<String, jsonrpc_core::Error>;
 
   #[rpc(name = "sendtoaddress")]
   fn send_to_address(
@@ -204,4 +209,14 @@ pub trait Api {
     psbt: String,
     extract: Option<bool>,
   ) -> Result<FinalizePsbtResult, jsonrpc_core::Error>;
+
+  #[rpc(name = "utxoupdatepsbt")]
+  fn utxo_update_psbt(&self, psbt: String) -> Result<String, jsonrpc_core::Error>;
+
+  #[rpc(name = "simulaterawtransaction")]
+  fn simulate_raw_transaction(
+    &self,
+    txs: Vec<String>,
+    options: Option<SimulateRawTransactionOptions>,
+  ) -> Result<SimulateRawTransactionResult, jsonrpc_core::Error>;
 }

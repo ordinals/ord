@@ -37,7 +37,8 @@ pub(crate) struct Inscribe {
   pub(crate) parent: Option<InscriptionId>,
   #[arg(
     long,
-    help = "Include <AMOUNT> postage with inscription. [default: 10000sat]"
+    help = "Include <AMOUNT> postage with inscription. [default: 10000sat]",
+    value_name = "AMOUNT"
   )]
   pub(crate) postage: Option<Amount>,
   #[clap(long, help = "Allow reinscription.")]
@@ -71,7 +72,7 @@ impl Inscribe {
         chain,
         self.shared.compress,
         self.delegate,
-        Inscribe::parse_metadata(self.cbor_metadata, self.json_metadata)?,
+        WalletCommand::parse_metadata(self.cbor_metadata, self.json_metadata)?,
         self.metaprotocol,
         self.parent.into_iter().collect(),
         self.file,
@@ -81,7 +82,7 @@ impl Inscribe {
       mode: batch::Mode::SeparateOutputs,
       no_backup: self.shared.no_backup,
       no_limit: self.shared.no_limit,
-      parent_info: wallet.get_parent_info(self.parent)?,
+      parent_info: wallet.get_parent_info(self.parent.as_slice())?,
       postages: vec![self.postage.unwrap_or(TARGET_POSTAGE)],
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.shared.fee_rate,
@@ -94,29 +95,10 @@ impl Inscribe {
     }
     .inscribe(
       &wallet.locked_utxos().clone().into_keys().collect(),
-      wallet.get_runic_outputs()?,
+      wallet.get_runic_outputs()?.unwrap_or_default(),
       wallet.utxos(),
       &wallet,
     )
-  }
-
-  fn parse_metadata(cbor: Option<PathBuf>, json: Option<PathBuf>) -> Result<Option<Vec<u8>>> {
-    if let Some(path) = cbor {
-      let cbor = fs::read(path)?;
-      let _value: Value = ciborium::from_reader(Cursor::new(cbor.clone()))
-        .context("failed to parse CBOR metadata")?;
-
-      Ok(Some(cbor))
-    } else if let Some(path) = json {
-      let value: serde_json::Value =
-        serde_json::from_reader(fs::File::open(path)?).context("failed to parse JSON metadata")?;
-      let mut cbor = Vec::new();
-      ciborium::into_writer(&value, &mut cbor)?;
-
-      Ok(Some(cbor))
-    } else {
-      Ok(None)
-    }
   }
 }
 

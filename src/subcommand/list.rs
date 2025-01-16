@@ -10,8 +10,8 @@ pub(crate) struct List {
 pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
   pub indexed: bool,
-  pub inscriptions: Vec<InscriptionId>,
-  pub runes: BTreeMap<SpacedRune, Pile>,
+  pub inscriptions: Option<Vec<InscriptionId>>,
+  pub runes: Option<BTreeMap<SpacedRune, Pile>>,
   pub sat_ranges: Option<Vec<Range>>,
   pub script_pubkey: String,
   pub spent: bool,
@@ -55,9 +55,9 @@ impl List {
       inscriptions: list.inscriptions,
       runes: list.runes,
       sat_ranges: list.sat_ranges.map(output_ranges),
-      script_pubkey: list.script_pubkey,
+      script_pubkey: list.script_pubkey.to_asm_string(),
       spent: list.spent,
-      transaction: list.transaction,
+      transaction: list.transaction.to_string(),
       value: list.value,
     })))
   }

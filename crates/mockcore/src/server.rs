@@ -1,9 +1,4 @@
-use {
-  super::*,
-  base64::Engine,
-  bitcoin::{consensus::Decodable, psbt::Psbt, Witness},
-  std::io::Cursor,
-};
+use super::*;
 
 pub(crate) struct Server {
   pub(crate) state: Arc<Mutex<State>>,
@@ -50,13 +45,7 @@ impl Api for Server {
 
   fn get_blockchain_info(&self) -> Result<GetBlockchainInfoResult, jsonrpc_core::Error> {
     Ok(GetBlockchainInfoResult {
-      chain: String::from(match self.network {
-        Network::Bitcoin => "main",
-        Network::Testnet => "test",
-        Network::Signet => "signet",
-        Network::Regtest => "regtest",
-        _ => panic!(),
-      }),
+      chain: self.network,
       blocks: 0,
       headers: 0,
       best_block_hash: self.state().hashes[0],
@@ -71,7 +60,7 @@ impl Api for Server {
       automatic_pruning: None,
       prune_target_size: None,
       softforks: HashMap::new(),
-      warnings: String::new(),
+      warnings: StringOrStringArray::String(String::new()),
     })
   }
 
@@ -91,7 +80,7 @@ impl Api for Server {
       relay_fee: Amount::from_sat(0),
       incremental_fee: Amount::from_sat(0),
       local_addresses: Vec::new(),
-      warnings: String::new(),
+      warnings: StringOrStringArray::String(String::new()),
     })
   }
 
@@ -136,7 +125,7 @@ impl Api for Server {
           nonce: 0,
           previous_block_hash: None,
           time: 0,
-          version: Version::ONE,
+          version: bitcoin::blockdata::block::Version::ONE,
           version_hex: Some(vec![0, 0, 0, 0]),
         })
         .unwrap(),
@@ -164,7 +153,7 @@ impl Api for Server {
       height,
       hash: block_hash,
       confirmations: 0,
-      version: Version::ONE,
+      version: bitcoin::block::Version::ONE,
       version_hex: None,
       merkle_root: TxMerkleNode::all_zeros(),
       time: 0,
@@ -263,7 +252,7 @@ impl Api for Server {
 
     for (height, hash) in state.hashes.iter().enumerate() {
       for tx in &state.blocks[hash].txdata {
-        if tx.txid() == txid {
+        if tx.compute_txid() == txid {
           confirmations = Some(state.hashes.len() - height);
         }
       }
@@ -320,7 +309,7 @@ impl Api for Server {
     assert_eq!(replaceable, None, "replaceable param not supported");
 
     let tx = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: utxos
         .iter()
@@ -334,7 +323,7 @@ impl Api for Server {
       output: outs
         .values()
         .map(|amount| TxOut {
-          value: (*amount * COIN_VALUE as f64) as u64,
+          value: Amount::from_sat((*amount * COIN_VALUE as f64) as u64),
           script_pubkey: ScriptBuf::new(),
         })
         .collect(),
@@ -366,19 +355,7 @@ impl Api for Server {
   ) -> Result<FundRawTransactionResult, jsonrpc_core::Error> {
     let options = options.unwrap();
 
-    let mut cursor = Cursor::new(hex::decode(tx).unwrap());
-
-    let version = i32::consensus_decode_from_finite_reader(&mut cursor).unwrap();
-    let input = Vec::<TxIn>::consensus_decode_from_finite_reader(&mut cursor).unwrap();
-    let output = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
-    let lock_time = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
-
-    let mut transaction = Transaction {
-      version,
-      input,
-      output,
-      lock_time,
-    };
+    let mut transaction = parse_hex_tx(tx);
 
     assert_eq!(
       options.change_position,
@@ -390,8 +367,8 @@ impl Api for Server {
     let output_value = transaction
       .output
       .iter()
-      .map(|txout| txout.value)
-      .sum::<u64>();
+      .map(|txout| txout.value.to_sat())
+      .sum();
 
     let mut utxos = state
       .utxos
@@ -456,7 +433,7 @@ impl Api for Server {
 
     if change > 0 {
       transaction.output.push(TxOut {
-        value: change,
+        value: Amount::from_sat(change),
         script_pubkey: state.new_address(true).into(),
       });
     }
@@ -466,7 +443,7 @@ impl Api for Server {
       let funded_vsize = transaction.vsize() as f64 + 68.0 / 4.0;
       let funded_kwu = funded_vsize / 1000.0;
       let fee = (funded_kwu * fee_rate.to_sat() as f64) as u64;
-      transaction.output.last_mut().unwrap().value -= fee;
+      transaction.output.last_mut().unwrap().value -= Amount::from_sat(fee);
       fee
     } else {
       0
@@ -482,12 +459,20 @@ impl Api for Server {
   fn sign_raw_transaction_with_wallet(
     &self,
     tx: String,
-    _utxos: Option<Vec<SignRawTransactionInput>>,
+    utxos: Option<Vec<SignRawTransactionInput>>,
     sighash_type: Option<()>,
   ) -> Result<Value, jsonrpc_core::Error> {
     assert_eq!(sighash_type, None, "sighash_type param not supported");
 
     let mut transaction: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
+    if let Some(utxos) = &utxos {
+      // sign for zero-value UTXOs produced by `ord wallet sign`
+      if utxos[0].amount == Some(Amount::ZERO) {
+        transaction.input[0].witness = self.state().wallet.sign_bip322(&utxos[0], &transaction);
+      }
+    }
+
     for input in &mut transaction.input {
       if input.witness.is_empty() {
         input.witness = Witness::from_slice(&[&[0; 64]]);
@@ -504,8 +489,35 @@ impl Api for Server {
     )
   }
 
-  fn send_raw_transaction(&self, tx: String) -> Result<String, jsonrpc_core::Error> {
+  fn send_raw_transaction(
+    &self,
+    tx: String,
+    maxfeerate: Option<()>,
+    maxburnamount: Option<f64>,
+  ) -> Result<String, jsonrpc_core::Error> {
+    assert!(
+      maxfeerate.is_none(),
+      "sendrawtransaction: maxfeerate is not supported"
+    );
+
     let tx: Transaction = deserialize(&hex::decode(tx).unwrap()).unwrap();
+
+    let burnt = tx
+      .output
+      .iter()
+      .filter(|tx_out| {
+        tx_out.script_pubkey.instructions().next()
+          == Some(Ok(Instruction::Op(opcodes::all::OP_RETURN)))
+      })
+      .map(|tx_out| tx_out.value)
+      .sum::<Amount>();
+
+    let maxburnamount = Amount::from_btc(maxburnamount.unwrap_or_default()).unwrap();
+
+    assert!(
+      burnt <= maxburnamount,
+      "burnt amount greater than maxburnamount: {burnt} > {maxburnamount}",
+    );
 
     let mut state = self.state.lock().unwrap();
 
@@ -532,7 +544,7 @@ impl Api for Server {
 
     state.mempool.push(tx.clone());
 
-    Ok(tx.txid().to_string())
+    Ok(tx.compute_txid().to_string())
   }
 
   fn send_to_address(
@@ -573,7 +585,7 @@ impl Api for Server {
     };
 
     let mut transaction = Transaction {
-      version: 2,
+      version: Version(2),
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         previous_output: *outpoint,
@@ -583,12 +595,12 @@ impl Api for Server {
       }],
       output: vec![
         TxOut {
-          value: value.to_sat(),
-          script_pubkey: address.payload.script_pubkey(),
+          value,
+          script_pubkey: address.assume_checked_ref().script_pubkey(),
         },
         TxOut {
-          value: (*utxo_amount - value).to_sat(),
-          script_pubkey: address.payload.script_pubkey(),
+          value: *utxo_amount - value,
+          script_pubkey: address.assume_checked_ref().script_pubkey(),
         },
       ],
     };
@@ -597,9 +609,9 @@ impl Api for Server {
     #[allow(clippy::cast_sign_loss)]
     let fee = (fee_rate.unwrap_or(1.0) * transaction.vsize() as f64).round() as u64;
 
-    transaction.output[1].value -= fee;
+    transaction.output[1].value -= Amount::from_sat(fee);
 
-    let txid = transaction.txid();
+    let txid = transaction.compute_txid();
 
     state.mempool.push(transaction);
 
@@ -623,7 +635,7 @@ impl Api for Server {
 
     'outer: for (height, hash) in state.hashes.iter().enumerate() {
       for tx in &state.blocks[hash].txdata {
-        if tx.txid() == txid {
+        if tx.compute_txid() == txid {
           confirmations = Some(state.hashes.len() - height);
           break 'outer;
         }
@@ -690,7 +702,7 @@ impl Api for Server {
               .enumerate()
               .map(|(n, output)| GetRawTransactionResultVout {
                 n: n.try_into().unwrap(),
-                value: Amount::from_sat(output.value),
+                value: output.value,
                 script_pub_key: GetRawTransactionResultVoutScriptPubKey {
                   asm: output.script_pubkey.to_asm_string(),
                   hex: output.script_pubkey.clone().into(),
@@ -760,7 +772,7 @@ impl Api for Server {
         label: None,
         redeem_script: None,
         witness_script: None,
-        script_pub_key: ScriptBuf::new(),
+        script_pub_key: tx_out.script_pubkey.clone(),
         amount,
         confirmations: 0,
         spendable: true,
@@ -798,7 +810,7 @@ impl Api for Server {
   ) -> Result<GetDescriptorInfoResult, jsonrpc_core::Error> {
     Ok(GetDescriptorInfoResult {
       descriptor: desc,
-      checksum: "".into(),
+      checksum: None,
       is_range: false,
       is_solvable: false,
       has_private_keys: true,
@@ -809,10 +821,11 @@ impl Api for Server {
     &self,
     req: Vec<ImportDescriptors>,
   ) -> Result<Vec<ImportMultiResult>, jsonrpc_core::Error> {
-    self
-      .state()
-      .descriptors
-      .extend(req.into_iter().map(|params| params.descriptor));
+    self.state().descriptors.extend(
+      req
+        .into_iter()
+        .map(|params| (params.descriptor, params.timestamp)),
+    );
 
     Ok(vec![ImportMultiResult {
       success: true,
@@ -843,7 +856,7 @@ impl Api for Server {
         .iter()
         .take(count.unwrap_or(u16::MAX).into())
         .map(|(txid, tx)| (*txid, tx))
-        .chain(state.mempool.iter().map(|tx| (tx.txid(), tx)))
+        .chain(state.mempool.iter().map(|tx| (tx.compute_txid(), tx)))
         .map(|(txid, tx)| ListTransactionResult {
           info: WalletTxInfo {
             confirmations: state.get_confirmations(tx),
@@ -907,9 +920,9 @@ impl Api for Server {
         .state()
         .descriptors
         .iter()
-        .map(|desc| Descriptor {
+        .map(|(desc, timestamp)| Descriptor {
           desc: desc.to_string(),
-          timestamp: Timestamp::Now,
+          timestamp: *timestamp,
           active: true,
           internal: None,
           range: None,
@@ -984,7 +997,15 @@ impl Api for Server {
     if let Some(sign) = sign {
       if sign {
         for input in psbt.inputs.iter_mut() {
-          input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+          let address = Address::from_script(
+            &input.witness_utxo.as_ref().unwrap().script_pubkey,
+            self.network,
+          )
+          .unwrap();
+
+          if self.state().is_wallet_address(&address) {
+            input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+          }
         }
       }
     }
@@ -998,8 +1019,10 @@ impl Api for Server {
   fn finalize_psbt(
     &self,
     psbt: String,
-    _extract: Option<bool>,
+    extract: Option<bool>,
   ) -> Result<FinalizePsbtResult, jsonrpc_core::Error> {
+    assert!(extract.is_none());
+
     let mut transaction = Psbt::deserialize(
       &base64::engine::general_purpose::STANDARD
         .decode(psbt)
@@ -1018,6 +1041,48 @@ impl Api for Server {
       psbt: None,
       hex: Some(serialize(&transaction)),
       complete: true,
+    })
+  }
+
+  fn utxo_update_psbt(&self, psbt: String) -> Result<String, jsonrpc_core::Error> {
+    Ok(psbt)
+  }
+
+  fn simulate_raw_transaction(
+    &self,
+    txs: Vec<String>,
+    _options: Option<SimulateRawTransactionOptions>,
+  ) -> Result<SimulateRawTransactionResult, jsonrpc_core::Error> {
+    let mut balance_change: i64 = 0;
+
+    for tx in txs.into_iter().map(parse_hex_tx) {
+      for input in tx.input {
+        let tx = self
+          .state()
+          .transactions
+          .get(&input.previous_output.txid)
+          .unwrap()
+          .clone();
+
+        let txout = &tx.output[usize::try_from(input.previous_output.vout).unwrap()];
+
+        let address = Address::from_script(&txout.script_pubkey, Network::Bitcoin).unwrap();
+
+        if self.state().is_wallet_address(&address) {
+          balance_change -= i64::try_from(txout.value.to_sat()).unwrap();
+        }
+      }
+
+      for output in tx.output {
+        let address = Address::from_script(&output.script_pubkey, Network::Bitcoin).unwrap();
+        if self.state().is_wallet_address(&address) {
+          balance_change += i64::try_from(output.value.to_sat()).unwrap();
+        }
+      }
+    }
+
+    Ok(SimulateRawTransactionResult {
+      balance_change: SignedAmount::from_sat(balance_change),
     })
   }
 }

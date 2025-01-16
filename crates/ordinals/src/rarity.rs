@@ -1,6 +1,8 @@
 use super::*;
 
-#[derive(Debug, PartialEq, PartialOrd, Copy, Clone, DeserializeFromStr, SerializeDisplay)]
+#[derive(
+  Clone, Copy, Debug, DeserializeFromStr, Eq, Hash, PartialEq, PartialOrd, SerializeDisplay,
+)]
 pub enum Rarity {
   Common,
   Uncommon,
@@ -8,6 +10,28 @@ pub enum Rarity {
   Epic,
   Legendary,
   Mythic,
+}
+
+impl Rarity {
+  pub const ALL: [Rarity; 6] = [
+    Rarity::Common,
+    Rarity::Uncommon,
+    Rarity::Rare,
+    Rarity::Epic,
+    Rarity::Legendary,
+    Rarity::Mythic,
+  ];
+
+  pub fn supply(self) -> u64 {
+    match self {
+      Self::Common => 2_099_999_990_760_000,
+      Self::Uncommon => 6_926_535,
+      Self::Rare => 3_432,
+      Self::Epic => 27,
+      Self::Legendary => 5,
+      Self::Mythic => 1,
+    }
+  }
 }
 
 impl From<Rarity> for u8 {
@@ -156,14 +180,7 @@ mod tests {
 
   #[test]
   fn conversions_with_u8() {
-    for &expected in &[
-      Rarity::Common,
-      Rarity::Uncommon,
-      Rarity::Rare,
-      Rarity::Epic,
-      Rarity::Legendary,
-      Rarity::Mythic,
-    ] {
+    for expected in Rarity::ALL {
       let n: u8 = expected.into();
       let actual = Rarity::try_from(n).unwrap();
       assert_eq!(actual, expected);
@@ -175,5 +192,38 @@ mod tests {
   #[test]
   fn error() {
     assert_eq!("foo".parse::<Rarity>().unwrap_err(), "invalid rarity `foo`");
+  }
+
+  #[test]
+  fn supply() {
+    let mut i = 0;
+
+    let mut supply = HashMap::<Rarity, u64>::new();
+
+    for height in 0.. {
+      let subsidy = Height(height).subsidy();
+
+      if subsidy == 0 {
+        break;
+      }
+
+      *supply.entry(Sat(i).rarity()).or_default() += 1;
+
+      *supply.entry(Rarity::Common).or_default() += subsidy.saturating_sub(1);
+
+      i += subsidy;
+    }
+
+    for (rarity, supply) in &supply {
+      assert_eq!(
+        rarity.supply(),
+        *supply,
+        "invalid supply for rarity {rarity}"
+      );
+    }
+
+    assert_eq!(supply.values().sum::<u64>(), Sat::SUPPLY);
+
+    assert_eq!(supply.len(), Rarity::ALL.len());
   }
 }

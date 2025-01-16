@@ -29,6 +29,18 @@ impl Sat {
     self.n() >= 50 * COIN_VALUE * 9 && self.n() < 50 * COIN_VALUE * 10
   }
 
+  pub fn palindrome(self) -> bool {
+    let mut n = self.0;
+    let mut reversed = 0;
+
+    while n > 0 {
+      reversed = reversed * 10 + n % 10;
+      n /= 10;
+    }
+
+    self.0 == reversed
+  }
+
   pub fn percentile(self) -> String {
     format!("{}%", (self.0 as f64 / Self::LAST.0 as f64) * 100.0)
   }
@@ -57,10 +69,16 @@ impl Sat {
     self.into()
   }
 
-  /// `Sat::rarity` is expensive and is called frequently when indexing.
-  /// Sat::is_common only checks if self is `Rarity::Common` but is
-  /// much faster.
+  /// Is this sat common or not?  Much faster than `Sat::rarity()`.
   pub fn common(self) -> bool {
+    // The block rewards for epochs 0 through 9 are all multiples
+    // of 9765625 (the epoch 9 reward), so any sat from epoch 9 or
+    // earlier that isn't divisible by 9765625 is definitely common.
+    if self < Epoch(10).starting_sat() && self.0 % Epoch(9).subsidy() != 0 {
+      return true;
+    }
+
+    // Fall back to the full calculation.
     let epoch = self.epoch();
     (self.0 - epoch.starting_sat().0) % epoch.subsidy() != 0
   }
@@ -89,6 +107,10 @@ impl Sat {
 
     if self.nineball() {
       Charm::Nineball.set(&mut charms);
+    }
+
+    if self.palindrome() {
+      Charm::Palindrome.set(&mut charms);
     }
 
     if self.coin() {
@@ -755,6 +777,16 @@ mod tests {
   }
 
   #[test]
+  fn common_fast_path() {
+    // Exhaustively test the Sat::common() fast path on every
+    // uncommon sat.
+    for height in 0..Epoch::FIRST_POST_SUBSIDY.starting_height().0 {
+      let height = Height(height);
+      assert!(!Sat::common(height.starting_sat()));
+    }
+  }
+
+  #[test]
   fn coin() {
     assert!(Sat(0).coin());
     assert!(!Sat(COIN_VALUE - 1).coin());
@@ -786,5 +818,19 @@ mod tests {
       .to_string(),
       "failed to parse sat `foo`: invalid percentile",
     );
+  }
+
+  #[test]
+  fn palindrome() {
+    assert!(Sat(0).palindrome());
+    assert!(!Sat(10).palindrome());
+    assert!(Sat(11).palindrome());
+  }
+
+  #[test]
+  fn palindrome_charm() {
+    assert!(Charm::Palindrome.is_set(Sat(0).charms()));
+    assert!(!Charm::Palindrome.is_set(Sat(10).charms()));
+    assert!(Charm::Palindrome.is_set(Sat(11).charms()));
   }
 }

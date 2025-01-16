@@ -26,13 +26,15 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut runic = 0;
 
   for (output, txout) in unspent_outputs {
-    let rune_balances = wallet.get_runes_balances_in_output(output)?;
+    let rune_balances = wallet
+      .get_runes_balances_in_output(output)?
+      .unwrap_or_default();
 
     let is_ordinal = inscription_outputs.contains(output);
     let is_runic = !rune_balances.is_empty();
 
     if is_ordinal {
-      ordinal += txout.value;
+      ordinal += txout.value.to_sat();
     }
 
     if is_runic {
@@ -48,11 +50,11 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
             scale: pile.divisibility,
           });
       }
-      runic += txout.value;
+      runic += txout.value.to_sat();
     }
 
     if !is_ordinal && !is_runic {
-      cardinal += txout.value;
+      cardinal += txout.value.to_sat();
     }
 
     if is_ordinal && is_runic {

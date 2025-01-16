@@ -15,7 +15,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     .map(|satpoint| satpoint.outpoint)
     .collect::<BTreeSet<OutPoint>>();
 
-  let runic_utxos = wallet.get_runic_outputs()?;
+  let runic_utxos = wallet.get_runic_outputs()?.unwrap_or_default();
 
   let cardinal_utxos = unspent_outputs
     .iter()
@@ -25,7 +25,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
       } else {
         Some(CardinalUtxo {
           output: *output,
-          amount: txout.value,
+          amount: txout.value.to_sat(),
         })
       }
     })

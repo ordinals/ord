@@ -18,7 +18,10 @@ pub(super) struct SharedArgs {
   #[arg(
     long,
     alias = "nolimit",
-    help = "Do not check that transactions are equal to or below the MAX_STANDARD_TX_WEIGHT of 400,000 weight units. Transactions over this limit are currently nonstandard and will not be relayed by bitcoind in its default configuration. Do not use this flag unless you understand the implications."
+    help = "Allow transactions larger than MAX_STANDARD_TX_WEIGHT of 400,000 weight units and \
+    OP_RETURNs greater than 83 bytes. Transactions over this limit are nonstandard and will not be \
+    relayed by bitcoind in its default configuration. Do not use this flag unless you understand \
+    the implications."
   )]
   pub(crate) no_limit: bool,
 }

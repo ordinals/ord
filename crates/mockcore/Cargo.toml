@@ -2,20 +2,24 @@
 name = "mockcore"
 description = "Mock Bitcoin Core RPC server"
 version = "0.0.1"
-edition = "2021"
-license = "CC0-1.0"
-homepage = "https://github.com/ordinals/ord"
-repository = "https://github.com/ordinals/ord"
+
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
 
 [dependencies]
-bitcoin = { version = "0.30.0", features = ["serde", "rand"] }
-base64 = "0.22.0"
-hex = "0.4.3"
+base64.workspace = true
+bitcoin.workspace = true
+hex.workspace = true
 jsonrpc-core = "18.0.0"
 jsonrpc-derive = "18.0.0"
 jsonrpc-http-server = "18.0.0"
-ord-bitcoincore-rpc = "0.17.2"
-reqwest = { version = "0.11.27", features = ["blocking"] }
-serde = { version = "1.0.137", features = ["derive"] }
-serde_json = { version = "1.0.81" }
-tempfile = "3.2.0"
+ord = { path = "../.."}
+ord-bitcoincore-rpc = "0.19.0"
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tempfile.workspace = true

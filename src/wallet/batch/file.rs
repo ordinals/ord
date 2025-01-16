@@ -5,7 +5,8 @@ use super::*;
 #[serde(deny_unknown_fields)]
 pub struct File {
   pub mode: Mode,
-  pub parent: Option<InscriptionId>,
+  #[serde(default)]
+  pub parents: Vec<InscriptionId>,
   pub postage: Option<u64>,
   #[serde(default)]
   pub reinscribe: bool,
@@ -36,7 +37,7 @@ impl File {
     if sat_or_satpoint {
       ensure!(
         batchfile.mode == Mode::SameSat,
-        "neither `sat` nor `satpoint` can be set in `same-sat` mode",
+        "`sat` or `satpoint` can only be set in `same-sat` mode",
       );
     }
 
@@ -108,7 +109,7 @@ impl File {
     &self,
     wallet: &Wallet,
     utxos: &BTreeMap<OutPoint, TxOut>,
-    parent_value: Option<u64>,
+    parent_values: Vec<u64>,
     compress: bool,
   ) -> Result<(
     Vec<Inscription>,
@@ -120,7 +121,7 @@ impl File {
     let mut reveal_satpoints = Vec::new();
     let mut postages = Vec::new();
 
-    let mut pointer = parent_value.unwrap_or_default();
+    let mut pointer = parent_values.iter().sum();
 
     for (i, entry) in self.inscriptions.iter().enumerate() {
       if let Some(delegate) = entry.delegate {
@@ -136,7 +137,7 @@ impl File {
         entry.delegate,
         entry.metadata()?,
         entry.metaprotocol.clone(),
-        self.parent.into_iter().collect(),
+        self.parents.clone(),
         entry.file.clone(),
         Some(pointer),
         self
@@ -157,19 +158,15 @@ impl File {
 
         txout.value
       } else {
-        self
-          .postage
-          .map(Amount::from_sat)
-          .unwrap_or(TARGET_POSTAGE)
-          .to_sat()
+        self.postage.map(Amount::from_sat).unwrap_or(TARGET_POSTAGE)
       };
 
-      pointer += postage;
+      pointer += postage.to_sat();
 
       if self.mode == Mode::SameSat && i > 0 {
         continue;
       } else {
-        postages.push(Amount::from_sat(postage));
+        postages.push(postage);
       }
     }
 
@@ -367,11 +364,11 @@ inscriptions:
       batch::File::load(Path::new("batch.yaml")).unwrap(),
       batch::File {
         mode: batch::Mode::SeparateOutputs,
-        parent: Some(
+        parents: vec![
           "6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0"
             .parse()
             .unwrap()
-        ),
+        ],
         postage: Some(12345),
         reinscribe: true,
         sat: None,

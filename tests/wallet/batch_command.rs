@@ -145,7 +145,7 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -161,6 +161,129 @@ fn batch_inscribe_with_multiple_inscriptions_with_parent() {
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     r".*<dt>parents</dt>\s*<dd>.*</dd>.*",
+  );
+
+  let request = ord.request(format!("/content/{}", output.inscriptions[2].id));
+  assert_eq!(request.status(), 200);
+  assert_eq!(request.headers().get("content-type").unwrap(), "audio/wav");
+}
+
+#[test]
+fn batch_inscribe_inscriptions_with_multiple_parents() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let parent_output_1 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let parent_output_2 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let parent_output_3 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let parent_id_1 = parent_output_1.inscriptions[0].id;
+  let parent_id_2 = parent_output_2.inscriptions[0].id;
+  let parent_id_3 = parent_output_3.inscriptions[0].id;
+
+  let output = CommandBuilder::new("wallet batch --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("parents:\n- {parent_id_1}\n- {parent_id_2}\n- {parent_id_3}\nmode: separate-outputs\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+    )
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*{parent_id_3}.*",),
+  );
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[1].id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*{parent_id_3}.*",),
+  );
+}
+
+#[test]
+fn batch_inscribe_and_etch_with_two_parents() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let parent_output_1 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let parent_output_2 = CommandBuilder::new("wallet inscribe --fee-rate 5.0 --file parent.png")
+    .write("parent.png", [1; 520])
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  assert_eq!(core.descriptors().len(), 4);
+
+  let parent_id_1 = parent_output_1.inscriptions[0].id;
+  let parent_id_2 = parent_output_2.inscriptions[0].id;
+
+  let output = CommandBuilder::new("wallet batch --fee-rate 1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write("tulip.png", [0; 555])
+    .write("meow.wav", [0; 2048])
+    .write(
+      "batch.yaml",
+      format!("parents:\n- {parent_id_1}\n- {parent_id_2}\nmode: shared-output\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+    )
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*",),
+  );
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[1].id),
+    format!(r".*<dt>parents</dt>\s*<dd>.*{parent_id_1}.*{parent_id_2}.*",),
   );
 
   let request = ord.request(format!("/content/{}", output.inscriptions[2].id));
@@ -342,7 +465,7 @@ fn batch_in_separate_outputs_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: separate-outputs\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: separate-outputs\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -351,6 +474,7 @@ fn batch_in_separate_outputs_with_parent() {
   for inscription in &output.inscriptions {
     assert_eq!(inscription.location.offset, 0);
   }
+
   let mut outpoints = output
     .inscriptions
     .iter()
@@ -419,7 +543,7 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: separate-outputs\npostage: 777\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: separate-outputs\npostage: 777\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -484,7 +608,7 @@ fn batch_inscribe_fails_if_invalid_network_destination_address() {
     .write("batch.yaml", "mode: separate-outputs\ninscriptions:\n- file: inscription.txt\n  destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4")
     .core(&core)
     .ord(&ord)
-    .stderr_regex("error: address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 belongs to network bitcoin which is different from required regtest\n")
+    .stderr_regex("error: validation error\n\nbecause:\n- address bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 is not valid on regtest\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -558,7 +682,7 @@ inscriptions:
     format!("/inscription/{}", output.inscriptions[0].id),
     ".*
   <dt>address</dt>
-  <dd class=monospace><a href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>.*",
+  <dd><a class=collapse href=/address/bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4>bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4</a></dd>.*",
   );
 
   ord.assert_response_regex(
@@ -566,8 +690,8 @@ inscriptions:
     format!(
       ".*
   <dt>address</dt>
-  <dd class=monospace><a href=/address/{0}>{0}</a></dd>.*",
-      core.state().change_addresses[0],
+  <dd><a class=collapse href=/address/{0}>{0}</a></dd>.*",
+      core.state().change_addresses.iter().next().unwrap(),
     ),
   );
 
@@ -575,7 +699,7 @@ inscriptions:
     format!("/inscription/{}", output.inscriptions[2].id),
     ".*
   <dt>address</dt>
-  <dd class=monospace><a href=/address/bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k>bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k</a></dd>.*",
+  <dd><a class=collapse href=/address/bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k>bc1pxwww0ct9ue7e8tdnlmug5m2tamfn7q06sahstg39ys4c9f3340qqxrdu9k</a></dd>.*",
   );
 }
 
@@ -661,7 +785,7 @@ fn batch_same_sat_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("mode: same-sat\nparent: {parent_id}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("mode: same-sat\nparents:\n- {parent_id}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -821,7 +945,7 @@ fn batch_inscribe_with_sat_argument_with_parent() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("parent: {parent_id}\nmode: same-sat\nsat: 5000111111\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
+      format!("parents:\n- {parent_id}\nmode: same-sat\nsat: 5000111111\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -859,7 +983,7 @@ fn batch_inscribe_with_sat_arg_fails_if_wrong_mode() {
     .core(&core)
     .ord(&ord)
     .expected_exit_code(1)
-    .expected_stderr("error: neither `sat` nor `satpoint` can be set in `same-sat` mode\n")
+    .expected_stderr("error: `sat` or `satpoint` can only be set in `same-sat` mode\n")
     .run_and_extract_stdout();
 }
 
@@ -871,7 +995,7 @@ fn batch_inscribe_with_satpoint() {
 
   create_wallet(&core, &ord);
 
-  let txid = core.mine_blocks(1)[0].txdata[0].txid();
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   let output = CommandBuilder::new("wallet batch --fee-rate 1 --batch batch.yaml")
     .write("inscription.txt", "Hello World")
@@ -921,28 +1045,25 @@ fn batch_inscribe_with_fee_rate() {
     .run_and_deserialize_output::<Batch>();
 
   let commit_tx = &core.mempool()[0];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &commit_tx.input {
-    fee += core
-      .get_utxo_amount(&input.previous_output)
-      .unwrap()
-      .to_sat();
+    fee += core.get_utxo_amount(&input.previous_output).unwrap();
   }
   for output in &commit_tx.output {
     fee -= output.value;
   }
-  let fee_rate = fee as f64 / commit_tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / commit_tx.vsize() as f64;
   pretty_assert_eq!(fee_rate, set_fee_rate);
 
   let reveal_tx = &core.mempool()[1];
-  let mut fee = 0;
+  let mut fee = Amount::ZERO;
   for input in &reveal_tx.input {
-    fee += &commit_tx.output[input.previous_output.vout as usize].value;
+    fee += commit_tx.output[input.previous_output.vout as usize].value;
   }
   for output in &reveal_tx.output {
     fee -= output.value;
   }
-  let fee_rate = fee as f64 / reveal_tx.vsize() as f64;
+  let fee_rate = fee.to_sat() as f64 / reveal_tx.vsize() as f64;
   pretty_assert_eq!(fee_rate, set_fee_rate);
 
   assert_eq!(
@@ -1044,7 +1165,7 @@ fn batch_inscribe_with_satpoints_with_parent() {
   let txids = core
     .mine_blocks(3)
     .iter()
-    .map(|block| block.txdata[0].txid())
+    .map(|block| block.txdata[0].compute_txid())
     .collect::<Vec<Txid>>();
 
   let satpoint_1 = SatPoint {
@@ -1115,7 +1236,8 @@ fn batch_inscribe_with_satpoints_with_parent() {
       format!(
         r#"
 mode: satpoints
-parent: {parent_id}
+parents:
+- {parent_id}
 inscriptions:
 - file: inscription.txt
   satpoint: {}
@@ -1407,7 +1529,7 @@ fn batch_can_etch_rune() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*\s*<dt>turbo</dt>\s*<dd>false</dd>.*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*\s*<dt>turbo</dt>\s*<dd>false</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1508,7 +1630,7 @@ fn batch_can_etch_turbo_rune() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 }
@@ -1570,7 +1692,7 @@ fn batch_can_etch_rune_without_premine() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1656,7 +1778,7 @@ fn batch_inscribe_can_etch_rune_with_offset() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1730,7 +1852,7 @@ fn batch_inscribe_can_etch_rune_with_height() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*<dt>parent</dt>\s*<dd><a class=monospace href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -2494,7 +2616,7 @@ fn oversize_runestone_error() {
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: runestone greater than maximum OP_RETURN size: 104 > 82\n")
+    .expected_stderr("error: runestone greater than maximum OP_RETURN size: 104 > 83\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }

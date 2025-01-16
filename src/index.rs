@@ -51,7 +51,7 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 28;
+const SCHEMA_VERSION: u64 = 30;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
@@ -97,6 +97,7 @@ pub(crate) enum Statistic {
   Runes = 13,
   SatRanges = 14,
   UnboundInscriptions = 16,
+  LastSavepointHeight = 17,
 }
 
 impl Statistic {
@@ -175,6 +176,15 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
       Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
         bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
+      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
+        bitcoincore_rpc::jsonrpc::error::RpcError {
+          code: -5, message, ..
+        },
+      )))
+        if message.starts_with("No such mempool or blockchain transaction") =>
+      {
+        Ok(None)
+      }
       Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
         bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
       )))
@@ -300,6 +310,7 @@ impl Index {
         let mut tx = database.begin_write()?;
 
         tx.set_durability(durability);
+        tx.set_quick_repair(true);
 
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
@@ -437,7 +448,7 @@ impl Index {
     };
 
     Ok(Self {
-      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.txid(),
+      genesis_block_coinbase_txid: genesis_block_coinbase_transaction.compute_txid(),
       client,
       database,
       durability,
@@ -502,7 +513,7 @@ impl Index {
     self.index_sats
   }
 
-  pub fn status(&self) -> Result<StatusHtml> {
+  pub fn status(&self, json_api: bool) -> Result<StatusHtml> {
     let rtx = self.database.begin_read()?;
 
     let statistic_to_count = rtx.open_table(STATISTIC_TO_COUNT)?;
@@ -538,6 +549,7 @@ impl Index {
       initial_sync_time: Duration::from_micros(initial_sync_time),
       inscription_index: self.has_inscription_index(),
       inscriptions: blessed_inscriptions + cursed_inscriptions,
+      json_api,
       lost_sats: statistic(Statistic::LostSats)?,
       minimum_rune_for_next_block: Rune::minimum_at_height(
         self.settings.chain().network(),
@@ -680,7 +692,7 @@ impl Index {
   }
 
   pub fn export(&self, filename: &String, include_addresses: bool) -> Result {
-    let mut writer = BufWriter::new(fs::File::create(filename)?);
+    let mut writer = BufWriter::new(File::create(filename)?);
     let rtx = self.database.begin_read()?;
 
     let blocks_indexed = rtx
@@ -769,6 +781,7 @@ impl Index {
   fn begin_write(&self) -> Result<WriteTransaction> {
     let mut tx = self.database.begin_write()?;
     tx.set_durability(self.durability);
+    tx.set_quick_repair(true);
     Ok(tx)
   }
 
@@ -1013,7 +1026,11 @@ impl Index {
   pub fn get_rune_balances_for_output(
     &self,
     outpoint: OutPoint,
-  ) -> Result<BTreeMap<SpacedRune, Pile>> {
+  ) -> Result<Option<BTreeMap<SpacedRune, Pile>>> {
+    if !self.index_runes {
+      return Ok(None);
+    }
+
     let rtx = self.database.begin_read()?;
 
     let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
@@ -1021,7 +1038,7 @@ impl Index {
     let id_to_rune_entries = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
 
     let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
-      return Ok(BTreeMap::new());
+      return Ok(Some(BTreeMap::new()));
     };
 
     let balances_buffer = balances.value();
@@ -1044,7 +1061,7 @@ impl Index {
       );
     }
 
-    Ok(balances)
+    Ok(Some(balances))
   }
 
   pub fn get_rune_balance_map(&self) -> Result<BTreeMap<SpacedRune, BTreeMap<OutPoint, Pile>>> {
@@ -1527,7 +1544,11 @@ impl Index {
   pub fn get_inscriptions_on_output_with_satpoints(
     &self,
     outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
+  ) -> Result<Option<Vec<(SatPoint, InscriptionId)>>> {
+    if !self.index_inscriptions {
+      return Ok(None);
+    }
+
     let rtx = self.database.begin_read()?;
     let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
     let sequence_number_to_inscription_entry =
@@ -1540,31 +1561,40 @@ impl Index {
     )
   }
 
-  pub fn get_inscriptions_for_output(&self, outpoint: OutPoint) -> Result<Vec<InscriptionId>> {
-    Ok(
-      self
-        .get_inscriptions_on_output_with_satpoints(outpoint)?
+  pub fn get_inscriptions_for_output(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Option<Vec<InscriptionId>>> {
+    let Some(inscriptions) = self.get_inscriptions_on_output_with_satpoints(outpoint)? else {
+      return Ok(None);
+    };
+
+    Ok(Some(
+      inscriptions
         .iter()
         .map(|(_satpoint, inscription_id)| *inscription_id)
         .collect(),
-    )
+    ))
   }
 
   pub fn get_inscriptions_for_outputs(
     &self,
     outpoints: &Vec<OutPoint>,
-  ) -> Result<Vec<InscriptionId>> {
-    let mut inscriptions = Vec::new();
+  ) -> Result<Option<Vec<InscriptionId>>> {
+    let mut result = Vec::new();
     for outpoint in outpoints {
-      inscriptions.extend(
-        self
-          .get_inscriptions_on_output_with_satpoints(*outpoint)?
+      let Some(inscriptions) = self.get_inscriptions_on_output_with_satpoints(*outpoint)? else {
+        return Ok(None);
+      };
+
+      result.extend(
+        inscriptions
           .iter()
           .map(|(_satpoint, inscription_id)| *inscription_id),
       );
     }
 
-    Ok(inscriptions)
+    Ok(Some(result))
   }
 
   pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
@@ -2030,9 +2060,13 @@ impl Index {
       .get(sequence_number + 1)?
       .map(|guard| InscriptionEntry::load(guard.value()).id);
 
-    let children = rtx
+    let all_children = rtx
       .open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?
-      .get(sequence_number)?
+      .get(sequence_number)?;
+
+    let child_count = all_children.len();
+
+    let children = all_children
       .take(4)
       .map(|result| {
         result
@@ -2103,6 +2137,7 @@ impl Index {
           })
           .map(|address| address.to_string()),
         charms: Charm::charms(charms),
+        child_count,
         children,
         content_length: inscription.content_length(),
         content_type: inscription.content_type().map(|s| s.to_string()),
@@ -2118,7 +2153,8 @@ impl Index {
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp.into()).timestamp(),
-        value: output.as_ref().map(|o| o.value),
+        value: output.as_ref().map(|o| o.value.to_sat()),
+        metaprotocol: inscription.metaprotocol().map(|s| s.to_string()),
       },
       output,
       inscription,
@@ -2234,13 +2270,13 @@ impl Index {
     outpoint_to_utxo_entry: &'a impl ReadableTable<&'static OutPointValue, &'static UtxoEntry>,
     sequence_number_to_inscription_entry: &'a impl ReadableTable<u32, InscriptionEntryValue>,
     outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
+  ) -> Result<Option<Vec<(SatPoint, InscriptionId)>>> {
     if !self.index_inscriptions {
-      return Ok(Vec::new());
+      return Ok(None);
     }
 
     let Some(utxo_entry) = outpoint_to_utxo_entry.get(&outpoint.store())? else {
-      return Ok(Vec::new());
+      return Ok(Some(Vec::new()));
     };
 
     let mut inscriptions = utxo_entry.value().parse(self).parse_inscriptions();
@@ -2253,10 +2289,13 @@ impl Index {
         let entry = sequence_number_to_inscription_entry
           .get(sequence_number)?
           .unwrap();
+
         let satpoint = SatPoint { outpoint, offset };
+
         Ok((satpoint, InscriptionEntry::load(entry.value()).id))
       })
       .collect::<Result<_>>()
+      .map(Some)
   }
 
   pub fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
@@ -2276,11 +2315,13 @@ impl Index {
   pub(crate) fn get_aggregated_rune_balances_for_outputs(
     &self,
     outputs: &Vec<OutPoint>,
-  ) -> Result<Vec<(SpacedRune, Decimal, Option<char>)>> {
+  ) -> Result<Option<Vec<(SpacedRune, Decimal, Option<char>)>>> {
     let mut runes = BTreeMap::new();
 
     for output in outputs {
-      let rune_balances = self.get_rune_balances_for_output(*output)?;
+      let Some(rune_balances) = self.get_rune_balances_for_output(*output)? else {
+        return Ok(None);
+      };
 
       for (spaced_rune, pile) in rune_balances {
         runes
@@ -2299,12 +2340,12 @@ impl Index {
       }
     }
 
-    Ok(
+    Ok(Some(
       runes
         .into_iter()
         .map(|(spaced_rune, (decimal, symbol))| (spaced_rune, decimal, symbol))
         .collect(),
-    )
+    ))
   }
 
   pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<u64> {
@@ -2321,6 +2362,27 @@ impl Index {
     }
 
     Ok(acc)
+  }
+
+  pub(crate) fn get_utxo_recursive(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Option<api::UtxoRecursive>> {
+    let Some(utxo_entry) = self
+      .database
+      .begin_read()?
+      .open_table(OUTPOINT_TO_UTXO_ENTRY)?
+      .get(&outpoint.store())?
+    else {
+      return Ok(None);
+    };
+
+    Ok(Some(api::UtxoRecursive {
+      inscriptions: self.get_inscriptions_for_output(outpoint)?,
+      runes: self.get_rune_balances_for_output(outpoint)?,
+      sat_ranges: self.list(outpoint)?,
+      value: utxo_entry.value().parse(self).total_value(),
+    }))
   }
 
   pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
@@ -2340,7 +2402,7 @@ impl Index {
       indexed = true;
 
       TxOut {
-        value,
+        value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
       }
     } else {
@@ -2525,7 +2587,7 @@ mod tests {
   #[test]
   fn list_second_coinbase_transaction() {
     let context = Context::builder().arg("--index-sats").build();
-    let txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
       &[(50 * COIN_VALUE, 100 * COIN_VALUE)],
@@ -2593,7 +2655,7 @@ mod tests {
       ..default()
     };
     let txid = context.core.broadcast_tx(fee_paying_tx);
-    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
     assert_eq!(
       context.index.list(OutPoint::new(txid, 0)).unwrap().unwrap(),
@@ -2633,7 +2695,7 @@ mod tests {
     context.core.broadcast_tx(first_fee_paying_tx);
     context.core.broadcast_tx(second_fee_paying_tx);
 
-    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].txid();
+    let coinbase_txid = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
     assert_eq!(
       context
@@ -2705,7 +2767,7 @@ mod tests {
       ..default()
     });
     context.mine_blocks(1);
-    let txid = context.core.tx(1, 0).txid();
+    let txid = context.core.tx(1, 0).compute_txid();
     assert_matches!(context.index.list(OutPoint::new(txid, 0)).unwrap(), None);
   }
 
@@ -2763,7 +2825,7 @@ mod tests {
       context.index.find(Sat(50 * COIN_VALUE)).unwrap().unwrap(),
       SatPoint {
         outpoint: OutPoint {
-          txid: tx.txid(),
+          txid: tx.compute_txid(),
           vout: 0,
         },
         offset: 0,
@@ -3046,7 +3108,7 @@ mod tests {
         ..default()
       });
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -3081,7 +3143,7 @@ mod tests {
         ..default()
       });
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -3109,7 +3171,7 @@ mod tests {
       });
       let inscription_id = InscriptionId { txid, index: 0 };
 
-      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].txid();
+      let coinbase_tx = context.mine_blocks(1)[0].txdata[0].compute_txid();
 
       context.index.assert_inscription_location(
         inscription_id,
@@ -3463,7 +3525,8 @@ mod tests {
         context
           .index
           .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         []
       );
 
@@ -3473,7 +3536,8 @@ mod tests {
         context
           .index
           .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         [inscription_id]
       );
 
@@ -3488,7 +3552,8 @@ mod tests {
         context
           .index
           .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         []
       );
 
@@ -3499,7 +3564,8 @@ mod tests {
             txid: send_id,
             vout: 0,
           })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         [inscription_id]
       );
     }
@@ -3529,7 +3595,8 @@ mod tests {
             txid: first,
             vout: 0
           })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         [inscription_id]
       );
 
@@ -4407,6 +4474,7 @@ mod tests {
           .index
           .get_inscriptions_on_output_with_satpoints(OutPoint { txid, vout: 0 })
           .unwrap()
+          .unwrap_or_default()
           .iter()
           .map(|(_satpoint, inscription_id)| *inscription_id)
           .collect::<Vec<InscriptionId>>()
@@ -4471,6 +4539,7 @@ mod tests {
           .index
           .get_inscriptions_on_output_with_satpoints(OutPoint { txid, vout: 0 })
           .unwrap()
+          .unwrap_or_default()
       )
     }
   }
@@ -4520,6 +4589,7 @@ mod tests {
             vout: 0
           })
           .unwrap()
+          .unwrap_or_default()
       )
     }
   }
@@ -5911,7 +5981,7 @@ mod tests {
         inscription_id,
         SatPoint {
           outpoint: OutPoint {
-            txid: blocks[0].txdata[0].txid(),
+            txid: blocks[0].txdata[0].compute_txid(),
             vout: 0,
           },
           offset: 50 * COIN_VALUE,
@@ -5942,7 +6012,7 @@ mod tests {
         inscription_id,
         SatPoint {
           outpoint: OutPoint {
-            txid: blocks[0].txdata[0].txid(),
+            txid: blocks[0].txdata[0].compute_txid(),
             vout: 0,
           },
           offset: 50 * COIN_VALUE,
@@ -6190,7 +6260,7 @@ mod tests {
     assert!(!context
       .index
       .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6205,7 +6275,7 @@ mod tests {
     assert!(context
       .index
       .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6230,7 +6300,7 @@ mod tests {
     assert!(context
       .index
       .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 0,
       })
       .unwrap());
@@ -6238,7 +6308,7 @@ mod tests {
     assert!(!context
       .index
       .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).txid(),
+        txid: context.core.tx(1, 0).compute_txid(),
         vout: 1,
       })
       .unwrap());
@@ -6279,7 +6349,7 @@ mod tests {
       .unwrap();
 
     let first_address_second_output = OutPoint {
-      txid: transaction.txid(),
+      txid: transaction.compute_txid(),
       vout: 1,
     };
 
@@ -6287,7 +6357,7 @@ mod tests {
       context.index.get_address_info(&first_address).unwrap(),
       [
         OutPoint {
-          txid: transaction.txid(),
+          txid: transaction.compute_txid(),
           vout: 0
         },
         first_address_second_output
@@ -6319,7 +6389,7 @@ mod tests {
     assert_eq!(
       context.index.get_address_info(&second_address).unwrap(),
       [OutPoint {
-        txid: transaction.txid(),
+        txid: transaction.compute_txid(),
         vout: 0
       }]
     );
@@ -6671,17 +6741,5 @@ mod tests {
     // good error messages in older versions, the schema statistic key must be
     // zero
     assert_eq!(Statistic::Schema.key(), 0);
-  }
-
-  #[test]
-  fn reminder_to_update_utxo_entry_type_name() {
-    // This test will break when the schema version is updated, and is a
-    // reminder to fix the type name in `impl redb::Value for &UtxoEntry`.
-    //
-    // The type name should be changed from `ord::index::utxo_entry::UtxoValue`
-    // to `ord::UtxoEntry`. I think it's probably best if we just name types
-    // `ord::NAME`, instead of including the full path, since the full path
-    // will change if we reorganize the code.
-    assert_eq!(SCHEMA_VERSION, 28);
   }
 }
