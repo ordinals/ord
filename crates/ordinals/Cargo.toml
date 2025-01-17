@@ -12,7 +12,7 @@ rust-version.workspace = true
 
 [dependencies]
 bitcoin.workspace = true
-derive_more = { version = "1.0.0", features = ["display", "from_str"] }
+derive_more.workspace = true
 serde.workspace = true
 serde_with.workspace = true
 thiserror = "2.0.0"
