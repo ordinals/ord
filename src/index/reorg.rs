@@ -1,4 +1,4 @@
-use {super::*, anyhow::Ok, updater::BlockData};
+use {super::*, updater::BlockData};
 
 #[derive(Debug, PartialEq)]
 pub(crate) enum Error {
@@ -101,6 +101,7 @@ impl Reorg {
       last_savepoint_height,
       blocks
     );
+
     Ok(result)
   }
 
