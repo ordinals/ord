@@ -101,7 +101,8 @@ impl Updater<'_> {
       uncommitted += 1;
 
       if uncommitted == self.index.settings.commit_interval()
-        || Reorg::is_savepoint_required(self.index, self.height)?
+        || (self.index.settings.integration_test() == false
+          && Reorg::is_savepoint_required(self.index, self.height)?)
       {
         self.commit(wtx, utxo_cache)?;
         utxo_cache = HashMap::new();
