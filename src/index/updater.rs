@@ -101,7 +101,7 @@ impl Updater<'_> {
       uncommitted += 1;
 
       if uncommitted == self.index.settings.commit_interval()
-        || (self.index.settings.integration_test() == false
+        || (!self.index.settings.integration_test()
           && Reorg::is_savepoint_required(self.index, self.height)?)
       {
         self.commit(wtx, utxo_cache)?;
