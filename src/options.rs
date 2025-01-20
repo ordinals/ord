@@ -30,6 +30,13 @@ pub struct Options {
     help = "Commit to index every <COMMIT_INTERVAL> blocks. [default: 5000]"
   )]
   pub(crate) commit_interval: Option<usize>,
+  #[arg(
+    long,
+    help = "Create a savepoint every <SAVEPOINT_INTERVAL> blocks. [default: 10]"
+  )]
+  pub(crate) savepoint_interval: Option<usize>,
+  #[arg(long, help = "Store maximum <MAX_SAVEPOINTS> blocks. [default: 2]")]
+  pub(crate) max_savepoints: Option<usize>,
   #[arg(long, help = "Load configuration from <CONFIG>.")]
   pub(crate) config: Option<PathBuf>,
   #[arg(long, help = "Load configuration from <CONFIG_DIR>.")]
