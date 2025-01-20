@@ -19,6 +19,13 @@ fn view_offer() {
     .require_network(Network::Bitcoin)
     .unwrap();
 
+  CommandBuilder::new(format!("wallet send --fee-rate 0 {address} {inscription}"))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
   let create = CommandBuilder::new(format!(
     "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1"
   ))
