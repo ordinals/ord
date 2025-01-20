@@ -46,5 +46,5 @@ fn view_offer() {
 
   assert_eq!(view.inscription, inscription);
 
-  assert_eq!(view.balance_change, (-1) * (COIN_VALUE as i64 + 226 as i64));
+  assert_eq!(view.balance_change, -(COIN_VALUE as i64 + 226_i64));
 }
