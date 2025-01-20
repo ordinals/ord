@@ -1,13 +1,19 @@
 use super::*;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Output {
   pub psbt: String,
-  pub role: String,
+  pub role: Role,
   pub seller_address: Address<NetworkUnchecked>,
   pub buyer_address: Address<NetworkUnchecked>,
   pub inscription: InscriptionId,
   pub balance_change: i64,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub enum Role {
+  Buyer,
+  Seller,
 }
 
 #[derive(Debug, Parser)]
@@ -56,7 +62,7 @@ impl View {
       return Err(anyhow!("PSBT contains no inscription"));
     };
 
-    let role = if *mine { "seller" } else { "buyer" };
+    let role = if *mine { Role::Seller } else { Role::Buyer };
 
     let buyer_address = Address::from_script(
       &psbt.unsigned_tx.output[0].script_pubkey,
@@ -74,7 +80,7 @@ impl View {
 
     Ok(Some(Box::new(Output {
       psbt: self.psbt.clone(),
-      role: role.to_string(),
+      role,
       buyer_address,
       seller_address,
       inscription: *inscription,
