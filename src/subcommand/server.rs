@@ -231,6 +231,7 @@ impl Server {
         .route("/input/:block/:transaction/:input", get(Self::input))
         .route("/inscription/:inscription_query", get(Self::inscription))
         .route("/inscriptions", get(Self::inscriptions))
+        .route("/inscriptions", post(Self::inscriptions_json))
         .route("/inscriptions/:page", get(Self::inscriptions_paginated))
         .route(
           "/inscriptions/block/:height",
@@ -1487,6 +1488,67 @@ impl Server {
         Media::Unknown => Ok(PreviewUnknownHtml.into_response()),
         Media::Video => Ok(PreviewVideoHtml { inscription_id }.into_response()),
       }
+    })
+  }
+
+  async fn inscriptions_json(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Json(inscriptions): Json<Vec<InscriptionId>>,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        let mut response = Vec::new();
+        for inscription in inscriptions {
+          let query = query::Inscription::Id(inscription);
+          let info = Index::inscription_info(&index, query)?
+            .ok_or_not_found(|| format!("inscription {query}"))?;
+
+          response.push(info);
+        }
+
+        Json(
+          response
+            .iter()
+            .map(|info| api::Inscription {
+              address: info
+                .output
+                .as_ref()
+                .and_then(|o| {
+                  server_config
+                    .chain
+                    .address_from_script(&o.script_pubkey)
+                    .ok()
+                })
+                .map(|address| address.to_string()),
+              charms: Charm::ALL
+                .iter()
+                .filter(|charm| charm.is_set(info.charms))
+                .map(|charm| charm.title().into())
+                .collect(),
+              children: info.children.to_vec(),
+              content_length: info.inscription.content_length(),
+              content_type: info.inscription.content_type().map(|s| s.to_string()),
+              fee: info.entry.fee,
+              height: info.entry.height,
+              id: info.entry.id,
+              next: info.next,
+              number: info.entry.inscription_number,
+              parent: info.parent,
+              previous: info.previous,
+              rune: info.rune,
+              sat: info.entry.sat,
+              satpoint: info.satpoint,
+              timestamp: timestamp(info.entry.timestamp).timestamp(),
+              value: info.output.as_ref().map(|o| o.value),
+            })
+            .collect::<Vec<api::Inscription>>(),
+        )
+        .into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
     })
   }
 
