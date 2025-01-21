@@ -189,6 +189,7 @@ fn etch(core: &mockcore::Handle, ord: &TestServer, rune: Rune) -> Etched {
         rune: SpacedRune { rune, spacers: 0 },
         symbol: '¢',
         turbo: false,
+        freezable: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
@@ -249,6 +250,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
     symbol,
     terms,
     turbo,
+    freezable,
   } = batchfile.etching.unwrap();
 
   {
@@ -373,6 +375,8 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   <dd>{symbol}</dd>
   <dt>turbo</dt>
   <dd>{turbo}</dd>
+  <dt>freezable</dt>
+  <dd>{freezable}</dd>
   <dt>etching</dt>
   <dd><a class=collapse href=/tx/{reveal}>{reveal}</a></dd>
   <dt>parent</dt>

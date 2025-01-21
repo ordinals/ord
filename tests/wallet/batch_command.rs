@@ -1504,6 +1504,7 @@ fn batch_can_etch_rune() {
         symbol: '¢',
         terms: None,
         turbo: false,
+        freezable: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
@@ -1529,7 +1530,7 @@ fn batch_can_etch_rune() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*\s*<dt>turbo</dt>\s*<dd>false</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*\s*<dt>turbo</dt>\s*<dd>false</dd>\s*<dt>freezable</dt>\s*<dd>false</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 
@@ -1616,6 +1617,7 @@ fn batch_can_etch_turbo_rune() {
         symbol: '¢',
         terms: None,
         turbo: true,
+        freezable: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
@@ -1630,7 +1632,7 @@ fn batch_can_etch_turbo_rune() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>\s*<dt>freezable</dt>\s*<dd>false</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 }
@@ -1667,6 +1669,7 @@ fn batch_can_etch_rune_without_premine() {
           offset: None,
         }),
         turbo: false,
+        freezable: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
@@ -1753,6 +1756,7 @@ fn batch_inscribe_can_etch_rune_with_offset() {
           height: None,
         }),
         turbo: false,
+        freezable: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
@@ -1827,6 +1831,7 @@ fn batch_inscribe_can_etch_rune_with_height() {
           offset: None,
         }),
         turbo: false,
+        freezable: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
@@ -1894,6 +1899,7 @@ fn etch_existing_rune_error() {
           symbol: '¢',
           terms: None,
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -1936,6 +1942,7 @@ fn etch_reserved_rune_error() {
           symbol: '¢',
           terms: None,
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -1978,6 +1985,7 @@ fn etch_sub_minimum_rune_error() {
           symbol: '¢',
           terms: None,
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2020,6 +2028,7 @@ fn etch_requires_rune_index() {
           symbol: '¢',
           terms: None,
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2062,6 +2071,7 @@ fn etch_divisibility_over_maximum_error() {
           symbol: '¢',
           terms: None,
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2112,6 +2122,7 @@ fn etch_mintable_overflow_error() {
             height: None,
           }),
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2162,6 +2173,7 @@ fn etch_mintable_plus_premine_overflow_error() {
             height: None,
           }),
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2212,6 +2224,7 @@ fn incorrect_supply_error() {
             height: None,
           }),
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2262,6 +2275,7 @@ fn zero_offset_interval_error() {
             height: None,
           }),
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2312,6 +2326,7 @@ fn zero_height_interval_error() {
             offset: None,
           }),
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2362,6 +2377,7 @@ fn invalid_start_height_error() {
             offset: None,
           }),
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2414,6 +2430,7 @@ fn invalid_end_height_error() {
             offset: None,
           }),
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2458,6 +2475,7 @@ fn zero_supply_error() {
           symbol: '¢',
           terms: None,
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2505,6 +2523,7 @@ fn zero_cap_error() {
             offset: None,
           }),
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2552,6 +2571,7 @@ fn zero_amount_error() {
             offset: None,
           }),
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2605,6 +2625,7 @@ fn oversize_runestone_error() {
             amount: "1".parse().unwrap(),
           }),
           turbo: true,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),
@@ -2660,6 +2681,7 @@ fn oversize_runestones_are_allowed_with_no_limit() {
           amount: "1".parse().unwrap(),
         }),
         turbo: true,
+        freezable: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.txt".into()),
@@ -2792,6 +2814,7 @@ fn forbid_etching_below_rune_activation_height() {
           symbol: '¢',
           terms: None,
           turbo: false,
+          freezable: false,
         }),
         inscriptions: vec![batch::Entry {
           file: Some("inscription.txt".into()),

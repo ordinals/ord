@@ -84,6 +84,7 @@ impl Runestone {
         ),
       }),
       turbo: Flag::Turbo.take(&mut flags),
+      freezable: Flag::Freezable.take(&mut flags),
     });
 
     let mint = Tag::Mint.take(&mut fields, |[block, tx]| {
@@ -1080,7 +1081,7 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask(),
+        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask() | Flag::Freezable.mask(),
         Tag::Rune.into(),
         4,
         Tag::Divisibility.into(),
@@ -1128,6 +1129,7 @@ mod tests {
             height: (None, None),
           }),
           turbo: true,
+          freezable: true,
         }),
         pointer: Some(0),
         mint: Some(RuneId::new(1, 1).unwrap()),
@@ -1441,6 +1443,7 @@ mod tests {
           height: (Some(u32::MAX.into()), Some(u32::MAX.into())),
         }),
         turbo: true,
+        freezable: true,
         premine: Some(u64::MAX.into()),
         rune: Some(Rune(u128::MAX)),
         symbol: Some('\u{10FFFF}'),
@@ -1713,13 +1716,14 @@ mod tests {
             offset: (Some(15), Some(16)),
           }),
           turbo: true,
+          freezable: true,
         }),
         mint: Some(RuneId::new(17, 18).unwrap()),
         pointer: Some(0),
       },
       &[
         Tag::Flags.into(),
-        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask(),
+        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask() | Flag::Freezable.mask(),
         Tag::Rune.into(),
         9,
         Tag::Divisibility.into(),
@@ -1770,6 +1774,7 @@ mod tests {
           symbol: None,
           terms: None,
           turbo: false,
+          freezable: false,
         }),
         ..default()
       },
@@ -1786,6 +1791,7 @@ mod tests {
           symbol: None,
           terms: None,
           turbo: false,
+          freezable: false,
         }),
         ..default()
       },

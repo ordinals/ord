@@ -21,6 +21,7 @@ pub struct RuneInfo {
   pub terms: Option<Terms>,
   pub timestamp: DateTime<Utc>,
   pub turbo: bool,
+  pub freezable: bool,
   pub tx: u32,
 }
 
@@ -54,6 +55,7 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
             terms,
             timestamp,
             turbo,
+            freezable,
           },
         )| {
           (
@@ -73,6 +75,7 @@ pub(crate) fn run(settings: Settings) -> SubcommandResult {
               terms,
               timestamp: crate::timestamp(timestamp),
               turbo,
+              freezable,
               tx: id.tx,
             },
           )

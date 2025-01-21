@@ -26,6 +26,7 @@ fn addresses() {
           ..default()
         }),
         turbo: false,
+        freezable: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),

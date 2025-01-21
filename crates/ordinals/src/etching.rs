@@ -9,6 +9,7 @@ pub struct Etching {
   pub symbol: Option<char>,
   pub terms: Option<Terms>,
   pub turbo: bool,
+  pub freezable: bool,
 }
 
 impl Etching {

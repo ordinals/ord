@@ -625,6 +625,7 @@ fn get_runes() {
         symbol: Some('¢'),
         timestamp: 10,
         turbo: false,
+        freezable: false,
       },
       id: RuneId { block: 10, tx: 1 },
       mintable: false,
@@ -663,6 +664,7 @@ fn get_runes() {
             symbol: Some('¢'),
             timestamp: 24,
             turbo: false,
+            freezable: false,
           }
         ),
         (
@@ -683,6 +685,7 @@ fn get_runes() {
             symbol: Some('¢'),
             timestamp: 17,
             turbo: false,
+            freezable: false,
           }
         ),
         (
@@ -703,6 +706,7 @@ fn get_runes() {
             symbol: Some('¢'),
             timestamp: 10,
             turbo: false,
+            freezable: false,
           }
         )
       ],

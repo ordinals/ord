@@ -264,6 +264,7 @@ enum Flag {
   Etching = 0,
   Terms = 1,
   Turbo = 2,
+  Freezable = 3,
   Cenotaph = 127,
 }
 ```

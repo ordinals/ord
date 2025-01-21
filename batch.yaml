@@ -53,6 +53,8 @@ etching:
   # setting `turbo` to `true` opts in to these future protocol changes,
   # whatever they may be.
   turbo: true
+  # allow runes to be freezed and unfreezed by the issuer
+  freezable: true
 
 # inscriptions to inscribe
 inscriptions:

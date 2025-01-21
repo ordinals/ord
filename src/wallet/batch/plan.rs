@@ -474,6 +474,7 @@ impl Plan {
             })
             .transpose()?,
           turbo: etching.turbo,
+          freezable: etching.freezable,
         }),
         mint: None,
         pointer: (premine > 0).then_some((reveal_outputs.len() - 1).try_into().unwrap()),

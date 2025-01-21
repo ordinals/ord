@@ -133,6 +133,7 @@ fn mint_does_not_select_inscription() {
           height: None,
         }),
         turbo: false,
+        freezable: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),

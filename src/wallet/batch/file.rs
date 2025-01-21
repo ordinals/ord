@@ -392,6 +392,7 @@ inscriptions:
             }),
           }),
           turbo: true,
+          freezable: true,
         }),
         inscriptions: vec![
           batch::Entry {

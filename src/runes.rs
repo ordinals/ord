@@ -844,6 +844,7 @@ mod tests {
           symbol: Some('$'),
           spacers: Some(1),
           turbo: true,
+          freezable: false,
         }),
         pointer: Some(10),
         ..default()
@@ -870,6 +871,7 @@ mod tests {
           symbol: None,
           timestamp: id.block,
           turbo: false,
+          freezable: false,
         },
       )],
       [],
@@ -6103,6 +6105,7 @@ mod tests {
             }),
             timestamp: 0,
             turbo: true,
+            freezable: false,
           },
         )],
         [],

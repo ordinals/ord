@@ -24,6 +24,7 @@ fn wallet_runics() {
         symbol: '¢',
         terms: None,
         turbo: false,
+        freezable: false,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
