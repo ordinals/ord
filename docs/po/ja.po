@@ -247,7 +247,6 @@ msgstr ""
 ""
 
 #: src/introduction.md:31
-#, fuzzy
 msgid ""
 "When you're ready to get your hands dirty, a good place to start is with "
 "[inscriptions](guides/wallet.md), a curious species of digital artifact "
@@ -323,7 +322,7 @@ msgstr ""
 
 #: src/overview.md:1
 msgid "Ordinal Theory Overview"
-msgstr "序数理論の概要"
+msgstr "オーディナルズ理論の概要"
 
 #: src/overview.md:4
 msgid ""
@@ -336,12 +335,13 @@ msgid ""
 "and the transfer scheme on the _order_ of transaction inputs and outputs. "
 "Thus the name, _ordinals_."
 msgstr ""
-"序数は一つのビットコインの番号プランであり、一つの聡を追跡し、移転することが"
-"できます。これらの数字はシリアル番号といいます。(https://ordinals.com)。ビッ"
-"トコインはそれらの発掘した順序により番号を書いて、取引輸入から取引輸出まで移"
-"行します（先入れ先出しの原則に従います）。番号プランと転送プランは順序に依存"
-"して、番号プランはビットコインが発掘された順序に依存し、転送プランは取引の輸"
-"入と輸出に順序に依存します。ここで_序数と呼ばれます（Ordinals_。"
+"オーディナルズは、Satoshiの番号付けスキームであり、個別のsatを追跡したり転送したりすることを可能とします。"
+"これら番号は、[オーディナル番号(ordinal numbers)](https://ordinals.com)と呼ばれます。 "
+"それぞれのSatoshiは、採掘された順に番号付けされ、トランザクションインプットからトランザクションアウトプットへ"
+"先入先出法に従って転送されます。この番号付けスキーム、および転送スキームは _順序(order)_ に依存、すなわち番号付けに"
+"ついては採掘された _順序_ 、 転送についてはトランザクションのインプットとアウトプットの _順序_ に依存します。 "
+"これが、 _オーディナルズ(=順序(序数))_ と命名されるゆえんとなります。"
+""
 
 #: src/overview.md:13
 msgid ""
@@ -349,19 +349,19 @@ msgid ""
 "blob/master/bip.mediawiki)."
 msgstr ""
 "技術的な詳細は[the BIP](https://github.com/ordinals/ord/blob/master/bip."
-"mediawiki)で獲得することができます."
+"mediawiki)で確認することができます."
 
 #: src/overview.md:16
 msgid ""
 "Ordinal theory does not require a separate token, another blockchain, or any "
 "changes to Bitcoin. It works right now."
 msgstr ""
-"序数理論は独特なトークン、独特なブロックチェーン、またはビットコインにどんな"
-"変更でも必要ではなくて、すぐに有効的に運行することができません。"
+"オーディナルズ理論は、分離されたトークンや、他のブロックチェーン、ビットコインに変更は必要ありません。"
+"まさに今機能しています。"
 
 #: src/overview.md:19
 msgid "Ordinal numbers have a few different representations:"
-msgstr "シリアル番号はいくつか異なる表示方式があります"
+msgstr "オーディナル番号は、いくつかの異なる表現形式が存在します"
 
 #: src/overview.md:21
 msgid ""
@@ -369,8 +369,8 @@ msgid ""
 "sat/2099994106992659) The ordinal number, assigned according to the order in "
 "which the satoshi was mined."
 msgstr ""
-"_整数符号_:[`2099994106992659`](https://ordinals.com/sat/2099994106992659) こ"
-"のシリアル番号は発掘された聡の順序に従って分配されます。"
+"_整数表記_:[`2099994106992659`](https://ordinals.com/sat/2099994106992659)"
+"オーディナル番号は、Satoshiが採掘された順番に割り当てられます。"
 
 #: src/overview.md:26
 msgid ""
@@ -378,9 +378,8 @@ msgid ""
 "sat/3891094.16797) The first number is the block height in which the satoshi "
 "was mined, the second the offset of the satoshi within the block."
 msgstr ""
-"_十進法符号n_: [`3891094.16797`](https://ordinals.com/sat/3891094.16797) 最初"
-"の数字は聡のブロック高度を発掘され、 二番目の数字はブロック内の聡の定常偏差で"
-"す。"
+"_十進法表記_: [`3891094.16797`](https://ordinals.com/sat/3891094.16797)"
+"最初の番号は、Satoshiが採掘されたブロック高、２番目はそのブロック内のSatoshiのオフセット"
 
 #: src/overview.md:31
 msgid ""
@@ -388,9 +387,9 @@ msgid ""
 "sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4). We'll get to that in "
 "a moment."
 msgstr ""
-"_度数符号_: [`3°111094′214″16797‴`](https://ordinals.com/"
-"sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4). それについてはすぐに説"
-"明します。"
+"_度数表記_: [`3°111094′214″16797‴`](https://ordinals.com/"
+"sat/3%C2%B0111094%E2%80%B2214%E2%80%B316797%E2%80%B4)."
+"後述します"
 
 #: src/overview.md:35
 msgid ""
@@ -398,25 +397,25 @@ msgid ""
 "sat/99.99971949060254%25) . The satoshi's position in Bitcoin's supply, "
 "expressed as a percentage."
 msgstr ""
-"_パーセント_: [`99.99971949060254%`](https://ordinals.com/"
-"sat/99.99971949060254%25) . パーセントで聡がビットコイン供給の中の位置を示し"
-"ます"
+"_パーセント表記_: [`99.99971949060254%`](https://ordinals.com/"
+"sat/99.99971949060254%25) ."
+"ビットコインの供給量からみたSatoshiの位置を、割合で表現"
 
 #: src/overview.md:39
 msgid ""
 "_Name_: [`satoshi`](https://ordinals.com/sat/satoshi). An encoding of the "
 "ordinal number using the characters `a` through `z`."
 msgstr ""
-"_名前_: [`satoshi`](https://ordinals.com/sat/satoshi). 一つのアルファベットa"
-"からbまでのシリアル番号にコーディングを書く方法です。"
+"_名前_: [`satoshi`](https://ordinals.com/sat/satoshi). "
+"オーディナル番号をアルファベットaからzで符号化したもの"
 
 #: src/overview.md:42
 msgid ""
 "Arbitrary assets, such as NFTs, security tokens, accounts, or stablecoins "
 "can be attached to satoshis using ordinal numbers as stable identifiers."
 msgstr ""
-"任意の資産、例えばNFT、セキュリティトークン、アカウントまたは安定した貨幣、 "
-"序数を使って、安定した標識符号として、聡に付けます。"
+"NFT, セキュリティトークン、アカウント、ステーブルコインのような任意のアセットが、オーディナル番号を使って"
+"安定的なIDとして割り当てることができます。"
 
 #: src/overview.md:45
 msgid ""
@@ -427,16 +426,17 @@ msgid ""
 "block explorer for interactive exploration of the blockchain, functionality "
 "for inscribing satoshis with digital artifacts, and this manual."
 msgstr ""
-"Ordinalsはオープンソースプロジェクトです、[on GitHub](https://github.com/"
-"ordinals/ord)に配置されます. このプロジェクトは序数プランを記述するBIPを含ま"
-"れます。 ビットコインのコアノードと通信して、すべての聡を追跡した索引ですシリ"
-"アル番号の感知取引を許可するウォレットです。 ブロックチェーンインタラクティブ"
-"な探索のブロック資源管理プログラム、数字文物で聡の機能及びこのマニュアルを嵌"
-"めます。 "
+"オーディナルズは[on GitHub](https://github.com/ordinals/ord)にて"
+"開発されているオープンソースプロジェクトです。"
+"プロジェクトは、オーディナルズスキームのBIP, すべてのSatoshiの位置を追跡するため"
+"ビットコインコアノードと通信するインデックス,"
+"オーディナルを考慮したトランザクション作成を可能とするウォレット、"
+"ブロックチェーンをインタラクティブに探索するためのエクスプローラ、"
+"Satoshiにデジタルアーティファクトを刻むことのできる機能、そしてこのマニュアルを含んでいます。"
 
 #: src/overview.md:52
 msgid "Rarity"
-msgstr "希少度"
+msgstr "レアリティ"
 
 #: src/overview.md:55
 msgid ""
@@ -445,23 +445,25 @@ msgid ""
 "can decide for themselves which sats are rare and desirable, but there are "
 "some hints…"
 msgstr ""
-"人間はコレクターです。現在、聡は追跡、移行されることができて、人々は聡をコレ"
-"クションしたいです。 序数理論家は自分でどちらの聡が珍しい聡と合意的な聡である"
-"ことを決めます。 ヒントがあります…"
+"人間は誰しもコレクターです。そして、Satoshiがいま追跡・転送可能になったので、"
+"人々は自ずとこれらを集めたくなるでしょう。"
+"オーディナルズ論者は、どのsatがレアで欲しがられる対象なのか、決めることができます。"
+"そのためのヒントにはこのようなものがあります"
 
 #: src/overview.md:59
 msgid ""
 "Bitcoin has periodic events, some frequent, some more uncommon, and these "
 "naturally lend themselves to a system of rarity. These periodic events are:"
 msgstr ""
-"ビットコインは周期的な事件があり、頻繫的なのはあるし、一般的なのはあります。"
-"これらの事件は自然にレア度システムが形成されます。この周期的な事件は:"
+"ビットコインには周期的なイベントがあります。中には頻繁に起こるものもあれば、滅多に起きないものもあります。"
+"このイベントは自然とレアリティシステムへと結びつけることができます。"
+"周期的なイベントとは："
 
 #: src/overview.md:62
 msgid ""
 "_Blocks_: A new block is mined approximately every 10 minutes, from now "
 "until the end of time."
-msgstr "_ブロック_: 現在から終わるまで10分ごとに新たなブロックを発掘されます。"
+msgstr "_ブロック_: 新しいブロックは、10分ごとに生成されます。"
 
 #: src/overview.md:65
 msgid ""
@@ -469,17 +471,16 @@ msgid ""
 "weeks, the Bitcoin network responds to changes in hashrate by adjusting the "
 "difficulty target which blocks must meet in order to be accepted."
 msgstr ""
-"_難易度調整_: 2016個ごとのブロック、または約二週間ごとです ビットコインイン"
-"ターネットはブロックが難易度の目標に満足させることを調整して、ハッシュレート"
-"の変化に対応します。 "
+"_難易度調整_: 2016ブロックごとに、あるいはおよそ2週間ごとに、ビットコインネットワークは"
+"難易度ターゲットを調整することによってハッシュレートを変更します。"
 
 #: src/overview.md:69
 msgid ""
 "_Halvings_: Every 210,000 blocks, or roughly every four years, the amount of "
 "new sats created in every block is cut in half."
 msgstr ""
-"_半減_: 21万のブロックごとに、または約4年ごとに，各ブロックが生じた新たな聡の"
-"数が半減になります。 "
+"_半減期_: 21万ブロックごとに、あるいはおよそ4年ごとに、"
+"ブロック内で新たに生み出されるSatの総量が半分になります。"
 
 #: src/overview.md:72
 msgid ""
@@ -488,38 +489,37 @@ msgid ""
 "period between conjunctions a cycle. A conjunction occurs roughly every 24 "
 "years. The first conjunction should happen sometime in 2032."
 msgstr ""
-"_周期＿6回ごとに半減にするたび不思議なことが起こります。半分にすることと難易"
-"度の調整は同時に起こります。これは相合と言います。相合の時間周期は一周期で"
-"す。 ほぼ24年ごとに一回の相合が起こります、最初の相合は2032年のある時に起こる"
-"はずです。  "
+"_サイクル_: 6回の半減期ごとに、不思議なことが起こります。半減期と難易度調整が重なります。"
+"これはコンジャンクションと呼ばれます。コンジャンクションは、大体24年ごとに発生します。"
+"最初のコンジャンクションは2032年に起こる見込みです。"
 
 #: src/overview.md:77
 msgid "This gives us the following rarity levels:"
-msgstr "以下の希少度のレベルを与えられました:"
+msgstr "これにより、下記のレアリティレベルを定義することができます："
 
 #: src/overview.md:79
 msgid "`common`: Any sat that is not the first sat of its block"
-msgstr "`普通`: 全てのそのブロック最初の聡ではないの聡"
+msgstr "`コモン`: ブロック内の最初のsatを除くすべてのsat"
 
 #: src/overview.md:80
 msgid "`uncommon`: The first sat of each block"
-msgstr "`普通ではない`: 各ブロックの最初の聡"
+msgstr "`アンコモン`: 各ブロックの最初のsat"
 
 #: src/overview.md:81
 msgid "`rare`: The first sat of each difficulty adjustment period"
-msgstr "`珍しく`: 各難易度の調整周期の最初の聡"
+msgstr "`レア`: 各難易度調整の最初のsat"
 
 #: src/overview.md:82
 msgid "`epic`: The first sat of each halving epoch"
-msgstr "`史詩`: 各半減周期の最初の聡"
+msgstr "`エピック`: 各半減周期の最初のsat"
 
 #: src/overview.md:83
 msgid "`legendary`: The first sat of each cycle"
-msgstr "`伝奇`: 各循環周期の最初の聡"
+msgstr "`レジェンダリ`: 各サイクルの最初のsat"
 
 #: src/overview.md:84
 msgid "`mythic`: The first sat of the genesis block"
-msgstr "`神話`: 創世ブロックの最初の聡"
+msgstr "`ミシック`: ジェネシスブロックの最初のsat"
 
 #: src/overview.md:86
 msgid ""
@@ -527,121 +527,114 @@ msgid ""
 "ordinal number in a way that makes the rarity of a satoshi easy to see at a "
 "glance:"
 msgstr ""
-"これは私たちに度数表記法をもたらしました。それは聡の希少性を一目で見ることが"
-"できる方法で序数を明確に表しています "
+"これらは、度数表記で表すことができます。度数表記は、satoshiのレアリティを一目で確認することのできる"
+"曖昧性のない表現です。"
 
 #: src/overview.md:97
 msgid ""
 "Ordinal theorists often use the terms \"hour\", \"minute\", \"second\", and "
 "\"third\" for _A_, _B_, _C_, and _D_, respectively."
 msgstr ""
-"序理論家通常使用 \"時間\",\"分\"、\"秒\"、そして\"3\" などの対応を専用の言叶"
-"は、a、b、_c、と_d_。 "
+"オーディナルズ論者はしばしば _A_, _B_, _C_, and _D_, をそれぞれ , \"時間\",\"分\"、\"秒\"、そして\"サード\" "
+"という単語を用いて表現します。"
 
 #: src/overview.md:100
 msgid "Now for some examples. This satoshi is common:"
-msgstr "いくつか例をお見せしましょうこれは普通の聡です"
+msgstr "いくつかの例です。この satoshi はコモンです。"
 
 #: src/overview.md:111
 msgid "This satoshi is uncommon:"
-msgstr "これは一般的な聡ではない"
+msgstr "この satoshi はアンコモンです。"
 
 #: src/overview.md:121
 msgid "This satoshi is rare:"
-msgstr "珍しい聡です。"
+msgstr "この satoshi はレアです。"
 
 #: src/overview.md:131
 msgid "This satoshi is epic:"
-msgstr "史詩レベルの聡です"
+msgstr "この satoshi はエピックです。"
 
 #: src/overview.md:141
 msgid "This satoshi is legendary:"
-msgstr "伝奇レベルの聡です。"
+msgstr "この satoshi はレジェンダリです。"
 
 #: src/overview.md:151
 msgid "And this satoshi is mythic:"
-msgstr "神話レベルの聡です:"
+msgstr "そしてこの satoshih はミシックです。"
 
 #: src/overview.md:161
 msgid ""
 "If the block offset is zero, it may be omitted. This is the uncommon satoshi "
 "from above:"
 msgstr ""
-"ブロック オフセットがゼロの場合は省略できます。こちらは上から見た珍しいサトシ"
-"です。"
+"もしブロックのオフセットがゼロなら、これは省略することができます。 これは上記のアンコモンの satoshiです。"
+
 
 #: src/overview.md:171
 msgid "Rare Satoshi Supply"
-msgstr "珍しい聡の総供給量"
+msgstr "珍しいSatoshiの供給"
 
 #: src/overview.md:174
 msgid "Total Supply"
 msgstr "総供給量"
 
 #: src/overview.md:176
-#, fuzzy
 msgid "`common`: 2,099,999,990,760,000"
-msgstr "`普通ではない`: 6,929,999"
+msgstr "`コモン`: 2,099,999,990,760,000"
 
 #: src/overview.md:177
-#, fuzzy
 msgid "`uncommon`: 6,926,535"
-msgstr "`普通ではない`: 6,929,999"
+msgstr "`アンコモン`: 6,926,535"
 
 #: src/overview.md:178
-#, fuzzy
 msgid "`rare`: 3432"
-msgstr "`珍しく`: 3437"
+msgstr "`レア`: 3432"
 
 #: src/overview.md:179
-#, fuzzy
 msgid "`epic`: 27"
-msgstr "`史詩`: 32"
+msgstr "`エピック`: 27"
 
 #: src/overview.md:180
 msgid "`legendary`: 5"
-msgstr "`伝奇`: 5"
+msgstr "`レジェンダリ`: 5"
 
 #: src/overview.md:181 src/overview.md:190
 msgid "`mythic`: 1"
-msgstr "`神話`: 1"
+msgstr "`ミシック`: 1"
 
 #: src/overview.md:183
 msgid "Current Supply"
-msgstr "現有の供給量"
+msgstr "現在の供給量"
 
 #: src/overview.md:185
-#, fuzzy
 msgid "`common`: ~1.98 quadrillion"
-msgstr "`普通`: 1千900万亿"
+msgstr "`コモン`: ~1京9800兆"
 
 #: src/overview.md:186
 msgid ""
 "`uncommon`: ~880,000 (a new uncommon is mined roughly every ten minutes)"
-msgstr ""
+msgstr "`アンコモン`: ~880,000(一つの新しいアンコモンは、およそ10分ごとに採掘される)"
 
 #: src/overview.md:187
 msgid "`rare`: ~430 (a new rare is mined roughly every two weeks)"
-msgstr ""
+msgstr "`レア`: ~430 (一つの新しいレアはおよそ4年ごとに採掘される)"
 
 #: src/overview.md:188
 msgid "`epic`: 3"
-msgstr "`史詩`: 3"
+msgstr "`エピック`: 3"
 
 #: src/overview.md:189
 msgid "`legendary`: 0"
-msgstr "`伝奇`: 0"
+msgstr "`レジェンダリ`: 0"
 
 #: src/overview.md:192
-#, fuzzy
 msgid ""
 "At the moment, even uncommon satoshis are quite rare. As of this writing, "
 "876,023 uncommon satoshis have been mined - one per 22.6 bitcoin in "
 "circulation."
 msgstr ""
-"今は普通ではないの聡にもとても珍しいです。 この文を書くまで， もう745,855の普"
-"通ではないの聡を発掘され、およそ25.6の流通ビットコインのうちに一つがありま"
-"す。 "
+"現時点、アンコモンのsatoshiでさえ非常にレアです。執筆時点、876023 個のアンコモンが採掘されました。"
+"これは、流通している22.6 bitcoin に一つ含まれる計算です。"
 
 #: src/overview.md:196
 msgid "Names"
@@ -654,10 +647,9 @@ msgid ""
 "short and get longer, but then all the good, short names would be trapped in "
 "the unspendable genesis block."
 msgstr ""
-"それぞれの聡は名前があり、アルファベットAからZまで構成されます 随着聪被开采的"
-"时间越长聡の発掘された時間が長いほど、名前が短いです。 短い名前から始めて、ま"
-"すます長くなると、それでは、すべての良い、短い名前は使用できない創世ブロック"
-"に閉じ込められます。 "
+"それぞれのsatoshiには名前があり、文字AからZを使って、採掘されるsatoshiが未来に行けば行くほど短くなるように考えられています。"
+"最初が短い名前で、未来に行くほど長い名前になるように考えることも可能で、それは問題ないのですが、"
+"意味を持ちやすい短い名前が、消費されることのないジェネシスブロックに固定さてしまいます。"
 
 #: src/overview.md:204
 msgid ""
@@ -665,12 +657,12 @@ msgid ""
 "last satoshi to be mined is \"a\". Every combination of 10 characters or "
 "less is out there, or will be out there, someday."
 msgstr ""
-"例えば、1905530482684727°'の名前は\"iaiufjszmoba\".最後に発掘された聡の名前は"
-"\"a\"になります。10文字以下の文字の組み合わせが存在するか、いつか存在します。"
+"例えば、1905530482684727°'の名前は\"iaiufjszmoba\".最後に発掘されるsatoshiは \"a\"です。"
+"10文字以下の全ての組み合わせはいつか世に出回ります。"
 
 #: src/overview.md:208
 msgid "Exotics"
-msgstr "きけいです。"
+msgstr "エキゾチック"
 
 #: src/overview.md:211
 msgid ""
@@ -680,11 +672,10 @@ msgid ""
 "event, such as satoshis from block 477,120, the block in which SegWit "
 "activated, or 2099999997689999°, the last satoshi that will ever be mined."
 msgstr ""
-"彼らの名前や希少性以外にも、聡は他の理由で重視されているかもしれない。これ"
-"は、整数の平方根や立方根を持つような数値自体の性質によるものかもしれません。"
-"またはそれは、ブロック477,120（SegWitによって活性化されたブロック）からのよう"
-"な歴史的なイベントに関連していますは2099999997689999°で、これが最後に掘り出さ"
-"れた聡です。"
+"Satoshi は名前や、レアリティといった理由以外からも評価されるかもしれません。"
+"これは、二乗根,三乗根のような整数であるといった、番号それ自身の性質によるものかもしれません。"
+"または、SegWitが有効化されたブロック477120内のものや最後に採掘される2099999997689999° といった、"
+"歴史的なイベントに紐づく数字であるかもしれません。"
 
 #: src/overview.md:217
 msgid ""
@@ -692,9 +683,10 @@ msgid ""
 "makes them so is subjective. Ordinal theorists are encouraged to seek out "
 "exotics based on criteria of their own devising."
 msgstr ""
-"このビットコインは「奇妙な」と呼ばれています。どの聡が「変わった」のですか？"
-"何がそんなに重要視されているのか？」順序理論家は、彼ら自身が設計した基準に基"
-"づいて「奇妙な」コングを探すことを奨励されています。"
+"このようなsatoshiは \"エキゾチック\" と名づけられます。"
+"どのsatoshiがエキゾキックなのか、なにがそうさせるのかは、主観的です。"
+"オーディナルズ論者は、彼らが発明した基準に基づいてエキゾチックを追い求めることを推奨しています。"
+""
 
 #: src/overview.md:224
 msgid ""
@@ -705,16 +697,13 @@ msgid ""
 "digital artifact that can be tracked, transferred, hoarded, bought, sold, "
 "lost, and rediscovered."
 msgstr ""
-"コングは、ビットコインネイティブのデジタルアーティファクト（デジタルアート）"
-"を作成するために、任意のコンテンツを刻印することができます。「刻印は、刻印す"
-"る内容を取引に送ることで行われます。この取引はチェーンに銘文の内容を表示しま"
-"す。」は銘文の内容が聡と不可分なつながりを持っているため、から変えられないデ"
-"ジタル人工製品を創造した。このデジタル遺物は、追跡、移転、保管、購入、販売、"
-"紛失、再発見することができます。"
+"Satoshiには任意のコンテンツを刻印することができ、ビットコインネイティブのデジタルアーティファクトを作成することができます。"
+"刻印は刻印されるsatoshiをトランザクションで送信し、オンチェーンで刻銘内容を明らかにすることで行われます。"
+"このコンテンツは、satoshiと表裏一体となり、追跡、譲渡、保管、売買、紛失、再発見が可能な普遍のデジタルアーティファクトとなります。"
 
 #: src/overview.md:231
 msgid "Archaeology"
-msgstr "考古"
+msgstr "考古学"
 
 #: src/overview.md:234
 msgid ""
@@ -723,8 +712,8 @@ msgid ""
 "Chainleft.](https://mirror.xyz/chainleft.eth/MzPWRsesC9mQflxlLo-"
 "N29oF4iwCgX3lacrvaG9Kjko)"
 msgstr ""
-"初期のNFTのカタログ作成と収集に取り組む活発な考古学者コミュニティが雨後の筍の"
-"ように出現しました[Chainleftによる歴史NFTの素晴らしいまとめ](https://mirror."
+"初期のNFTをカタログ化し収集することに専念している考古学者たちの活気あるコミュニティが誕生しました。"
+"[Chainleftによる歴史的なNFTの素晴らしい概要](https://mirror."
 "xyz/chainleft.eth/MzPWRsesC9mQflxlLo-N29oF4iwCgX3lacrvaG9Kjko)"
 
 #: src/overview.md:238
@@ -733,9 +722,8 @@ msgid ""
 "first ERC-721 contract, [SU SQUARES](https://tenthousandsu.com/), was "
 "deployed on Ethereum."
 msgstr ""
-"一般的に受け入れられている古いNFTの締め切りは2018年3月19日、つまり最初の"
-"ERC-721契約、[SU SQUARES](https://tenthousandsu.com/),がイーサリアムに配備さ"
-"れた時間です。"
+"初期のNFTの一般的に受け入れられている境界線は、2018年3月19日です。この日は、最初のERC-721コントラクトである"
+"[SU SQUARES](https://tenthousandsu.com/),がイーサリアムにデプロイされた日です。"
 
 #: src/overview.md:242
 msgid ""
@@ -744,8 +732,9 @@ msgid ""
 "Ordinals specification was finalized. In this sense, they are not of "
 "historical interest."
 msgstr ""
-"NFT考古学者が序数に興味を持っているかどうかは未解決の問題です！ある意味で、序"
-"数は2022年初頭に作成され、当時序数規範がに制定されています。"
+"オーディナルズがNFT考古学者にとって興味深いかどうかは未解決の問題です！"
+"ある意味では、オーディナルズは2022年初頭にオーディナルズ仕様が完成したときに作成されました。"
+"この意味では、それは歴史的な興味を引くものではありません。"
 
 #: src/overview.md:247
 msgid ""
@@ -753,9 +742,9 @@ msgid ""
 "in 2009 when he mined the Bitcoin genesis block. In this sense, ordinals, "
 "and especially early ordinals, are certainly of historical interest."
 msgstr ""
-"そういう意味では歴史的な意味がありませんしかし、別の意味では、序数は実際には"
-"中本聡が2009年にビットコイン創世ブロックを採掘した時に作られました。この意味"
-"で、序数、特に初期の序数は、もちろん歴史的な意味を持っています。"
+"しかし別の意味では、オーディナルズは2009年にサトシ・ナカモトがビットコインのジェネシスブロックを"
+"採掘したときに実際に作成されました。この意味では、オーディナルズ、特に初期のオーディナルズは確かに"
+"歴史的な興味を引くものです。"
 
 #: src/overview.md:251
 msgid ""
@@ -763,9 +752,8 @@ msgid ""
 "ordinals were independently discovered on at least two separate occasions, "
 "long before the era of modern NFTs began."
 msgstr ""
-"多くの順序理論家は後者の見方に賛成しています。これは単に序数が少なくとも2つの"
-"異なる場面で独立して発見されたからではありません。は現代のNFT時代よりはるかに"
-"早く始まった。"
+"多くのオーディナルズ論者は後者の見解を支持しています。その理由の一つは、オーディナルズが少なくとも2回、"
+"現代のNFT時代が始まるずっと前に独立して発見されたからです。"
 
 #: src/overview.md:255
 msgid ""
@@ -774,10 +762,10 @@ msgid ""
 "topic=102355.0). This wasn't an asset scheme, but did use the ordinal "
 "algorithm, and was implemented but never deployed."
 msgstr ""
-"2012年8月21日、Charlie LeeでCharlie Lee[Bitcoin Talkフォーラムに投稿する」"
-"ビットコイン権益証明Pro of-of-stake追加の提案](https://bitcointalk.org/index."
-"php?topic=102355.0）.これは資産シナリオではありませんが、序数アルゴリズムが使"
-"用されており、実装されていますが、導入されたことはありません。"
+"2012年8月21日、Charlie Leeは[ビットコインにプルーフ・オブ・ステークを追加する提案]("
+"https://bitcointalk.org/index.php?topic=102355.0)をBitcoin Talkフォーラムに投稿しました。"
+これは資産スキームではありませんでしたが、オーディナルアルゴリズムを使用していました。"
+"そして実装されましたがデプロイされることはありませんでした。"
 
 #: src/overview.md:261
 msgid ""
@@ -786,10 +774,8 @@ msgid ""
 "has all the important properties of ordinals. The scheme was discussed but "
 "never implemented."
 msgstr ""
-"2012年10月8日、jl 2012は[同じフォーラムで案を発表しました](https://"
-"bitcointalk.org/index.php?topic=117224.0)このスキームは、10進表記法を使用し、"
-"序数を持つすべての重要な属性。その計画は議論されたが、決して実施されませんで"
-"した"
+"2012年10月8日、jl2012は同じフォーラムに小数表記を使用し、オーディナルズの重要な特性を"
+"すべて備えたスキームを投稿しました。このスキームは議論されましたが、実装されませんでした。"
 
 #: src/overview.md:266
 msgid ""
@@ -800,11 +786,10 @@ msgid ""
 "sequence of events set in motion with the mining of the first block, so many "
 "years ago."
 msgstr ""
-"これらの序数の独立した発明は、序数が発見されたことをある程度示しています。ま"
-"たは再発見されたもので、発明されたものではありません。順序数はビットコイン数"
-"学の必然性でありますはそれらの現代の文書からではなく、それらの古い起源から来"
-"ています。彼らは何年も前に最初のブロックの採掘とともに始まった一連の出来事の"
-"クライマックスです"
+"これらのオーディナルズの独立した発明は、ある意味でオーディナルズが発見された、または再発見されたものであり、"
+"発明されたものではないことを示しています。オーディナルズはビットコインの数学の必然性であり、"
+"それは現代の文書化からではなく、その古代の起源から生じています。それらは、多くの年前に最初のブロックの採掘と"
+"共に開始された一連の出来事の頂点なのです。"
 
 #: src/digital-artifacts.md:4
 msgid ""
