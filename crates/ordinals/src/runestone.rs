@@ -1294,7 +1294,8 @@ mod tests {
           outpoints: [
             OutpointId::new(3, 4, 5).unwrap(),
             OutpointId::new(6, 7, 8).unwrap(),
-          ].to_vec(),
+          ]
+          .to_vec(),
         }),
         ..default()
       }),
@@ -1376,7 +1377,8 @@ mod tests {
           outpoints: [
             OutpointId::new(3, 4, 5).unwrap(),
             OutpointId::new(6, 7, 8).unwrap(),
-          ].to_vec(),
+          ]
+          .to_vec(),
         }),
         ..default()
       }),
