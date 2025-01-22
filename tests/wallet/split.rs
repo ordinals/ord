@@ -107,7 +107,7 @@ fn simple_split() {
         rune: SpacedRune { rune, spacers: 1 },
         symbol: '¢',
         turbo: false,
-        freezable: false,
+        freezer: None,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),
@@ -230,7 +230,7 @@ fn oversize_op_returns_are_allowed_with_flag() {
         rune: SpacedRune { rune, spacers: 1 },
         symbol: '¢',
         turbo: false,
-        freezable: false,
+        freezer: None,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),

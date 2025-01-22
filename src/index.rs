@@ -397,7 +397,7 @@ impl Index {
               symbol: Some('\u{29C9}'),
               timestamp: 0,
               turbo: true,
-              freezable: false,
+              freezer: None,
             }
             .store(),
           )?;

@@ -63,7 +63,7 @@ fn one_rune() {
           symbol: Some('¢'),
           timestamp: ord::timestamp(7),
           turbo: false,
-          freezable: false,
+          freezer: None,
           tx: 1,
         }
       )]
@@ -110,7 +110,7 @@ fn two_runes() {
             symbol: Some('¢'),
             timestamp: ord::timestamp(7),
             turbo: false,
-            freezable: false,
+            freezer: None,
             tx: 1,
           }
         ),
@@ -134,7 +134,7 @@ fn two_runes() {
             symbol: Some('¢'),
             timestamp: ord::timestamp(14),
             turbo: false,
-            freezable: false,
+            freezer: None,
             tx: 1,
           }
         )

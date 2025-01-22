@@ -53,7 +53,7 @@ pub struct RuneEntry {
   pub terms: Option<Terms>,
   pub timestamp: u64,
   pub turbo: bool,
-  pub freezable: bool,
+  pub freezer: Option<Rune>,
 }
 
 impl RuneEntry {
@@ -163,7 +163,7 @@ pub(super) type RuneEntryValue = (
   Option<char>,            // symbol
   Option<TermsEntryValue>, // terms
   u64,                     // timestamp
-  (bool, bool),            // (turbo, freezable)
+  (bool, Option<u128>),    // (turbo, freezer)
 );
 
 impl Default for RuneEntry {
@@ -181,7 +181,7 @@ impl Default for RuneEntry {
       terms: None,
       timestamp: 0,
       turbo: false,
-      freezable: false,
+      freezer: None,
     }
   }
 }
@@ -202,7 +202,7 @@ impl Entry for RuneEntry {
       symbol,
       terms,
       timestamp,
-      (turbo, freezable),
+      (turbo, freezer),
     ): RuneEntryValue,
   ) -> Self {
     Self {
@@ -235,7 +235,7 @@ impl Entry for RuneEntry {
       }),
       timestamp,
       turbo,
-      freezable,
+      freezer: freezer.map(Rune),
     }
   }
 
@@ -271,7 +271,7 @@ impl Entry for RuneEntry {
          }| (cap, height, amount, offset),
       ),
       self.timestamp,
-      (self.turbo, self.freezable),
+      (self.turbo, self.freezer.map(|freezer| freezer.0)),
     )
   }
 }
@@ -590,7 +590,7 @@ mod tests {
       symbol: Some('a'),
       timestamp: 10,
       turbo: true,
-      freezable: false,
+      freezer: None,
     };
 
     let value = (
@@ -608,7 +608,7 @@ mod tests {
       Some('a'),
       Some((Some(1), (Some(2), Some(3)), Some(4), (Some(5), Some(6)))),
       10,
-      (true, false),
+      (true, None),
     );
 
     assert_eq!(entry.store(), value);

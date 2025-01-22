@@ -84,7 +84,10 @@ impl Runestone {
         ),
       }),
       turbo: Flag::Turbo.take(&mut flags),
-      freezable: Flag::Freezable.take(&mut flags),
+      freezer: Flag::Freezable
+        .take(&mut flags)
+        .then(|| Tag::Freezer.take(&mut fields, |[freezer]| Some(Rune(freezer))))
+        .flatten(),
     });
 
     let mint = Tag::Mint.take(&mut fields, |[block, tx]| {
@@ -142,6 +145,10 @@ impl Runestone {
         Flag::Turbo.set(&mut flags);
       }
 
+      if etching.freezer.is_some() {
+        Flag::Freezable.set(&mut flags);
+      }
+
       Tag::Flags.encode([flags], &mut payload);
 
       Tag::Rune.encode_option(etching.rune.map(|rune| rune.0), &mut payload);
@@ -158,6 +165,8 @@ impl Runestone {
         Tag::OffsetStart.encode_option(terms.offset.0, &mut payload);
         Tag::OffsetEnd.encode_option(terms.offset.1, &mut payload);
       }
+
+      Tag::Freezer.encode_option(etching.freezer.map(|rune| rune.0), &mut payload);
     }
 
     if let Some(RuneId { block, tx }) = self.mint {
@@ -1100,6 +1109,8 @@ mod tests {
         9,
         Tag::Pointer.into(),
         0,
+        Tag::Freezer.into(),
+        5,
         Tag::Mint.into(),
         1,
         Tag::Mint.into(),
@@ -1129,7 +1140,7 @@ mod tests {
             height: (None, None),
           }),
           turbo: true,
-          freezable: true,
+          freezer: Some(Rune(5)),
         }),
         pointer: Some(0),
         mint: Some(RuneId::new(1, 1).unwrap()),
@@ -1443,13 +1454,28 @@ mod tests {
           height: (Some(u32::MAX.into()), Some(u32::MAX.into())),
         }),
         turbo: true,
-        freezable: true,
+        freezer: Some(Rune(u128::MAX)),
         premine: Some(u64::MAX.into()),
         rune: Some(Rune(u128::MAX)),
         symbol: Some('\u{10FFFF}'),
         spacers: Some(Etching::MAX_SPACERS),
       }),
-      89,
+      109,
+    );
+
+    case(
+      Vec::new(),
+      Some(Etching {
+        divisibility: Some(Etching::MAX_DIVISIBILITY),
+        terms: None,
+        turbo: true,
+        freezer: Some(Rune(u128::MAX)),
+        premine: Some(u128::MAX),
+        rune: Some(Rune(u128::MAX)),
+        symbol: Some('\u{10FFFF}'),
+        spacers: Some(Etching::MAX_SPACERS),
+      }),
+      76,
     );
 
     case(
@@ -1716,7 +1742,7 @@ mod tests {
             offset: (Some(15), Some(16)),
           }),
           turbo: true,
-          freezable: true,
+          freezer: Some(Rune(10)),
         }),
         mint: Some(RuneId::new(17, 18).unwrap()),
         pointer: Some(0),
@@ -1746,6 +1772,8 @@ mod tests {
         15,
         Tag::OffsetEnd.into(),
         16,
+        Tag::Freezer.into(),
+        10,
         Tag::Mint.into(),
         17,
         Tag::Mint.into(),
@@ -1774,7 +1802,7 @@ mod tests {
           symbol: None,
           terms: None,
           turbo: false,
-          freezable: false,
+          freezer: None,
         }),
         ..default()
       },
@@ -1791,7 +1819,7 @@ mod tests {
           symbol: None,
           terms: None,
           turbo: false,
-          freezable: false,
+          freezer: None,
         }),
         ..default()
       },

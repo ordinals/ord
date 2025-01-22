@@ -51,7 +51,7 @@ fn cardinals_does_not_show_runic_outputs() {
         },
         symbol: '¢',
         turbo: false,
-        freezable: false,
+        freezer: None,
       }),
       inscriptions: vec![batch::Entry {
         file: Some("inscription.jpeg".into()),

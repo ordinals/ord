@@ -65,7 +65,7 @@ mod tests {
           symbol: Some('@'),
           timestamp: 0,
           turbo: true,
-          freezable: false,
+          freezer: None,
         },
         id: RuneId { block: 10, tx: 9 },
         mintable: true,
@@ -122,8 +122,8 @@ mod tests {
   <dd>@</dd>
   <dt>turbo</dt>
   <dd>true</dd>
-  <dt>freezable</dt>
-  <dd>false</dd>
+  <dt>freezer</dt>
+  <dd>none</dd>
   <dt>etching</dt>
   <dd><a class=collapse href=/tx/0{64}>0{64}</a></dd>
   <dt>parent</dt>
@@ -153,7 +153,7 @@ mod tests {
           symbol: Some('%'),
           timestamp: 0,
           turbo: false,
-          freezable: false,
+          freezer: None,
         },
         id: RuneId { block: 10, tx: 9 },
         mintable: false,
@@ -188,7 +188,7 @@ mod tests {
           symbol: Some('%'),
           timestamp: 0,
           turbo: false,
-          freezable: false,
+          freezer: None,
         },
         id: RuneId { block: 10, tx: 9 },
         mintable: false,
@@ -197,8 +197,6 @@ mod tests {
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>.*
   <dt>turbo</dt>
-  <dd>false</dd>
-  <dt>freezable</dt>
   <dd>false</dd>
 .*</dl>
 "
@@ -230,7 +228,7 @@ mod tests {
           symbol: Some('%'),
           timestamp: 0,
           turbo: false,
-          freezable: false,
+          freezer: None,
         },
         id: RuneId { block: 10, tx: 9 },
         mintable: false,
@@ -287,7 +285,7 @@ mod tests {
           symbol: None,
           timestamp: 0,
           turbo: false,
-          freezable: false,
+          freezer: None,
         },
         id: RuneId { block: 0, tx: 0 },
         mintable: false,
@@ -325,7 +323,7 @@ mod tests {
           symbol: None,
           timestamp: 0,
           turbo: false,
-          freezable: false,
+          freezer: None,
         },
         id: RuneId { block: 0, tx: 0 },
         mintable: true,

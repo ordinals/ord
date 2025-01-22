@@ -70,8 +70,12 @@
 %% }
   <dt>turbo</dt>
   <dd>{{ self.entry.turbo }}</dd>
-  <dt>freezable</dt>
-  <dd>{{ self.entry.freezable }}</dd>
+  <dt>freezer</dt>
+%% if let Some(freezer) = self.entry.freezer {
+  <dd>{{ freezer }}</dd>
+%% } else {
+  <dd>none</dd>
+%% }
   <dt>etching</dt>
   <dd><a class=collapse href=/tx/{{ self.entry.etching }}>{{ self.entry.etching }}</a></dd>
 %% if let Some(parent) = self.parent {

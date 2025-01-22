@@ -234,6 +234,7 @@ enum Tag {
   OffsetEnd = 18,
   Mint = 20,
   Pointer = 22,
+  Freezer = 24,
   Cenotaph = 126,
 
   Divisibility = 1,
