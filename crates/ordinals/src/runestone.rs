@@ -1220,6 +1220,170 @@ mod tests {
   }
 
   #[test]
+  fn decipher_freeze_tag_with_no_rune_id() {
+    assert_eq!(
+      decipher(&[
+        Tag::Freeze.into(),
+        0,
+        Tag::Freeze.into(),
+        1,
+        Tag::Freeze.into(),
+        2,
+        Tag::Freeze.into(),
+        3,
+      ]),
+      Artifact::Runestone(Runestone {
+        freeze: Some(FreezeEdict {
+          rune_id: None,
+          outpoints: [OutpointId::new(1, 2, 3).unwrap()].to_vec(),
+        }),
+        ..default()
+      }),
+    );
+  }
+
+  #[test]
+  fn decipher_freeze_tag_with_rune_id() {
+    assert_eq!(
+      decipher(&[
+        Tag::Freeze.into(),
+        1,
+        Tag::Freeze.into(),
+        2,
+        Tag::Freeze.into(),
+        3,
+        Tag::Freeze.into(),
+        4,
+        Tag::Freeze.into(),
+        5,
+      ]),
+      Artifact::Runestone(Runestone {
+        freeze: Some(FreezeEdict {
+          rune_id: Some(RuneId::new(1, 2).unwrap()),
+          outpoints: [OutpointId::new(3, 4, 5).unwrap()].to_vec(),
+        }),
+        ..default()
+      }),
+    );
+  }
+
+  #[test]
+  fn decipher_freeze_tag_with_multiple_outpoints() {
+    assert_eq!(
+      decipher(&[
+        Tag::Freeze.into(),
+        1,
+        Tag::Freeze.into(),
+        2,
+        Tag::Freeze.into(),
+        3,
+        Tag::Freeze.into(),
+        4,
+        Tag::Freeze.into(),
+        5,
+        Tag::Freeze.into(),
+        6,
+        Tag::Freeze.into(),
+        7,
+        Tag::Freeze.into(),
+        8,
+      ]),
+      Artifact::Runestone(Runestone {
+        freeze: Some(FreezeEdict {
+          rune_id: Some(RuneId::new(1, 2).unwrap()),
+          outpoints: [
+            OutpointId::new(3, 4, 5).unwrap(),
+            OutpointId::new(6, 7, 8).unwrap(),
+          ].to_vec(),
+        }),
+        ..default()
+      }),
+    );
+  }
+
+  #[test]
+  fn decipher_unfreeze_tag_with_no_rune_id() {
+    assert_eq!(
+      decipher(&[
+        Tag::Unfreeze.into(),
+        0,
+        Tag::Unfreeze.into(),
+        1,
+        Tag::Unfreeze.into(),
+        2,
+        Tag::Unfreeze.into(),
+        3,
+      ]),
+      Artifact::Runestone(Runestone {
+        unfreeze: Some(FreezeEdict {
+          rune_id: None,
+          outpoints: [OutpointId::new(1, 2, 3).unwrap()].to_vec(),
+        }),
+        ..default()
+      }),
+    );
+  }
+
+  #[test]
+  fn decipher_unfreeze_tag_with_rune_id() {
+    assert_eq!(
+      decipher(&[
+        Tag::Unfreeze.into(),
+        1,
+        Tag::Unfreeze.into(),
+        2,
+        Tag::Unfreeze.into(),
+        3,
+        Tag::Unfreeze.into(),
+        4,
+        Tag::Unfreeze.into(),
+        5,
+      ]),
+      Artifact::Runestone(Runestone {
+        unfreeze: Some(FreezeEdict {
+          rune_id: Some(RuneId::new(1, 2).unwrap()),
+          outpoints: [OutpointId::new(3, 4, 5).unwrap()].to_vec(),
+        }),
+        ..default()
+      }),
+    );
+  }
+
+  #[test]
+  fn decipher_unfreeze_tag_with_multiple_outpoints() {
+    assert_eq!(
+      decipher(&[
+        Tag::Unfreeze.into(),
+        1,
+        Tag::Unfreeze.into(),
+        2,
+        Tag::Unfreeze.into(),
+        3,
+        Tag::Unfreeze.into(),
+        4,
+        Tag::Unfreeze.into(),
+        5,
+        Tag::Unfreeze.into(),
+        6,
+        Tag::Unfreeze.into(),
+        7,
+        Tag::Unfreeze.into(),
+        8,
+      ]),
+      Artifact::Runestone(Runestone {
+        unfreeze: Some(FreezeEdict {
+          rune_id: Some(RuneId::new(1, 2).unwrap()),
+          outpoints: [
+            OutpointId::new(3, 4, 5).unwrap(),
+            OutpointId::new(6, 7, 8).unwrap(),
+          ].to_vec(),
+        }),
+        ..default()
+      }),
+    );
+  }
+
+  #[test]
   fn recognized_even_etching_fields_produce_cenotaph_if_etching_flag_is_not_set() {
     assert_eq!(
       decipher(&[Tag::Rune.into(), 4]),
