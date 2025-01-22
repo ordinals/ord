@@ -1286,6 +1286,8 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
         output: 2
       }],
       mint: None,
+      freeze: None,
+      unfreeze: None,
     }),
   );
 }

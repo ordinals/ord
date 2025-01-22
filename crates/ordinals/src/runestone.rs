@@ -10,6 +10,8 @@ pub struct Runestone {
   pub etching: Option<Etching>,
   pub mint: Option<RuneId>,
   pub pointer: Option<u32>,
+  pub freeze: Option<FreezeEdict>,
+  pub unfreeze: Option<FreezeEdict>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -91,6 +93,54 @@ impl Runestone {
       RuneId::new(block.try_into().ok()?, tx.try_into().ok()?)
     });
 
+    let freeze = if let Some(block) = Tag::Freeze.take(&mut fields, |[block]| Some(block)) {
+      let rune_id = if block > 0 {
+        let tx = Tag::Freeze.take(&mut fields, |[tx]| Some(tx))?;
+        RuneId::new(block.try_into().ok()?, tx.try_into().ok()?)
+      } else {
+        None
+      };
+
+      let mut outpoints = Vec::new();
+      while let Some(outpoint) = Tag::Freeze.take(&mut fields, |[block, tx, output]| {
+        Some(OutpointId {
+          block: block.try_into().ok()?,
+          tx: tx.try_into().ok()?,
+          output: output.try_into().ok()?,
+        })
+      }) {
+        outpoints.push(outpoint);
+      }
+
+      Some(FreezeEdict { rune_id, outpoints })
+    } else {
+      None
+    };
+
+    let unfreeze = if let Some(block) = Tag::Unfreeze.take(&mut fields, |[block]| Some(block)) {
+      let rune_id = if block > 0 {
+        let tx = Tag::Unfreeze.take(&mut fields, |[tx]| Some(tx))?;
+        RuneId::new(block.try_into().ok()?, tx.try_into().ok()?)
+      } else {
+        None
+      };
+
+      let mut outpoints = Vec::new();
+      while let Some(outpoint) = Tag::Unfreeze.take(&mut fields, |[block, tx, output]| {
+        Some(OutpointId {
+          block: block.try_into().ok()?,
+          tx: tx.try_into().ok()?,
+          output: output.try_into().ok()?,
+        })
+      }) {
+        outpoints.push(outpoint);
+      }
+
+      Some(FreezeEdict { rune_id, outpoints })
+    } else {
+      None
+    };
+
     let pointer = Tag::Pointer.take(&mut fields, |[pointer]| {
       let pointer = u32::try_from(pointer).ok()?;
       (u64::from(pointer) < u64::try_from(transaction.output.len()).unwrap()).then_some(pointer)
@@ -124,6 +174,8 @@ impl Runestone {
       etching,
       mint,
       pointer,
+      freeze,
+      unfreeze,
     }))
   }
 
@@ -164,6 +216,30 @@ impl Runestone {
 
     if let Some(RuneId { block, tx }) = self.mint {
       Tag::Mint.encode([block.into(), tx.into()], &mut payload);
+    }
+
+    if let Some(FreezeEdict { rune_id, outpoints }) = self.freeze.clone() {
+      if let Some(RuneId { block, tx }) = rune_id {
+        Tag::Freeze.encode([block.into(), tx.into()], &mut payload);
+      } else {
+        Tag::Freeze.encode([0], &mut payload);
+      }
+
+      for OutpointId { block, tx, output } in outpoints {
+        Tag::Freeze.encode([block.into(), tx.into(), output.into()], &mut payload);
+      }
+    }
+
+    if let Some(FreezeEdict { rune_id, outpoints }) = self.unfreeze.clone() {
+      if let Some(RuneId { block, tx }) = rune_id {
+        Tag::Unfreeze.encode([block.into(), tx.into()], &mut payload);
+      } else {
+        Tag::Unfreeze.encode([0], &mut payload);
+      }
+
+      for OutpointId { block, tx, output } in outpoints {
+        Tag::Unfreeze.encode([block.into(), tx.into(), output.into()], &mut payload);
+      }
     }
 
     Tag::Pointer.encode_option(self.pointer, &mut payload);
@@ -1137,6 +1213,8 @@ mod tests {
         }),
         pointer: Some(0),
         mint: Some(RuneId::new(1, 1).unwrap()),
+        freeze: None,
+        unfreeze: None,
       }),
     );
   }
@@ -1739,6 +1817,8 @@ mod tests {
         }),
         mint: Some(RuneId::new(17, 18).unwrap()),
         pointer: Some(0),
+        freeze: None,
+        unfreeze: None,
       },
       &[
         Tag::Flags.into(),

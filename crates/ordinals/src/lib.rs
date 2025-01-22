@@ -24,9 +24,9 @@ use {
 
 pub use {
   artifact::Artifact, cenotaph::Cenotaph, charm::Charm, decimal_sat::DecimalSat, degree::Degree,
-  edict::Edict, epoch::Epoch, etching::Etching, flaw::Flaw, height::Height, pile::Pile,
-  rarity::Rarity, rune::Rune, rune_id::RuneId, runestone::Runestone, sat::Sat, sat_point::SatPoint,
-  spaced_rune::SpacedRune, terms::Terms,
+  edict::Edict, epoch::Epoch, etching::Etching, flaw::Flaw, freeze_edict::FreezeEdict,
+  height::Height, outpoint_id::OutpointId, pile::Pile, rarity::Rarity, rune::Rune, rune_id::RuneId,
+  runestone::Runestone, sat::Sat, sat_point::SatPoint, spaced_rune::SpacedRune, terms::Terms,
 };
 
 pub const COIN_VALUE: u64 = 100_000_000;
@@ -45,7 +45,9 @@ mod edict;
 mod epoch;
 mod etching;
 mod flaw;
+mod freeze_edict;
 mod height;
+mod outpoint_id;
 mod pile;
 mod rarity;
 mod rune;

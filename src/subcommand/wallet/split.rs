@@ -688,6 +688,8 @@ mod tests {
               etching: None,
               mint: None,
               pointer: None,
+              freeze: None,
+              unfreeze: None,
             }
             .encipher()
           },
@@ -756,6 +758,8 @@ mod tests {
               etching: None,
               mint: None,
               pointer: None,
+              freeze: None,
+              unfreeze: None,
             }
             .encipher()
           },
@@ -835,6 +839,8 @@ mod tests {
               etching: None,
               mint: None,
               pointer: None,
+              freeze: None,
+              unfreeze: None,
             }
             .encipher()
           },
@@ -905,6 +911,8 @@ mod tests {
               etching: None,
               mint: None,
               pointer: None,
+              freeze: None,
+              unfreeze: None,
             }
             .encipher()
           },
@@ -979,6 +987,8 @@ mod tests {
               etching: None,
               mint: None,
               pointer: None,
+              freeze: None,
+              unfreeze: None,
             }
             .encipher()
           },
@@ -1050,6 +1060,8 @@ mod tests {
               etching: None,
               mint: None,
               pointer: None,
+              freeze: None,
+              unfreeze: None,
             }
             .encipher()
           },
@@ -1128,6 +1140,8 @@ mod tests {
               etching: None,
               mint: None,
               pointer: None,
+              freeze: None,
+              unfreeze: None,
             }
             .encipher()
           },
@@ -1208,6 +1222,8 @@ mod tests {
               etching: None,
               mint: None,
               pointer: None,
+              freeze: None,
+              unfreeze: None,
             }
             .encipher()
           },
@@ -1309,6 +1325,8 @@ mod tests {
               etching: None,
               mint: None,
               pointer: None,
+              freeze: None,
+              unfreeze: None,
             }
             .encipher()
           },
@@ -1407,6 +1425,8 @@ mod tests {
                 etching: None,
                 mint: None,
                 pointer: None,
+                freeze: None,
+                unfreeze: None,
               }
               .encipher(),
             }

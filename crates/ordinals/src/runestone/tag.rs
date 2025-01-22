@@ -21,6 +21,8 @@ pub(super) enum Tag {
   Spacers = 3,
   Symbol = 5,
   Freezer = 7,
+  Freeze = 9,
+  Unfreeze = 11,
   #[allow(unused)]
   Nop = 127,
 }
