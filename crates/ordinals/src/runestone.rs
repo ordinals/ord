@@ -1817,8 +1817,14 @@ mod tests {
         }),
         mint: Some(RuneId::new(17, 18).unwrap()),
         pointer: Some(0),
-        freeze: None,
-        unfreeze: None,
+        freeze: Some(FreezeEdict {
+          rune_id: RuneId::new(19, 20),
+          outpoints: [OutpointId::new(21, 22, 23).unwrap()].to_vec(),
+        }),
+        unfreeze: Some(FreezeEdict {
+          rune_id: RuneId::new(24, 25),
+          outpoints: [OutpointId::new(26, 27, 28).unwrap()].to_vec(),
+        }),
       },
       &[
         Tag::Flags.into(),
@@ -1851,6 +1857,26 @@ mod tests {
         17,
         Tag::Mint.into(),
         18,
+        Tag::Freeze.into(),
+        19,
+        Tag::Freeze.into(),
+        20,
+        Tag::Freeze.into(),
+        21,
+        Tag::Freeze.into(),
+        22,
+        Tag::Freeze.into(),
+        23,
+        Tag::Unfreeze.into(),
+        24,
+        Tag::Unfreeze.into(),
+        25,
+        Tag::Unfreeze.into(),
+        26,
+        Tag::Unfreeze.into(),
+        27,
+        Tag::Unfreeze.into(),
+        28,
         Tag::Pointer.into(),
         0,
         Tag::Body.into(),
@@ -1897,6 +1923,94 @@ mod tests {
         ..default()
       },
       &[Tag::Flags.into(), Flag::Etching.mask()],
+    );
+
+    case(
+      Runestone {
+        freeze: Some(FreezeEdict {
+          rune_id: None,
+          outpoints: [OutpointId::new(1, 2, 3).unwrap()].to_vec(),
+        }),
+        unfreeze: Some(FreezeEdict {
+          rune_id: None,
+          outpoints: [OutpointId::new(4, 5, 6).unwrap()].to_vec(),
+        }),
+        ..default()
+      },
+      &[
+        Tag::Freeze.into(),
+        0,
+        Tag::Freeze.into(),
+        1,
+        Tag::Freeze.into(),
+        2,
+        Tag::Freeze.into(),
+        3,
+        Tag::Unfreeze.into(),
+        0,
+        Tag::Unfreeze.into(),
+        4,
+        Tag::Unfreeze.into(),
+        5,
+        Tag::Unfreeze.into(),
+        6,
+      ],
+    );
+
+    case(
+      Runestone {
+        freeze: Some(FreezeEdict {
+          rune_id: RuneId::new(1, 2),
+          outpoints: [
+            OutpointId::new(3, 4, 5).unwrap(),
+            OutpointId::new(6, 7, 8).unwrap(),
+          ]
+          .to_vec(),
+        }),
+        unfreeze: Some(FreezeEdict {
+          rune_id: RuneId::new(9, 10),
+          outpoints: [
+            OutpointId::new(11, 12, 13).unwrap(),
+            OutpointId::new(14, 15, 16).unwrap(),
+          ]
+          .to_vec(),
+        }),
+        ..default()
+      },
+      &[
+        Tag::Freeze.into(),
+        1,
+        Tag::Freeze.into(),
+        2,
+        Tag::Freeze.into(),
+        3,
+        Tag::Freeze.into(),
+        4,
+        Tag::Freeze.into(),
+        5,
+        Tag::Freeze.into(),
+        6,
+        Tag::Freeze.into(),
+        7,
+        Tag::Freeze.into(),
+        8,
+        Tag::Unfreeze.into(),
+        9,
+        Tag::Unfreeze.into(),
+        10,
+        Tag::Unfreeze.into(),
+        11,
+        Tag::Unfreeze.into(),
+        12,
+        Tag::Unfreeze.into(),
+        13,
+        Tag::Unfreeze.into(),
+        14,
+        Tag::Unfreeze.into(),
+        15,
+        Tag::Unfreeze.into(),
+        16,
+      ],
     );
   }
 

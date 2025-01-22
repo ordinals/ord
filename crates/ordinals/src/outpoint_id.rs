@@ -19,6 +19,16 @@ pub struct OutpointId {
   pub output: u32,
 }
 
+impl OutpointId {
+  pub fn new(block: u64, tx: u32, output: u32) -> Option<OutpointId> {
+    if block == 0 {
+      return None;
+    }
+
+    Some(OutpointId { block, tx, output })
+  }
+}
+
 impl Display for OutpointId {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(f, "{}:{}:{}", self.block, self.tx, self.output)
