@@ -84,10 +84,7 @@ impl Runestone {
         ),
       }),
       turbo: Flag::Turbo.take(&mut flags),
-      freezer: Flag::Freezable
-        .take(&mut flags)
-        .then(|| Tag::Freezer.take(&mut fields, |[freezer]| Some(Rune(freezer))))
-        .flatten(),
+      freezer: Tag::Freezer.take(&mut fields, |[freezer]| Some(Rune(freezer))),
     });
 
     let mint = Tag::Mint.take(&mut fields, |[block, tx]| {
@@ -143,10 +140,6 @@ impl Runestone {
 
       if etching.turbo {
         Flag::Turbo.set(&mut flags);
-      }
-
-      if etching.freezer.is_some() {
-        Flag::Freezable.set(&mut flags);
       }
 
       Tag::Flags.encode([flags], &mut payload);
@@ -1090,7 +1083,7 @@ mod tests {
     assert_eq!(
       decipher(&[
         Tag::Flags.into(),
-        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask() | Flag::Freezable.mask(),
+        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask(),
         Tag::Rune.into(),
         4,
         Tag::Divisibility.into(),
@@ -1749,7 +1742,7 @@ mod tests {
       },
       &[
         Tag::Flags.into(),
-        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask() | Flag::Freezable.mask(),
+        Flag::Etching.mask() | Flag::Terms.mask() | Flag::Turbo.mask(),
         Tag::Rune.into(),
         9,
         Tag::Divisibility.into(),
