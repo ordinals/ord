@@ -9,6 +9,8 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) id_to_entry: &'a mut Table<'tx, RuneIdValue, RuneEntryValue>,
   pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
+  pub(super) outpoint_id_to_outpoint: &'a mut Table<'tx, OutPointIdValue, OutPointValue>,
+  pub(super) outpoint_to_outpoint_id: &'a mut Table<'tx, &'static OutPointValue, OutPointIdValue>,
   pub(super) outpoint_to_balances: &'a mut Table<'tx, &'static OutPointValue, &'static [u8]>,
   pub(super) rune_to_id: &'a mut Table<'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
@@ -209,6 +211,17 @@ impl RuneUpdater<'_, '_, '_> {
         }
       }
 
+      let outpoint_id = OutPointId {
+        block: self.height.into(),
+        tx: tx_index,
+        output: outpoint.vout,
+      };
+      self
+        .outpoint_id_to_outpoint
+        .insert(outpoint_id.store(), outpoint.store())?;
+      self
+        .outpoint_to_outpoint_id
+        .insert(&outpoint.store(), outpoint_id.store())?;
       self
         .outpoint_to_balances
         .insert(&outpoint.store(), buffer.as_slice())?;
@@ -485,6 +498,13 @@ impl RuneUpdater<'_, '_, '_> {
           let ((id, balance), len) = Index::decode_rune_balance(&buffer[i..]).unwrap();
           i += len;
           *unallocated.entry(id).or_default() += balance;
+        }
+
+        if let Some(outpoint_id) = self
+          .outpoint_to_outpoint_id
+          .remove(&input.previous_output.store())?
+        {
+          self.outpoint_id_to_outpoint.remove(outpoint_id.value())?;
         }
       }
     }

@@ -350,6 +350,8 @@ impl Updater<'_> {
     }
 
     if self.index.index_runes && self.height >= self.index.settings.first_rune_height() {
+      let mut outpoint_id_to_outpoint = wtx.open_table(OUTPOINT_ID_TO_OUTPOINT)?;
+      let mut outpoint_to_outpoint_id = wtx.open_table(OUTPOINT_TO_OUTPOINT_ID)?;
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
@@ -373,6 +375,8 @@ impl Updater<'_> {
           self.index.settings.chain().network(),
           Height(self.height),
         ),
+        outpoint_id_to_outpoint: &mut outpoint_id_to_outpoint,
+        outpoint_to_outpoint_id: &mut outpoint_to_outpoint_id,
         outpoint_to_balances: &mut outpoint_to_rune_balances,
         rune_to_id: &mut rune_to_rune_id,
         runes,

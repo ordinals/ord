@@ -58,8 +58,8 @@ use {
   html_escaper::{Escape, Trusted},
   lazy_static::lazy_static,
   ordinals::{
-    varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,
-    Sat, SatPoint, SpacedRune, Terms, OutPointId,
+    varint, Artifact, Charm, Edict, Epoch, Etching, Height, OutPointId, Pile, Rarity, Rune, RuneId,
+    Runestone, Sat, SatPoint, SpacedRune, Terms,
   },
   regex::Regex,
   reqwest::{header::HeaderMap, StatusCode, Url},

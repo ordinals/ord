@@ -2,8 +2,8 @@ use {
   self::{
     entry::{
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
-      OutPointIdValue,
+      OutPointIdValue, OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange,
+      TxidValue,
     },
     event::Event,
     lot::Lot,
@@ -61,7 +61,8 @@ define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
-define_table! { OUTPOINT_ID_TO_OUTPOINT, OutPointIdValue, &OutPointValue }
+define_table! { OUTPOINT_ID_TO_OUTPOINT, OutPointIdValue, OutPointValue }
+define_table! { OUTPOINT_TO_OUTPOINT_ID, &OutPointValue, OutPointIdValue }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_UTXO_ENTRY, &OutPointValue, &UtxoEntry }
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
@@ -317,6 +318,7 @@ impl Index {
         tx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
         tx.open_table(OUTPOINT_ID_TO_OUTPOINT)?;
+        tx.open_table(OUTPOINT_TO_OUTPOINT_ID)?;
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         tx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
