@@ -53,6 +53,7 @@ pub(crate) mod testing;
 
 const SCHEMA_VERSION: u64 = 30;
 
+define_multimap_table! { RUNE_TO_FREEZABLE_RUNE_ID, u128, RuneIdValue }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
@@ -309,6 +310,7 @@ impl Index {
         tx.set_durability(durability);
         tx.set_quick_repair(true);
 
+        tx.open_multimap_table(RUNE_TO_FREEZABLE_RUNE_ID)?;
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;

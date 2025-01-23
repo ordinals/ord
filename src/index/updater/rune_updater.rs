@@ -9,6 +9,7 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) id_to_entry: &'a mut Table<'tx, RuneIdValue, RuneEntryValue>,
   pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
+  pub(super) rune_to_freezable_rune_id: &'a mut MultimapTable<'tx, u128, RuneIdValue>,
   pub(super) outpoint_id_to_outpoint: &'a mut Table<'tx, OutPointIdValue, OutPointValue>,
   pub(super) outpoint_to_outpoint_id: &'a mut Table<'tx, &'static OutPointValue, OutPointIdValue>,
   pub(super) outpoint_to_balances: &'a mut Table<'tx, &'static OutPointValue, &'static [u8]>,
@@ -323,6 +324,10 @@ impl RuneUpdater<'_, '_, '_> {
     };
 
     self.id_to_entry.insert(id.store(), entry.store())?;
+
+    if let Some(freezer) = entry.freezer {
+      self.rune_to_freezable_rune_id.insert(freezer.0, id.store())?;
+    }
 
     if let Some(sender) = self.event_sender {
       sender.blocking_send(Event::RuneEtched {
