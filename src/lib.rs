@@ -59,7 +59,7 @@ use {
   lazy_static::lazy_static,
   ordinals::{
     varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,
-    Sat, SatPoint, SpacedRune, Terms,
+    Sat, SatPoint, SpacedRune, Terms, OutPointId,
   },
   regex::Regex,
   reqwest::{header::HeaderMap, StatusCode, Url},

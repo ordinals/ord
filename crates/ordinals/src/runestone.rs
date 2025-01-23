@@ -103,7 +103,7 @@ impl Runestone {
 
       let mut outpoints = Vec::new();
       while let Some(outpoint) = Tag::Freeze.take(&mut fields, |[block, tx, output]| {
-        Some(OutpointId {
+        Some(OutPointId {
           block: block.try_into().ok()?,
           tx: tx.try_into().ok()?,
           output: output.try_into().ok()?,
@@ -127,7 +127,7 @@ impl Runestone {
 
       let mut outpoints = Vec::new();
       while let Some(outpoint) = Tag::Unfreeze.take(&mut fields, |[block, tx, output]| {
-        Some(OutpointId {
+        Some(OutPointId {
           block: block.try_into().ok()?,
           tx: tx.try_into().ok()?,
           output: output.try_into().ok()?,
@@ -225,7 +225,7 @@ impl Runestone {
         Tag::Freeze.encode([0], &mut payload);
       }
 
-      for OutpointId { block, tx, output } in outpoints {
+      for OutPointId { block, tx, output } in outpoints {
         Tag::Freeze.encode([block.into(), tx.into(), output.into()], &mut payload);
       }
     }
@@ -237,7 +237,7 @@ impl Runestone {
         Tag::Unfreeze.encode([0], &mut payload);
       }
 
-      for OutpointId { block, tx, output } in outpoints {
+      for OutPointId { block, tx, output } in outpoints {
         Tag::Unfreeze.encode([block.into(), tx.into(), output.into()], &mut payload);
       }
     }
@@ -1235,7 +1235,7 @@ mod tests {
       Artifact::Runestone(Runestone {
         freeze: Some(FreezeEdict {
           rune_id: None,
-          outpoints: [OutpointId::new(1, 2, 3).unwrap()].to_vec(),
+          outpoints: [OutPointId::new(1, 2, 3).unwrap()].to_vec(),
         }),
         ..default()
       }),
@@ -1260,7 +1260,7 @@ mod tests {
       Artifact::Runestone(Runestone {
         freeze: Some(FreezeEdict {
           rune_id: Some(RuneId::new(1, 2).unwrap()),
-          outpoints: [OutpointId::new(3, 4, 5).unwrap()].to_vec(),
+          outpoints: [OutPointId::new(3, 4, 5).unwrap()].to_vec(),
         }),
         ..default()
       }),
@@ -1292,8 +1292,8 @@ mod tests {
         freeze: Some(FreezeEdict {
           rune_id: Some(RuneId::new(1, 2).unwrap()),
           outpoints: [
-            OutpointId::new(3, 4, 5).unwrap(),
-            OutpointId::new(6, 7, 8).unwrap(),
+            OutPointId::new(3, 4, 5).unwrap(),
+            OutPointId::new(6, 7, 8).unwrap(),
           ]
           .to_vec(),
         }),
@@ -1318,7 +1318,7 @@ mod tests {
       Artifact::Runestone(Runestone {
         unfreeze: Some(FreezeEdict {
           rune_id: None,
-          outpoints: [OutpointId::new(1, 2, 3).unwrap()].to_vec(),
+          outpoints: [OutPointId::new(1, 2, 3).unwrap()].to_vec(),
         }),
         ..default()
       }),
@@ -1343,7 +1343,7 @@ mod tests {
       Artifact::Runestone(Runestone {
         unfreeze: Some(FreezeEdict {
           rune_id: Some(RuneId::new(1, 2).unwrap()),
-          outpoints: [OutpointId::new(3, 4, 5).unwrap()].to_vec(),
+          outpoints: [OutPointId::new(3, 4, 5).unwrap()].to_vec(),
         }),
         ..default()
       }),
@@ -1375,8 +1375,8 @@ mod tests {
         unfreeze: Some(FreezeEdict {
           rune_id: Some(RuneId::new(1, 2).unwrap()),
           outpoints: [
-            OutpointId::new(3, 4, 5).unwrap(),
-            OutpointId::new(6, 7, 8).unwrap(),
+            OutPointId::new(3, 4, 5).unwrap(),
+            OutPointId::new(6, 7, 8).unwrap(),
           ]
           .to_vec(),
         }),
@@ -1985,11 +1985,11 @@ mod tests {
         pointer: Some(0),
         freeze: Some(FreezeEdict {
           rune_id: RuneId::new(19, 20),
-          outpoints: [OutpointId::new(21, 22, 23).unwrap()].to_vec(),
+          outpoints: [OutPointId::new(21, 22, 23).unwrap()].to_vec(),
         }),
         unfreeze: Some(FreezeEdict {
           rune_id: RuneId::new(24, 25),
-          outpoints: [OutpointId::new(26, 27, 28).unwrap()].to_vec(),
+          outpoints: [OutPointId::new(26, 27, 28).unwrap()].to_vec(),
         }),
       },
       &[
@@ -2095,11 +2095,11 @@ mod tests {
       Runestone {
         freeze: Some(FreezeEdict {
           rune_id: None,
-          outpoints: [OutpointId::new(1, 2, 3).unwrap()].to_vec(),
+          outpoints: [OutPointId::new(1, 2, 3).unwrap()].to_vec(),
         }),
         unfreeze: Some(FreezeEdict {
           rune_id: None,
-          outpoints: [OutpointId::new(4, 5, 6).unwrap()].to_vec(),
+          outpoints: [OutPointId::new(4, 5, 6).unwrap()].to_vec(),
         }),
         ..default()
       },
@@ -2128,16 +2128,16 @@ mod tests {
         freeze: Some(FreezeEdict {
           rune_id: RuneId::new(1, 2),
           outpoints: [
-            OutpointId::new(3, 4, 5).unwrap(),
-            OutpointId::new(6, 7, 8).unwrap(),
+            OutPointId::new(3, 4, 5).unwrap(),
+            OutPointId::new(6, 7, 8).unwrap(),
           ]
           .to_vec(),
         }),
         unfreeze: Some(FreezeEdict {
           rune_id: RuneId::new(9, 10),
           outpoints: [
-            OutpointId::new(11, 12, 13).unwrap(),
-            OutpointId::new(14, 15, 16).unwrap(),
+            OutPointId::new(11, 12, 13).unwrap(),
+            OutPointId::new(14, 15, 16).unwrap(),
           ]
           .to_vec(),
         }),

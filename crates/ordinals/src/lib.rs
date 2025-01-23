@@ -25,7 +25,7 @@ use {
 pub use {
   artifact::Artifact, cenotaph::Cenotaph, charm::Charm, decimal_sat::DecimalSat, degree::Degree,
   edict::Edict, epoch::Epoch, etching::Etching, flaw::Flaw, freeze_edict::FreezeEdict,
-  height::Height, outpoint_id::OutpointId, pile::Pile, rarity::Rarity, rune::Rune, rune_id::RuneId,
+  height::Height, outpoint_id::OutPointId, pile::Pile, rarity::Rarity, rune::Rune, rune_id::RuneId,
   runestone::Runestone, sat::Sat, sat_point::SatPoint, spaced_rune::SpacedRune, terms::Terms,
 };
 

@@ -434,6 +434,20 @@ impl Entry for OutPoint {
   }
 }
 
+pub(super) type OutPointIdValue = (u64, u32, u32);
+
+impl Entry for OutPointId {
+  type Value = OutPointIdValue;
+
+  fn load((block, tx, output): Self::Value) -> Self {
+    Self { block, tx, output }
+  }
+
+  fn store(self) -> Self::Value {
+    (self.block, self.tx, self.output)
+  }
+}
+
 pub(super) type SatPointValue = [u8; 44];
 
 impl Entry for SatPoint {

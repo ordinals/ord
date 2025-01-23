@@ -13,29 +13,29 @@ use super::*;
   DeserializeFromStr,
   SerializeDisplay,
 )]
-pub struct OutpointId {
+pub struct OutPointId {
   pub block: u64,
   pub tx: u32,
   pub output: u32,
 }
 
-impl OutpointId {
-  pub fn new(block: u64, tx: u32, output: u32) -> Option<OutpointId> {
+impl OutPointId {
+  pub fn new(block: u64, tx: u32, output: u32) -> Option<OutPointId> {
     if block == 0 {
       return None;
     }
 
-    Some(OutpointId { block, tx, output })
+    Some(OutPointId { block, tx, output })
   }
 }
 
-impl Display for OutpointId {
+impl Display for OutPointId {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(f, "{}:{}:{}", self.block, self.tx, self.output)
   }
 }
 
-impl FromStr for OutpointId {
+impl FromStr for OutPointId {
   type Err = Error;
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
@@ -80,7 +80,7 @@ mod tests {
   #[test]
   fn display() {
     assert_eq!(
-      OutpointId {
+      OutPointId {
         block: 1,
         tx: 2,
         output: 3
@@ -92,31 +92,31 @@ mod tests {
 
   #[test]
   fn from_str() {
-    assert!(matches!("123".parse::<OutpointId>(), Err(Error::Separator)));
-    assert!(matches!(":".parse::<OutpointId>(), Err(Error::Separator)));
+    assert!(matches!("123".parse::<OutPointId>(), Err(Error::Separator)));
+    assert!(matches!(":".parse::<OutPointId>(), Err(Error::Separator)));
     assert!(matches!(
-      "123:".parse::<OutpointId>(),
+      "123:".parse::<OutPointId>(),
       Err(Error::Separator)
     ));
-    assert!(matches!("1:2".parse::<OutpointId>(), Err(Error::Separator)));
-    assert!(matches!(":2:3".parse::<OutpointId>(), Err(Error::Block(_))));
+    assert!(matches!("1:2".parse::<OutPointId>(), Err(Error::Separator)));
+    assert!(matches!(":2:3".parse::<OutPointId>(), Err(Error::Block(_))));
     assert!(matches!(
-      "1::".parse::<OutpointId>(),
+      "1::".parse::<OutPointId>(),
       Err(Error::Transaction(_))
     ));
-    assert!(matches!("::2".parse::<OutpointId>(), Err(Error::Block(_))));
-    assert!(matches!("a:2:".parse::<OutpointId>(), Err(Error::Block(_))));
+    assert!(matches!("::2".parse::<OutPointId>(), Err(Error::Block(_))));
+    assert!(matches!("a:2:".parse::<OutPointId>(), Err(Error::Block(_))));
     assert!(matches!(
-      "1:a:".parse::<OutpointId>(),
+      "1:a:".parse::<OutPointId>(),
       Err(Error::Transaction(_)),
     ));
     assert!(matches!(
-      "1:2:a".parse::<OutpointId>(),
+      "1:2:a".parse::<OutPointId>(),
       Err(Error::Output(_)),
     ));
     assert_eq!(
-      "1:2:3".parse::<OutpointId>().unwrap(),
-      OutpointId {
+      "1:2:3".parse::<OutPointId>().unwrap(),
+      OutPointId {
         block: 1,
         tx: 2,
         output: 3
@@ -126,13 +126,13 @@ mod tests {
 
   #[test]
   fn serde() {
-    let output_id = OutpointId {
+    let output_id = OutPointId {
       block: 1,
       tx: 2,
       output: 3,
     };
     let json = "\"1:2:3\"";
     assert_eq!(serde_json::to_string(&output_id).unwrap(), json);
-    assert_eq!(serde_json::from_str::<OutpointId>(json).unwrap(), output_id);
+    assert_eq!(serde_json::from_str::<OutPointId>(json).unwrap(), output_id);
   }
 }
