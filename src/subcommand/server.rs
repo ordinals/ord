@@ -274,6 +274,10 @@ impl Server {
           "/r/sat/{sat_number}/at/{index}",
           get(Self::sat_inscription_at_index),
         )
+        .route(
+          "/r/sat/{sat_number}/at/{index}/content",
+          get(Self::sat_inscription_at_index_content),
+        )
         .route("/r/utxo/{outpoint}", get(Self::utxo_recursive))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/{rune}", get(Self::rune))
@@ -2287,9 +2291,7 @@ impl Server {
   ) -> ServerResult<Json<api::SatInscriptions>> {
     task::block_in_place(|| {
       if !index.has_sat_index() {
-        return Err(ServerError::NotFound(
-          "this server has no sat index".to_string(),
-        ));
+        return Err(ServerError::NotFound("this server has no sat index".into()));
       }
 
       let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page)?;
@@ -2313,6 +2315,33 @@ impl Server {
 
       Ok(Json(api::SatInscription { id }))
     })
+  }
+
+  async fn sat_inscription_at_index_content(
+    index: Extension<Arc<Index>>,
+    settings: Extension<Arc<Settings>>,
+    server_config: Extension<Arc<ServerConfig>>,
+    Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
+    accept_encoding: AcceptEncoding,
+  ) -> ServerResult {
+    let inscription_id = task::block_in_place(|| {
+      if !index.has_sat_index() {
+        return Err(ServerError::NotFound("this server has no sat index".into()));
+      }
+
+      index
+        .get_inscription_id_by_sat_indexed(sat, inscription_index)?
+        .ok_or_not_found(|| format!("inscription on sat {sat}"))
+    })?;
+
+    Self::content(
+      index,
+      settings,
+      server_config,
+      Path(inscription_id),
+      accept_encoding,
+    )
+    .await
   }
 
   async fn redirect_http_to_https(
@@ -7599,6 +7628,74 @@ next
       "/output/0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:123",
       StatusCode::NOT_FOUND,
       "output 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:123 not found",
+    );
+  }
+
+  #[test]
+  fn sat_inscription_at_index_content_endpoint() {
+    let server = TestServer::builder()
+      .index_sats()
+      .chain(Chain::Regtest)
+      .build();
+
+    server.mine_blocks(1);
+
+    let first_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        1,
+        0,
+        0,
+        inscription("text/plain;charset=utf-8", "foo").to_witness(),
+      )],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let first_inscription_id = InscriptionId {
+      txid: first_txid,
+      index: 0,
+    };
+
+    let first_inscription = server
+      .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{first_inscription_id}"));
+
+    let sat = first_inscription.sat.unwrap();
+
+    server.assert_response(format!("/r/sat/{sat}/at/0/content"), StatusCode::OK, "foo");
+
+    server.assert_response(format!("/r/sat/{sat}/at/-1/content"), StatusCode::OK, "foo");
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        2,
+        1,
+        first_inscription.satpoint.outpoint.vout.try_into().unwrap(),
+        inscription("text/plain;charset=utf-8", "bar").to_witness(),
+      )],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response(format!("/r/sat/{sat}/at/0/content"), StatusCode::OK, "foo");
+
+    server.assert_response(format!("/r/sat/{sat}/at/1/content"), StatusCode::OK, "bar");
+
+    server.assert_response(format!("/r/sat/{sat}/at/-1/content"), StatusCode::OK, "bar");
+
+    server.assert_response(
+      "/r/sat/0/at/0/content",
+      StatusCode::NOT_FOUND,
+      "inscription on sat 0 not found",
+    );
+
+    let server = TestServer::new();
+
+    server.assert_response(
+      "/r/sat/0/at/0/content",
+      StatusCode::NOT_FOUND,
+      "this server has no sat index",
     );
   }
 }
