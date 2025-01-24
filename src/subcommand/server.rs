@@ -1620,8 +1620,7 @@ impl Server {
           Self::proxy(proxy, &format!("content/{}", inscription_id))
         } else {
           Err(ServerError::NotFound(format!(
-            "inscription {} not found",
-            inscription_id
+            "inscription {inscription_id} not found"
           )))
         };
       };
