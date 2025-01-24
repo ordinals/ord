@@ -7656,4 +7656,45 @@ next
       "output 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:123 not found",
     );
   }
+
+  #[test]
+  fn satscard_form_redirects_to_query() {
+    TestServer::new().assert_redirect(
+      &format!("/satscard?url={}", urlencoding::encode(satscard::TEST_URL)),
+      &format!(
+        "/satscard?{}",
+        satscard::TEST_URL.split_once('#').unwrap().1
+      ),
+    );
+  }
+
+  #[test]
+  fn satscard_invalid_query_is_error() {
+    todo!()
+  }
+
+  #[test]
+  fn satscard_assets_are_displayed() {
+    todo!()
+  }
+
+  #[test]
+  fn satscard_page_has_no_address_header() {
+    todo!()
+  }
+
+  #[test]
+  fn satscard_error_is_red() {
+    todo!()
+  }
+
+  #[test]
+  fn satscard_sealed_is_green() {
+    todo!()
+  }
+
+  #[test]
+  fn satscard_unsealed_is_yellow() {
+    todo!()
+  }
 }

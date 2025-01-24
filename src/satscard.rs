@@ -1,26 +1,5 @@
 use super::*;
 
-// todo:
-// - redirect to nice URL
-// - complain about old nonces?
-// - copy and paste coinkite URI
-//
-// - append URI as query
-//
-// - append URI as fragment
-//   - just need a little JS to redirect as query
-//
-// - enter into form field
-//
-// // go to ordinals.com/satscard
-// // copy and paste address
-// just redirect to the address page?
-// - want to be able to be able to display nonce
-// - want to be ble to display sealed or not
-
-// - accept url= and just redirect to nice url
-// - trim off # and pass as query
-
 #[derive(Debug, PartialEq)]
 pub(crate) enum State {
   Error,
@@ -38,8 +17,6 @@ impl Display for State {
   }
 }
 
-// todo:
-// - don't generate context selectors
 #[derive(Debug, Snafu)]
 #[snafu(context(suffix(Error)))]
 pub(crate) enum Error {
@@ -201,23 +178,26 @@ impl Satscard {
 }
 
 #[cfg(test)]
+pub(crate) const TEST_URL: &str = concat!(
+  "https://getsatscard.com/start",
+  "#u=S",
+  "&o=0",
+  "&r=a5x2tplf",
+  "&n=7664168a4ef7b8e8",
+  "&s=",
+  "42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc",
+  "17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53",
+);
+
+#[cfg(test)]
 mod tests {
   use super::*;
 
   #[test]
   fn query_from_coinkite_url() {
+    let parameters = TEST_URL.split_once('#').unwrap().1;
     assert_eq!(
-      Satscard::from_url_with_fragment(concat!(
-        "https://getsatscard.com/start",
-        "#u=S",
-        "&o=0",
-        "&r=a5x2tplf",
-        "&n=7664168a4ef7b8e8",
-        "&s=",
-        "42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc",
-        "17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53",
-      ))
-      .unwrap(),
+      Satscard::from_query(parameters).unwrap(),
       Satscard {
         address: "bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf"
           .parse::<Address<NetworkUnchecked>>()
@@ -227,6 +207,7 @@ mod tests {
         nonce: [0x76, 0x64, 0x16, 0x8a, 0x4e, 0xf7, 0xb8, 0xe8],
         slot: 0,
         state: State::Sealed,
+        parameters: parameters.into()
       }
     );
   }
