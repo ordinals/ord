@@ -849,13 +849,15 @@ impl Server {
         return Ok(if accept_json {
           StatusCode::NOT_FOUND.into_response()
         } else {
+          let unlock = if let Some(height) = rune.unlock_height(server_config.chain.network()) {
+            Some((height, index.block_time(height)?.timestamp()))
+          } else {
+            None
+          };
+
           (
             StatusCode::NOT_FOUND,
-            RuneNotFoundHtml {
-              rune,
-              unlock_height: rune.unlock_height(server_config.chain.network()),
-            }
-            .page(server_config),
+            RuneNotFoundHtml { rune, unlock }.page(server_config),
           )
             .into_response()
         });
@@ -3295,7 +3297,10 @@ mod tests {
       StatusCode::NOT_FOUND,
       RuneNotFoundHtml {
         rune: Rune(0),
-        unlock_height: Some(Height(209999)),
+        unlock: Some((
+          Height(209999),
+          DateTime::from_timestamp(125998800, 0).unwrap(),
+        )),
       },
     );
   }
@@ -3314,7 +3319,7 @@ mod tests {
       StatusCode::NOT_FOUND,
       RuneNotFoundHtml {
         rune: Rune(Rune::RESERVED),
-        unlock_height: None,
+        unlock: None,
       },
     );
   }
