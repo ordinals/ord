@@ -50,7 +50,7 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 29;
+const SCHEMA_VERSION: u64 = 30;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
@@ -91,6 +91,7 @@ pub(crate) enum Statistic {
   Runes = 13,
   SatRanges = 14,
   UnboundInscriptions = 16,
+  LastSavepointHeight = 17,
 }
 
 impl Statistic {
@@ -303,6 +304,7 @@ impl Index {
         let mut tx = database.begin_write()?;
 
         tx.set_durability(durability);
+        tx.set_quick_repair(true);
 
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
@@ -773,6 +775,7 @@ impl Index {
   fn begin_write(&self) -> Result<WriteTransaction> {
     let mut tx = self.database.begin_write()?;
     tx.set_durability(self.durability);
+    tx.set_quick_repair(true);
     Ok(tx)
   }
 
@@ -1017,7 +1020,11 @@ impl Index {
   pub fn get_rune_balances_for_output(
     &self,
     outpoint: OutPoint,
-  ) -> Result<BTreeMap<SpacedRune, Pile>> {
+  ) -> Result<Option<BTreeMap<SpacedRune, Pile>>> {
+    if !self.index_runes {
+      return Ok(None);
+    }
+
     let rtx = self.database.begin_read()?;
 
     let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
@@ -1025,7 +1032,7 @@ impl Index {
     let id_to_rune_entries = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
 
     let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
-      return Ok(BTreeMap::new());
+      return Ok(Some(BTreeMap::new()));
     };
 
     let balances_buffer = balances.value();
@@ -1048,7 +1055,7 @@ impl Index {
       );
     }
 
-    Ok(balances)
+    Ok(Some(balances))
   }
 
   pub fn get_rune_balance_map(&self) -> Result<BTreeMap<SpacedRune, BTreeMap<OutPoint, Pile>>> {
@@ -1531,7 +1538,11 @@ impl Index {
   pub fn get_inscriptions_on_output_with_satpoints(
     &self,
     outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
+  ) -> Result<Option<Vec<(SatPoint, InscriptionId)>>> {
+    if !self.index_inscriptions {
+      return Ok(None);
+    }
+
     let rtx = self.database.begin_read()?;
     let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
     let sequence_number_to_inscription_entry =
@@ -1544,31 +1555,40 @@ impl Index {
     )
   }
 
-  pub fn get_inscriptions_for_output(&self, outpoint: OutPoint) -> Result<Vec<InscriptionId>> {
-    Ok(
-      self
-        .get_inscriptions_on_output_with_satpoints(outpoint)?
+  pub fn get_inscriptions_for_output(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Option<Vec<InscriptionId>>> {
+    let Some(inscriptions) = self.get_inscriptions_on_output_with_satpoints(outpoint)? else {
+      return Ok(None);
+    };
+
+    Ok(Some(
+      inscriptions
         .iter()
         .map(|(_satpoint, inscription_id)| *inscription_id)
         .collect(),
-    )
+    ))
   }
 
   pub fn get_inscriptions_for_outputs(
     &self,
     outpoints: &Vec<OutPoint>,
-  ) -> Result<Vec<InscriptionId>> {
-    let mut inscriptions = Vec::new();
+  ) -> Result<Option<Vec<InscriptionId>>> {
+    let mut result = Vec::new();
     for outpoint in outpoints {
-      inscriptions.extend(
-        self
-          .get_inscriptions_on_output_with_satpoints(*outpoint)?
+      let Some(inscriptions) = self.get_inscriptions_on_output_with_satpoints(*outpoint)? else {
+        return Ok(None);
+      };
+
+      result.extend(
+        inscriptions
           .iter()
           .map(|(_satpoint, inscription_id)| *inscription_id),
       );
     }
 
-    Ok(inscriptions)
+    Ok(Some(result))
   }
 
   pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
@@ -1769,13 +1789,17 @@ impl Index {
       .with_context(|| format!("current {current} height is greater than sat height {height}"))?;
 
     Ok(Blocktime::Expected(
-      Utc::now()
-        .round_subsecs(0)
-        .checked_add_signed(
-          chrono::Duration::try_seconds(10 * 60 * i64::from(expected_blocks))
-            .context("timestamp out of range")?,
-        )
-        .context("timestamp out of range")?,
+      if self.settings.chain() == Chain::Regtest {
+        DateTime::default()
+      } else {
+        Utc::now()
+      }
+      .round_subsecs(0)
+      .checked_add_signed(
+        chrono::Duration::try_seconds(10 * 60 * i64::from(expected_blocks))
+          .context("timestamp out of range")?,
+      )
+      .context("timestamp out of range")?,
     ))
   }
 
@@ -2244,13 +2268,13 @@ impl Index {
     outpoint_to_utxo_entry: &'a impl ReadableTable<&'static OutPointValue, &'static UtxoEntry>,
     sequence_number_to_inscription_entry: &'a impl ReadableTable<u32, InscriptionEntryValue>,
     outpoint: OutPoint,
-  ) -> Result<Vec<(SatPoint, InscriptionId)>> {
+  ) -> Result<Option<Vec<(SatPoint, InscriptionId)>>> {
     if !self.index_inscriptions {
-      return Ok(Vec::new());
+      return Ok(None);
     }
 
     let Some(utxo_entry) = outpoint_to_utxo_entry.get(&outpoint.store())? else {
-      return Ok(Vec::new());
+      return Ok(Some(Vec::new()));
     };
 
     let mut inscriptions = utxo_entry.value().parse(self).parse_inscriptions();
@@ -2263,10 +2287,13 @@ impl Index {
         let entry = sequence_number_to_inscription_entry
           .get(sequence_number)?
           .unwrap();
+
         let satpoint = SatPoint { outpoint, offset };
+
         Ok((satpoint, InscriptionEntry::load(entry.value()).id))
       })
       .collect::<Result<_>>()
+      .map(Some)
   }
 
   pub fn get_address_info(&self, address: &Address) -> Result<Vec<OutPoint>> {
@@ -2286,11 +2313,13 @@ impl Index {
   pub(crate) fn get_aggregated_rune_balances_for_outputs(
     &self,
     outputs: &Vec<OutPoint>,
-  ) -> Result<Vec<(SpacedRune, Decimal, Option<char>)>> {
+  ) -> Result<Option<Vec<(SpacedRune, Decimal, Option<char>)>>> {
     let mut runes = BTreeMap::new();
 
     for output in outputs {
-      let rune_balances = self.get_rune_balances_for_output(*output)?;
+      let Some(rune_balances) = self.get_rune_balances_for_output(*output)? else {
+        return Ok(None);
+      };
 
       for (spaced_rune, pile) in rune_balances {
         runes
@@ -2309,12 +2338,12 @@ impl Index {
       }
     }
 
-    Ok(
+    Ok(Some(
       runes
         .into_iter()
         .map(|(spaced_rune, (decimal, symbol))| (spaced_rune, decimal, symbol))
         .collect(),
-    )
+    ))
   }
 
   pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<u64> {
@@ -2331,6 +2360,27 @@ impl Index {
     }
 
     Ok(acc)
+  }
+
+  pub(crate) fn get_utxo_recursive(
+    &self,
+    outpoint: OutPoint,
+  ) -> Result<Option<api::UtxoRecursive>> {
+    let Some(utxo_entry) = self
+      .database
+      .begin_read()?
+      .open_table(OUTPOINT_TO_UTXO_ENTRY)?
+      .get(&outpoint.store())?
+    else {
+      return Ok(None);
+    };
+
+    Ok(Some(api::UtxoRecursive {
+      inscriptions: self.get_inscriptions_for_output(outpoint)?,
+      runes: self.get_rune_balances_for_output(outpoint)?,
+      sat_ranges: self.list(outpoint)?,
+      value: utxo_entry.value().parse(self).total_value(),
+    }))
   }
 
   pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
@@ -3473,7 +3523,8 @@ mod tests {
         context
           .index
           .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         []
       );
 
@@ -3483,7 +3534,8 @@ mod tests {
         context
           .index
           .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         [inscription_id]
       );
 
@@ -3498,7 +3550,8 @@ mod tests {
         context
           .index
           .get_inscriptions_for_output(OutPoint { txid, vout: 0 })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         []
       );
 
@@ -3509,7 +3562,8 @@ mod tests {
             txid: send_id,
             vout: 0,
           })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         [inscription_id]
       );
     }
@@ -3539,7 +3593,8 @@ mod tests {
             txid: first,
             vout: 0
           })
-          .unwrap(),
+          .unwrap()
+          .unwrap_or_default(),
         [inscription_id]
       );
 
@@ -4417,6 +4472,7 @@ mod tests {
           .index
           .get_inscriptions_on_output_with_satpoints(OutPoint { txid, vout: 0 })
           .unwrap()
+          .unwrap_or_default()
           .iter()
           .map(|(_satpoint, inscription_id)| *inscription_id)
           .collect::<Vec<InscriptionId>>()
@@ -4481,6 +4537,7 @@ mod tests {
           .index
           .get_inscriptions_on_output_with_satpoints(OutPoint { txid, vout: 0 })
           .unwrap()
+          .unwrap_or_default()
       )
     }
   }
@@ -4530,6 +4587,7 @@ mod tests {
             vout: 0
           })
           .unwrap()
+          .unwrap_or_default()
       )
     }
   }

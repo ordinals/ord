@@ -4,7 +4,7 @@ use super::*;
 #[command(group(
   ArgGroup::new("chains")
     .required(false)
-    .args(&["chain_argument", "signet", "regtest", "testnet"]),
+    .args(&["chain_argument", "signet", "regtest", "testnet", "testnet4"]),
 ))]
 pub struct Options {
   #[arg(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
@@ -82,4 +82,6 @@ pub struct Options {
   pub(crate) signet: bool,
   #[arg(long, short, help = "Use testnet. Equivalent to `--chain testnet`.")]
   pub(crate) testnet: bool,
+  #[arg(long, help = "Use testnet4. Equivalent to `--chain testnet4`.")]
+  pub(crate) testnet4: bool,
 }

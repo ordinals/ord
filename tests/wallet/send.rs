@@ -1,4 +1,4 @@
-use {super::*, base64::Engine, bitcoin::psbt::Psbt};
+use super::*;
 
 #[test]
 fn inscriptions_can_be_sent() {
@@ -349,7 +349,7 @@ inscriptions:
         txid: reveal_txid,
         vout: 0
       },
-      inscriptions: vec![
+      inscriptions: Some(vec![
         InscriptionId {
           txid: reveal_txid,
           index: 0
@@ -362,9 +362,9 @@ inscriptions:
           txid: reveal_txid,
           index: 2
         },
-      ],
+      ]),
       indexed: true,
-      runes: BTreeMap::new(),
+      runes: None,
       sat_ranges: Some(vec![(5_000_000_000, 5_000_030_000)]),
       script_pubkey: destination.assume_checked_ref().script_pubkey(),
       spent: false,
@@ -660,15 +660,11 @@ fn send_dry_run() {
 
   assert!(core.mempool().is_empty());
   assert_eq!(
-    Psbt::deserialize(
-      &base64::engine::general_purpose::STANDARD
-        .decode(output.psbt)
-        .unwrap()
-    )
-    .unwrap()
-    .fee()
-    .unwrap()
-    .to_sat(),
+    Psbt::deserialize(&base64_decode(&output.psbt).unwrap())
+      .unwrap()
+      .fee()
+      .unwrap()
+      .to_sat(),
     output.fee
   );
   assert_eq!(output.asset, Outgoing::InscriptionId(inscription));

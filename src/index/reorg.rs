@@ -83,17 +83,21 @@ impl Reorg {
       return Ok(());
     }
 
-    if (height < SAVEPOINT_INTERVAL || height % SAVEPOINT_INTERVAL == 0)
-      && u32::try_from(
-        index
-          .settings
-          .bitcoin_rpc_client(None)?
-          .get_blockchain_info()?
-          .headers,
-      )
-      .unwrap()
-      .saturating_sub(height)
-        <= CHAIN_TIP_DISTANCE
+    let height = u64::from(height);
+
+    let last_savepoint_height = index
+      .begin_read()?
+      .0
+      .open_table(STATISTIC_TO_COUNT)?
+      .get(&Statistic::LastSavepointHeight.key())?
+      .map(|last_savepoint_height| last_savepoint_height.value())
+      .unwrap_or(0);
+
+    let blocks = index.client.get_blockchain_info()?.headers;
+
+    if (height < SAVEPOINT_INTERVAL.into()
+      || height.saturating_sub(last_savepoint_height) >= SAVEPOINT_INTERVAL.into())
+      && blocks.saturating_sub(height) <= CHAIN_TIP_DISTANCE.into()
     {
       let wtx = index.begin_write()?;
 
@@ -110,6 +114,10 @@ impl Reorg {
 
       log::debug!("creating savepoint at height {}", height);
       wtx.persistent_savepoint()?;
+
+      wtx
+        .open_table(STATISTIC_TO_COUNT)?
+        .insert(&Statistic::LastSavepointHeight.key(), &height)?;
 
       Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
       wtx.commit()?;

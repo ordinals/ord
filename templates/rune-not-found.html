@@ -1,8 +1,10 @@
 <h1>{{ self.rune }}</h1>
 <dl>
-%% if let Some(unlock_height) = self.unlock_height {
+%% if let Some((height, time)) = self.unlock {
   <dt>unlock height</dt>
-  <dd>{{ unlock_height }}</dd>
+  <dd>{{ height }}</dd>
+  <dt>unlock time</dt>
+  <dd><time>{{ time }}</time> (expected)</dd>
   <dt>reserved</dt>
   <dd>false</dd>
 %% } else {

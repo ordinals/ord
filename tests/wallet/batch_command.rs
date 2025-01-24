@@ -691,7 +691,7 @@ inscriptions:
       ".*
   <dt>address</dt>
   <dd><a class=collapse href=/address/{0}>{0}</a></dd>.*",
-      core.state().change_addresses[0],
+      core.state().change_addresses.iter().next().unwrap(),
     ),
   );
 

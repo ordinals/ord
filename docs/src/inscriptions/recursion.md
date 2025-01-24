@@ -3378,20 +3378,80 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-The content of the inscription at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. Requires index with `--index-sats` flag.
+The content of the inscription at `<INDEX>` on a sat. `<INDEX>` may be a
+negative number to index from the back. `0` being the first and `-1` being the
+most recent. Requires index with `--index-sats` flag.
 
 ### Example
 
-Fetch the most recently created inscription content from the queried satoshi
+Fetch the content of the most recently created inscription on sat 289488340427831.
 
 ```bash
 curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/sat/289488340427831/at/-1/content
 ```
 
-Returns the appropriate mime-type and content of the last inscription created on the queried satoshi.
 ```
-alwaysbebuilding.bitmap 👷🏗️🟧🌌
+Hello, world!
+```
+
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/utxo/&lt;OUTPOINT&gt;</b></code>
+  </summary>
+
+### Description
+
+Get assets held by an unspent transaction output.
+
+### Examples
+
+Unspent transaction output with server without any indices:
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/utxo/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
+```
+
+```json
+{
+  "inscriptions": null,
+  "runes": null,
+  "sat_ranges": null,
+  "value": 5000000000
+}
+```
+
+With rune, inscription, and sat index:
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/utxo/626860df36c1047194866c6812f04c15ab84f3690e7cc06fd600c841f1943e05:0
+```
+
+```json
+{
+  "inscriptions": [
+    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
+  ],
+  "runes": {
+    "UNCOMMON•GOODS": {
+      "amount": 6845,
+      "divisibility": 0,
+      "symbol": "⧉"
+    }
+  },
+  "sat_ranges": [
+    [
+      1905800627509113,
+      1905800627509443
+    ]
+  ],
+  "value": 330
+}
 ```
 </details>
 

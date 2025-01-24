@@ -17,8 +17,8 @@ fn output_found() {
     Output {
       address: None,
       indexed: true,
-      inscriptions: vec![],
-      runes: BTreeMap::new(),
+      inscriptions: Some(Vec::new()),
+      runes: None,
       sat_ranges: Some(vec![Range {
         end: 50 * COIN_VALUE,
         name: "nvtdijuwxlp".into(),
