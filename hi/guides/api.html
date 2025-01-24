@@ -8351,9 +8351,24 @@
 <details>
   <summary>
     <code>GET</code>
-    <code><b>/r/utxo/&lt;OUTPOINT&gt;</b></code>
+    <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</b></code>
   </summary>
 <h3 id="description-44"><a class="header" href="#description-44">Description</a></h3>
+<p>The content of the inscription at <code>&lt;INDEX&gt;</code> on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent. Requires index with <code>--index-sats</code> flag.</p>
+<h3 id="उदाहरण-42"><a class="header" href="#उदाहरण-42">उदाहरण</a></h3>
+<p>Fetch the content of the most recently created inscription on sat 289488340427831.</p>
+<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/sat/289488340427831/at/-1/content
+</code></pre>
+<pre><code>Hello, world!
+</code></pre>
+</details>
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/utxo/&lt;OUTPOINT&gt;</b></code>
+  </summary>
+<h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
 <p>Get assets held by an unspent transaction output.</p>
 <h3 id="examples"><a class="header" href="#examples">Examples</a></h3>
 <p>Unspent transaction output with server without any indices:</p>
@@ -8367,31 +8382,6 @@
   "value": 5000000000
 }
 </code></pre>
-<p>With rune, inscription, and sat index:</p>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/r/utxo/626860df36c1047194866c6812f04c15ab84f3690e7cc06fd600c841f1943e05:0
-</code></pre>
-<pre><code class="language-json">{
-  "inscriptions": [
-    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
-  ],
-  "runes": {
-    "UNCOMMON•GOODS": {
-      "amount": 6845,
-      "divisibility": 0,
-      "symbol": "⧉"
-    }
-  },
-  "sat_ranges": [
-    [
-      1905800627509113,
-      1905800627509443
-    ]
-  ],
-  "value": 330
-}
-</code></pre>
-</details>
 
                     </main>
 
