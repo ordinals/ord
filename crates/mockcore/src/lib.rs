@@ -96,7 +96,7 @@ pub fn builder() -> Builder {
   Builder {
     fail_lock_unspent: false,
     network: Network::Bitcoin,
-    version: 250000,
+    version: 280000,
   }
 }
 
