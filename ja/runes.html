@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Runes - Ordinal Theory Handbook</title>
+        <title>ルーン - Ordinal Theory Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -233,7 +233,7 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="runes"><a class="header" href="#runes">Runes</a></h1>
+                        <h1 id="ルーン"><a class="header" href="#ルーン">ルーン</a></h1>
 <p>Runes allow Bitcoin transactions to etch, mint, and transfer Bitcoin-native digital commodities.</p>
 <p>Whereas every inscription is unique, every unit of a rune is the same. They are interchangeable tokens, fit for a variety of purposes.</p>
 <h2 id="runestones"><a class="header" href="#runestones">Runestones</a></h2>
@@ -279,9 +279,9 @@
 <p>When transaction inputs contain runes, or new runes are created by a premine or mint, those runes are transferred to that transaction's outputs. A transaction's runestone may change how input runes transfer to outputs.</p>
 <h3 id="edicts"><a class="header" href="#edicts">Edicts</a></h3>
 <p>A runestone may contain any number of edicts. Edicts consist of a rune ID, an amount, and an output number. Edicts are processed in order, allocating unallocated runes to outputs.</p>
-<h3 id="pointer"><a class="header" href="#pointer">Pointer</a></h3>
+<h3 id="ポインタ"><a class="header" href="#ポインタ">ポインタ</a></h3>
 <p>After all edicts are processed, remaining unallocated runes are transferred to the transaction's first non-<code>OP_RETURN</code> output. A runestone may optionally contain a pointer that specifies an alternative default output.</p>
-<h3 id="burning"><a class="header" href="#burning">Burning</a></h3>
+<h3 id="バーン"><a class="header" href="#バーン">バーン</a></h3>
 <p>Runes may be burned by transferring them to an <code>OP_RETURN</code> output with an edict or pointer.</p>
 <h2 id="cenotaphs"><a class="header" href="#cenotaphs">Cenotaphs</a></h2>
 <p>Runestones may be malformed for a number of reasons, including non-pushdata opcodes in the runestone <code>OP_RETURN</code>, invalid varints, or unrecognized runestone fields.</p>
