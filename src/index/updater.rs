@@ -354,6 +354,7 @@ impl Updater<'_> {
       let mut outpoint_id_to_outpoint = wtx.open_table(OUTPOINT_ID_TO_OUTPOINT)?;
       let mut outpoint_to_outpoint_id = wtx.open_table(OUTPOINT_TO_OUTPOINT_ID)?;
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
+      let mut outpoint_to_frozen_rune_id = wtx.open_multimap_table(OUTPOINT_TO_FROZEN_RUNE_ID)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
       let mut sequence_number_to_rune_id = wtx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
@@ -380,6 +381,7 @@ impl Updater<'_> {
         outpoint_id_to_outpoint: &mut outpoint_id_to_outpoint,
         outpoint_to_outpoint_id: &mut outpoint_to_outpoint_id,
         outpoint_to_balances: &mut outpoint_to_rune_balances,
+        outpoint_to_frozen_rune_id: &mut outpoint_to_frozen_rune_id,
         rune_to_id: &mut rune_to_rune_id,
         runes,
         sequence_number_to_rune_id: &mut sequence_number_to_rune_id,
