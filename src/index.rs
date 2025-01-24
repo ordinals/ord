@@ -1044,7 +1044,17 @@ impl Index {
 
     let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
 
+    let outpoint_to_frozen_rune_id = rtx.open_multimap_table(OUTPOINT_TO_FROZEN_RUNE_ID)?;
+
     let id_to_rune_entries = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+
+    let frozen_runes = outpoint_to_frozen_rune_id
+      .get(&outpoint.store())?
+      .filter_map(|rune_id| {
+        let guard = rune_id.ok()?;
+        Some(RuneId::load(guard.value()))
+      })
+      .collect::<HashSet<RuneId>>();
 
     let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
       return Ok(Some(BTreeMap::new()));
@@ -1057,6 +1067,10 @@ impl Index {
     while i < balances_buffer.len() {
       let ((id, amount), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
       i += length;
+
+      if frozen_runes.contains(&id) {
+        continue;
+      }
 
       let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
 
@@ -1130,22 +1144,48 @@ impl Index {
 
   pub fn get_rune_balances(&self) -> Result<Vec<(OutPoint, Vec<(RuneId, u128)>)>> {
     let mut result = Vec::new();
+    let mut outpoint_to_frozen_runes: HashMap<OutPoint, HashSet<RuneId>> = HashMap::new();
 
-    for entry in self
-      .database
-      .begin_read()?
-      .open_table(OUTPOINT_TO_RUNE_BALANCES)?
+    let rtx = self.database.begin_read()?;
+
+    for entry in rtx
+      .open_multimap_table(OUTPOINT_TO_FROZEN_RUNE_ID)?
       .iter()?
     {
+      let (outpoint, ids) = entry?;
+      let outpoint = OutPoint::load(*outpoint.value());
+
+      let frozen_runes = ids
+        .filter_map(|id| {
+          let guard = id.ok()?;
+          Some(RuneId::load(guard.value()))
+        })
+        .collect::<HashSet<RuneId>>();
+
+      outpoint_to_frozen_runes.insert(outpoint, frozen_runes);
+    }
+
+    let empty_hashset = HashSet::new();
+
+    for entry in rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?.iter()? {
       let (outpoint, balances_buffer) = entry?;
       let outpoint = OutPoint::load(*outpoint.value());
       let balances_buffer = balances_buffer.value();
+
+      let frozen_runes = outpoint_to_frozen_runes
+        .get(&outpoint)
+        .unwrap_or(&empty_hashset);
 
       let mut balances = Vec::new();
       let mut i = 0;
       while i < balances_buffer.len() {
         let ((id, balance), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
         i += length;
+
+        if frozen_runes.contains(&id) {
+          continue;
+        }
+
         balances.push((id, balance));
       }
 
