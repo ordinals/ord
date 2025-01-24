@@ -376,7 +376,7 @@ impl RuneUpdater<'_, '_, '_> {
 
       // Add the freezable runes at this outpoint to the list of freezable balances
       for id in &runes_to_freeze {
-        if outpoint_runes.contains(&id) {
+        if outpoint_runes.contains(id) {
           freezable_balances.push((outpoint, *id));
         }
       }
@@ -629,14 +629,30 @@ impl RuneUpdater<'_, '_, '_> {
         .outpoint_to_balances
         .remove(&input.previous_output.store())?
       {
+        let frozen_runes = self
+          .outpoint_to_frozen_rune_id
+          .get(&input.previous_output.store())?
+          .filter_map(|rune_id| {
+            let guard = rune_id.ok()?;
+            Some(RuneId::load(guard.value()))
+          })
+          .collect::<HashSet<RuneId>>();
+
         let buffer = guard.value();
         let mut i = 0;
         while i < buffer.len() {
           let ((id, balance), len) = Index::decode_rune_balance(&buffer[i..]).unwrap();
           i += len;
-          *unallocated.entry(id).or_default() += balance;
+
+          if frozen_runes.contains(&id) {
+            // Burn rune if transferred while frozen
+            *self.burned.entry(id).or_default() += balance;
+          } else {
+            *unallocated.entry(id).or_default() += balance;
+          }
         }
 
+        // Remove outpoint id mappings
         if let Some(outpoint_id) = self
           .outpoint_to_outpoint_id
           .remove(&input.previous_output.store())?
