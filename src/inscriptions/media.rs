@@ -79,6 +79,7 @@ impl Media {
     ("application/yaml",            TEXT,    Code(Yaml),       &["yaml", "yml"]),
     ("audio/flac",                  GENERIC, Audio,            &["flac"]),
     ("audio/mpeg",                  GENERIC, Audio,            &["mp3"]),
+    ("audio/ogg",                   GENERIC, Audio,            &["opus"]),
     ("audio/wav",                   GENERIC, Audio,            &["wav"]),
     ("font/otf",                    GENERIC, Font,             &["otf"]),
     ("font/ttf",                    GENERIC, Font,             &["ttf"]),
