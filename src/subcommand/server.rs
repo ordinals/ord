@@ -275,7 +275,7 @@ impl Server {
           get(Self::sat_inscription_at_index),
         )
         .route(
-          "/r/sat/:sat_number/at/:index/content",
+          "/r/sat/{sat_number}/at/{index}/content",
           get(Self::sat_inscription_at_index_content),
         )
         .route("/r/utxo/{outpoint}", get(Self::utxo_recursive))
