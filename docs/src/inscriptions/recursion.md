@@ -3354,7 +3354,9 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-The inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. Requires index with `--index-sats` flag.
+The inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be
+a negative number to index from the back. `0` being the first and `-1` being
+the most recent for example. Requires index with `--index-sats` flag.
 
 ### Example
 

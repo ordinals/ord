@@ -7685,7 +7685,7 @@ next
     server.assert_response(format!("/r/sat/{sat}/at/-1/content"), StatusCode::OK, "bar");
 
     server.assert_response(
-      format!("/r/sat/0/at/999/content"),
+      "/r/sat/0/at/0/content",
       StatusCode::NOT_FOUND,
       "inscription on sat 0 not found",
     );
@@ -7693,7 +7693,7 @@ next
     let server = TestServer::new();
 
     server.assert_response(
-      format!("/r/sat/{sat}/at/-1/content"),
+      "/r/sat/0/at/0/content",
       StatusCode::NOT_FOUND,
       "this server has no sat index",
     );
