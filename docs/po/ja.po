@@ -252,8 +252,8 @@ msgid ""
 "[inscriptions](guides/wallet.md), a curious species of digital artifact "
 "enabled by ordinal theory."
 msgstr ""
-"準備ができて、さあ始めようとなったら、こちらから始めるのがおすすめです。[碑文](guides/"
-"inscriptions.md)オーディナルズ理論によって可能となるデジタルアーティファクトの面白い数々があります。"
+"準備ができて、さあ始めようとなったら、こちらから始めるのがおすすめです。"
+"[碑文](guides/wallet.md)オーディナルズ理論によって可能となるデジタルアーティファクトの面白い数々があります。"
 
 #: src/introduction.md:36
 msgid "Authors"
