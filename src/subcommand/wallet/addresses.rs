@@ -16,7 +16,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   for (output, txout) in wallet.utxos() {
     let address = wallet.chain().address_from_script(&txout.script_pubkey)?;
 
-    let inscriptions = wallet.get_inscriptions_in_output(output);
+    let inscriptions = wallet.get_inscriptions_in_output(output)?;
 
     let runes = wallet
       .get_runes_balances_in_output(output)?

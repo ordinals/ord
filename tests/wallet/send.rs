@@ -1,4 +1,4 @@
-use {super::*, base64::Engine, bitcoin::psbt::Psbt};
+use super::*;
 
 #[test]
 fn inscriptions_can_be_sent() {
@@ -660,15 +660,11 @@ fn send_dry_run() {
 
   assert!(core.mempool().is_empty());
   assert_eq!(
-    Psbt::deserialize(
-      &base64::engine::general_purpose::STANDARD
-        .decode(output.psbt)
-        .unwrap()
-    )
-    .unwrap()
-    .fee()
-    .unwrap()
-    .to_sat(),
+    Psbt::deserialize(&base64_decode(&output.psbt).unwrap())
+      .unwrap()
+      .fee()
+      .unwrap()
+      .to_sat(),
     output.fee
   );
   assert_eq!(output.asset, Outgoing::InscriptionId(inscription));

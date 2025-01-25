@@ -1,9 +1,4 @@
-use {
-  super::*,
-  base64::Engine,
-  bitcoin::{consensus::Decodable, opcodes, psbt::Psbt, script::Instruction, Witness},
-  bitcoincore_rpc::json::StringOrStringArray,
-};
+use super::*;
 
 pub(crate) struct Server {
   pub(crate) state: Arc<Mutex<State>>,
@@ -360,19 +355,7 @@ impl Api for Server {
   ) -> Result<FundRawTransactionResult, jsonrpc_core::Error> {
     let options = options.unwrap();
 
-    let mut cursor = bitcoin::io::Cursor::new(hex::decode(tx).unwrap());
-
-    let version = Version(i32::consensus_decode_from_finite_reader(&mut cursor).unwrap());
-    let input = Vec::<TxIn>::consensus_decode_from_finite_reader(&mut cursor).unwrap();
-    let output = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
-    let lock_time = Decodable::consensus_decode_from_finite_reader(&mut cursor).unwrap();
-
-    let mut transaction = Transaction {
-      version,
-      input,
-      output,
-      lock_time,
-    };
+    let mut transaction = parse_hex_tx(tx);
 
     assert_eq!(
       options.change_position,
@@ -1014,7 +997,15 @@ impl Api for Server {
     if let Some(sign) = sign {
       if sign {
         for input in psbt.inputs.iter_mut() {
-          input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+          let address = Address::from_script(
+            &input.witness_utxo.as_ref().unwrap().script_pubkey,
+            self.network,
+          )
+          .unwrap();
+
+          if self.state().is_wallet_address(&address) {
+            input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+          }
         }
       }
     }
@@ -1028,8 +1019,10 @@ impl Api for Server {
   fn finalize_psbt(
     &self,
     psbt: String,
-    _extract: Option<bool>,
+    extract: Option<bool>,
   ) -> Result<FinalizePsbtResult, jsonrpc_core::Error> {
+    assert!(extract.is_none());
+
     let mut transaction = Psbt::deserialize(
       &base64::engine::general_purpose::STANDARD
         .decode(psbt)
@@ -1048,6 +1041,48 @@ impl Api for Server {
       psbt: None,
       hex: Some(serialize(&transaction)),
       complete: true,
+    })
+  }
+
+  fn utxo_update_psbt(&self, psbt: String) -> Result<String, jsonrpc_core::Error> {
+    Ok(psbt)
+  }
+
+  fn simulate_raw_transaction(
+    &self,
+    txs: Vec<String>,
+    _options: Option<SimulateRawTransactionOptions>,
+  ) -> Result<SimulateRawTransactionResult, jsonrpc_core::Error> {
+    let mut balance_change: i64 = 0;
+
+    for tx in txs.into_iter().map(parse_hex_tx) {
+      for input in tx.input {
+        let tx = self
+          .state()
+          .transactions
+          .get(&input.previous_output.txid)
+          .unwrap()
+          .clone();
+
+        let txout = &tx.output[usize::try_from(input.previous_output.vout).unwrap()];
+
+        let address = Address::from_script(&txout.script_pubkey, Network::Bitcoin).unwrap();
+
+        if self.state().is_wallet_address(&address) {
+          balance_change -= i64::try_from(txout.value.to_sat()).unwrap();
+        }
+      }
+
+      for output in tx.output {
+        let address = Address::from_script(&output.script_pubkey, Network::Bitcoin).unwrap();
+        if self.state().is_wallet_address(&address) {
+          balance_change += i64::try_from(output.value.to_sat()).unwrap();
+        }
+      }
+    }
+
+    Ok(SimulateRawTransactionResult {
+      balance_change: SignedAmount::from_sat(balance_change),
     })
   }
 }

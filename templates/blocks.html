@@ -1,19 +1,20 @@
 <h1>Blocks</h1>
 %% for (i, hash) in self.blocks.iter().enumerate() {
-%% if let Some(inscription_ids) = &self.featured_blocks.get(hash) {
+%%   let height = self.last - u32::try_from(i).unwrap();
+%%   if let Some(inscription_ids) = &self.featured_blocks.get(hash) {
 <div class=block>
-  <h2><a href=/block/{{ self.last - i as u32 }}>Block {{ self.last - i as u32 }}</a></h2>
+  <h2><a href=/block/{{ height }}>Block {{ height }}</a></h2>
   <div class=thumbnails>
-%% for id in *inscription_ids {
+%%     for id in *inscription_ids {
     {{ Iframe::thumbnail(*id) }}
-%% }
+%%     }
   </div>
 </div>
-%% } else {
-%% if i == self.featured_blocks.len() {
-<ol start={{ self.last - self.featured_blocks.len() as u32 }} reversed class=block-list>
-%% }
+%%   } else {
+%%     if i == self.featured_blocks.len() {
+<ol start={{ height }} reversed class=block-list>
+%%     }
   <li><a class=collapse href=/block/{{ hash }}>{{ hash }}</a></li>
-%% }
+%%   }
 %% }
 </ol>

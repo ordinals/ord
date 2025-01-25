@@ -30,7 +30,7 @@ impl Outputs {
         .ok()
         .map(|address| address.as_unchecked().clone());
 
-      let inscriptions = wallet.get_inscriptions_in_output(output);
+      let inscriptions = wallet.get_inscriptions_in_output(output)?;
 
       let runes = wallet
         .get_runes_balances_in_output(output)?

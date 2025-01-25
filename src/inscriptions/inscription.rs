@@ -1,9 +1,9 @@
 use {
   super::*,
   anyhow::ensure,
+  axum::http::header::HeaderValue,
   bitcoin::blockdata::opcodes,
   brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
-  http::header::HeaderValue,
   io::Write,
   std::str,
 };
