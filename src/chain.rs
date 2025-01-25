@@ -18,11 +18,11 @@ impl Chain {
     self.into()
   }
 
-  pub(crate) fn bech32_hrp(self) -> bitcoin::KnownHrp {
+  pub(crate) fn bech32_hrp(self) -> KnownHrp {
     match self {
-      Self::Mainnet => bitcoin::KnownHrp::Mainnet,
-      Self::Regtest => bitcoin::KnownHrp::Regtest,
-      Self::Signet | Self::Testnet | Self::Testnet4 => bitcoin::KnownHrp::Testnets,
+      Self::Mainnet => KnownHrp::Mainnet,
+      Self::Regtest => KnownHrp::Regtest,
+      Self::Signet | Self::Testnet | Self::Testnet4 => KnownHrp::Testnets,
     }
   }
 
