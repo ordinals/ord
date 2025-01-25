@@ -1789,13 +1789,17 @@ impl Index {
       .with_context(|| format!("current {current} height is greater than sat height {height}"))?;
 
     Ok(Blocktime::Expected(
-      Utc::now()
-        .round_subsecs(0)
-        .checked_add_signed(
-          chrono::Duration::try_seconds(10 * 60 * i64::from(expected_blocks))
-            .context("timestamp out of range")?,
-        )
-        .context("timestamp out of range")?,
+      if self.settings.chain() == Chain::Regtest {
+        DateTime::default()
+      } else {
+        Utc::now()
+      }
+      .round_subsecs(0)
+      .checked_add_signed(
+        chrono::Duration::try_seconds(10 * 60 * i64::from(expected_blocks))
+          .context("timestamp out of range")?,
+      )
+      .context("timestamp out of range")?,
     ))
   }
 

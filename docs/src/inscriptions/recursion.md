@@ -3354,7 +3354,9 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-The inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be a negative number to index from the back. `0` being the first and `-1` being the most recent for example. Requires index with `--index-sats` flag.
+The inscription id at `<INDEX>` of all inscriptions on a sat. `<INDEX>` may be
+a negative number to index from the back. `0` being the first and `-1` being
+the most recent for example. Requires index with `--index-sats` flag.
 
 ### Example
 
@@ -3368,6 +3370,33 @@ curl -s -H "Accept: application/json" \
   "id": "488c32e4dfcdc0fa376c2c2af2d572a12f4d33d3245689d1a9f74167f1e14678i0"
 }
 ```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</b></code>
+  </summary>
+
+### Description
+
+The content of the inscription at `<INDEX>` on a sat. `<INDEX>` may be a
+negative number to index from the back. `0` being the first and `-1` being the
+most recent. Requires index with `--index-sats` flag.
+
+### Example
+
+Fetch the content of the most recently created inscription on sat 289488340427831.
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/sat/289488340427831/at/-1/content
+```
+
+```
+Hello, world!
+```
+
 </details>
 
 <details>
