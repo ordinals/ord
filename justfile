@@ -229,9 +229,3 @@ replicate:
 swap host:
   rsync --archive bin/swap root@{{ host }}.ordinals.net:swap
   ssh root@{{ host }}.ordinals.net ./swap
-
-cktap *args:
-  uv run cktap "$@"
-
-satscard:
-  open 'http://localhost:8000/satscard?url=https%3A%2F%2Fgetsatscard.com%2Fstart%23u%3DS%26o%3D0%26r%3Da5x2tplf%26n%3D7664168a4ef7b8e8%26s%3D42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53'
