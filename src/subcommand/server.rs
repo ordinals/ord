@@ -197,6 +197,7 @@ impl Server {
         .route("/collections", get(Self::collections))
         .route("/collections/{page}", get(Self::collections_paginated))
         .route("/content/{inscription_id}", get(Self::content))
+        .route("/decode/{txid}", get(Self::decode))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
@@ -208,7 +209,6 @@ impl Server {
         )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions", post(Self::inscriptions_json))
-        .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route(
           "/inscriptions/block/{height}",
           get(Self::inscriptions_in_block),
@@ -217,6 +217,7 @@ impl Server {
           "/inscriptions/block/{height}/{page}",
           get(Self::inscriptions_in_block_paginated),
         )
+        .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/{sat}", get(Self::ordinal))
         .route("/output/{output}", get(Self::output))
@@ -234,19 +235,11 @@ impl Server {
           get(Self::block_hash_from_height_json),
         )
         .route("/r/blockheight", get(Self::block_height))
-        .route("/r/blocktime", get(Self::block_time))
         .route("/r/blockinfo/{query}", get(Self::block_info))
-        .route(
-          "/r/inscription/{inscription_id}",
-          get(Self::inscription_recursive),
-        )
+        .route("/r/blocktime", get(Self::block_time))
         .route(
           "/r/children/{inscription_id}",
           get(Self::children_recursive),
-        )
-        .route(
-          "/r/children/{inscription_id}/{page}",
-          get(Self::children_recursive_paginated),
         )
         .route(
           "/r/children/{inscription_id}/inscriptions",
@@ -257,8 +250,12 @@ impl Server {
           get(Self::child_inscriptions_recursive_paginated),
         )
         .route(
-          "/r/undelegated-content/{inscription_id}",
-          get(Self::undelegated_content),
+          "/r/children/{inscription_id}/{page}",
+          get(Self::children_recursive_paginated),
+        )
+        .route(
+          "/r/inscription/{inscription_id}",
+          get(Self::inscription_recursive),
         )
         .route("/r/metadata/{inscription_id}", get(Self::metadata))
         .route("/r/parents/{inscription_id}", get(Self::parents_recursive))
@@ -268,10 +265,6 @@ impl Server {
         )
         .route("/r/sat/{sat_number}", get(Self::sat_inscriptions))
         .route(
-          "/r/sat/{sat_number}/{page}",
-          get(Self::sat_inscriptions_paginated),
-        )
-        .route(
           "/r/sat/{sat_number}/at/{index}",
           get(Self::sat_inscription_at_index),
         )
@@ -279,20 +272,27 @@ impl Server {
           "/r/sat/{sat_number}/at/{index}/content",
           get(Self::sat_inscription_at_index_content),
         )
+        .route(
+          "/r/sat/{sat_number}/{page}",
+          get(Self::sat_inscriptions_paginated),
+        )
+        .route(
+          "/r/undelegated-content/{inscription_id}",
+          get(Self::undelegated_content),
+        )
         .route("/r/utxo/{outpoint}", get(Self::utxo_recursive))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/{rune}", get(Self::rune))
         .route("/runes", get(Self::runes))
         .route("/runes/{page}", get(Self::runes_paginated))
-        .route("/satscard", get(Self::satscard))
         .route("/sat/{sat}", get(Self::sat))
         .route("/satpoint/{satpoint}", get(Self::satpoint))
+        .route("/satscard", get(Self::satscard))
         .route("/search", get(Self::search_by_query))
         .route("/search/{*query}", get(Self::search_by_path))
         .route("/static/{*path}", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/{txid}", get(Self::transaction))
-        .route("/decode/{txid}", get(Self::decode))
         .route("/update", get(Self::update))
         .fallback(Self::fallback)
         .layer(Extension(index))
