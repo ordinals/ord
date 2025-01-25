@@ -33,6 +33,16 @@ pub(crate) enum Error {
     value: String,
     source: std::num::ParseIntError,
   },
+  #[snafu(display("missing address suffix"))]
+  MissingAddressSuffix,
+  #[snafu(display("missing nonce"))]
+  MissingNonce,
+  #[snafu(display("missing signature"))]
+  MissingSignature,
+  #[snafu(display("missing slot"))]
+  MissingSlot,
+  #[snafu(display("missing state"))]
+  MissingState,
   #[snafu(display("invalid nonce `{value}`: {source}"))]
   Nonce {
     value: String,
@@ -112,18 +122,22 @@ impl Satscard {
       }
     }
 
-    let signature = signature.unwrap();
-    let address_suffix = address_suffix.unwrap();
+    let address_suffix = address_suffix.snafu_context(MissingAddressSuffixError)?;
+    let nonce = nonce.snafu_context(MissingNonceError)?;
+    let signature = signature.snafu_context(MissingSignatureError)?;
+    let slot = slot.snafu_context(MissingSlotError)?;
+    let state = state.snafu_context(MissingStateError)?;
+
     let message = &query_parameters[0..query_parameters.rfind('=').unwrap() + 1];
 
     let address = Self::recover_address(address_suffix, chain, message, &signature)?;
 
     Ok(Self {
       address,
-      nonce: nonce.unwrap(),
-      slot: slot.unwrap(),
-      state: state.unwrap(),
+      nonce,
       query_parameters: query_parameters.into(),
+      slot,
+      state,
     })
   }
 
