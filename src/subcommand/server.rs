@@ -580,23 +580,20 @@ impl Server {
         ServerError::BadRequest(format!("invalid satscard query parameters: {err}"))
       })?;
 
-      let address_info = if let Some(api::AddressInfo {
-        outputs,
-        inscriptions,
-        sat_balance,
-        runes_balances,
-      }) = Self::address_info(&index, &satscard.address)?
-      {
-        Some(AddressHtml {
+      let address_info = Self::address_info(&index, &satscard.address)?.map(
+        |api::AddressInfo {
+           outputs,
+           inscriptions,
+           sat_balance,
+           runes_balances,
+         }| AddressHtml {
           address: satscard.address.clone(),
           inscriptions,
           outputs,
           runes_balances,
           sat_balance,
-        })
-      } else {
-        None
-      };
+        },
+      );
 
       Some((satscard, address_info))
     } else {
@@ -1068,7 +1065,7 @@ impl Server {
       return Ok(None);
     }
 
-    let mut outputs = index.get_address_info(&address)?;
+    let mut outputs = index.get_address_info(address)?;
 
     outputs.sort();
 
@@ -2570,6 +2567,10 @@ mod tests {
 
     fn https(self) -> Self {
       self.server_flag("--https")
+    }
+
+    fn index_addresses(self) -> Self {
+      self.ord_flag("--index-addresses")
     }
 
     fn index_runes(self) -> Self {
@@ -7701,14 +7702,25 @@ next
   }
 
   #[test]
-  fn satscard_page_has_no_address_header() {}
-
-  #[test]
-  fn satscard_error_is_red() {}
-
-  #[test]
-  fn satscard_sealed_is_green() {}
-
-  #[test]
-  fn satscard_unsealed_is_yellow() {}
+  fn satscard_display_with_address_index_empty() {
+    TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_addresses()
+      .build()
+      .assert_html(
+        format!("/satscard?{}", satscard::tests::query_parameters()),
+        SatscardHtml {
+          satscard: Some((
+            satscard::tests::satscard(),
+            Some(AddressHtml {
+              address: satscard::tests::address(),
+              inscriptions: Some(Vec::new()),
+              outputs: Vec::new(),
+              runes_balances: None,
+              sat_balance: 0,
+            }),
+          )),
+        },
+      );
+  }
 }

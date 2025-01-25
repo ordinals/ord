@@ -9,7 +9,7 @@ impl SatscardHtml {
   fn form_value(&self) -> Option<String> {
     self.satscard.as_ref().map(|(satscard, _address_info)| {
       format!(
-        "https://getsatscard.com/start{}#",
+        "https://getsatscard.com/start#{}",
         satscard.query_parameters
       )
     })
@@ -18,7 +18,143 @@ impl SatscardHtml {
 
 impl PageContent for SatscardHtml {
   fn title(&self) -> String {
-    // todo: inlude address, slot, and state?
-    "SATSCARD".into()
+    if let Some((satscard, _address_info)) = &self.satscard {
+      format!("SATSCARD {}", satscard.address)
+    } else {
+      "SATSCARD".into()
+    }
   }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn form_value() {
+    assert_eq!(
+      SatscardHtml {
+        satscard: Some((crate::satscard::tests::satscard(), None)),
+      }
+      .form_value(),
+      Some(crate::satscard::tests::URL.into()),
+    );
+
+    assert_eq!(SatscardHtml { satscard: None }.form_value(), None);
+  }
+
+  #[test]
+  fn title() {
+    assert_eq!(
+      SatscardHtml {
+        satscard: Some((crate::satscard::tests::satscard(), None)),
+      }
+      .title(),
+      format!("SATSCARD {}", crate::satscard::tests::address())
+    );
+
+    assert_eq!(SatscardHtml { satscard: None }.title(), "SATSCARD");
+  }
+
+  #[test]
+  fn no_address_info() {
+    pretty_assert_eq!(
+      SatscardHtml {
+        satscard: Some((crate::satscard::tests::satscard(), None)),
+      }
+      .to_string(),
+      r#"<h1>Satscard bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
+<form>
+  <label for=url>Coinkite SATSCARD URL</label>
+  <input
+    type=text
+    id=url
+    name=url
+    pattern='^https://getsatscard.com/start#.*$'
+    required
+    title='The URL should begin with "https://getsatscard.com/start#".'
+    value='https://getsatscard.com/start#u=S&amp;o=0&amp;r=a5x2tplf&amp;n=7664168a4ef7b8e8&amp;s=42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53'
+  >
+  <input type="submit" value="Submit">
+</form>
+<hr>
+<dl>
+  <dt>slot</dt>
+  <dd>1</dd>
+  <dt>state</dt>
+  <dd>sealed</dd>
+  <dt>address</dt>
+  <dd>bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</dd>
+  <dt>nonce</dt>
+  <dd>7664168a4ef7b8e8</dd>
+</dl>
+"#,
+    );
+  }
+
+  #[test]
+  fn with_address_info() {
+    pretty_assert_eq!(
+      SatscardHtml {
+        satscard: Some((
+          crate::satscard::tests::satscard(),
+          Some(AddressHtml {
+            address: crate::satscard::tests::address(),
+            inscriptions: Some(Vec::new()),
+            outputs: Vec::new(),
+            runes_balances: None,
+            sat_balance: 0,
+          })
+        )),
+      }
+      .to_string(),
+      r#"<h1>Satscard bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
+<form>
+  <label for=url>Coinkite SATSCARD URL</label>
+  <input
+    type=text
+    id=url
+    name=url
+    pattern='^https://getsatscard.com/start#.*$'
+    required
+    title='The URL should begin with "https://getsatscard.com/start#".'
+    value='https://getsatscard.com/start#u=S&amp;o=0&amp;r=a5x2tplf&amp;n=7664168a4ef7b8e8&amp;s=42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53'
+  >
+  <input type="submit" value="Submit">
+</form>
+<hr>
+<dl>
+  <dt>slot</dt>
+  <dd>1</dd>
+  <dt>state</dt>
+  <dd>sealed</dd>
+  <dt>address</dt>
+  <dd>bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</dd>
+  <dt>nonce</dt>
+  <dd>7664168a4ef7b8e8</dd>
+</dl>
+<hr>
+<h1>Address bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
+<dl>
+  <dt>sat balance</dt>
+  <dd>0</dd>
+  <dt>outputs</dt>
+  <dd>
+    <ul>
+    </ul>
+  </dd>
+</dl>
+
+"#,
+    );
+  }
+
+  #[test]
+  fn state_error_is_red() {}
+
+  #[test]
+  fn state_sealed_is_green() {}
+
+  #[test]
+  fn state_unsealed_is_yellow() {}
 }

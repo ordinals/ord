@@ -197,16 +197,20 @@ pub(crate) mod tests {
     Satscard::from_query_parameters(query_parameters()).unwrap()
   }
 
+  pub(crate) fn address() -> Address {
+    "bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf"
+      .parse::<Address<NetworkUnchecked>>()
+      .unwrap()
+      .require_network(Network::Bitcoin)
+      .unwrap()
+  }
+
   #[test]
   fn query_from_coinkite_url() {
     assert_eq!(
       satscard(),
       Satscard {
-        address: "bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf"
-          .parse::<Address<NetworkUnchecked>>()
-          .unwrap()
-          .require_network(Network::Bitcoin)
-          .unwrap(),
+        address: address(),
         nonce: [0x76, 0x64, 0x16, 0x8a, 0x4e, 0xf7, 0xb8, 0xe8],
         slot: 0,
         state: State::Sealed,
