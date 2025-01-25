@@ -20,51 +20,48 @@ impl Display for State {
 #[derive(Debug, Snafu)]
 #[snafu(context(suffix(Error)))]
 pub(crate) enum Error {
+  #[snafu(display("address recovery failed"))]
   AddressRecovery,
-  DuplicateKey {
-    key: String,
-  },
-  Parameter {
-    parameter: String,
-  },
-  State {
-    value: String,
-  },
+  #[snafu(display("duplicate key `{key}`"))]
+  DuplicateKey { key: String },
+  #[snafu(display("parameter {parameter} has no value"))]
+  ParameterValueMissing { parameter: String },
+  #[snafu(display("unrecognized state {value}"))]
+  State { value: String },
+  #[snafu(display("invalid slot `{value}`: {source}"))]
   Slot {
     value: String,
     source: std::num::ParseIntError,
   },
+  #[snafu(display("invalid nonce `{value}`: {source}"))]
   Nonce {
     value: String,
     source: hex::FromHexError,
   },
-  NonceLength {
-    nonce: Vec<u8>,
-  },
+  #[snafu(display("invalid nonce length {}, expected 16 hex digits", nonce.len()))]
+  NonceLength { nonce: Vec<u8> },
+  #[snafu(display("hex decoding signature `{value}` failed: {source}"))]
   SignatureHex {
     value: String,
     source: hex::FromHexError,
   },
-  SignatureDecode {
-    signature: Vec<u8>,
-    source: secp256k1::Error,
-  },
-  UnknownKey {
-    key: String,
-  },
+  #[snafu(display("decoding signature failed: {source}"))]
+  SignatureDecode { source: secp256k1::Error },
+  #[snafu(display("unknown key `{key}`"))]
+  UnknownKey { key: String },
 }
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct Satscard {
   pub(crate) address: Address,
   pub(crate) nonce: [u8; 8],
+  pub(crate) query_parameters: String,
   pub(crate) slot: u8,
   pub(crate) state: State,
-  pub(crate) parameters: String,
 }
 
 impl Satscard {
-  pub(crate) fn from_query(parameters: &str) -> Result<Self, Error> {
+  pub(crate) fn from_query_parameters(query_parameters: &str) -> Result<Self, Error> {
     let mut address_suffix = None;
     let mut nonce = Option::<[u8; 8]>::None;
     let mut signature = None;
@@ -72,10 +69,10 @@ impl Satscard {
     let mut state = None;
 
     let mut keys = BTreeSet::new();
-    for parameter in parameters.split('&') {
+    for parameter in query_parameters.split('&') {
       let (key, value) = parameter
         .split_once('=')
-        .snafu_context(ParameterError { parameter })?;
+        .snafu_context(ParameterValueMissingError { parameter })?;
 
       if !keys.insert(key) {
         return Err(DuplicateKeyError { key }.build());
@@ -108,7 +105,7 @@ impl Satscard {
           signature = Some({
             let signature = hex::decode(value).snafu_context(SignatureHexError { value })?;
             secp256k1::ecdsa::Signature::from_compact(&signature)
-              .snafu_context(SignatureDecodeError { signature })?
+              .snafu_context(SignatureDecodeError)?
           });
         }
         _ => return Err(UnknownKeyError { key }.build()),
@@ -117,7 +114,7 @@ impl Satscard {
 
     let signature = signature.unwrap();
     let address_suffix = address_suffix.unwrap();
-    let message = &parameters[0..parameters.rfind('=').unwrap() + 1];
+    let message = &query_parameters[0..query_parameters.rfind('=').unwrap() + 1];
 
     let address = Self::recover_address(&signature, address_suffix, message).unwrap();
 
@@ -126,7 +123,7 @@ impl Satscard {
       nonce: nonce.unwrap(),
       slot: slot.unwrap(),
       state: state.unwrap(),
-      parameters: parameters.into(),
+      query_parameters: query_parameters.into(),
     })
   }
 
@@ -178,26 +175,32 @@ impl Satscard {
 }
 
 #[cfg(test)]
-pub(crate) const TEST_URL: &str = concat!(
-  "https://getsatscard.com/start",
-  "#u=S",
-  "&o=0",
-  "&r=a5x2tplf",
-  "&n=7664168a4ef7b8e8",
-  "&s=",
-  "42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc",
-  "17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53",
-);
-
-#[cfg(test)]
-mod tests {
+pub(crate) mod tests {
   use super::*;
+
+  pub(crate) const URL: &str = concat!(
+    "https://getsatscard.com/start",
+    "#u=S",
+    "&o=0",
+    "&r=a5x2tplf",
+    "&n=7664168a4ef7b8e8",
+    "&s=",
+    "42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc",
+    "17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53",
+  );
+
+  pub(crate) fn query_parameters() -> &'static str {
+    URL.split_once('#').unwrap().1
+  }
+
+  pub(crate) fn satscard() -> Satscard {
+    Satscard::from_query_parameters(query_parameters()).unwrap()
+  }
 
   #[test]
   fn query_from_coinkite_url() {
-    let parameters = TEST_URL.split_once('#').unwrap().1;
     assert_eq!(
-      Satscard::from_query(parameters).unwrap(),
+      satscard(),
       Satscard {
         address: "bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf"
           .parse::<Address<NetworkUnchecked>>()
@@ -207,7 +210,7 @@ mod tests {
         nonce: [0x76, 0x64, 0x16, 0x8a, 0x4e, 0xf7, 0xb8, 0xe8],
         slot: 0,
         state: State::Sealed,
-        parameters: parameters.into()
+        query_parameters: query_parameters().into(),
       }
     );
   }

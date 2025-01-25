@@ -566,19 +566,21 @@ impl Server {
     }
 
     if let Ok(form) = Query::<Form>::try_from_uri(&uri) {
-      return Ok(
-        Redirect::to(&format!("/satscard?{}", form.url.0.fragment().unwrap())).into_response(),
-      );
+      return if let Some(fragment) = form.url.0.fragment() {
+        Ok(Redirect::to(&format!("/satscard?{}", fragment)).into_response())
+      } else {
+        Err(ServerError::BadRequest(
+          "satscard URL missing fragment".into(),
+        ))
+      };
     }
 
     let satscard = if let Some(query) = uri.query() {
-      Some(Satscard::from_query(query).unwrap())
-    } else {
-      None
-    };
+      let satscard = Satscard::from_query_parameters(query).map_err(|err| {
+        ServerError::BadRequest(format!("invalid satscard query parameters: {err}"))
+      })?;
 
-    let address_info = if let Some(satscard) = &satscard {
-      if let Some(api::AddressInfo {
+      let address_info = if let Some(api::AddressInfo {
         outputs,
         inscriptions,
         sat_balance,
@@ -594,18 +596,17 @@ impl Server {
         })
       } else {
         None
-      }
+      };
+
+      Some((satscard, address_info))
     } else {
       None
     };
 
     Ok(
-      SatscardHtml {
-        address_info,
-        satscard,
-      }
-      .page(server_config)
-      .into_response(),
+      SatscardHtml { satscard }
+        .page(server_config)
+        .into_response(),
     )
   }
 
@@ -7660,41 +7661,54 @@ next
   #[test]
   fn satscard_form_redirects_to_query() {
     TestServer::new().assert_redirect(
-      &format!("/satscard?url={}", urlencoding::encode(satscard::TEST_URL)),
       &format!(
-        "/satscard?{}",
-        satscard::TEST_URL.split_once('#').unwrap().1
+        "/satscard?url={}",
+        urlencoding::encode(satscard::tests::URL)
       ),
+      &format!("/satscard?{}", satscard::tests::query_parameters()),
     );
   }
 
   #[test]
-  fn satscard_invalid_query_is_error() {
-    todo!()
+  fn satscard_missing_form_query_is_error() {
+    TestServer::new().assert_response(
+      "/satscard?url=https://foo.com",
+      StatusCode::BAD_REQUEST,
+      "satscard URL missing fragment",
+    );
   }
 
   #[test]
-  fn satscard_assets_are_displayed() {
-    todo!()
+  fn satscard_invalid_query_parameters() {
+    TestServer::new().assert_response(
+      "/satscard?foo=bar",
+      StatusCode::BAD_REQUEST,
+      "invalid satscard query parameters: unknown key `foo`",
+    );
   }
 
   #[test]
-  fn satscard_page_has_no_address_header() {
-    todo!()
+  fn satscard_display_without_address_index() {
+    TestServer::builder()
+      .chain(Chain::Regtest)
+      .build()
+      .assert_html(
+        format!("/satscard?{}", satscard::tests::query_parameters()),
+        SatscardHtml {
+          satscard: Some((satscard::tests::satscard(), None)),
+        },
+      );
   }
 
   #[test]
-  fn satscard_error_is_red() {
-    todo!()
-  }
+  fn satscard_page_has_no_address_header() {}
 
   #[test]
-  fn satscard_sealed_is_green() {
-    todo!()
-  }
+  fn satscard_error_is_red() {}
 
   #[test]
-  fn satscard_unsealed_is_yellow() {
-    todo!()
-  }
+  fn satscard_sealed_is_green() {}
+
+  #[test]
+  fn satscard_unsealed_is_yellow() {}
 }
