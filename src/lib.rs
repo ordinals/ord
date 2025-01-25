@@ -82,7 +82,7 @@ use {
     str::FromStr,
     sync::{
       atomic::{self, AtomicBool},
-      Arc, Mutex,
+      Arc, LazyLock, Mutex,
     },
     thread,
     time::{Duration, Instant, SystemTime},

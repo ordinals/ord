@@ -275,6 +275,10 @@ impl Server {
           "/r/sat/{sat_number}/at/{index}",
           get(Self::sat_inscription_at_index),
         )
+        .route(
+          "/r/sat/{sat_number}/at/{index}/content",
+          get(Self::sat_inscription_at_index_content),
+        )
         .route("/r/utxo/{outpoint}", get(Self::utxo_recursive))
         .route("/rare.txt", get(Self::rare_txt))
         .route("/rune/{rune}", get(Self::rune))
@@ -473,6 +477,12 @@ impl Server {
   }
 
   fn acceptor(&self, settings: &Settings) -> Result<AxumAcceptor> {
+    static RUSTLS_PROVIDER_INSTALLED: LazyLock<bool> = LazyLock::new(|| {
+      rustls::crypto::ring::default_provider()
+        .install_default()
+        .is_ok()
+    });
+
     let config = AcmeConfig::new(self.acme_domains()?)
       .contact(&self.acme_contact)
       .cache_option(Some(DirCache::new(Self::acme_cache(
@@ -486,6 +496,11 @@ impl Server {
       });
 
     let mut state = config.state();
+
+    ensure! {
+      *RUSTLS_PROVIDER_INSTALLED,
+      "failed to install rustls ring crypto provider",
+    }
 
     let mut server_config = rustls::ServerConfig::builder()
       .with_no_client_auth()
@@ -894,13 +909,15 @@ impl Server {
         return Ok(if accept_json {
           StatusCode::NOT_FOUND.into_response()
         } else {
+          let unlock = if let Some(height) = rune.unlock_height(server_config.chain.network()) {
+            Some((height, index.block_time(height)?.timestamp()))
+          } else {
+            None
+          };
+
           (
             StatusCode::NOT_FOUND,
-            RuneNotFoundHtml {
-              rune,
-              unlock_height: rune.unlock_height(server_config.chain.network()),
-            }
-            .page(server_config),
+            RuneNotFoundHtml { rune, unlock }.page(server_config),
           )
             .into_response()
         });
@@ -1678,8 +1695,7 @@ impl Server {
           Self::proxy(proxy, &format!("content/{}", inscription_id))
         } else {
           Err(ServerError::NotFound(format!(
-            "inscription {} not found",
-            inscription_id
+            "inscription {inscription_id} not found"
           )))
         };
       };
@@ -2346,9 +2362,7 @@ impl Server {
   ) -> ServerResult<Json<api::SatInscriptions>> {
     task::block_in_place(|| {
       if !index.has_sat_index() {
-        return Err(ServerError::NotFound(
-          "this server has no sat index".to_string(),
-        ));
+        return Err(ServerError::NotFound("this server has no sat index".into()));
       }
 
       let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page)?;
@@ -2372,6 +2386,33 @@ impl Server {
 
       Ok(Json(api::SatInscription { id }))
     })
+  }
+
+  async fn sat_inscription_at_index_content(
+    index: Extension<Arc<Index>>,
+    settings: Extension<Arc<Settings>>,
+    server_config: Extension<Arc<ServerConfig>>,
+    Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
+    accept_encoding: AcceptEncoding,
+  ) -> ServerResult {
+    let inscription_id = task::block_in_place(|| {
+      if !index.has_sat_index() {
+        return Err(ServerError::NotFound("this server has no sat index".into()));
+      }
+
+      index
+        .get_inscription_id_by_sat_indexed(sat, inscription_index)?
+        .ok_or_not_found(|| format!("inscription on sat {sat}"))
+    })?;
+
+    Self::content(
+      index,
+      settings,
+      server_config,
+      Path(inscription_id),
+      accept_encoding,
+    )
+    .await
   }
 
   async fn redirect_http_to_https(
@@ -3359,7 +3400,10 @@ mod tests {
       StatusCode::NOT_FOUND,
       RuneNotFoundHtml {
         rune: Rune(0),
-        unlock_height: Some(Height(209999)),
+        unlock: Some((
+          Height(209999),
+          DateTime::from_timestamp(125998800, 0).unwrap(),
+        )),
       },
     );
   }
@@ -3378,7 +3422,7 @@ mod tests {
       StatusCode::NOT_FOUND,
       RuneNotFoundHtml {
         rune: Rune(Rune::RESERVED),
-        unlock_height: None,
+        unlock: None,
       },
     );
   }
@@ -7738,5 +7782,73 @@ next
         StatusCode::BAD_REQUEST,
         "invalid satscard query parameters: address recovery failed",
       );
+  }
+
+  #[test]
+  fn sat_inscription_at_index_content_endpoint() {
+    let server = TestServer::builder()
+      .index_sats()
+      .chain(Chain::Regtest)
+      .build();
+
+    server.mine_blocks(1);
+
+    let first_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        1,
+        0,
+        0,
+        inscription("text/plain;charset=utf-8", "foo").to_witness(),
+      )],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let first_inscription_id = InscriptionId {
+      txid: first_txid,
+      index: 0,
+    };
+
+    let first_inscription = server
+      .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{first_inscription_id}"));
+
+    let sat = first_inscription.sat.unwrap();
+
+    server.assert_response(format!("/r/sat/{sat}/at/0/content"), StatusCode::OK, "foo");
+
+    server.assert_response(format!("/r/sat/{sat}/at/-1/content"), StatusCode::OK, "foo");
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        2,
+        1,
+        first_inscription.satpoint.outpoint.vout.try_into().unwrap(),
+        inscription("text/plain;charset=utf-8", "bar").to_witness(),
+      )],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response(format!("/r/sat/{sat}/at/0/content"), StatusCode::OK, "foo");
+
+    server.assert_response(format!("/r/sat/{sat}/at/1/content"), StatusCode::OK, "bar");
+
+    server.assert_response(format!("/r/sat/{sat}/at/-1/content"), StatusCode::OK, "bar");
+
+    server.assert_response(
+      "/r/sat/0/at/0/content",
+      StatusCode::NOT_FOUND,
+      "inscription on sat 0 not found",
+    );
+
+    let server = TestServer::new();
+
+    server.assert_response(
+      "/r/sat/0/at/0/content",
+      StatusCode::NOT_FOUND,
+      "this server has no sat index",
+    );
   }
 }
