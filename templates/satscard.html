@@ -18,20 +18,18 @@
   >
   <input type="submit" value="Submit">
 </form>
-<hr>
 %% if let Some((Satscard { address, nonce, slot, state, .. }, address_info)) = &self.satscard {
 <dl>
   <dt>slot</dt>
   <dd>{{ slot + 1 }}</dd>
   <dt>state</dt>
-  <dd>{{ state }}</dd>
+  <dd class=satscard-{{ state }}>{{ state }}</dd>
   <dt>address</dt>
   <dd>{{ address }}</dd>
   <dt>nonce</dt>
   <dd>{{ hex::encode(nonce) }}</dd>
 </dl>
 %% if let Some(address_info) = &address_info {
-<hr>
 {{ Trusted(address_info) }}
 %% }
 %% }

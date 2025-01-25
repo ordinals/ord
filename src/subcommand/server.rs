@@ -556,6 +556,7 @@ impl Server {
   }
 
   async fn satscard(
+    Extension(settings): Extension<Arc<Settings>>,
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     uri: Uri,
@@ -576,7 +577,7 @@ impl Server {
     }
 
     let satscard = if let Some(query) = uri.query() {
-      let satscard = Satscard::from_query_parameters(query).map_err(|err| {
+      let satscard = Satscard::from_query_parameters(settings.chain(), query).map_err(|err| {
         ServerError::BadRequest(format!("invalid satscard query parameters: {err}"))
       })?;
 
@@ -588,6 +589,7 @@ impl Server {
            runes_balances,
          }| AddressHtml {
           address: satscard.address.clone(),
+          header: false,
           inscriptions,
           outputs,
           runes_balances,
@@ -1049,10 +1051,11 @@ impl Server {
 
         AddressHtml {
           address,
-          outputs,
+          header: true,
           inscriptions,
-          sat_balance,
+          outputs,
           runes_balances,
+          sat_balance,
         }
         .page(server_config)
         .into_response()
@@ -2735,7 +2738,7 @@ mod tests {
       let expected_response = PageHtml::new(
         content,
         Arc::new(ServerConfig {
-          chain: Chain::Regtest,
+          chain: self.index.chain(),
           domain: Some(System::host_name().unwrap()),
           ..Default::default()
         }),
@@ -7691,7 +7694,7 @@ next
   #[test]
   fn satscard_display_without_address_index() {
     TestServer::builder()
-      .chain(Chain::Regtest)
+      .chain(Chain::Mainnet)
       .build()
       .assert_html(
         format!("/satscard?{}", satscard::tests::query_parameters()),
@@ -7704,7 +7707,7 @@ next
   #[test]
   fn satscard_display_with_address_index_empty() {
     TestServer::builder()
-      .chain(Chain::Regtest)
+      .chain(Chain::Mainnet)
       .index_addresses()
       .build()
       .assert_html(
@@ -7714,6 +7717,7 @@ next
             satscard::tests::satscard(),
             Some(AddressHtml {
               address: satscard::tests::address(),
+              header: false,
               inscriptions: Some(Vec::new()),
               outputs: Vec::new(),
               runes_balances: None,
@@ -7721,6 +7725,18 @@ next
             }),
           )),
         },
+      );
+  }
+
+  #[test]
+  fn satscard_address_recovery_fails_on_wrong_chain() {
+    TestServer::builder()
+      .chain(Chain::Testnet)
+      .build()
+      .assert_response(
+        format!("/satscard?{}", satscard::tests::query_parameters()),
+        StatusCode::BAD_REQUEST,
+        "invalid satscard query parameters: address recovery failed",
       );
   }
 }

@@ -77,12 +77,11 @@ mod tests {
   >
   <input type="submit" value="Submit">
 </form>
-<hr>
 <dl>
   <dt>slot</dt>
   <dd>1</dd>
   <dt>state</dt>
-  <dd>sealed</dd>
+  <dd class=satscard-sealed>sealed</dd>
   <dt>address</dt>
   <dd>bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</dd>
   <dt>nonce</dt>
@@ -100,6 +99,7 @@ mod tests {
           crate::satscard::tests::satscard(),
           Some(AddressHtml {
             address: crate::satscard::tests::address(),
+            header: false,
             inscriptions: Some(Vec::new()),
             outputs: Vec::new(),
             runes_balances: None,
@@ -122,19 +122,16 @@ mod tests {
   >
   <input type="submit" value="Submit">
 </form>
-<hr>
 <dl>
   <dt>slot</dt>
   <dd>1</dd>
   <dt>state</dt>
-  <dd>sealed</dd>
+  <dd class=satscard-sealed>sealed</dd>
   <dt>address</dt>
   <dd>bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</dd>
   <dt>nonce</dt>
   <dd>7664168a4ef7b8e8</dd>
 </dl>
-<hr>
-<h1>Address bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
 <dl>
   <dt>sat balance</dt>
   <dd>0</dd>
@@ -150,11 +147,58 @@ mod tests {
   }
 
   #[test]
-  fn state_error_is_red() {}
+  fn state_error() {
+    assert_regex_match! {
+      SatscardHtml {
+        satscard: Some((
+          Satscard {
+            state: crate::satscard::State::Error,
+            ..crate::satscard::tests::satscard()
+          },
+          Some(AddressHtml {
+            address: crate::satscard::tests::address(),
+            header: false,
+            inscriptions: Some(Vec::new()),
+            outputs: Vec::new(),
+            runes_balances: None,
+            sat_balance: 0,
+          })
+        )),
+      }
+      .to_string(),
+      r#".*
+  <dt>state</dt>
+  <dd class=satscard-error>error</dd>
+.*
+"#,
+    }
+  }
 
   #[test]
-  fn state_sealed_is_green() {}
-
-  #[test]
-  fn state_unsealed_is_yellow() {}
+  fn state_unsealed() {
+    assert_regex_match! {
+      SatscardHtml {
+        satscard: Some((
+          Satscard {
+            state: crate::satscard::State::Unsealed,
+            ..crate::satscard::tests::satscard()
+          },
+          Some(AddressHtml {
+            address: crate::satscard::tests::address(),
+            header: false,
+            inscriptions: Some(Vec::new()),
+            outputs: Vec::new(),
+            runes_balances: None,
+            sat_balance: 0,
+          })
+        )),
+      }
+      .to_string(),
+      r#".*
+  <dt>state</dt>
+  <dd class=satscard-unsealed>unsealed</dd>
+.*
+"#,
+    }
+  }
 }

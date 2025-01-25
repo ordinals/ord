@@ -18,6 +18,14 @@ impl Chain {
     self.into()
   }
 
+  pub(crate) fn bech32_hrp(self) -> bitcoin::KnownHrp {
+    match self {
+      Self::Mainnet => bitcoin::KnownHrp::Mainnet,
+      Self::Regtest => bitcoin::KnownHrp::Regtest,
+      Self::Signet | Self::Testnet | Self::Testnet4 => bitcoin::KnownHrp::Testnets,
+    }
+  }
+
   pub(crate) fn default_rpc_port(self) -> u16 {
     match self {
       Self::Mainnet => 8332,

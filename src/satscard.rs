@@ -61,7 +61,7 @@ pub(crate) struct Satscard {
 }
 
 impl Satscard {
-  pub(crate) fn from_query_parameters(query_parameters: &str) -> Result<Self, Error> {
+  pub(crate) fn from_query_parameters(chain: Chain, query_parameters: &str) -> Result<Self, Error> {
     let mut address_suffix = None;
     let mut nonce = Option::<[u8; 8]>::None;
     let mut signature = None;
@@ -116,7 +116,7 @@ impl Satscard {
     let address_suffix = address_suffix.unwrap();
     let message = &query_parameters[0..query_parameters.rfind('=').unwrap() + 1];
 
-    let address = Self::recover_address(&signature, address_suffix, message).unwrap();
+    let address = Self::recover_address(address_suffix, chain, message, &signature)?;
 
     Ok(Self {
       address,
@@ -128,9 +128,10 @@ impl Satscard {
   }
 
   fn recover_address(
-    signature: &secp256k1::ecdsa::Signature,
     address_suffix: &str,
+    chain: Chain,
     message: &str,
+    signature: &secp256k1::ecdsa::Signature,
   ) -> Result<Address, Error> {
     use {
       bitcoin::{key::PublicKey, CompressedPublicKey},
@@ -163,7 +164,7 @@ impl Satscard {
 
       let public_key = CompressedPublicKey::try_from(public_key).unwrap();
 
-      let address = Address::p2wpkh(&public_key, bitcoin::KnownHrp::Mainnet);
+      let address = Address::p2wpkh(&public_key, chain.bech32_hrp());
 
       if address.to_string().ends_with(&address_suffix) {
         return Ok(address);
@@ -194,7 +195,7 @@ pub(crate) mod tests {
   }
 
   pub(crate) fn satscard() -> Satscard {
-    Satscard::from_query_parameters(query_parameters()).unwrap()
+    Satscard::from_query_parameters(Chain::Mainnet, query_parameters()).unwrap()
   }
 
   pub(crate) fn address() -> Address {

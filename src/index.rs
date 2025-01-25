@@ -462,6 +462,11 @@ impl Index {
     })
   }
 
+  #[cfg(test)]
+  pub(crate) fn chain(&self) -> Chain {
+    self.settings.chain()
+  }
+
   pub fn have_full_utxo_index(&self) -> bool {
     self.first_index_height == 0
   }
