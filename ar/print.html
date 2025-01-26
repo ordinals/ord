@@ -4406,6 +4406,26 @@ i               # separator
 <p>An edict with <code>amount</code> zero and <code>output</code> equal to the number of transaction outputs divides all unallocated units of rune <code>id</code> between each non-<code>OP_RETURN</code> output. If the number of unallocated runes is not divisible by the number of non-<code>OP_RETURN</code> outputs, 1 additional rune is assigned to the first <code>R</code> non-<code>OP_RETURN</code> outputs, where <code>R</code> is the remainder after dividing the balance of unallocated units of rune <code>id</code> by the number of non-<code>OP_RETURN</code> outputs.</p>
 <p>If any edict in a runestone has a rune ID with <code>block</code> zero and <code>tx</code> greater than zero, or <code>output</code> greater than the number of transaction outputs, the runestone is a cenotaph.</p>
 <p>Note that edicts in cenotaphs are not processed, and all input runes are burned.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="satscard"><a class="header" href="#satscard">Satscard</a></h1>
+<p><a href="https://satscard.com/">Satscards</a> are cards which can be used to store bitcoin, inscriptions, and runes.</p>
+<h2 id="slots"><a class="header" href="#slots">Slots</a></h2>
+<p>Each satscard has ten slots containing private keys with corresponding bitcoin addresses.</p>
+<p>Initially, all slots are sealed and the private keys are stored only the satscard.</p>
+<p>Slots can be unsealed, which allows the corresponding private key to be extracted.</p>
+<p>Unsealing is permanent. If a satscard is sealed, you can have some confidence that private key is not known to anyone. That taking physical ownership of a satscard makes you the sole owner of assets in any sealed slots.</p>
+<h2 id="lifespan"><a class="header" href="#lifespan">Lifespan</a></h2>
+<p>Satscards are expected to have a usable lifetime of ten years. Do not use satscards for long-term storage of valuable assets.</p>
+<h2 id="viewing"><a class="header" href="#viewing">Viewing</a></h2>
+<p>When placed on a smartphone, the satscard transmits a URL, beginning with <code>https://satscard.com/start</code> or <code>https://getsatscard.com/start</code>, depending on when it was manufactured.</p>
+<p>This URL contains a signature which can be used to recover the address of the current slot. This signature is made over a random nonce, so it changes every time the satscard is tapped, and provides some confidence that the satscard contains the private key.</p>
+<p><code>ord</code> supports viewing the contents of a satscard by entering the full URL into the <code>ord</code> explorer search bar, or the input field on the <code>/satscard</code> page.</p>
+<p>For <code>ordinals.com</code>, this is <a href="https://ordinals.com/satscard">ordinals.com/satscard</a>.</p>
+<h2 id="unsealing"><a class="header" href="#unsealing">Unsealing</a></h2>
+<p>Satscard slots can be unsealed and the private keys extracted using the <code>cktap</code> binary, available in the <a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a> repository.</p>
+<h2 id="sweeping"><a class="header" href="#sweeping">Sweeping</a></h2>
+<p>After a satscard slot is unsealed, all assets should be swept from that slot to another wallet, as the private key can now be read via NFC.</p>
+<p><code>ord</code> does not yet support sweeping assets from other wallets, so assets will need to be transferred manually.</p>
+<p>Be careful, and good luck!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="الأسئلة-الشائعة-لنظرية-أوردينال"><a class="header" href="#الأسئلة-الشائعة-لنظرية-أوردينال">الأسئلة الشائعة لنظرية أوردينال</a></h1>
 <h2 id="ما-هي-نظرية-أوردينال"><a class="header" href="#ما-هي-نظرية-أوردينال">ما هي نظرية أوردينال؟</a></h2>
 <p>نظرية أوردينال هي بروتوكول لتخصيص أرقام تسلسلية للساتوشي، وهي أصغر وحدة فرعية من البيتكوين، ويمكن تتبع تلك الساتوشي أثناء استعمالها من خلال المعاملات.</p>
