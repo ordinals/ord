@@ -16,9 +16,9 @@ impl SatscardHtml {
 impl PageContent for SatscardHtml {
   fn title(&self) -> String {
     if let Some((satscard, _address_info)) = &self.satscard {
-      format!("SATSCARD {}", satscard.address)
+      format!("Satscard {}", satscard.address)
     } else {
-      "SATSCARD".into()
+      "Satscard".into()
     }
   }
 }
@@ -47,10 +47,10 @@ mod tests {
         satscard: Some((crate::satscard::tests::satscard(), None)),
       }
       .title(),
-      format!("SATSCARD {}", crate::satscard::tests::address())
+      format!("Satscard {}", crate::satscard::tests::address())
     );
 
-    assert_eq!(SatscardHtml { satscard: None }.title(), "SATSCARD");
+    assert_eq!(SatscardHtml { satscard: None }.title(), "Satscard");
   }
 
   #[test]
@@ -62,7 +62,7 @@ mod tests {
       .to_string(),
       r#"<h1>Satscard bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
 <form>
-  <label for=url>SATSCARD URL</label>
+  <label for=url>Satscard URL</label>
   <input
     type=text
     id=url
@@ -107,7 +107,7 @@ mod tests {
       .to_string(),
       r#"<h1>Satscard bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
 <form>
-  <label for=url>SATSCARD URL</label>
+  <label for=url>Satscard URL</label>
   <input
     type=text
     id=url
