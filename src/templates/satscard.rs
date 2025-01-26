@@ -83,7 +83,7 @@ mod tests {
   <dt>state</dt>
   <dd class=satscard-sealed>sealed</dd>
   <dt>address</dt>
-  <dd>bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</dd>
+  <dd><a class=collapse href=/address/bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf>bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</a></dd>
   <dt>nonce</dt>
   <dd>7664168a4ef7b8e8</dd>
 </dl>
@@ -128,7 +128,7 @@ mod tests {
   <dt>state</dt>
   <dd class=satscard-sealed>sealed</dd>
   <dt>address</dt>
-  <dd>bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</dd>
+  <dd><a class=collapse href=/address/bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf>bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</a></dd>
   <dt>nonce</dt>
   <dd>7664168a4ef7b8e8</dd>
 </dl>
