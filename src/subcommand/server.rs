@@ -1365,10 +1365,6 @@ impl Server {
   }
 
   async fn search(index: Arc<Index>, query: String) -> ServerResult<Redirect> {
-    Self::search_inner(index, query).await
-  }
-
-  async fn search_inner(index: Arc<Index>, query: String) -> ServerResult<Redirect> {
     task::block_in_place(|| {
       let query = query.trim();
 
@@ -3062,6 +3058,18 @@ mod tests {
   #[test]
   fn search_by_query_returns_spaced_rune() {
     TestServer::new().assert_redirect("/search?query=AB•CD", "/rune/AB•CD");
+  }
+
+  #[test]
+  fn search_by_query_returns_satscard() {
+    TestServer::new().assert_redirect(
+      "/search?query=https://satscard.com/start%23foo",
+      "/satscard?foo",
+    );
+    TestServer::new().assert_redirect(
+      "/search?query=https://getsatscard.com/start%23foo",
+      "/satscard?foo",
+    );
   }
 
   #[test]
