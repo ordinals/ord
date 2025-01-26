@@ -62,7 +62,7 @@ mod tests {
       .to_string(),
       r#"<h1>Satscard bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
 <form>
-  <label for=url>Coinkite SATSCARD URL</label>
+  <label for=url>SATSCARD URL</label>
   <input
     type=text
     id=url
@@ -107,7 +107,7 @@ mod tests {
       .to_string(),
       r#"<h1>Satscard bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
 <form>
-  <label for=url>Coinkite SATSCARD URL</label>
+  <label for=url>SATSCARD URL</label>
   <input
     type=text
     id=url
