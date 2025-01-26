@@ -35,7 +35,7 @@ When placed on a smartphone, the satscard transmits a URL, beginning with
 when it was manufactured.
 
 This URL contains a signature which can be used to recover the address of the
-currently slot. This signature is made over a random nonce, so it changes every
+current slot. This signature is made over a random nonce, so it changes every
 time the satscard is tapped, and provides some confidence that the satscard
 contains the private key.
 
