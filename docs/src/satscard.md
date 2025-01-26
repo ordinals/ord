@@ -20,6 +20,13 @@ Unsealing is permanent. If a satscard is sealed, you can have some confidence
 that private key is not known to anyone. That taking physical ownership of a
 satscard makes you the sole owner of assets in any sealed slots.
 
+Lifespan
+--------
+
+Satscards are expected to have a usable lifetime of ten years. Do not use
+satscards for long-term storage of valuable assets.
+
+
 Viewing
 -------
 
