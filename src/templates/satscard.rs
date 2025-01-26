@@ -8,10 +8,7 @@ pub(crate) struct SatscardHtml {
 impl SatscardHtml {
   fn form_value(&self) -> Option<String> {
     self.satscard.as_ref().map(|(satscard, _address_info)| {
-      format!(
-        "https://getsatscard.com/start#{}",
-        satscard.query_parameters
-      )
+      format!("https://satscard.com/start#{}", satscard.query_parameters)
     })
   }
 }
@@ -70,10 +67,10 @@ mod tests {
     type=text
     id=url
     name=url
-    pattern='^https://getsatscard.com/start#.*$'
+    pattern='^https://(get)?satscard.com/start#.*$'
     required
-    title='The URL should begin with "https://getsatscard.com/start#".'
-    value='https://getsatscard.com/start#u=S&amp;o=0&amp;r=a5x2tplf&amp;n=7664168a4ef7b8e8&amp;s=42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53'
+    title='The URL should begin with "https://(get)satscard.com/start#".'
+    value='https://satscard.com/start#u=S&amp;o=0&amp;r=a5x2tplf&amp;n=7664168a4ef7b8e8&amp;s=42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53'
   >
   <input type="submit" value="Submit">
 </form>
@@ -115,10 +112,10 @@ mod tests {
     type=text
     id=url
     name=url
-    pattern='^https://getsatscard.com/start#.*$'
+    pattern='^https://(get)?satscard.com/start#.*$'
     required
-    title='The URL should begin with "https://getsatscard.com/start#".'
-    value='https://getsatscard.com/start#u=S&amp;o=0&amp;r=a5x2tplf&amp;n=7664168a4ef7b8e8&amp;s=42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53'
+    title='The URL should begin with "https://(get)satscard.com/start#".'
+    value='https://satscard.com/start#u=S&amp;o=0&amp;r=a5x2tplf&amp;n=7664168a4ef7b8e8&amp;s=42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53'
   >
   <input type="submit" value="Submit">
 </form>

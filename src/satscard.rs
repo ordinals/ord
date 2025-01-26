@@ -194,7 +194,7 @@ pub(crate) mod tests {
   use super::*;
 
   pub(crate) const URL: &str = concat!(
-    "https://getsatscard.com/start",
+    "https://satscard.com/start",
     "#u=S",
     "&o=0",
     "&r=a5x2tplf",
