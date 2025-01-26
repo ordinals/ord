@@ -11,7 +11,7 @@
     name=url
     pattern='^https://getsatscard.com/start#.*$'
     required
-    title='The URL should begin with "https://getsatscard.com/start#".'
+    title='The URL should begin with "https://(get)?satscard.com/start#".'
 %% if let Some(value) = self.form_value() {
     value='{{ value }}'
 %% }
