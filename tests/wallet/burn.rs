@@ -53,7 +53,7 @@ fn runic_outputs_are_protected() {
 
   create_wallet(&core, &ord);
 
-  let (inscription, _) = inscribe_with_postage(&core, &ord, Some(1000));
+  let (inscription, _) = inscribe_with_options(&core, &ord, Some(1000), 1);
   let height = core.height();
 
   let rune = Rune(RUNE);
@@ -139,7 +139,7 @@ fn burns_only_one_sat() {
     }
   );
 
-  let (inscription, _) = inscribe_with_postage(&core, &ord, Some(100_000));
+  let (inscription, _) = inscribe_with_options(&core, &ord, Some(100_000), 1);
 
   CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription}",))
     .core(&core)
@@ -183,11 +183,11 @@ fn cannot_burn_inscription_sharing_utxo_with_another_inscription() {
     .next()
     .unwrap();
 
-  let (inscription0, _) = inscribe_with_postage(&core, &ord, Some(1000));
+  let (inscription0, _) = inscribe_with_options(&core, &ord, Some(1000), 1);
   let height0 = core.height();
-  let (inscription1, _) = inscribe_with_postage(&core, &ord, Some(1000));
+  let (inscription1, _) = inscribe_with_options(&core, &ord, Some(1000), 1);
   let height1 = core.height();
-  let (inscription2, _) = inscribe_with_postage(&core, &ord, Some(1000));
+  let (inscription2, _) = inscribe_with_options(&core, &ord, Some(1000), 1);
   let height2 = core.height();
 
   let txid = core.broadcast_tx(TransactionTemplate {

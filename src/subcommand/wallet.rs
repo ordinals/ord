@@ -1,6 +1,7 @@
 use {
   super::*,
   crate::wallet::{batch, wallet_constructor::WalletConstructor, ListDescriptorsResult, Wallet},
+  bitcoin::Psbt,
   shared_args::SharedArgs,
 };
 
@@ -15,6 +16,7 @@ pub mod inscribe;
 pub mod inscriptions;
 mod label;
 pub mod mint;
+pub mod offer;
 pub mod outputs;
 pub mod pending;
 pub mod receive;
@@ -68,6 +70,8 @@ pub(crate) enum Subcommand {
   Label,
   #[command(about = "Mint a rune")]
   Mint(mint::Mint),
+  #[command(subcommand, about = "Offer commands")]
+  Offer(offer::Offer),
   #[command(about = "List all unspent outputs in wallet")]
   Outputs(outputs::Outputs),
   #[command(about = "List pending etchings")]
@@ -126,6 +130,7 @@ impl WalletCommand {
       Subcommand::Inscriptions => inscriptions::run(wallet),
       Subcommand::Label => label::run(wallet),
       Subcommand::Mint(mint) => mint.run(wallet),
+      Subcommand::Offer(offer) => offer.run(wallet),
       Subcommand::Outputs(outputs) => outputs.run(wallet),
       Subcommand::Pending(pending) => pending.run(wallet),
       Subcommand::Receive(receive) => receive.run(wallet),
