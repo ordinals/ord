@@ -12,7 +12,7 @@ fi
 
 help() {
   cat <<'EOF'
-Install a binary release of a ord hosted on GitHub
+Install a binary release of ord hosted on GitHub
 
 USAGE:
     install.sh [options]
