@@ -144,12 +144,10 @@ fi
 case $target in
   x86_64-pc-windows-msvc)
     extension=zip
-    ord=ord.exe
     need unzip
     ;;
   *)
     extension=tar.gz
-    ord=ord
     need tar
     ;;
 esac
@@ -167,17 +165,17 @@ td=$(mktemp -d || mktemp -d -t tmp)
 
 if [ "$extension" = "zip" ]; then
   download "$archive" "$td/ord.zip"
-  unzip -d "$td" "$td/ord.zip"
+  unzip -jd "$td" "$td/ord.zip"
 else
   download "$archive" - | tar --directory "$td" --strip-components 1 -xz
 fi
 
-if [ -e "$dest/$ord" ] && [ "$force" = false ]; then
-  err "\`$dest/$ord\` already exists"
+if [ -e "$dest/ord" ] && [ "$force" = false ]; then
+  err "\`$dest/ord\` already exists"
 else
   mkdir -p "$dest"
-  cp "$td/$ord" "$dest/$ord"
-  chmod 755 "$dest/$ord"
+  cp "$td/ord" "$dest/ord"
+  chmod 755 "$dest/ord"
 fi
 
 rm -rf "$td"
