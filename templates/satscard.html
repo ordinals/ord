@@ -1,0 +1,35 @@
+%% if let Some((Satscard { address, .. }, _address_info)) = &self.satscard {
+<h1>Satscard {{ address }}</h1>
+%% } else {
+<h1>Satscard</h1>
+%% }
+<form>
+  <label for=url>Satscard URL</label>
+  <input
+    type=text
+    id=url
+    name=url
+    pattern='^https://(get)?satscard.com/start#.*$'
+    required
+    title='The URL should begin with "https://(get)satscard.com/start#".'
+%% if let Some(value) = self.form_value() {
+    value='{{ value }}'
+%% }
+  >
+  <input type="submit" value="Submit">
+</form>
+%% if let Some((Satscard { address, nonce, slot, state, .. }, address_info)) = &self.satscard {
+<dl>
+  <dt>slot</dt>
+  <dd>{{ slot + 1 }}</dd>
+  <dt>state</dt>
+  <dd class=satscard-{{ state }}>{{ state }}</dd>
+  <dt>address</dt>
+  <dd><a class=collapse href=/address/{{address}}>{{ address }}</a></dd>
+  <dt>nonce</dt>
+  <dd>{{ hex::encode(nonce) }}</dd>
+</dl>
+%% if let Some(address_info) = &address_info {
+{{ Trusted(address_info) }}
+%% }
+%% }

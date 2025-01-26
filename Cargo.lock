@@ -2567,6 +2567,7 @@ dependencies = [
  "rust-embed",
  "rustls",
  "rustls-acme",
+ "secp256k1",
  "serde",
  "serde-hex",
  "serde_json",
