@@ -76,11 +76,7 @@ impl Reorg {
     Ok(())
   }
 
-  pub(crate) fn update_savepoints(index: &Index, height: u32) -> Result {
-    if let redb::Durability::None = index.durability {
-      return Ok(());
-    }
-
+  pub(crate) fn is_savepoint_required(index: &Index, height: u32) -> Result<bool> {
     let height = u64::from(height);
 
     let last_savepoint_height = index
@@ -95,10 +91,28 @@ impl Reorg {
 
     let savepoint_interval = u64::try_from(index.settings.savepoint_interval()).unwrap();
     let max_savepoints = u64::try_from(index.settings.max_savepoints()).unwrap();
-    if (height < savepoint_interval
+
+    let result = (height < savepoint_interval
       || height.saturating_sub(last_savepoint_height) >= savepoint_interval)
-      && blocks.saturating_sub(height) <= savepoint_interval * max_savepoints + 1
-    {
+      && blocks.saturating_sub(height) <= savepoint_interval * max_savepoints + 1;
+
+    log::trace!(
+      "is_savepoint_required={}: height={}, last_savepoint_height={}, blocks={}",
+      result,
+      height,
+      last_savepoint_height,
+      blocks
+    );
+
+    Ok(result)
+  }
+
+  pub(crate) fn update_savepoints(index: &Index, height: u32) -> Result {
+    if let redb::Durability::None = index.durability {
+      return Ok(());
+    }
+
+    if Self::is_savepoint_required(index, height)? {
       let wtx = index.begin_write()?;
 
       let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
@@ -117,11 +131,12 @@ impl Reorg {
       let wtx = index.begin_write()?;
 
       log::info!("Creating savepoint at height {}", height);
+
       wtx.persistent_savepoint()?;
 
       wtx
         .open_table(STATISTIC_TO_COUNT)?
-        .insert(&Statistic::LastSavepointHeight.key(), &height)?;
+        .insert(&Statistic::LastSavepointHeight.key(), &height.into())?;
 
       Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
       wtx.commit()?;
