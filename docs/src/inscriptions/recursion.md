@@ -252,7 +252,7 @@ curl -s  \
 
 ### Description
 
-Raw transaction for `<TRANSACTION_ID>` in segwit BIP144 hex encoding.
+Get hex-encoded transaction with `<TRANSACTION_ID>`.
 
 ### Example
 
