@@ -263,7 +263,7 @@ impl Server {
           "/r/parents/{inscription_id}/{page}",
           get(Self::parents_recursive_paginated),
         )
-        .route("/r/tx/{txid}", get(Self::get_transaction_hex))
+        .route("/r/tx/{txid}", get(Self::get_transaction_hex_recursive))
         .route("/r/sat/{sat_number}", get(Self::sat_inscriptions))
         .route(
           "/r/sat/{sat_number}/at/{index}",
@@ -1196,14 +1196,14 @@ impl Server {
     })
   }
 
-  async fn get_transaction_hex(
+  async fn get_transaction_hex_recursive(
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<Json<String>> {
     task::block_in_place(|| {
       Ok(Json(
         index
-          .get_transaction_hex(txid)?
+          .get_transaction_hex_recursive(txid)?
           .ok_or_not_found(|| format!("transaction {txid}"))?,
       ))
     })
