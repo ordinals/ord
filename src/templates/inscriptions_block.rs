@@ -18,7 +18,7 @@ impl InscriptionsBlockHtml {
     more_inscriptions: bool,
     page_index: u32,
   ) -> Result<Self> {
-    if inscriptions.is_empty() {
+    if page_index != 0 && inscriptions.is_empty() {
       return Err(anyhow!("page index {page_index} exceeds inscription count"));
     }
 
