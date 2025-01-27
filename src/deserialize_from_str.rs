@@ -1,5 +1,6 @@
 use super::*;
 
+#[derive(Debug)]
 pub struct DeserializeFromStr<T: FromStr>(pub T);
 
 impl<'de, T: FromStr> Deserialize<'de> for DeserializeFromStr<T>

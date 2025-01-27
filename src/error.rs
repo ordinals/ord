@@ -87,7 +87,7 @@ impl From<Error> for SnafuError {
 /// We currently use `anyhow` for error handling but are migrating to typed
 /// errors using `snafu`. This trait exists to provide access to
 /// `snafu::ResultExt::{context, with_context}`, which are otherwise shadowed
-/// by `anhow::Context::{context, with_context}`. Once the migration is
+/// by `anyhow::Context::{context, with_context}`. Once the migration is
 /// complete, this trait can be deleted, and `snafu::ResultExt` used directly.
 pub(crate) trait ResultExt<T, E>: Sized {
   fn snafu_context<C, E2>(self, context: C) -> Result<T, E2>
