@@ -10,6 +10,8 @@ pub struct Settings {
   bitcoin_rpc_username: Option<String>,
   chain: Option<Chain>,
   commit_interval: Option<usize>,
+  savepoint_interval: Option<usize>,
+  max_savepoints: Option<usize>,
   config: Option<PathBuf>,
   config_dir: Option<PathBuf>,
   cookie_file: Option<PathBuf>,
@@ -115,6 +117,8 @@ impl Settings {
       bitcoin_rpc_username: self.bitcoin_rpc_username.or(source.bitcoin_rpc_username),
       chain: self.chain.or(source.chain),
       commit_interval: self.commit_interval.or(source.commit_interval),
+      savepoint_interval: self.savepoint_interval.or(source.savepoint_interval),
+      max_savepoints: self.max_savepoints.or(source.max_savepoints),
       config: self.config.or(source.config),
       config_dir: self.config_dir.or(source.config_dir),
       cookie_file: self.cookie_file.or(source.cookie_file),
@@ -159,6 +163,8 @@ impl Settings {
         .or(options.testnet4.then_some(Chain::Testnet4))
         .or(options.chain_argument),
       commit_interval: options.commit_interval,
+      savepoint_interval: options.savepoint_interval,
+      max_savepoints: options.max_savepoints,
       config: options.config,
       config_dir: options.config_dir,
       cookie_file: options.cookie_file,
@@ -247,6 +253,8 @@ impl Settings {
       bitcoin_rpc_username: get_string("BITCOIN_RPC_USERNAME"),
       chain: get_chain("CHAIN")?,
       commit_interval: get_usize("COMMIT_INTERVAL")?,
+      savepoint_interval: get_usize("SAVEPOINT_INTERVAL")?,
+      max_savepoints: get_usize("MAX_SAVEPOINTS")?,
       config: get_path("CONFIG"),
       config_dir: get_path("CONFIG_DIR"),
       cookie_file: get_path("COOKIE_FILE"),
@@ -277,6 +285,8 @@ impl Settings {
       bitcoin_rpc_limit: None,
       chain: Some(Chain::Regtest),
       commit_interval: None,
+      savepoint_interval: None,
+      max_savepoints: None,
       config: None,
       config_dir: None,
       cookie_file: None,
@@ -344,6 +354,8 @@ impl Settings {
       bitcoin_rpc_username: self.bitcoin_rpc_username,
       chain: Some(chain),
       commit_interval: Some(self.commit_interval.unwrap_or(5000)),
+      savepoint_interval: Some(self.savepoint_interval.unwrap_or(10)),
+      max_savepoints: Some(self.max_savepoints.unwrap_or(2)),
       config: None,
       config_dir: None,
       cookie_file: Some(cookie_file),
@@ -468,6 +480,14 @@ impl Settings {
 
   pub fn commit_interval(&self) -> usize {
     self.commit_interval.unwrap()
+  }
+
+  pub fn savepoint_interval(&self) -> usize {
+    self.savepoint_interval.unwrap()
+  }
+
+  pub fn max_savepoints(&self) -> usize {
+    self.max_savepoints.unwrap()
   }
 
   pub fn cookie_file(&self) -> Result<PathBuf> {
@@ -934,6 +954,20 @@ mod tests {
   }
 
   #[test]
+  fn setting_savepoint_interval() {
+    let arguments =
+      Arguments::try_parse_from(["ord", "--savepoint-interval", "500", "index", "update"]).unwrap();
+    assert_eq!(arguments.options.savepoint_interval, Some(500));
+  }
+
+  #[test]
+  fn setting_max_savepoints() {
+    let arguments =
+      Arguments::try_parse_from(["ord", "--max-savepoints", "10", "index", "update"]).unwrap();
+    assert_eq!(arguments.options.max_savepoints, Some(10));
+  }
+
+  #[test]
   fn index_runes() {
     assert!(parse(&["--chain=signet", "--index-runes"]).index_runes_raw());
     assert!(parse(&["--index-runes"]).index_runes_raw());
@@ -1032,6 +1066,8 @@ mod tests {
       ("BITCOIN_RPC_USERNAME", "bitcoin username"),
       ("CHAIN", "signet"),
       ("COMMIT_INTERVAL", "1"),
+      ("SAVEPOINT_INTERVAL", "10"),
+      ("MAX_SAVEPOINTS", "2"),
       ("CONFIG", "config"),
       ("CONFIG_DIR", "config dir"),
       ("COOKIE_FILE", "cookie file"),
@@ -1065,6 +1101,8 @@ mod tests {
         bitcoin_rpc_username: Some("bitcoin username".into()),
         chain: Some(Chain::Signet),
         commit_interval: Some(1),
+        savepoint_interval: Some(10),
+        max_savepoints: Some(2),
         config: Some("config".into()),
         config_dir: Some("config dir".into()),
         cookie_file: Some("cookie file".into()),
@@ -1111,6 +1149,8 @@ mod tests {
           "--bitcoin-rpc-username=bitcoin username",
           "--chain=signet",
           "--commit-interval=1",
+          "--savepoint-interval=10",
+          "--max-savepoints=2",
           "--config=config",
           "--config-dir=config dir",
           "--cookie-file=cookie file",
@@ -1137,6 +1177,8 @@ mod tests {
         bitcoin_rpc_username: Some("bitcoin username".into()),
         chain: Some(Chain::Signet),
         commit_interval: Some(1),
+        savepoint_interval: Some(10),
+        max_savepoints: Some(2),
         config: Some("config".into()),
         config_dir: Some("config dir".into()),
         cookie_file: Some("cookie file".into()),
