@@ -698,7 +698,7 @@ OP_ENDIF
 <h3 id="description"><a class="header" href="#description">Description</a></h3>
 <p>The content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code>.</p>
 <h3 id="ejemplo-3"><a class="header" href="#ejemplo-3">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 &gt; skull.jpg
 </code></pre>
 <p><i>no terminal output, just file creation</i></p>
@@ -753,7 +753,7 @@ OP_ENDIF
 <h3 id="description-4"><a class="header" href="#description-4">Description</a></h3>
 <p>Block info. <code>&lt;QUERY&gt;</code> may be a block height or block hash.</p>
 <h3 id="example-blockheight"><a class="header" href="#example-blockheight">Example (blockheight)</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/blockinfo/0
 </code></pre>
 <pre><code class="language-json">{
@@ -794,7 +794,7 @@ OP_ENDIF
 }
 </code></pre>
 <h3 id="example-blockhash"><a class="header" href="#example-blockhash">Example (blockhash)</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/blockinfo/0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5
 </code></pre>
 <pre><code class="language-json">{
@@ -860,7 +860,7 @@ OP_ENDIF
 <h3 id="description-6"><a class="header" href="#description-6">Description</a></h3>
 <p>The first 100 child inscription ids.</p>
 <h3 id="ejemplo-8"><a class="header" href="#ejemplo-8">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0
 </code></pre>
 <pre><code class="language-json">{
@@ -979,7 +979,7 @@ OP_ENDIF
 <h3 id="description-7"><a class="header" href="#description-7">Description</a></h3>
 <p>The set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</p>
 <h3 id="ejemplo-9"><a class="header" href="#ejemplo-9">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/9
 </code></pre>
 <pre><code class="language-json">{
@@ -1098,7 +1098,7 @@ OP_ENDIF
 <h3 id="description-8"><a class="header" href="#description-8">Description</a></h3>
 <p>Details of the first 100 child inscriptions.</p>
 <h3 id="ejemplo-10"><a class="header" href="#ejemplo-10">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions
 </code></pre>
 <pre><code class="language-json">{
@@ -2415,7 +2415,7 @@ OP_ENDIF
 <h3 id="description-9"><a class="header" href="#description-9">Description</a></h3>
 <p>Details of the set of 100 child inscriptions on &lt;PAGE&gt;.</p>
 <h3 id="ejemplo-11"><a class="header" href="#ejemplo-11">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions/9
 </code></pre>
 <pre><code class="language-json">{
@@ -3742,7 +3742,7 @@ OP_ENDIF
 <h3 id="description-11"><a class="header" href="#description-11">Description</a></h3>
 <p>Information about an inscription.</p>
 <h3 id="ejemplo-12"><a class="header" href="#ejemplo-12">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/inscriptions/13130e4b299ed361f2a734f6433844ef0f0211cd504e0ca8f4d4ab20f51b8127i0
 </code></pre>
 <pre><code class="language-json">{
@@ -3773,7 +3773,7 @@ OP_ENDIF
 <h3 id="description-12"><a class="header" href="#description-12">Description</a></h3>
 <p>JSON string containing the hex-encoded CBOR metadata.</p>
 <h3 id="ejemplo-13"><a class="header" href="#ejemplo-13">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/metadata/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
 <pre><code class="language-json">"ac6c50484f544f475241504845526a5041524b4552204441596643414d4552416c43414e4f4e20454f532d31566446494c4d6f4b4f44414b20454b54415220313030644c454e53781a5a4549535320504c414e415220542a2038354d4d20462f312e346d5348555454455220535045454465312f31323568415045525455524563462f38664d4f44454c5318646650484f544f531903e8684c4f434154494f4e774c4f5320414e47454c45532c2043414c49464f524e49416443524557a36a415353495354414e4345826e41524941532042555244454c4c49684e4153204e495858664d414b45555087754544454e2053594d4f4e45204c415454414e5a494f6a4d494d49204d455945526e53414d414e544841204c455052456f4c4953455454452053414e54414e416e4a45535349434120564552474f4e63504f4e724d415941204e414b415241205352554f4348644841495283694a414b4920494348556c4a4f43454c594e2056454741724a4546464552534f4e2054414e475241444966504154524f4e6e434153455920524f4441524d4f52674c4943454e534563434330"
@@ -3787,7 +3787,7 @@ OP_ENDIF
 <h3 id="description-13"><a class="header" href="#description-13">Description</a></h3>
 <p>The first 100 parent inscription ids.</p>
 <h3 id="ejemplo-14"><a class="header" href="#ejemplo-14">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
 <pre><code class="language-json">{
@@ -3807,7 +3807,7 @@ OP_ENDIF
 <h3 id="description-14"><a class="header" href="#description-14">Description</a></h3>
 <p>The set of 100 parent inscription ids on <code>&lt;PAGE&gt;</code>.</p>
 <h3 id="ejemplo-15"><a class="header" href="#ejemplo-15">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/9
 </code></pre>
 <pre><code class="language-json">{
@@ -3825,7 +3825,7 @@ OP_ENDIF
 <h3 id="description-15"><a class="header" href="#description-15">Description</a></h3>
 <p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="ejemplo-16"><a class="header" href="#ejemplo-16">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999
 </code></pre>
 <pre><code class="language-json">{
@@ -3848,7 +3848,7 @@ OP_ENDIF
 <h3 id="description-16"><a class="header" href="#description-16">Description</a></h3>
 <p>The set of 100 inscription ids on <code>&lt;PAGE&gt;</code>. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="ejemplo-17"><a class="header" href="#ejemplo-17">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/1499676120331756/1
 </code></pre>
 <pre><code class="language-json">{
@@ -3878,7 +3878,7 @@ OP_ENDIF
 <h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
 <p>The inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="ejemplo-18"><a class="header" href="#ejemplo-18">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999/at/-1
 </code></pre>
 <pre><code class="language-json">{
@@ -3895,7 +3895,7 @@ OP_ENDIF
 <p>The content of the inscription at <code>&lt;INDEX&gt;</code> on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="ejemplo-19"><a class="header" href="#ejemplo-19">Ejemplo</a></h3>
 <p>Fetch the content of the most recently created inscription on sat 289488340427831.</p>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/289488340427831/at/-1/content
 </code></pre>
 <pre><code>Hello, world!
@@ -3923,7 +3923,7 @@ OP_ENDIF
 <p>Get assets held by an unspent transaction output.</p>
 <h3 id="ejemplos-1"><a class="header" href="#ejemplos-1">Ejemplos</a></h3>
 <p>Unspent transaction output with server without any indices:</p>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/utxo/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
 </code></pre>
 <pre><code class="language-json">{
@@ -3934,7 +3934,7 @@ OP_ENDIF
 }
 </code></pre>
 <p>With rune, inscription, and sat index:</p>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/utxo/626860df36c1047194866c6812f04c15ab84f3690e7cc06fd600c841f1943e05:0
 </code></pre>
 <pre><code class="language-json">{
@@ -9505,7 +9505,7 @@ i               # separator
 <h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
 <p>The content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code>.</p>
 <h3 id="ejemplo-47"><a class="header" href="#ejemplo-47">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 &gt; skull.jpg
 </code></pre>
 <p><i>no terminal output, just file creation</i></p>
@@ -9560,7 +9560,7 @@ i               # separator
 <h3 id="description-51"><a class="header" href="#description-51">Description</a></h3>
 <p>Block info. <code>&lt;QUERY&gt;</code> may be a block height or block hash.</p>
 <h3 id="example-blockheight-1"><a class="header" href="#example-blockheight-1">Example (blockheight)</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/blockinfo/0
 </code></pre>
 <pre><code class="language-json">{
@@ -9601,7 +9601,7 @@ i               # separator
 }
 </code></pre>
 <h3 id="example-blockhash-1"><a class="header" href="#example-blockhash-1">Example (blockhash)</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/blockinfo/0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5
 </code></pre>
 <pre><code class="language-json">{
@@ -9667,7 +9667,7 @@ i               # separator
 <h3 id="description-53"><a class="header" href="#description-53">Description</a></h3>
 <p>The first 100 child inscription ids.</p>
 <h3 id="ejemplo-52"><a class="header" href="#ejemplo-52">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0
 </code></pre>
 <pre><code class="language-json">{
@@ -9786,7 +9786,7 @@ i               # separator
 <h3 id="description-54"><a class="header" href="#description-54">Description</a></h3>
 <p>The set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</p>
 <h3 id="ejemplo-53"><a class="header" href="#ejemplo-53">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/9
 </code></pre>
 <pre><code class="language-json">{
@@ -9905,7 +9905,7 @@ i               # separator
 <h3 id="description-55"><a class="header" href="#description-55">Description</a></h3>
 <p>Details of the first 100 child inscriptions.</p>
 <h3 id="ejemplo-54"><a class="header" href="#ejemplo-54">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions
 </code></pre>
 <pre><code class="language-json">{
@@ -11222,7 +11222,7 @@ i               # separator
 <h3 id="description-56"><a class="header" href="#description-56">Description</a></h3>
 <p>Details of the set of 100 child inscriptions on &lt;PAGE&gt;.</p>
 <h3 id="ejemplo-55"><a class="header" href="#ejemplo-55">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions/9
 </code></pre>
 <pre><code class="language-json">{
@@ -12549,7 +12549,7 @@ i               # separator
 <h3 id="description-58"><a class="header" href="#description-58">Description</a></h3>
 <p>Information about an inscription.</p>
 <h3 id="ejemplo-56"><a class="header" href="#ejemplo-56">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/inscriptions/13130e4b299ed361f2a734f6433844ef0f0211cd504e0ca8f4d4ab20f51b8127i0
 </code></pre>
 <pre><code class="language-json">{
@@ -12580,7 +12580,7 @@ i               # separator
 <h3 id="description-59"><a class="header" href="#description-59">Description</a></h3>
 <p>JSON string containing the hex-encoded CBOR metadata.</p>
 <h3 id="ejemplo-57"><a class="header" href="#ejemplo-57">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/metadata/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
 <pre><code class="language-json">"ac6c50484f544f475241504845526a5041524b4552204441596643414d4552416c43414e4f4e20454f532d31566446494c4d6f4b4f44414b20454b54415220313030644c454e53781a5a4549535320504c414e415220542a2038354d4d20462f312e346d5348555454455220535045454465312f31323568415045525455524563462f38664d4f44454c5318646650484f544f531903e8684c4f434154494f4e774c4f5320414e47454c45532c2043414c49464f524e49416443524557a36a415353495354414e4345826e41524941532042555244454c4c49684e4153204e495858664d414b45555087754544454e2053594d4f4e45204c415454414e5a494f6a4d494d49204d455945526e53414d414e544841204c455052456f4c4953455454452053414e54414e416e4a45535349434120564552474f4e63504f4e724d415941204e414b415241205352554f4348644841495283694a414b4920494348556c4a4f43454c594e2056454741724a4546464552534f4e2054414e475241444966504154524f4e6e434153455920524f4441524d4f52674c4943454e534563434330"
@@ -12594,7 +12594,7 @@ i               # separator
 <h3 id="description-60"><a class="header" href="#description-60">Description</a></h3>
 <p>The first 100 parent inscription ids.</p>
 <h3 id="ejemplo-58"><a class="header" href="#ejemplo-58">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
 <pre><code class="language-json">{
@@ -12614,7 +12614,7 @@ i               # separator
 <h3 id="description-61"><a class="header" href="#description-61">Description</a></h3>
 <p>The set of 100 parent inscription ids on <code>&lt;PAGE&gt;</code>.</p>
 <h3 id="ejemplo-59"><a class="header" href="#ejemplo-59">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/9
 </code></pre>
 <pre><code class="language-json">{
@@ -12632,7 +12632,7 @@ i               # separator
 <h3 id="description-62"><a class="header" href="#description-62">Description</a></h3>
 <p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="ejemplo-60"><a class="header" href="#ejemplo-60">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999
 </code></pre>
 <pre><code class="language-json">{
@@ -12655,7 +12655,7 @@ i               # separator
 <h3 id="description-63"><a class="header" href="#description-63">Description</a></h3>
 <p>The set of 100 inscription ids on <code>&lt;PAGE&gt;</code>. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="ejemplo-61"><a class="header" href="#ejemplo-61">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/1499676120331756/1
 </code></pre>
 <pre><code class="language-json">{
@@ -12685,7 +12685,7 @@ i               # separator
 <h3 id="description-64"><a class="header" href="#description-64">Description</a></h3>
 <p>The inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="ejemplo-62"><a class="header" href="#ejemplo-62">Ejemplo</a></h3>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999/at/-1
 </code></pre>
 <pre><code class="language-json">{
@@ -12702,7 +12702,7 @@ i               # separator
 <p>The content of the inscription at <code>&lt;INDEX&gt;</code> on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent. Requires index with <code>--index-sats</code> flag.</p>
 <h3 id="ejemplo-63"><a class="header" href="#ejemplo-63">Ejemplo</a></h3>
 <p>Fetch the content of the most recently created inscription on sat 289488340427831.</p>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/289488340427831/at/-1/content
 </code></pre>
 <pre><code>Hello, world!
@@ -12730,7 +12730,7 @@ i               # separator
 <p>Get assets held by an unspent transaction output.</p>
 <h3 id="ejemplos-2"><a class="header" href="#ejemplos-2">Ejemplos</a></h3>
 <p>Unspent transaction output with server without any indices:</p>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/utxo/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
 </code></pre>
 <pre><code class="language-json">{
@@ -12741,7 +12741,7 @@ i               # separator
 }
 </code></pre>
 <p>With rune, inscription, and sat index:</p>
-<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+<pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/utxo/626860df36c1047194866c6812f04c15ab84f3690e7cc06fd600c841f1943e05:0
 </code></pre>
 <pre><code class="language-json">{
