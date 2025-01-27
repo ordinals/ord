@@ -24,8 +24,10 @@ use {
       teleburn, ParsedEnvelope,
     },
     into_usize::IntoUsize,
+    option_ext::OptionExt,
     outgoing::Outgoing,
     representation::Representation,
+    satscard::Satscard,
     settings::Settings,
     signer::Signer,
     subcommand::{OutputFormat, Subcommand, SubcommandResult},
@@ -43,10 +45,10 @@ use {
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
     policy::MAX_STANDARD_TX_WEIGHT,
-    script,
+    script, secp256k1,
     transaction::Version,
-    Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, SignedAmount, Transaction, TxIn,
-    TxOut, Txid, Witness,
+    Amount, Block, KnownHrp, Network, OutPoint, Script, ScriptBuf, Sequence, SignedAmount,
+    Transaction, TxIn, TxOut, Txid, Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
   chrono::{DateTime, TimeZone, Utc},
@@ -119,11 +121,13 @@ mod inscriptions;
 mod into_usize;
 mod macros;
 mod object;
+mod option_ext;
 pub mod options;
 pub mod outgoing;
 mod re;
 mod representation;
 pub mod runes;
+mod satscard;
 pub mod settings;
 mod signer;
 pub mod subcommand;
