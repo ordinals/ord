@@ -13,6 +13,8 @@ fn default() {
   "bitcoin_rpc_username": null,
   "chain": "mainnet",
   "commit_interval": 5000,
+  "savepoint_interval": 10,
+  "max_savepoints": 2,
   "config": null,
   "config_dir": null,
   "cookie_file": ".*\.cookie",
