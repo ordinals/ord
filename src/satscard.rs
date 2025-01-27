@@ -147,13 +147,14 @@ impl Satscard {
     message: &str,
     signature: &secp256k1::ecdsa::Signature,
   ) -> Result<Address, Error> {
-    use {
-      bitcoin::{key::PublicKey, CompressedPublicKey},
+    use bitcoin::{
+      key::PublicKey,
       secp256k1::{
         ecdsa::{RecoverableSignature, RecoveryId},
         hashes::sha256::Hash,
         Message,
       },
+      CompressedPublicKey,
     };
 
     let signature_compact = signature.serialize_compact();
