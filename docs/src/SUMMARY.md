@@ -16,6 +16,7 @@ Summary
   - [Examples](inscriptions/examples.md)
 - [Runes](runes.md)
   - [Specification](runes/specification.md)
+- [Satscard](satscard.md)
 - [FAQ](faq.md)
 - [Contributing](contributing.md)
 - [Donate](donate.md)

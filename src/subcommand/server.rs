@@ -10,7 +10,8 @@ use {
     InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
     PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
     PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml, TransactionHtml,
+    PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml, SatscardHtml,
+    TransactionHtml,
   },
   axum::{
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
@@ -196,6 +197,7 @@ impl Server {
         .route("/collections", get(Self::collections))
         .route("/collections/{page}", get(Self::collections_paginated))
         .route("/content/{inscription_id}", get(Self::content))
+        .route("/decode/{txid}", get(Self::decode))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
@@ -207,7 +209,6 @@ impl Server {
         )
         .route("/inscriptions", get(Self::inscriptions))
         .route("/inscriptions", post(Self::inscriptions_json))
-        .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route(
           "/inscriptions/block/{height}",
           get(Self::inscriptions_in_block),
@@ -216,6 +217,7 @@ impl Server {
           "/inscriptions/block/{height}/{page}",
           get(Self::inscriptions_in_block_paginated),
         )
+        .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route("/install.sh", get(Self::install_script))
         .route("/ordinal/{sat}", get(Self::ordinal))
         .route("/output/{output}", get(Self::output))
@@ -233,19 +235,11 @@ impl Server {
           get(Self::block_hash_from_height_json),
         )
         .route("/r/blockheight", get(Self::block_height))
-        .route("/r/blocktime", get(Self::block_time))
         .route("/r/blockinfo/{query}", get(Self::block_info))
-        .route(
-          "/r/inscription/{inscription_id}",
-          get(Self::inscription_recursive),
-        )
+        .route("/r/blocktime", get(Self::block_time))
         .route(
           "/r/children/{inscription_id}",
           get(Self::children_recursive),
-        )
-        .route(
-          "/r/children/{inscription_id}/{page}",
-          get(Self::children_recursive_paginated),
         )
         .route(
           "/r/children/{inscription_id}/inscriptions",
@@ -256,8 +250,12 @@ impl Server {
           get(Self::child_inscriptions_recursive_paginated),
         )
         .route(
-          "/r/undelegated-content/{inscription_id}",
-          get(Self::undelegated_content),
+          "/r/children/{inscription_id}/{page}",
+          get(Self::children_recursive_paginated),
+        )
+        .route(
+          "/r/inscription/{inscription_id}",
+          get(Self::inscription_recursive),
         )
         .route("/r/metadata/{inscription_id}", get(Self::metadata))
         .route("/r/parents/{inscription_id}", get(Self::parents_recursive))
@@ -268,16 +266,20 @@ impl Server {
         .route("/r/txhex/:txid", get(Self::get_raw_transaction_hex))
         .route("/r/sat/{sat_number}", get(Self::sat_inscriptions))
         .route(
-          "/r/sat/{sat_number}/{page}",
-          get(Self::sat_inscriptions_paginated),
-        )
-        .route(
           "/r/sat/{sat_number}/at/{index}",
           get(Self::sat_inscription_at_index),
         )
         .route(
           "/r/sat/{sat_number}/at/{index}/content",
           get(Self::sat_inscription_at_index_content),
+        )
+        .route(
+          "/r/sat/{sat_number}/{page}",
+          get(Self::sat_inscriptions_paginated),
+        )
+        .route(
+          "/r/undelegated-content/{inscription_id}",
+          get(Self::undelegated_content),
         )
         .route("/r/utxo/{outpoint}", get(Self::utxo_recursive))
         .route("/rare.txt", get(Self::rare_txt))
@@ -286,12 +288,12 @@ impl Server {
         .route("/runes/{page}", get(Self::runes_paginated))
         .route("/sat/{sat}", get(Self::sat))
         .route("/satpoint/{satpoint}", get(Self::satpoint))
+        .route("/satscard", get(Self::satscard))
         .route("/search", get(Self::search_by_query))
         .route("/search/{*query}", get(Self::search_by_path))
         .route("/static/{*path}", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/{txid}", get(Self::transaction))
-        .route("/decode/{txid}", get(Self::decode))
         .route("/update", get(Self::update))
         .fallback(Self::fallback)
         .layer(Extension(index))
@@ -567,6 +569,60 @@ impl Server {
 
       Ok(Redirect::to(&format!("/{prefix}/{path}")).into_response())
     })
+  }
+
+  async fn satscard(
+    Extension(settings): Extension<Arc<Settings>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    uri: Uri,
+  ) -> ServerResult<Response> {
+    #[derive(Debug, Deserialize)]
+    struct Form {
+      url: DeserializeFromStr<Url>,
+    }
+
+    if let Ok(form) = Query::<Form>::try_from_uri(&uri) {
+      return if let Some(fragment) = form.url.0.fragment() {
+        Ok(Redirect::to(&format!("/satscard?{}", fragment)).into_response())
+      } else {
+        Err(ServerError::BadRequest(
+          "satscard URL missing fragment".into(),
+        ))
+      };
+    }
+
+    let satscard = if let Some(query) = uri.query() {
+      let satscard = Satscard::from_query_parameters(settings.chain(), query).map_err(|err| {
+        ServerError::BadRequest(format!("invalid satscard query parameters: {err}"))
+      })?;
+
+      let address_info = Self::address_info(&index, &satscard.address)?.map(
+        |api::AddressInfo {
+           outputs,
+           inscriptions,
+           sat_balance,
+           runes_balances,
+         }| AddressHtml {
+          address: satscard.address.clone(),
+          header: false,
+          inscriptions,
+          outputs,
+          runes_balances,
+          sat_balance,
+        },
+      );
+
+      Some((satscard, address_info))
+    } else {
+      None
+    };
+
+    Ok(
+      SatscardHtml { satscard }
+        .page(server_config)
+        .into_response(),
+    )
   }
 
   async fn sat(
@@ -991,46 +1047,61 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      if !index.has_address_index() {
-        return Err(ServerError::NotFound(
-          "this server has no address index".to_string(),
-        ));
-      }
-
       let address = address
         .require_network(server_config.chain.network())
         .map_err(|err| ServerError::BadRequest(err.to_string()))?;
 
-      let mut outputs = index.get_address_info(&address)?;
-
-      outputs.sort();
-
-      let sat_balance = index.get_sat_balances_for_outputs(&outputs)?;
-
-      let inscriptions = index.get_inscriptions_for_outputs(&outputs)?;
-
-      let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
+      let Some(info) = Self::address_info(&index, &address)? else {
+        return Err(ServerError::NotFound(
+          "this server has no address index".to_string(),
+        ));
+      };
 
       Ok(if accept_json {
-        Json(api::AddressInfo {
+        Json(info).into_response()
+      } else {
+        let api::AddressInfo {
           sat_balance,
           outputs,
           inscriptions,
           runes_balances,
-        })
-        .into_response()
-      } else {
+        } = info;
+
         AddressHtml {
           address,
-          outputs,
+          header: true,
           inscriptions,
-          sat_balance,
+          outputs,
           runes_balances,
+          sat_balance,
         }
         .page(server_config)
         .into_response()
       })
     })
+  }
+
+  fn address_info(index: &Index, address: &Address) -> ServerResult<Option<api::AddressInfo>> {
+    if !index.has_address_index() {
+      return Ok(None);
+    }
+
+    let mut outputs = index.get_address_info(address)?;
+
+    outputs.sort();
+
+    let sat_balance = index.get_sat_balances_for_outputs(&outputs)?;
+
+    let inscriptions = index.get_inscriptions_for_outputs(&outputs)?;
+
+    let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
+
+    Ok(Some(api::AddressInfo {
+      sat_balance,
+      outputs,
+      inscriptions,
+      runes_balances,
+    }))
   }
 
   async fn block(
@@ -1308,10 +1379,6 @@ impl Server {
   }
 
   async fn search(index: Arc<Index>, query: String) -> ServerResult<Redirect> {
-    Self::search_inner(index, query).await
-  }
-
-  async fn search_inner(index: Arc<Index>, query: String) -> ServerResult<Redirect> {
     task::block_in_place(|| {
       let query = query.trim();
 
@@ -1325,6 +1392,11 @@ impl Server {
         Ok(Redirect::to(&format!("/output/{query}")))
       } else if re::INSCRIPTION_ID.is_match(query) || re::INSCRIPTION_NUMBER.is_match(query) {
         Ok(Redirect::to(&format!("/inscription/{query}")))
+      } else if let Some(captures) = re::SATSCARD_URL.captures(query) {
+        Ok(Redirect::to(&format!(
+          "/satscard?{}",
+          &captures["parameters"]
+        )))
       } else if re::SPACED_RUNE.is_match(query) {
         Ok(Redirect::to(&format!("/rune/{query}")))
       } else if re::RUNE_ID.is_match(query) {
@@ -2556,6 +2628,10 @@ mod tests {
       self.server_flag("--https")
     }
 
+    fn index_addresses(self) -> Self {
+      self.ord_flag("--index-addresses")
+    }
+
     fn index_runes(self) -> Self {
       self.ord_flag("--index-runes")
     }
@@ -2718,7 +2794,7 @@ mod tests {
       let expected_response = PageHtml::new(
         content,
         Arc::new(ServerConfig {
-          chain: Chain::Regtest,
+          chain: self.index.chain(),
           domain: Some(System::host_name().unwrap()),
           ..Default::default()
         }),
@@ -2996,6 +3072,18 @@ mod tests {
   #[test]
   fn search_by_query_returns_spaced_rune() {
     TestServer::new().assert_redirect("/search?query=AB•CD", "/rune/AB•CD");
+  }
+
+  #[test]
+  fn search_by_query_returns_satscard() {
+    TestServer::new().assert_redirect(
+      "/search?query=https://satscard.com/start%23foo",
+      "/satscard?foo",
+    );
+    TestServer::new().assert_redirect(
+      "/search?query=https://getsatscard.com/start%23foo",
+      "/satscard?foo",
+    );
   }
 
   #[test]
@@ -7657,6 +7745,84 @@ next
       StatusCode::NOT_FOUND,
       "output 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef:123 not found",
     );
+  }
+
+  #[test]
+  fn satscard_form_redirects_to_query() {
+    TestServer::new().assert_redirect(
+      &format!(
+        "/satscard?url={}",
+        urlencoding::encode(satscard::tests::URL)
+      ),
+      &format!("/satscard?{}", satscard::tests::query_parameters()),
+    );
+  }
+
+  #[test]
+  fn satscard_missing_form_query_is_error() {
+    TestServer::new().assert_response(
+      "/satscard?url=https://foo.com",
+      StatusCode::BAD_REQUEST,
+      "satscard URL missing fragment",
+    );
+  }
+
+  #[test]
+  fn satscard_invalid_query_parameters() {
+    TestServer::new().assert_response(
+      "/satscard?foo=bar",
+      StatusCode::BAD_REQUEST,
+      "invalid satscard query parameters: unknown key `foo`",
+    );
+  }
+
+  #[test]
+  fn satscard_display_without_address_index() {
+    TestServer::builder()
+      .chain(Chain::Mainnet)
+      .build()
+      .assert_html(
+        format!("/satscard?{}", satscard::tests::query_parameters()),
+        SatscardHtml {
+          satscard: Some((satscard::tests::satscard(), None)),
+        },
+      );
+  }
+
+  #[test]
+  fn satscard_display_with_address_index_empty() {
+    TestServer::builder()
+      .chain(Chain::Mainnet)
+      .index_addresses()
+      .build()
+      .assert_html(
+        format!("/satscard?{}", satscard::tests::query_parameters()),
+        SatscardHtml {
+          satscard: Some((
+            satscard::tests::satscard(),
+            Some(AddressHtml {
+              address: satscard::tests::address(),
+              header: false,
+              inscriptions: Some(Vec::new()),
+              outputs: Vec::new(),
+              runes_balances: None,
+              sat_balance: 0,
+            }),
+          )),
+        },
+      );
+  }
+
+  #[test]
+  fn satscard_address_recovery_fails_on_wrong_chain() {
+    TestServer::builder()
+      .chain(Chain::Testnet)
+      .build()
+      .assert_response(
+        format!("/satscard?{}", satscard::tests::query_parameters()),
+        StatusCode::BAD_REQUEST,
+        "invalid satscard query parameters: address recovery failed",
+      );
   }
 
   #[test]

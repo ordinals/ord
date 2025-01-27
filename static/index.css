@@ -250,6 +250,18 @@ a.mythic {
   width: 100%;
 }
 
+.satscard-error {
+  color: red;
+}
+
+.satscard-sealed {
+  color: green;
+}
+
+.satscard-unsealed {
+  color: yellow;
+}
+
 .tabs {
   align-items: center;
   display: flex;
