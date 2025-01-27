@@ -462,6 +462,11 @@ impl Index {
     })
   }
 
+  #[cfg(test)]
+  pub(crate) fn chain(&self) -> Chain {
+    self.settings.chain()
+  }
+
   pub fn have_full_utxo_index(&self) -> bool {
     self.first_index_height == 0
   }
@@ -1610,6 +1615,19 @@ impl Index {
     self.client.get_raw_transaction(&txid, None).into_option()
   }
 
+  pub fn get_transaction_hex_recursive(&self, txid: Txid) -> Result<Option<String>> {
+    if txid == self.genesis_block_coinbase_txid {
+      return Ok(Some(consensus::encode::serialize_hex(
+        &self.genesis_block_coinbase_transaction,
+      )));
+    }
+
+    self
+      .client
+      .get_raw_transaction_hex(&txid, None)
+      .into_option()
+  }
+
   pub fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
     let sat = sat.0;
     let rtx = self.begin_read()?;
@@ -1789,13 +1807,17 @@ impl Index {
       .with_context(|| format!("current {current} height is greater than sat height {height}"))?;
 
     Ok(Blocktime::Expected(
-      Utc::now()
-        .round_subsecs(0)
-        .checked_add_signed(
-          chrono::Duration::try_seconds(10 * 60 * i64::from(expected_blocks))
-            .context("timestamp out of range")?,
-        )
-        .context("timestamp out of range")?,
+      if self.settings.chain() == Chain::Regtest {
+        DateTime::default()
+      } else {
+        Utc::now()
+      }
+      .round_subsecs(0)
+      .checked_add_signed(
+        chrono::Duration::try_seconds(10 * 60 * i64::from(expected_blocks))
+          .context("timestamp out of range")?,
+      )
+      .context("timestamp out of range")?,
     ))
   }
 

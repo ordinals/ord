@@ -3,10 +3,11 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct AddressHtml {
   pub(crate) address: Address,
-  pub(crate) outputs: Vec<OutPoint>,
+  pub(crate) header: bool,
   pub(crate) inscriptions: Option<Vec<InscriptionId>>,
-  pub(crate) sat_balance: u64,
+  pub(crate) outputs: Vec<OutPoint>,
   pub(crate) runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
+  pub(crate) sat_balance: u64,
 }
 
 impl PageContent for AddressHtml {
@@ -25,6 +26,7 @@ mod tests {
         .unwrap()
         .require_network(Network::Bitcoin)
         .unwrap(),
+      header: true,
       outputs: vec![outpoint(1), outpoint(2)],
       inscriptions: Some(vec![inscription_id(1)]),
       sat_balance: 99,
