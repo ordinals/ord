@@ -27,7 +27,36 @@ pub(super) async fn blockhash_at_height(
   })
 }
 
-pub(super) async fn blockheight(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
+pub(super) async fn block_hash_from_height_string(
+  Extension(index): Extension<Arc<Index>>,
+  Path(height): Path<u32>,
+) -> ServerResult<String> {
+  task::block_in_place(|| {
+    Ok(
+      index
+        .block_hash(Some(height))?
+        .ok_or_not_found(|| "blockhash")?
+        .to_string(),
+    )
+  })
+}
+
+pub(super) async fn blockhash_string(
+  Extension(index): Extension<Arc<Index>>,
+) -> ServerResult<String> {
+  task::block_in_place(|| {
+    Ok(
+      index
+        .block_hash(None)?
+        .ok_or_not_found(|| "blockhash")?
+        .to_string(),
+    )
+  })
+}
+
+pub(super) async fn blockheight_string(
+  Extension(index): Extension<Arc<Index>>,
+) -> ServerResult<String> {
   task::block_in_place(|| {
     Ok(
       index
@@ -104,7 +133,9 @@ pub(super) async fn blockinfo(
   })
 }
 
-pub(crate) async fn blocktime(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
+pub(super) async fn blocktime_string(
+  Extension(index): Extension<Arc<Index>>,
+) -> ServerResult<String> {
   task::block_in_place(|| {
     Ok(
       index
@@ -527,7 +558,7 @@ pub(super) async fn tx(
   })
 }
 
-pub(crate) async fn undelegated_content(
+pub(super) async fn undelegated_content(
   Extension(index): Extension<Arc<Index>>,
   Extension(settings): Extension<Arc<Settings>>,
   Extension(server_config): Extension<Arc<ServerConfig>>,

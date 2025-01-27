@@ -178,16 +178,13 @@ impl Server {
         proxy: self.proxy.clone(),
       });
 
+      // non-recursive endpoints
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/address/{address}", get(Self::address))
         .route("/block/{query}", get(Self::block))
         .route("/blockcount", get(Self::block_count))
-        .route("/blockhash", get(Self::block_hash))
-        .route("/blockhash/{height}", get(Self::block_hash_from_height))
-        .route("/blockheight", get(r::blockheight))
         .route("/blocks", get(Self::blocks))
-        .route("/blocktime", get(r::blocktime))
         .route("/bounties", get(Self::bounties))
         .route("/children/{inscription_id}", get(Self::children))
         .route(
@@ -241,13 +238,20 @@ impl Server {
         .route("/static/{*path}", get(Self::static_asset))
         .route("/status", get(Self::status))
         .route("/tx/{txid}", get(Self::transaction))
-        .route("/update", get(Self::update))
+        .route("/update", get(Self::update));
+
+      // recursive endpoints
+      let router = router
+        .route("/blockhash", get(r::blockhash_string))
+        .route("/blockhash/{height}", get(r::block_hash_from_height_string))
+        .route("/blockheight", get(r::blockheight_string))
+        .route("/blocktime", get(r::blocktime_string))
         .route("/content/{inscription_id}", get(r::content))
         .route("/r/blockhash", get(r::blockhash))
         .route("/r/blockhash/{height}", get(r::blockhash_at_height))
-        .route("/r/blockheight", get(r::blockheight))
+        .route("/r/blockheight", get(r::blockheight_string))
         .route("/r/blockinfo/{query}", get(r::blockinfo))
-        .route("/r/blocktime", get(r::blocktime))
+        .route("/r/blocktime", get(r::blocktime_string))
         .route("/r/children/{inscription_id}", get(r::children))
         .route(
           "/r/children/{inscription_id}/inscriptions",
@@ -268,7 +272,6 @@ impl Server {
           "/r/parents/{inscription_id}/{page}",
           get(r::parents_paginated),
         )
-        .route("/r/tx/{txid}", get(r::tx))
         .route("/r/sat/{sat_number}", get(r::sat))
         .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index))
         .route(
@@ -276,11 +279,14 @@ impl Server {
           get(r::sat_at_index_content),
         )
         .route("/r/sat/{sat_number}/{page}", get(r::sat_paginated))
+        .route("/r/tx/{txid}", get(r::tx))
         .route(
           "/r/undelegated-content/{inscription_id}",
           get(r::undelegated_content),
         )
-        .route("/r/utxo/{outpoint}", get(Self::utxo))
+        .route("/r/utxo/{outpoint}", get(Self::utxo));
+
+      let router = router
         .fallback(Self::fallback)
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
@@ -1363,31 +1369,6 @@ impl Server {
 
   async fn block_count(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
     task::block_in_place(|| Ok(index.block_count()?.to_string()))
-  }
-
-  async fn block_hash(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
-    task::block_in_place(|| {
-      Ok(
-        index
-          .block_hash(None)?
-          .ok_or_not_found(|| "blockhash")?
-          .to_string(),
-      )
-    })
-  }
-
-  async fn block_hash_from_height(
-    Extension(index): Extension<Arc<Index>>,
-    Path(height): Path<u32>,
-  ) -> ServerResult<String> {
-    task::block_in_place(|| {
-      Ok(
-        index
-          .block_hash(Some(height))?
-          .ok_or_not_found(|| "blockhash")?
-          .to_string(),
-      )
-    })
   }
 
   async fn input(
@@ -4238,7 +4219,7 @@ mod tests {
   #[test]
   fn content_response_no_content() {
     assert_eq!(
-      Server::content_response(
+      r::content_response(
         Inscription {
           content_type: Some("text/plain".as_bytes().to_vec()),
           body: None,
@@ -4254,7 +4235,7 @@ mod tests {
 
   #[test]
   fn content_response_with_content() {
-    let (headers, body) = Server::content_response(
+    let (headers, body) = r::content_response(
       Inscription {
         content_type: Some("text/plain".as_bytes().to_vec()),
         body: Some(vec![1, 2, 3]),
@@ -4272,7 +4253,7 @@ mod tests {
 
   #[test]
   fn content_security_policy_no_origin() {
-    let (headers, _) = Server::content_response(
+    let (headers, _) = r::content_response(
       Inscription {
         content_type: Some("text/plain".as_bytes().to_vec()),
         body: Some(vec![1, 2, 3]),
@@ -4292,7 +4273,7 @@ mod tests {
 
   #[test]
   fn content_security_policy_with_origin() {
-    let (headers, _) = Server::content_response(
+    let (headers, _) = r::content_response(
       Inscription {
         content_type: Some("text/plain".as_bytes().to_vec()),
         body: Some(vec![1, 2, 3]),
@@ -4387,7 +4368,7 @@ mod tests {
 
   #[test]
   fn content_response_no_content_type() {
-    let (headers, body) = Server::content_response(
+    let (headers, body) = r::content_response(
       Inscription {
         content_type: None,
         body: Some(Vec::new()),
@@ -4405,7 +4386,7 @@ mod tests {
 
   #[test]
   fn content_response_bad_content_type() {
-    let (headers, body) = Server::content_response(
+    let (headers, body) = r::content_response(
       Inscription {
         content_type: Some("\n".as_bytes().to_vec()),
         body: Some(Vec::new()),
