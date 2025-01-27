@@ -3415,8 +3415,7 @@ remain backwards compatible.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/r/tx/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa
+curl -s http://0.0.0.0:80/r/tx/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa
 ```
 
 ```json
