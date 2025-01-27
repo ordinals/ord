@@ -45,7 +45,7 @@ The content of the inscription with `<INSCRIPTION_ID>`.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 > skull.jpg
 ```
 
@@ -129,7 +129,7 @@ Block info. `<QUERY>` may be a block height or block hash.
 ### Example (blockheight)
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/blockinfo/0
 ```
 
@@ -175,7 +175,7 @@ curl -s -H "Accept: application/json" \
 ### Example (blockhash)
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/blockinfo/0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5
 ```
 
@@ -257,7 +257,7 @@ The first 100 child inscription ids.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0
 ```
 
@@ -384,7 +384,7 @@ The set of 100 child inscription ids on `<PAGE>`.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/9
 ```
 
@@ -511,7 +511,7 @@ Details of the first 100 child inscriptions.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions
 ```
 
@@ -1836,7 +1836,7 @@ Details of the set of 100 child inscriptions on &lt;PAGE&gt;.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions/9
 ```
 
@@ -3176,7 +3176,7 @@ Information about an inscription.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/inscriptions/13130e4b299ed361f2a734f6433844ef0f0211cd504e0ca8f4d4ab20f51b8127i0
 ```
 
@@ -3214,7 +3214,7 @@ JSON string containing the hex-encoded CBOR metadata.
 
 ### Example
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/metadata/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 ```
 
@@ -3236,7 +3236,7 @@ The first 100 parent inscription ids.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 ```
 
@@ -3264,7 +3264,7 @@ The set of 100 parent inscription ids on `<PAGE>`.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/9
 ```
 
@@ -3290,7 +3290,7 @@ The first 100 inscription ids on a sat. Requires index with `--index-sats` flag.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/sat/153899938226999
 ```
 
@@ -3321,7 +3321,7 @@ The set of 100 inscription ids on `<PAGE>`. Requires index with `--index-sats` f
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/sat/1499676120331756/1
 ```
 
@@ -3361,7 +3361,7 @@ the most recent for example. Requires index with `--index-sats` flag.
 ### Example
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/sat/153899938226999/at/-1
 ```
 
@@ -3389,7 +3389,7 @@ most recent. Requires index with `--index-sats` flag.
 Fetch the content of the most recently created inscription on sat 289488340427831.
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/sat/289488340427831/at/-1/content
 ```
 
@@ -3438,7 +3438,7 @@ Get assets held by an unspent transaction output.
 Unspent transaction output with server without any indices:
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/utxo/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
 ```
 
@@ -3454,7 +3454,7 @@ curl -s -H "Accept: application/json" \
 With rune, inscription, and sat index:
 
 ```bash
-curl -s -H "Accept: application/json" \
+curl -s \
   http://0.0.0.0:80/r/utxo/626860df36c1047194866c6812f04c15ab84f3690e7cc06fd600c841f1943e05:0
 ```
 
