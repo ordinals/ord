@@ -1316,7 +1316,7 @@ impl Server {
           charms: Charm::charms(entry.charms),
           content_type: inscription.content_type().map(|s| s.to_string()),
           content_length: inscription.content_length(),
-          delegate: inscription.delegate(),
+          delegates: inscription.delegates(),
           fee: entry.fee,
           height: entry.height,
           id: inscription_id,
@@ -1701,11 +1701,12 @@ impl Server {
         };
       };
 
-      if let Some(delegate) = inscription.delegate() {
-        inscription = index
-          .get_inscription_by_id(delegate)?
-          .ok_or_not_found(|| format!("delegate {inscription_id}"))?
-      }
+      let inscription_override = inscription
+        .delegates()
+        .iter()
+        .find_map(|delegate| index.get_inscription_by_id(*delegate).unwrap_or(None));
+
+      inscription = inscription_override.unwrap_or(inscription);
 
       Ok(
         Self::content_response(inscription, accept_encoding, &server_config)?
@@ -1825,11 +1826,12 @@ impl Server {
         .get_inscription_by_id(inscription_id)?
         .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-      if let Some(delegate) = inscription.delegate() {
-        inscription = index
-          .get_inscription_by_id(delegate)?
-          .ok_or_not_found(|| format!("delegate {inscription_id}"))?
-      }
+      let inscription_override = inscription
+        .delegates()
+        .iter()
+        .find_map(|delegate| index.get_inscription_by_id(*delegate).unwrap_or(None));
+
+      inscription = inscription_override.unwrap_or(inscription);
 
       let media = inscription.media();
 
@@ -2660,7 +2662,7 @@ mod tests {
 
       self.mine_blocks(1);
 
-      self.core.broadcast_tx(TransactionTemplate {
+      self.core.broadcast_template(TransactionTemplate {
         inputs: &[(block_count, 0, 0, Default::default())],
         p2tr: true,
         ..default()
@@ -2688,7 +2690,7 @@ mod tests {
         witness
       });
 
-      let txid = self.core.broadcast_tx(TransactionTemplate {
+      let txid = self.core.broadcast_template(TransactionTemplate {
         inputs: &[(block_count + 1, 1, 0, witness)],
         op_return: Some(runestone.encipher()),
         outputs,
@@ -3222,7 +3224,7 @@ mod tests {
       ..default()
     };
 
-    server.core.broadcast_tx(split);
+    server.core.broadcast_template(split);
 
     server.mine_blocks(1);
 
@@ -3232,7 +3234,7 @@ mod tests {
       ..default()
     };
 
-    let txid = server.core.broadcast_tx(merge);
+    let txid = server.core.broadcast_template(merge);
 
     server.mine_blocks(1);
 
@@ -3953,7 +3955,7 @@ mod tests {
 
     server.mine_blocks(3);
 
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -3963,7 +3965,7 @@ mod tests {
       ..default()
     });
 
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(
         2,
         0,
@@ -3973,7 +3975,7 @@ mod tests {
       ..default()
     });
 
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(
         3,
         0,
@@ -4253,7 +4255,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, Default::default())],
       fee: 50 * 100_000_000,
       ..default()
@@ -4261,7 +4263,7 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(
         2,
         1,
@@ -4325,7 +4327,7 @@ mod tests {
     let mut ids = Vec::new();
 
     for i in 0..101 {
-      let txid = server.core.broadcast_tx(TransactionTemplate {
+      let txid = server.core.broadcast_template(TransactionTemplate {
         inputs: &[(i + 1, 0, 0, inscription("image/png", "hello").to_witness())],
         ..default()
       });
@@ -4333,7 +4335,7 @@ mod tests {
       server.mine_blocks(1);
     }
 
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(102, 0, 0, inscription("text/plain", "{}").to_witness())],
       ..default()
     });
@@ -4468,7 +4470,7 @@ mod tests {
       fee: 0,
       ..default()
     };
-    test_server.core.broadcast_tx(transaction);
+    test_server.core.broadcast_template(transaction);
     let block_hash = test_server.mine_blocks(1)[0].block_hash();
 
     test_server.assert_response_regex(
@@ -4721,7 +4723,7 @@ mod tests {
     );
 
     server.mine_blocks(1);
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, Default::default())],
       outputs: 2,
       fee: 0,
@@ -4745,7 +4747,7 @@ mod tests {
     );
 
     server.mine_blocks(1);
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, Default::default())],
       outputs: 2,
       fee: 2,
@@ -4841,7 +4843,7 @@ mod tests {
 
       server.mine_blocks(1);
 
-      let txid = server.core.broadcast_tx(TransactionTemplate {
+      let txid = server.core.broadcast_template(TransactionTemplate {
         inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
         ..default()
       });
@@ -4866,7 +4868,7 @@ mod tests {
 
       server.mine_blocks(1);
 
-      let txid = server.core.broadcast_tx(TransactionTemplate {
+      let txid = server.core.broadcast_template(TransactionTemplate {
         inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
         ..default()
       });
@@ -4889,7 +4891,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -4950,7 +4952,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -4977,7 +4979,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("audio/flac", "hello").to_witness())],
       ..default()
     });
@@ -4997,7 +4999,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("font/ttf", "hello").to_witness())],
       ..default()
     });
@@ -5017,7 +5019,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -5042,7 +5044,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/markdown", "hello").to_witness())],
       ..default()
     });
@@ -5062,7 +5064,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("image/png", "hello").to_witness())],
       ..default()
     });
@@ -5083,7 +5085,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -5108,7 +5110,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -5128,7 +5130,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("video/webm", "hello").to_witness())],
       ..default()
     });
@@ -5151,7 +5153,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -5173,7 +5175,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -5195,7 +5197,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -5223,7 +5225,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -5257,7 +5259,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -5279,7 +5281,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -5313,7 +5315,7 @@ mod tests {
       .build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(
         1,
         0,
@@ -5344,7 +5346,7 @@ mod tests {
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -5391,7 +5393,7 @@ mod tests {
 
     for i in 0..101 {
       server.mine_blocks(1);
-      server.core.broadcast_tx(TransactionTemplate {
+      server.core.broadcast_template(TransactionTemplate {
         inputs: &[(i + 1, 0, 0, inscription("text/foo", "hello").to_witness())],
         ..default()
       });
@@ -5415,7 +5417,7 @@ mod tests {
 
     for i in 0..101 {
       server.mine_blocks(1);
-      server.core.broadcast_tx(TransactionTemplate {
+      server.core.broadcast_template(TransactionTemplate {
         inputs: &[(i + 1, 0, 0, inscription("text/foo", "hello").to_witness())],
         ..default()
       });
@@ -5443,7 +5445,7 @@ mod tests {
       server.mine_blocks(1);
 
       parent_ids.push(InscriptionId {
-        txid: server.core.broadcast_tx(TransactionTemplate {
+        txid: server.core.broadcast_template(TransactionTemplate {
           inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
           ..default()
         }),
@@ -5454,7 +5456,7 @@ mod tests {
     for (i, parent_id) in parent_ids.iter().enumerate().take(101) {
       server.mine_blocks(1);
 
-      server.core.broadcast_tx(TransactionTemplate {
+      server.core.broadcast_template(TransactionTemplate {
         inputs: &[
           (i + 2, 1, 0, Default::default()),
           (
@@ -5561,7 +5563,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -5573,7 +5575,7 @@ next
       index: 0,
     };
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[
         (
           2,
@@ -5627,7 +5629,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -5645,7 +5647,7 @@ next
       ".*<h3>No children</h3>.*",
     );
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[
         (
           2,
@@ -5680,7 +5682,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -5692,7 +5694,7 @@ next
       index: 0,
     };
 
-    let _txid = server.core.broadcast_tx(TransactionTemplate {
+    let _txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[
         (
           2,
@@ -5782,7 +5784,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -5794,7 +5796,7 @@ next
       index: 0,
     };
 
-    let child_txid = server.core.broadcast_tx(TransactionTemplate {
+    let child_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[
         (
           2,
@@ -5863,12 +5865,12 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(2);
 
-    let parent_a_txid = server.core.broadcast_tx(TransactionTemplate {
+    let parent_a_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
 
-    let parent_b_txid = server.core.broadcast_tx(TransactionTemplate {
+    let parent_b_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(2, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -5885,7 +5887,7 @@ next
       index: 0,
     };
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[
         (
           3,
@@ -5930,7 +5932,7 @@ next
     for i in 0..101 {
       parent_ids.push(
         InscriptionId {
-          txid: server.core.broadcast_tx(TransactionTemplate {
+          txid: server.core.broadcast_template(TransactionTemplate {
             inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
             ..default()
           }),
@@ -5960,7 +5962,7 @@ next
       ),
     );
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &inputs,
       ..default()
     });
@@ -5993,7 +5995,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(2);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[
         (1, 0, 0, inscription("text/plain", "hello").to_witness()),
         (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
@@ -6046,7 +6048,7 @@ next
 
     server.mine_blocks(2);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[
         (1, 0, 0, Witness::default()),
         (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
@@ -6085,7 +6087,7 @@ next
 
     server.mine_blocks(110);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[
         (1, 0, 0, Witness::default()),
         (2, 0, 0, inscription("text/plain", "cursed").to_witness()),
@@ -6125,7 +6127,7 @@ next
 
     server.mine_blocks(2);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
@@ -6161,7 +6163,7 @@ next
 
     server.mine_blocks(2);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
@@ -6197,7 +6199,7 @@ next
 
     server.mine_blocks(9);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(9, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
@@ -6230,14 +6232,14 @@ next
 
     server.mine_blocks(1);
 
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
 
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(2, 1, 0, inscription("text/plain", "bar").to_witness())],
       ..default()
     });
@@ -6302,7 +6304,7 @@ next
 
     let witness = Witness::from_slice(&[script.into_bytes(), Vec::new()]);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, witness)],
       ..default()
     });
@@ -6359,7 +6361,7 @@ next
     }
     .into();
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[
         (1, 0, 0, inscription("text/plain", "foo").to_witness()),
         (2, 0, 0, cursed_inscription.to_witness()),
@@ -6412,7 +6414,7 @@ next
 
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, envelope(&[b"ord", &[128], &[0]]))],
       ..default()
     });
@@ -6448,7 +6450,7 @@ next
 
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
@@ -6475,7 +6477,7 @@ next
       ),
     );
 
-    server.core.broadcast_tx(TransactionTemplate {
+    server.core.broadcast_template(TransactionTemplate {
       inputs: &[(2, 1, 0, Default::default())],
       fee: 50 * COIN_VALUE,
       ..default()
@@ -6646,7 +6648,7 @@ next
 
     server.mine_blocks(1);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
       ..default()
     });
@@ -6657,7 +6659,7 @@ next
     ids.push(InscriptionId { txid, index: 0 });
 
     for i in 1..111 {
-      let txid = server.core.broadcast_tx(TransactionTemplate {
+      let txid = server.core.broadcast_template(TransactionTemplate {
         inputs: &[(i + 1, 1, 0, inscription("text/plain", "foo").to_witness())],
         ..default()
       });
@@ -6728,7 +6730,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -6764,7 +6766,7 @@ next
 
     let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
       ..default()
     });
@@ -6804,7 +6806,7 @@ next
     let mut inputs = Vec::new();
     for i in 0..111 {
       parent_ids.push(InscriptionId {
-        txid: server.core.broadcast_tx(TransactionTemplate {
+        txid: server.core.broadcast_template(TransactionTemplate {
           inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
           ..default()
         }),
@@ -6832,7 +6834,7 @@ next
       ),
     );
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &inputs,
       ..default()
     });
@@ -6869,7 +6871,7 @@ next
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
-    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -6906,7 +6908,7 @@ next
 
     let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
       ..default()
     });
@@ -6973,7 +6975,7 @@ next
     }
 
     for i in 0..101 {
-      server.core.broadcast_tx(TransactionTemplate {
+      server.core.broadcast_template(TransactionTemplate {
         inputs: &[(i + 1, 0, 0, inscription("text/foo", "hello").to_witness())],
         ..default()
       });
@@ -7039,7 +7041,7 @@ next
       ..default()
     };
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, delegate.to_witness())],
       ..default()
     });
@@ -7049,11 +7051,11 @@ next
     server.mine_blocks(1);
 
     let inscription = Inscription {
-      delegate: Some(delegate.value()),
+      delegates: vec![delegate.value()],
       ..default()
     };
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(2, 0, 0, inscription.to_witness())],
       ..default()
     });
@@ -7062,21 +7064,37 @@ next
 
     let id = InscriptionId { txid, index: 0 };
 
-    server.assert_response_regex(
+    let output = server.get_json::<api::Output>(format!("/output/{}", OutPoint { txid, vout: 0 }));
+
+    server.assert_html(
       format!("/inscription/{id}"),
-      StatusCode::OK,
-      format!(
-        ".*<h1>Inscription 1</h1>.*
-        <dl>
-          <dt>id</dt>
-          <dd class=collapse>{id}</dd>
-          .*
-          <dt>delegate</dt>
-          <dd><a href=/inscription/{delegate}>{delegate}</a></dd>
-          .*
-        </dl>.*"
-      )
-      .unindent(),
+      InscriptionHtml {
+        chain: Chain::Regtest,
+        charms: 0,
+        child_count: 0,
+        children: Vec::new(),
+        fee: 0,
+        height: 3,
+        inscription,
+        id,
+        number: 1,
+        next: None,
+        output: Some(TxOut {
+          value: Amount::from_sat(output.value),
+          script_pubkey: output.script_pubkey,
+        }),
+        parents: Vec::new(),
+        previous: Some(delegate),
+        rune: None,
+        sat: None,
+        satpoint: SatPoint {
+          outpoint: output.outpoint,
+          offset: 0,
+        },
+        timestamp: "1970-01-01 00:00:03+00:00"
+          .parse::<DateTime<Utc>>()
+          .unwrap(),
+      },
     );
 
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
@@ -7086,8 +7104,204 @@ next
     assert_eq!(
       server
         .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
-        .delegate,
-      Some(delegate)
+        .delegates
+        .first(),
+      Some(&delegate)
+    );
+  }
+
+  #[test]
+  fn multiple_delegates() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(5);
+
+    let mined_delegates = {
+      let delegate_a = Inscription {
+        content_type: Some("text/html".into()),
+        body: Some("alpha".into()),
+        ..default()
+      };
+
+      let delegate_b = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("bravo".into()),
+        ..default()
+      };
+
+      let txid_a = server.core.broadcast_template(TransactionTemplate {
+        inputs: &[(1, 0, 0, delegate_a.to_witness())],
+        ..default()
+      });
+
+      let txid_b = server.core.broadcast_template(TransactionTemplate {
+        inputs: &[(2, 0, 0, delegate_b.to_witness())],
+        ..default()
+      });
+
+      [
+        InscriptionId {
+          txid: txid_a,
+          index: 0,
+        },
+        InscriptionId {
+          txid: txid_b,
+          index: 0,
+        },
+      ]
+    };
+
+    server.mine_blocks(1);
+
+    let unmined_delegate_transactions = {
+      let delegate_a = server.core.create_tx_from_template(TransactionTemplate {
+        inputs: &[(
+          3,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/html".into()),
+            body: Some("charlie".into()),
+            ..default()
+          }
+          .to_witness(),
+        )],
+        ..default()
+      });
+
+      let delegate_b = server.core.create_tx_from_template(TransactionTemplate {
+        inputs: &[(
+          4,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("delta".into()),
+            ..default()
+          }
+          .to_witness(),
+        )],
+        ..default()
+      });
+
+      [delegate_a, delegate_b]
+    };
+
+    let unmined_delegates = {
+      [
+        InscriptionId {
+          txid: unmined_delegate_transactions[0].compute_txid(),
+          index: 0,
+        },
+        InscriptionId {
+          txid: unmined_delegate_transactions[1].compute_txid(),
+          index: 0,
+        },
+      ]
+    };
+
+    let inscription = Inscription {
+      delegates: vec![
+        unmined_delegates[0].value(), // charlie
+        unmined_delegates[1].value(), // delta
+        mined_delegates[0].value(),   // alpha
+        mined_delegates[1].value(),   // bravo
+      ],
+      ..default()
+    };
+
+    let txid = server.core.broadcast_template(TransactionTemplate {
+      inputs: &[(5, 0, 0, inscription.to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    let output = server.get_json::<api::Output>(format!("/output/{}", OutPoint { txid, vout: 0 }));
+
+    server.assert_html(
+      format!("/inscription/{id}"),
+      InscriptionHtml {
+        chain: Chain::Regtest,
+        charms: Charm::Cursed.flag(),
+        child_count: 0,
+        children: Vec::new(),
+        fee: 0,
+        height: 7,
+        inscription,
+        id,
+        number: -1,
+        next: None,
+        output: Some(TxOut {
+          value: Amount::from_sat(output.value),
+          script_pubkey: output.script_pubkey,
+        }),
+        parents: Vec::new(),
+        previous: Some(mined_delegates[1]),
+        rune: None,
+        sat: None,
+        satpoint: SatPoint {
+          outpoint: output.outpoint,
+          offset: 0,
+        },
+        timestamp: "1970-01-01 00:00:07+00:00"
+          .parse::<DateTime<Utc>>()
+          .unwrap(),
+      },
+    );
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "alpha");
+    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "alpha");
+
+    assert_eq!(
+      server
+        .get_json::<api::Inscription>(format!("/inscription/{id}"))
+        .effective_content_type,
+      Some("text/html".to_string())
+    );
+
+    assert_eq!(
+      server
+        .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
+        .delegates
+        .first(),
+      Some(&unmined_delegates[0])
+    );
+
+    server
+      .core
+      .broadcast_tx(unmined_delegate_transactions[1].clone());
+    server.mine_blocks(1);
+
+    assert_eq!(
+      server
+        .get_json::<api::Inscription>(format!("/inscription/{id}"))
+        .effective_content_type,
+      Some("text/plain".to_string())
+    );
+
+    server
+      .core
+      .broadcast_tx(unmined_delegate_transactions[0].clone());
+    server.mine_blocks(1);
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "charlie");
+    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "charlie");
+    assert_eq!(
+      server
+        .get_json::<api::Inscription>(format!("/inscription/{id}"))
+        .effective_content_type,
+      Some("text/html".to_string())
+    );
+
+    assert_eq!(
+      server
+        .get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}"))
+        .delegates
+        .first(),
+      Some(&unmined_delegates[0])
     );
   }
 
@@ -7103,7 +7317,7 @@ next
       ..default()
     };
 
-    let delegate_txid = server.core.broadcast_tx(TransactionTemplate {
+    let delegate_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, delegate.to_witness())],
       ..default()
     });
@@ -7118,11 +7332,11 @@ next
     let inscription = Inscription {
       content_type: Some("text/plain".into()),
       body: Some("bar".into()),
-      delegate: Some(delegate_id.value()),
+      delegates: vec![delegate_id.value()],
       ..default()
     };
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(2, 0, 0, inscription.to_witness())],
       ..default()
     });
@@ -7146,7 +7360,7 @@ next
       ..default()
     };
 
-    let normal_txid = server.core.broadcast_tx(TransactionTemplate {
+    let normal_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(3, 0, 0, normal_inscription.to_witness())],
       ..default()
     });
@@ -7178,7 +7392,7 @@ next
       ..default()
     };
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription.to_witness())],
       ..default()
     });
@@ -7216,7 +7430,7 @@ next
       ..default()
     };
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription.to_witness())],
       ..default()
     });
@@ -7257,7 +7471,7 @@ next
 
     server.mine_blocks(1);
 
-    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+    let parent_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
       ..default()
     });
@@ -7293,7 +7507,7 @@ next
 
     let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
       ..default()
     });
@@ -7337,7 +7551,7 @@ next
       ..default()
     };
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription.to_witness())],
       ..default()
     });
@@ -7352,7 +7566,7 @@ next
         charms: Vec::new(),
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
@@ -7382,7 +7596,7 @@ next
         charms: Vec::new(),
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
@@ -7405,7 +7619,7 @@ next
         charms: Vec::new(),
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
@@ -7527,7 +7741,7 @@ next
 
     core.mine_blocks(1);
 
-    let txid = core.broadcast_tx(TransactionTemplate {
+    let txid = core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription("text/foo", "hello").to_witness())],
       ..default()
     });
@@ -7568,7 +7782,7 @@ next
       ..default()
     };
 
-    let txid = server.core.broadcast_tx(TransactionTemplate {
+    let txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription.to_witness())],
       outputs: 0,
       op_return_index: Some(0),
@@ -7591,7 +7805,7 @@ next
         charms: vec![Charm::Burned],
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
@@ -7621,7 +7835,7 @@ next
       ..default()
     };
 
-    let create_txid = server.core.broadcast_tx(TransactionTemplate {
+    let create_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(1, 0, 0, inscription.to_witness())],
       outputs: 1,
       ..default()
@@ -7640,7 +7854,7 @@ next
         charms: vec![],
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
@@ -7663,7 +7877,7 @@ next
       }
     );
 
-    let transfer_txid = server.core.broadcast_tx(TransactionTemplate {
+    let transfer_txid = server.core.broadcast_template(TransactionTemplate {
       inputs: &[(2, 1, 0, Default::default())],
       fee: 0,
       outputs: 0,
@@ -7685,7 +7899,7 @@ next
         charms: vec![Charm::Burned],
         content_type: Some("text/html".into()),
         content_length: Some(3),
-        delegate: None,
+        delegates: Vec::new(),
         fee: 0,
         height: 2,
         id,
