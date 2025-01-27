@@ -263,7 +263,7 @@ impl Server {
           "/r/parents/{inscription_id}/{page}",
           get(Self::parents_recursive_paginated),
         )
-        .route("/r/txhex/:txid", get(Self::get_raw_transaction_hex))
+        .route("/r/tx/{txid}", get(Self::get_transaction_hex))
         .route("/r/sat/{sat_number}", get(Self::sat_inscriptions))
         .route(
           "/r/sat/{sat_number}/at/{index}",
@@ -1196,16 +1196,16 @@ impl Server {
     })
   }
 
-  async fn get_raw_transaction_hex(
+  async fn get_transaction_hex(
     Extension(index): Extension<Arc<Index>>,
     Path(txid): Path<Txid>,
   ) -> ServerResult<Json<String>> {
     task::block_in_place(|| {
-      let raw_transaction_hex = index
-        .get_transaction_hex(txid)?
-        .ok_or_not_found(|| format!("transaction {txid}"))?;
-
-      Ok(Json(raw_transaction_hex))
+      Ok(Json(
+        index
+          .get_transaction_hex(txid)?
+          .ok_or_not_found(|| format!("transaction {txid}"))?,
+      ))
     })
   }
 
@@ -4534,14 +4534,14 @@ mod tests {
   }
 
   #[test]
-  fn raw_transaction_hex() {
+  fn recursive_transaction_hex_endpoint() {
     let test_server = TestServer::new();
 
     let coinbase_tx = test_server.mine_blocks(1)[0].txdata[0].clone();
     let txid = coinbase_tx.compute_txid();
 
     test_server.assert_response(
-      format!("/r/txhex/{txid}"),
+      format!("/r/tx/{txid}"),
       StatusCode::OK,
       "\"02000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0151ffffffff0100f2052a01000000225120be7cbbe9ca06a7d7b2a17c6b4ff4b85b362cbcd7ee1970daa66dfaa834df59a000000000\""
     );

@@ -1616,7 +1616,10 @@ impl Index {
   }
 
   pub fn get_transaction_hex(&self, txid: Txid) -> Result<Option<String>> {
-    self.client.get_raw_transaction_hex(&txid, None).into_option()
+    self
+      .client
+      .get_raw_transaction_hex(&txid, None)
+      .into_option()
   }
 
   pub fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {

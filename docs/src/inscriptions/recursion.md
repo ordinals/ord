@@ -247,18 +247,18 @@ curl -s  \
 <details>
   <summary>
     <code>GET</code>
-    <code><b>/r/txhex/&lt;TRANSACTION_ID&gt;</b></code>
+    <code><b>/r/tx/&lt;TRANSACTION_ID&gt;</b></code>
   </summary>
 
 ### Description
 
-Raw transaction hex for `<TRANSACTION_ID>`.
+Raw transaction for `<TRANSACTION_ID>` in segwit BIP144 hex encoding.
 
 ### Example
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/r/txhex/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa
+  http://0.0.0.0:80/r/tx/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa
 ```
 
 ```json
