@@ -79,6 +79,10 @@ impl Reorg {
   }
 
   pub(crate) fn is_savepoint_required(index: &Index, height: u32) -> Result<bool> {
+    if let redb::Durability::None = index.durability {
+      return Ok(false);
+    }
+
     let height = u64::from(height);
 
     let last_savepoint_height = index
