@@ -263,6 +263,7 @@ impl Server {
           "/r/parents/{inscription_id}/{page}",
           get(Self::parents_recursive_paginated),
         )
+        .route("/r/tx/{txid}", get(Self::get_transaction_hex_recursive))
         .route("/r/sat/{sat_number}", get(Self::sat_inscriptions))
         .route(
           "/r/sat/{sat_number}/at/{index}",
@@ -1192,6 +1193,19 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn get_transaction_hex_recursive(
+    Extension(index): Extension<Arc<Index>>,
+    Path(txid): Path<Txid>,
+  ) -> ServerResult<Json<String>> {
+    task::block_in_place(|| {
+      Ok(Json(
+        index
+          .get_transaction_hex_recursive(txid)?
+          .ok_or_not_found(|| format!("transaction {txid}"))?,
+      ))
     })
   }
 
@@ -4516,6 +4530,33 @@ mod tests {
   </li>
 </ul>.*"
       ),
+    );
+  }
+
+  #[test]
+  fn recursive_transaction_hex_endpoint() {
+    let test_server = TestServer::new();
+
+    let coinbase_tx = test_server.mine_blocks(1)[0].txdata[0].clone();
+    let txid = coinbase_tx.compute_txid();
+
+    test_server.assert_response(
+      format!("/r/tx/{txid}"),
+      StatusCode::OK,
+      "\"02000000010000000000000000000000000000000000000000000000000000000000000000ffffffff0151ffffffff0100f2052a01000000225120be7cbbe9ca06a7d7b2a17c6b4ff4b85b362cbcd7ee1970daa66dfaa834df59a000000000\""
+    );
+  }
+
+  #[test]
+  fn recursive_transaction_hex_endpoint_for_genesis_transaction() {
+    let test_server = TestServer::new();
+
+    test_server.mine_blocks(1);
+
+    test_server.assert_response(
+      "/r/tx/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b",
+      StatusCode::OK,
+      "\"01000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4d04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73ffffffff0100f2052a01000000434104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac00000000\""
     );
   }
 

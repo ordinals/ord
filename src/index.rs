@@ -1615,6 +1615,19 @@ impl Index {
     self.client.get_raw_transaction(&txid, None).into_option()
   }
 
+  pub fn get_transaction_hex_recursive(&self, txid: Txid) -> Result<Option<String>> {
+    if txid == self.genesis_block_coinbase_txid {
+      return Ok(Some(consensus::encode::serialize_hex(
+        &self.genesis_block_coinbase_transaction,
+      )));
+    }
+
+    self
+      .client
+      .get_raw_transaction_hex(&txid, None)
+      .into_option()
+  }
+
   pub fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
     let sat = sat.0;
     let rtx = self.begin_read()?;
