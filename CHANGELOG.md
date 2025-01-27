@@ -1,6 +1,40 @@
 Changelog
 =========
 
+[0.22.2](https://github.com/ordinals/ord/releases/tag/0.22.2) - 2025-01-27
+--------------------------------------------------------------------------
+
+### Added
+- Add `/r/tx/<txid>`  ([#4147](https://github.com/ordinals/ord/pull/4147) by [samedcildir](https://github.com/samedcildir))
+- Add configurable max-savepoints and savepoint-interval ([#4191](https://github.com/ordinals/ord/pull/4191) by [emilcondrea](https://github.com/emilcondrea))
+- Add /satscard page ([#4176](https://github.com/ordinals/ord/pull/4176) by [casey](https://github.com/casey))
+- Add sat at inscription content endpoint `/r/sat/:sat_number/at/:index/content` ([#4113](https://github.com/ordinals/ord/pull/4113) by [astralarkitekt](https://github.com/astralarkitekt))
+- Add .opus to audio types ([#4194](https://github.com/ordinals/ord/pull/4194) by [raphjaph](https://github.com/raphjaph))
+- Display unlock time on /rune ([#4192](https://github.com/ordinals/ord/pull/4192) by [casey](https://github.com/casey))
+- Use `application/x-bittorrent` media type for `.torrent` files ([#4193](https://github.com/ordinals/ord/pull/4193) by [casey](https://github.com/casey))
+- Add creating and accepting offers ([#4156](https://github.com/ordinals/ord/pull/4156) by [raphjaph](https://github.com/raphjaph))
+- Set --disable-json-api with environment variable ([#4154](https://github.com/ordinals/ord/pull/4154) by [casey](https://github.com/casey))
+- Add rare sat supply ([#4153](https://github.com/ordinals/ord/pull/4153) by [casey](https://github.com/casey))
+
+### Changed
+- Update minimum Bitcoin version to v28 ([#4185](https://github.com/ordinals/ord/pull/4185) by [raphjaph](https://github.com/raphjaph))
+
+### Misc
+- Move recursive endpoints into dedicated submodule ([#4200](https://github.com/ordinals/ord/pull/4200) by [casey](https://github.com/casey))
+- Don't error when listing inscriptions in a block without inscriptions ([#4197](https://github.com/ordinals/ord/pull/4197) by [gmart7t2](https://github.com/gmart7t2))
+- Fix CI ([#4198](https://github.com/ordinals/ord/pull/4198) by [raphjaph](https://github.com/raphjaph))
+- Create savepoint when close to tip and at max reorg depth ([#4169](https://github.com/ordinals/ord/pull/4169) by [emilcondrea](https://github.com/emilcondrea))
+- Update install script ([#4149](https://github.com/ordinals/ord/pull/4149) by [casey](https://github.com/casey))
+- Inline inscription ID in format string ([#4195](https://github.com/ordinals/ord/pull/4195) by [casey](https://github.com/casey))
+- Fix Japanese translation ([#4189](https://github.com/ordinals/ord/pull/4189) by [SatoshiRoppongi](https://github.com/SatoshiRoppongi))
+- `ord env` less aggressive exit ([#4186](https://github.com/ordinals/ord/pull/4186) by [raphjaph](https://github.com/raphjaph))
+- Update docs to Bitcoin Core version 25 ([#4180](https://github.com/ordinals/ord/pull/4180) by [cryptoni9n](https://github.com/cryptoni9n))
+- Enable JSON API on charlie ([#4181](https://github.com/ordinals/ord/pull/4181) by [raphjaph](https://github.com/raphjaph))
+- Install crypto provider for TLS ([#4178](https://github.com/ordinals/ord/pull/4178) by [raphjaph](https://github.com/raphjaph))
+- Update HTTP stack ([#4172](https://github.com/ordinals/ord/pull/4172) by [raphjaph](https://github.com/raphjaph))
+- Share workspace metadata ([#4170](https://github.com/ordinals/ord/pull/4170) by [casey](https://github.com/casey))
+- Update sat supply figures in overview.md ([#4152](https://github.com/ordinals/ord/pull/4152) by [ZedZeroth](https://github.com/ZedZeroth))
+
 [0.22.1](https://github.com/ordinals/ord/releases/tag/0.22.1) - 2024-12-23
 --------------------------------------------------------------------------
 
