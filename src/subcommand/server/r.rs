@@ -148,15 +148,9 @@ pub(super) async fn blocktime_string(
 
 pub(super) async fn children(
   Extension(index): Extension<Arc<Index>>,
-  Extension(server_config): Extension<Arc<ServerConfig>>,
   Path(inscription_id): Path<InscriptionId>,
 ) -> ServerResult {
-  children_paginated(
-    Extension(index),
-    Extension(server_config),
-    Path((inscription_id, 0)),
-  )
-  .await
+  children_paginated(Extension(index), Path((inscription_id, 0))).await
 }
 
 pub(super) async fn children_inscriptions(
@@ -220,7 +214,6 @@ pub(super) async fn children_inscriptions_paginated(
 
 pub(super) async fn children_paginated(
   Extension(index): Extension<Arc<Index>>,
-  Extension(server_config): Extension<Arc<ServerConfig>>,
   Path((parent, page)): Path<(InscriptionId, usize)>,
 ) -> ServerResult {
   task::block_in_place(|| {
@@ -412,7 +405,6 @@ pub(super) async fn inscription(
 
 pub(super) async fn metadata(
   Extension(index): Extension<Arc<Index>>,
-  Extension(server_config): Extension<Arc<ServerConfig>>,
   Path(inscription_id): Path<InscriptionId>,
 ) -> ServerResult {
   task::block_in_place(|| {
