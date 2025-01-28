@@ -299,9 +299,7 @@ impl Server {
 
         if let Some(proxy) = server_config.proxy.as_ref() {
           if response.status() == StatusCode::NOT_FOUND {
-            return task::block_in_place(|| {
-              Server::proxy(proxy, &path)
-            });
+            return task::block_in_place(|| Server::proxy(proxy, &path));
           }
         }
 

@@ -259,7 +259,7 @@ pub(super) async fn content(
     let Some(mut inscription) = index.get_inscription_by_id(inscription_id)? else {
       return Err(ServerError::NotFound(format!(
         "inscription {inscription_id} not found"
-      )))
+      )));
     };
 
     if let Some(delegate) = inscription.delegate() {
