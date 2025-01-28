@@ -260,12 +260,6 @@ impl Server {
           "/r/children/{inscription_id}/inscriptions/{page}",
           get(r::children_inscriptions_paginated),
         )
-        .route(
-          "/r/children/{inscription_id}/{page}",
-          get(r::children_paginated),
-        )
-        .route("/r/inscription/{inscription_id}", get(r::inscription))
-        .route("/r/metadata/{inscription_id}", get(r::metadata))
         .route("/r/parents/{inscription_id}", get(r::parents))
         .route(
           "/r/parents/{inscription_id}/{page}",
@@ -286,6 +280,12 @@ impl Server {
 
       let proxy_routes = Router::new()
         .route("/content/{inscription_id}", get(r::content))
+        .route(
+          "/r/children/{inscription_id}/{page}",
+          get(r::children_paginated),
+        )
+        .route("/r/inscription/{inscription_id}", get(r::inscription))
+        .route("/r/metadata/{inscription_id}", get(r::metadata))
         .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index));
 
       async fn proxy_fallback(

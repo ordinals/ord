@@ -225,14 +225,10 @@ pub(super) async fn children_paginated(
 ) -> ServerResult {
   task::block_in_place(|| {
     let Some(parent) = index.get_inscription_entry(parent)? else {
-      return if let Some(proxy) = server_config.proxy.as_ref() {
-        Server::proxy(proxy, &format!("r/children/{}/{}", parent, page))
-      } else {
-        Err(ServerError::NotFound(format!(
-          "inscription {} not found",
-          parent
-        )))
-      };
+      return Err(ServerError::NotFound(format!(
+        "inscription {} not found",
+        parent
+      )));
     };
 
     let parent_sequence_number = parent.sequence_number;
@@ -353,14 +349,10 @@ pub(super) async fn inscription(
 ) -> ServerResult {
   task::block_in_place(|| {
     let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
-      return if let Some(proxy) = server_config.proxy.as_ref() {
-        Server::proxy(proxy, &format!("r/inscription/{}", inscription_id))
-      } else {
-        Err(ServerError::NotFound(format!(
-          "inscription {} not found",
-          inscription_id
-        )))
-      };
+      return Err(ServerError::NotFound(format!(
+        "inscription {} not found",
+        inscription_id
+      )));
     };
 
     let entry = index
@@ -425,14 +417,10 @@ pub(super) async fn metadata(
 ) -> ServerResult {
   task::block_in_place(|| {
     let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
-      return if let Some(proxy) = server_config.proxy.as_ref() {
-        Server::proxy(proxy, &format!("r/metadata/{}", inscription_id))
-      } else {
-        Err(ServerError::NotFound(format!(
-          "inscription {} not found",
-          inscription_id
-        )))
-      };
+      return Err(ServerError::NotFound(format!(
+        "inscription {} not found",
+        inscription_id
+      )));
     };
 
     let metadata = inscription
