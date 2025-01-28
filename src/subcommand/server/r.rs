@@ -257,13 +257,9 @@ pub(super) async fn content(
     }
 
     let Some(mut inscription) = index.get_inscription_by_id(inscription_id)? else {
-      return if let Some(proxy) = server_config.proxy.as_ref() {
-        Server::proxy(proxy, &format!("content/{}", inscription_id))
-      } else {
-        Err(ServerError::NotFound(format!(
-          "inscription {inscription_id} not found"
-        )))
-      };
+      return Err(ServerError::NotFound(format!(
+        "inscription {inscription_id} not found"
+      )))
     };
 
     if let Some(delegate) = inscription.delegate() {
