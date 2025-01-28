@@ -272,7 +272,6 @@ impl Server {
           get(r::parents_paginated),
         )
         .route("/r/sat/{sat_number}", get(r::sat))
-        .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index))
         .route(
           "/r/sat/{sat_number}/at/{index}/content",
           get(r::sat_at_index_content),
@@ -286,7 +285,8 @@ impl Server {
         .route("/r/utxo/{outpoint}", get(Self::utxo));
 
       let proxy_routes = Router::new()
-        .route("/content/{inscription_id}", get(r::content));
+        .route("/content/{inscription_id}", get(r::content))
+        .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index));
 
       async fn proxy_fallback(
         Extension(server_config): Extension<Arc<ServerConfig>>,
