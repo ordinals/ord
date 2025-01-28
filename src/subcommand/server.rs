@@ -246,13 +246,11 @@ impl Server {
         .route("/blockhash/{height}", get(r::block_hash_from_height_string))
         .route("/blockheight", get(r::blockheight_string))
         .route("/blocktime", get(r::blocktime_string))
-        .route("/content/{inscription_id}", get(r::content))
         .route("/r/blockhash", get(r::blockhash))
         .route("/r/blockhash/{height}", get(r::blockhash_at_height))
         .route("/r/blockheight", get(r::blockheight_string))
         .route("/r/blockinfo/{query}", get(r::blockinfo))
         .route("/r/blocktime", get(r::blocktime_string))
-        .route("/r/children/{inscription_id}", get(r::children))
         .route(
           "/r/children/{inscription_id}/inscriptions",
           get(r::children_inscriptions),
@@ -261,12 +259,6 @@ impl Server {
           "/r/children/{inscription_id}/inscriptions/{page}",
           get(r::children_inscriptions_paginated),
         )
-        .route(
-          "/r/children/{inscription_id}/{page}",
-          get(r::children_paginated),
-        )
-        .route("/r/inscription/{inscription_id}", get(r::inscription))
-        .route("/r/metadata/{inscription_id}", get(r::metadata))
         .route("/r/parents/{inscription_id}", get(r::parents))
         .route(
           "/r/parents/{inscription_id}/{page}",
@@ -285,6 +277,19 @@ impl Server {
           get(r::undelegated_content),
         )
         .route("/r/utxo/{outpoint}", get(Self::utxo));
+
+      let proxiable_routes = Router::new()
+        .route("/content/{inscription_id}", get(r::content))
+        .route("/r/children/{inscription_id}", get(r::children))
+        .route(
+          "/r/children/{inscription_id}/{page}",
+          get(r::children_paginated),
+        )
+        .route("/r/inscription/{inscription_id}", get(r::inscription))
+        .route("/r/metadata/{inscription_id}", get(r::metadata))
+        .layer(axum::middleware::from_fn(Self::proxy_fallback));
+
+      let router = router.merge(proxiable_routes);
 
       let router = router
         .fallback(Self::fallback)
@@ -513,6 +518,27 @@ impl Server {
     });
 
     Ok(acceptor)
+  }
+
+  async fn proxy_fallback(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    request: http::Request<axum::body::Body>,
+    next: axum::middleware::Next,
+  ) -> ServerResult {
+    let mut path = request.uri().path().to_string();
+
+    path.remove(0); // remove leading slash
+
+    let response = next.run(request).await;
+    let status = response.status();
+
+    if let Some(proxy) = server_config.proxy.as_ref() {
+      if status == StatusCode::NOT_FOUND {
+        return task::block_in_place(|| Server::proxy(proxy, &path));
+      }
+    }
+
+    Ok(response)
   }
 
   fn index_height(index: &Index) -> ServerResult<Height> {
