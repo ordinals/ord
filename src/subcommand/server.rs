@@ -539,7 +539,10 @@ impl Server {
 
       // This is a workaround for the fact the the /r/sat/<SAT_NUMBER>/at/<INDEX>
       // does not return a 404 when no inscription is present on the sat.
-      if path.starts_with("r/sat") && path.contains("/at/") {
+      if matches!(
+        path.split('/').collect::<Vec<&str>>().as_slice(),
+        ["r", "sat", _, "at", _]
+      ) {
         let (parts, body) = response.into_parts();
 
         let bytes = axum::body::to_bytes(body, usize::MAX)
