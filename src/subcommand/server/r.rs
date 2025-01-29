@@ -464,7 +464,6 @@ pub(super) async fn sat(
 
 pub(super) async fn sat_at_index(
   Extension(index): Extension<Arc<Index>>,
-  // Extension(server_config): Extension<Arc<ServerConfig>>,
   Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
 ) -> ServerResult<Json<api::SatInscription>> {
   task::block_in_place(|| {
@@ -475,12 +474,6 @@ pub(super) async fn sat_at_index(
     }
 
     let id = index.get_inscription_id_by_sat_indexed(sat, inscription_index)?;
-
-    //  if id.is_none() && server_config.proxy.as_ref().is_some() {
-    //    return Err(ServerError::NotFound(
-    //      "no inscription at this index".to_string(),
-    //    ));
-    //  }
 
     Ok(Json(api::SatInscription { id }))
   })
