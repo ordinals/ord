@@ -251,7 +251,6 @@ impl Server {
         .route("/r/blockheight", get(r::blockheight_string))
         .route("/r/blockinfo/{query}", get(r::blockinfo))
         .route("/r/blocktime", get(r::blocktime_string))
-        .route("/r/children/{inscription_id}", get(r::children))
         .route(
           "/r/children/{inscription_id}/inscriptions",
           get(r::children_inscriptions),
@@ -280,6 +279,7 @@ impl Server {
 
       let proxy_routes = Router::new()
         .route("/content/{inscription_id}", get(r::content))
+        .route("/r/children/{inscription_id}", get(r::children))
         .route(
           "/r/children/{inscription_id}/{page}",
           get(r::children_paginated),
