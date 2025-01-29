@@ -6933,8 +6933,14 @@ next
       .chain(Chain::Regtest)
       .server_option("--proxy", server.url.as_ref())
       .build();
+    let sat_indexed_server_with_proxy = TestServer::builder()
+      .index_sats()
+      .chain(Chain::Regtest)
+      .server_option("--proxy", server.url.as_ref())
+      .build();
 
     server_with_proxy.mine_blocks(1);
+    sat_indexed_server_with_proxy.mine_blocks(1);
 
     pretty_assert_eq!(
       server.get_json::<api::SatInscription>(format!("/r/sat/{ordinal}/at/-1")),
@@ -6943,6 +6949,12 @@ next
 
     pretty_assert_eq!(
       server_with_proxy.get_json::<api::SatInscription>(format!("/r/sat/{ordinal}/at/-1")),
+      api::SatInscription { id: Some(id) }
+    );
+
+    pretty_assert_eq!(
+      sat_indexed_server_with_proxy
+        .get_json::<api::SatInscription>(format!("/r/sat/{ordinal}/at/-1")),
       api::SatInscription { id: Some(id) }
     );
   }
