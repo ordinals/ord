@@ -277,7 +277,7 @@ impl Server {
         )
         .route("/r/utxo/{outpoint}", get(Self::utxo));
 
-      let proxy_routes = Router::new()
+      let proxiable_routes = Router::new()
         .route("/content/{inscription_id}", get(r::content))
         .route("/r/children/{inscription_id}", get(r::children))
         .route(
@@ -286,27 +286,24 @@ impl Server {
         )
         .route("/r/inscription/{inscription_id}", get(r::inscription))
         .route("/r/metadata/{inscription_id}", get(r::metadata))
-        .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index));
+        .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index))
+        .layer(axum::middleware::from_fn(
+          |Extension(server_config): Extension<Arc<ServerConfig>>,
+           request: http::Request<axum::body::Body>,
+           next: axum::middleware::Next| async move {
+            let mut path = request.uri().path().to_string();
+            path.remove(0); // remove leading slash
+            let response = next.run(request).await;
+            if let Some(proxy) = server_config.proxy.as_ref() {
+              if response.status() == StatusCode::NOT_FOUND {
+                return task::block_in_place(|| Server::proxy(proxy, &path));
+              }
+            }
+            Ok(response)
+          },
+        ));
 
-      async fn proxy_fallback(
-        Extension(server_config): Extension<Arc<ServerConfig>>,
-        request: http::Request<axum::body::Body>,
-        next: axum::middleware::Next,
-      ) -> ServerResult {
-        let mut path = request.uri().path().to_string();
-        path.remove(0); // remove leading slash
-        let response = next.run(request).await;
-
-        if let Some(proxy) = server_config.proxy.as_ref() {
-          if response.status() == StatusCode::NOT_FOUND {
-            return task::block_in_place(|| Server::proxy(proxy, &path));
-          }
-        }
-
-        Ok(response)
-      }
-      let proxy_routes = proxy_routes.layer(axum::middleware::from_fn(proxy_fallback));
-      let router = router.merge(proxy_routes);
+      let router = router.merge(proxiable_routes);
 
       let router = router
         .fallback(Self::fallback)
