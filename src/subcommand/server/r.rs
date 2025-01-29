@@ -148,15 +148,9 @@ pub(super) async fn blocktime_string(
 
 pub(super) async fn children(
   Extension(index): Extension<Arc<Index>>,
-  Extension(server_config): Extension<Arc<ServerConfig>>,
   Path(inscription_id): Path<InscriptionId>,
 ) -> ServerResult {
-  children_paginated(
-    Extension(index),
-    Extension(server_config),
-    Path((inscription_id, 0)),
-  )
-  .await
+  children_paginated(Extension(index), Path((inscription_id, 0))).await
 }
 
 pub(super) async fn children_inscriptions(
@@ -220,19 +214,14 @@ pub(super) async fn children_inscriptions_paginated(
 
 pub(super) async fn children_paginated(
   Extension(index): Extension<Arc<Index>>,
-  Extension(server_config): Extension<Arc<ServerConfig>>,
   Path((parent, page)): Path<(InscriptionId, usize)>,
 ) -> ServerResult {
   task::block_in_place(|| {
     let Some(parent) = index.get_inscription_entry(parent)? else {
-      return if let Some(proxy) = server_config.proxy.as_ref() {
-        Server::proxy(proxy, &format!("r/children/{}/{}", parent, page))
-      } else {
-        Err(ServerError::NotFound(format!(
-          "inscription {} not found",
-          parent
-        )))
-      };
+      return Err(ServerError::NotFound(format!(
+        "inscription {} not found",
+        parent
+      )));
     };
 
     let parent_sequence_number = parent.sequence_number;
@@ -257,13 +246,9 @@ pub(super) async fn content(
     }
 
     let Some(mut inscription) = index.get_inscription_by_id(inscription_id)? else {
-      return if let Some(proxy) = server_config.proxy.as_ref() {
-        Server::proxy(proxy, &format!("content/{}", inscription_id))
-      } else {
-        Err(ServerError::NotFound(format!(
-          "inscription {inscription_id} not found"
-        )))
-      };
+      return Err(ServerError::NotFound(format!(
+        "inscription {inscription_id} not found"
+      )));
     };
 
     if let Some(delegate) = inscription.delegate() {
@@ -357,14 +342,10 @@ pub(super) async fn inscription(
 ) -> ServerResult {
   task::block_in_place(|| {
     let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
-      return if let Some(proxy) = server_config.proxy.as_ref() {
-        Server::proxy(proxy, &format!("r/inscription/{}", inscription_id))
-      } else {
-        Err(ServerError::NotFound(format!(
-          "inscription {} not found",
-          inscription_id
-        )))
-      };
+      return Err(ServerError::NotFound(format!(
+        "inscription {} not found",
+        inscription_id
+      )));
     };
 
     let entry = index
@@ -424,19 +405,14 @@ pub(super) async fn inscription(
 
 pub(super) async fn metadata(
   Extension(index): Extension<Arc<Index>>,
-  Extension(server_config): Extension<Arc<ServerConfig>>,
   Path(inscription_id): Path<InscriptionId>,
 ) -> ServerResult {
   task::block_in_place(|| {
     let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
-      return if let Some(proxy) = server_config.proxy.as_ref() {
-        Server::proxy(proxy, &format!("r/metadata/{}", inscription_id))
-      } else {
-        Err(ServerError::NotFound(format!(
-          "inscription {} not found",
-          inscription_id
-        )))
-      };
+      return Err(ServerError::NotFound(format!(
+        "inscription {} not found",
+        inscription_id
+      )));
     };
 
     let metadata = inscription
