@@ -631,7 +631,7 @@ impl RuneUpdater<'_, '_, '_> {
       {
         let frozen_runes = self
           .outpoint_to_frozen_rune_id
-          .get(&input.previous_output.store())?
+          .remove_all(&input.previous_output.store())?
           .filter_map(|rune_id| {
             let guard = rune_id.ok()?;
             Some(RuneId::load(guard.value()))
