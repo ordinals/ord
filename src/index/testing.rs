@@ -152,6 +152,61 @@ impl Context {
     }
   }
 
+  #[track_caller]
+  pub(crate) fn assert_runes_and_frozen_runes(
+    &self,
+    mut runes: impl AsMut<[(RuneId, RuneEntry)]>,
+    mut balances: impl AsMut<[(OutPoint, Vec<(RuneId, u128)>)]>,
+    mut frozen_balances: impl AsMut<[(OutPoint, Vec<(RuneId, u128)>)]>,
+  ) {
+    let runes = runes.as_mut();
+    runes.sort_by_key(|(id, _)| *id);
+
+    let balances = balances.as_mut();
+    balances.sort_by_key(|(outpoint, _)| *outpoint);
+
+    for (_, balances) in balances.iter_mut() {
+      balances.sort_by_key(|(id, _)| *id);
+    }
+
+    let frozen_balances = frozen_balances.as_mut();
+    frozen_balances.sort_by_key(|(outpoint, _)| *outpoint);
+
+    for (_, frozen_balances) in frozen_balances.iter_mut() {
+      frozen_balances.sort_by_key(|(id, _)| *id);
+    }
+
+    pretty_assert_eq!(runes, self.index.runes().unwrap());
+
+    pretty_assert_eq!(balances, self.index.get_rune_balances().unwrap());
+
+    pretty_assert_eq!(
+      frozen_balances,
+      self.index.get_frozen_rune_balances().unwrap()
+    );
+
+    let mut outstanding: HashMap<RuneId, u128> = HashMap::new();
+
+    for (_, balances) in balances {
+      for (id, balance) in balances {
+        *outstanding.entry(*id).or_default() += *balance;
+      }
+    }
+
+    for (_, frozen_balances) in frozen_balances {
+      for (id, frozen_balance) in frozen_balances {
+        *outstanding.entry(*id).or_default() += *frozen_balance;
+      }
+    }
+
+    for (id, entry) in runes {
+      pretty_assert_eq!(
+        outstanding.get(id).copied().unwrap_or_default(),
+        entry.supply() - entry.burned
+      );
+    }
+  }
+
   pub(crate) fn etch(&self, runestone: Runestone, outputs: usize) -> (Txid, RuneId) {
     let block_count = usize::try_from(self.index.block_count().unwrap()).unwrap();
 

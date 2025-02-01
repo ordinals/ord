@@ -1143,7 +1143,23 @@ impl Index {
   }
 
   pub fn get_rune_balances(&self) -> Result<Vec<(OutPoint, Vec<(RuneId, u128)>)>> {
-    let mut result = Vec::new();
+    let (unfrozen_result, _) = self.get_rune_balances_helper()?;
+    Ok(unfrozen_result)
+  }
+
+  pub fn get_frozen_rune_balances(&self) -> Result<Vec<(OutPoint, Vec<(RuneId, u128)>)>> {
+    let (_, frozen_result) = self.get_rune_balances_helper()?;
+    Ok(frozen_result)
+  }
+
+  fn get_rune_balances_helper(
+    &self,
+  ) -> Result<(
+    Vec<(OutPoint, Vec<(RuneId, u128)>)>,
+    Vec<(OutPoint, Vec<(RuneId, u128)>)>,
+  )> {
+    let mut unfrozen_result = Vec::new();
+    let mut frozen_result = Vec::new();
     let mut outpoint_to_frozen_runes: HashMap<OutPoint, HashSet<RuneId>> = HashMap::new();
 
     let rtx = self.database.begin_read()?;
@@ -1176,23 +1192,30 @@ impl Index {
         .get(&outpoint)
         .unwrap_or(&empty_hashset);
 
-      let mut balances = Vec::new();
+      let mut unfrozen_balances = Vec::new();
+      let mut frozen_balances = Vec::new();
       let mut i = 0;
       while i < balances_buffer.len() {
         let ((id, balance), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
         i += length;
 
         if frozen_runes.contains(&id) {
-          continue;
+          frozen_balances.push((id, balance));
+        } else {
+          unfrozen_balances.push((id, balance));
         }
-
-        balances.push((id, balance));
       }
 
-      result.push((outpoint, balances));
+      if !unfrozen_balances.is_empty() {
+        unfrozen_result.push((outpoint, unfrozen_balances));
+      }
+
+      if !frozen_balances.is_empty() {
+        frozen_result.push((outpoint, frozen_balances));
+      }
     }
 
-    Ok(result)
+    Ok((unfrozen_result, frozen_result))
   }
 
   pub fn block_header(&self, hash: BlockHash) -> Result<Option<Header>> {
