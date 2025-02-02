@@ -8,6 +8,7 @@ mod burn;
 mod cardinals;
 mod create;
 mod dump;
+mod freeze;
 mod inscribe;
 mod inscriptions;
 mod label;

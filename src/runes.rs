@@ -7786,9 +7786,7 @@ mod tests {
     );
 
     context.core.broadcast_tx(TransactionTemplate {
-      inputs: &[
-        (id.block.try_into().unwrap(), 1, 0, Witness::new()),
-      ],
+      inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 1,
       ..default()
     });
@@ -7832,15 +7830,13 @@ mod tests {
           },
         ),
       ],
-      [
-        (
-          OutPoint {
-            txid: txid2,
-            vout: 0,
-          },
-          vec![(freezer_id, u128::MAX)],
-        ),
-      ],
+      [(
+        OutPoint {
+          txid: txid2,
+          vout: 0,
+        },
+        vec![(freezer_id, u128::MAX)],
+      )],
       [],
     );
   }

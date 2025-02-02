@@ -12,6 +12,7 @@ pub mod burn;
 pub mod cardinals;
 pub mod create;
 pub mod dump;
+pub mod freeze;
 pub mod inscribe;
 pub mod inscriptions;
 mod label;
@@ -62,6 +63,8 @@ pub(crate) enum Subcommand {
   Create(create::Create),
   #[command(about = "Dump wallet descriptors")]
   Dump,
+  #[command(about = "Freeze runes")]
+  Freeze(freeze::Freeze),
   #[command(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
   #[command(about = "List wallet inscriptions")]
@@ -126,6 +129,7 @@ impl WalletCommand {
       Subcommand::Cardinals => cardinals::run(wallet),
       Subcommand::Create(_) | Subcommand::Restore(_) => unreachable!(),
       Subcommand::Dump => dump::run(wallet),
+      Subcommand::Freeze(freeze) => freeze.run(wallet),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet),
       Subcommand::Label => label::run(wallet),

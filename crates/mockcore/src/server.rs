@@ -386,7 +386,7 @@ impl Api for Server {
     utxos.sort();
     utxos.reverse();
 
-    if output_value > input_value {
+    if output_value >= input_value {
       for (value, outpoint) in utxos {
         if state.locked.contains(&outpoint) {
           continue;
@@ -632,11 +632,17 @@ impl Api for Server {
     };
 
     let mut confirmations = None;
+    let mut blockhash = None;
+    let mut blockheight = None;
+    let mut blockindex = None;
 
     'outer: for (height, hash) in state.hashes.iter().enumerate() {
-      for tx in &state.blocks[hash].txdata {
+      for (i, tx) in state.blocks[hash].txdata.iter().enumerate() {
         if tx.compute_txid() == txid {
           confirmations = Some(state.hashes.len() - height);
+          blockhash = Some(*hash);
+          blockheight = Some(height.try_into().unwrap());
+          blockindex = Some(i);
           break 'outer;
         }
       }
@@ -649,9 +655,9 @@ impl Api for Server {
           confirmations: confirmations.unwrap().try_into().unwrap(),
           time: 0,
           timereceived: 0,
-          blockhash: None,
-          blockindex: None,
-          blockheight: None,
+          blockhash,
+          blockindex,
+          blockheight,
           blocktime: None,
           wallet_conflicts: Vec::new(),
           bip125_replaceable: Bip125Replaceable::Unknown,

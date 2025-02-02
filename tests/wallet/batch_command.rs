@@ -1638,6 +1638,58 @@ fn batch_can_etch_turbo_rune() {
 }
 
 #[test]
+fn batch_can_etch_freezable_rune() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let rune = SpacedRune {
+    rune: Rune(RUNE),
+    spacers: 0,
+  };
+
+  let freezer = SpacedRune {
+    rune: Rune(RUNE + 1),
+    spacers: 0,
+  };
+
+  let batch = batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune,
+        supply: "1000".parse().unwrap(),
+        premine: "1000".parse().unwrap(),
+        symbol: '¢',
+        terms: None,
+        turbo: true,
+        freezer: Some(freezer),
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let parent = batch.output.inscriptions[0].id;
+
+  ord.assert_response_regex(
+    "/rune/AAAAAAAAAAAAA",
+    format!(
+      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
+    ),
+  );
+}
+
+#[test]
 fn batch_can_etch_rune_without_premine() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
