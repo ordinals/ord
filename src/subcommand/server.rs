@@ -265,11 +265,6 @@ impl Server {
           get(r::parents_paginated),
         )
         .route("/r/sat/{sat_number}", get(r::sat))
-        .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index))
-        .route(
-          "/r/sat/{sat_number}/at/{index}/content",
-          get(r::sat_at_index_content),
-        )
         .route("/r/sat/{sat_number}/{page}", get(r::sat_paginated))
         .route("/r/tx/{txid}", get(r::tx))
         .route(
