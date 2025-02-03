@@ -7035,6 +7035,94 @@ mod tests {
         rune_id: id,
       }
     );
+
+    let txid6 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(21, 1, 0, Witness::new())],
+      outputs: 1,
+      op_return: Some(
+        Runestone {
+          freeze: Some(FreezeEdict {
+            rune_id: Some(id),
+            outpoints: vec![OutPointId::new(11, 1, 1).unwrap()],
+          }),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    let txid7 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(11, 1, 1, Witness::new())],
+      outputs: 1,
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes_and_frozen_runes(
+      [
+        (
+          id,
+          RuneEntry {
+            block: 8,
+            etching: txid0,
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              ..default()
+            },
+            terms: Some(Terms {
+              amount: Some(1000),
+              cap: Some(100),
+              ..Default::default()
+            }),
+            timestamp: 8,
+            mints: 1,
+            burned: 1000,
+            freezer: Some(Rune(FREEZER)),
+            ..Default::default()
+          },
+        ),
+        (
+          freezer_id,
+          RuneEntry {
+            block: freezer_id.block,
+            etching: txid4,
+            number: 1,
+            spaced_rune: SpacedRune {
+              rune: Rune(FREEZER),
+              spacers: 0,
+            },
+            premine: u128::MAX,
+            symbol: Some('$'),
+            timestamp: freezer_id.block,
+            ..default()
+          },
+        ),
+      ],
+      [(
+        OutPoint {
+          txid: txid6,
+          vout: 0,
+        },
+        vec![(freezer_id, u128::MAX)],
+      )],
+      [],
+    );
+
+    event_receiver.blocking_recv().unwrap();
+    event_receiver.blocking_recv().unwrap();
+    event_receiver.blocking_recv().unwrap();
+
+    pretty_assert_eq!(
+      event_receiver.blocking_recv().unwrap(),
+      Event::RuneBurned {
+        block_height: 22,
+        txid: txid7,
+        rune_id: id,
+        amount: 889,
+      }
+    );
   }
 
   #[test]
