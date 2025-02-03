@@ -54,8 +54,8 @@ impl RuneUpdater<'_, '_, '_> {
             runestone.etching.unwrap().premine.unwrap_or_default();
         }
 
-        self.freeze(runestone, &unallocated)?;
-        self.unfreeze(runestone, &unallocated)?;
+        self.freeze(txid, runestone, &unallocated)?;
+        self.unfreeze(txid, runestone, &unallocated)?;
 
         for Edict { id, amount, output } in runestone.edicts.iter().copied() {
           let amount = Lot(amount);
@@ -260,7 +260,12 @@ impl RuneUpdater<'_, '_, '_> {
     Ok(())
   }
 
-  fn freeze(&mut self, runestone: &Runestone, unallocated: &HashMap<RuneId, Lot>) -> Result {
+  fn freeze(
+    &mut self,
+    txid: Txid,
+    runestone: &Runestone,
+    unallocated: &HashMap<RuneId, Lot>,
+  ) -> Result {
     let Some(edict) = runestone.freeze.clone() else {
       return Ok(());
     };
@@ -269,12 +274,26 @@ impl RuneUpdater<'_, '_, '_> {
       self
         .outpoint_to_frozen_rune_id
         .insert(&outpoint.store(), &id.store())?;
+
+      if let Some(sender) = self.event_sender {
+        sender.blocking_send(Event::RuneFreezed {
+          block_height: self.height,
+          outpoint,
+          txid,
+          rune_id: id,
+        })?;
+      }
     }
 
     Ok(())
   }
 
-  fn unfreeze(&mut self, runestone: &Runestone, unallocated: &HashMap<RuneId, Lot>) -> Result {
+  fn unfreeze(
+    &mut self,
+    txid: Txid,
+    runestone: &Runestone,
+    unallocated: &HashMap<RuneId, Lot>,
+  ) -> Result {
     let Some(edict) = runestone.unfreeze.clone() else {
       return Ok(());
     };
@@ -283,6 +302,15 @@ impl RuneUpdater<'_, '_, '_> {
       self
         .outpoint_to_frozen_rune_id
         .remove(&outpoint.store(), &id.store())?;
+
+      if let Some(sender) = self.event_sender {
+        sender.blocking_send(Event::RuneUnfreezed {
+          block_height: self.height,
+          outpoint,
+          txid,
+          rune_id: id,
+        })?;
+      }
     }
 
     Ok(())
