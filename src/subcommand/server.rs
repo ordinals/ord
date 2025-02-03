@@ -265,6 +265,7 @@ impl Server {
           get(r::parents_paginated),
         )
         .route("/r/sat/{sat_number}", get(r::sat))
+        .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index))
         .route(
           "/r/sat/{sat_number}/at/{index}/content",
           get(r::sat_at_index_content),
@@ -287,6 +288,10 @@ impl Server {
         .route("/r/inscription/{inscription_id}", get(r::inscription))
         .route("/r/metadata/{inscription_id}", get(r::metadata))
         .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index))
+        .route(
+          "/r/sat/{sat_number}/at/{index}/content",
+          get(r::sat_at_index_content),
+        )
         .layer(axum::middleware::from_fn(Self::proxy_fallback));
 
       let router = router.merge(proxiable_routes);
@@ -6984,6 +6989,90 @@ next
       sat_indexed_server_with_proxy
         .get_json::<api::SatInscription>(format!("/r/sat/{ordinal}/at/-1")),
       api::SatInscription { id: Some(id) }
+    );
+  }
+
+  #[test]
+  fn sat_at_index_content_proxy() {
+    let server = TestServer::builder()
+      .index_sats()
+      .chain(Chain::Regtest)
+      .build();
+
+    server.mine_blocks(1);
+
+    let inscription = Inscription {
+      content_type: Some("text/html".into()),
+      body: Some("foo".into()),
+      ..default()
+    };
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription.to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+    let ordinal: u64 = 5000000000;
+
+    pretty_assert_eq!(
+      server.get_json::<api::InscriptionRecursive>(format!("/r/inscription/{id}")),
+      api::InscriptionRecursive {
+        charms: vec![Charm::Coin, Charm::Uncommon],
+        content_type: Some("text/html".into()),
+        content_length: Some(3),
+        delegate: None,
+        fee: 0,
+        height: 2,
+        id,
+        number: 0,
+        output: OutPoint { txid, vout: 0 },
+        sat: Some(Sat(ordinal)),
+        satpoint: SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0
+        },
+        timestamp: 2,
+        value: Some(50 * COIN_VALUE),
+        address: Some("bcrt1qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqdku202".to_string())
+      }
+    );
+
+    server.assert_response(
+      format!("/r/sat/{ordinal}/at/-1/content"),
+      StatusCode::OK,
+      "foo",
+    );
+
+    let server_with_proxy = TestServer::builder()
+      .chain(Chain::Regtest)
+      .server_option("--proxy", server.url.as_ref())
+      .build();
+    let sat_indexed_server_with_proxy = TestServer::builder()
+      .index_sats()
+      .chain(Chain::Regtest)
+      .server_option("--proxy", server.url.as_ref())
+      .build();
+
+    server_with_proxy.mine_blocks(1);
+    sat_indexed_server_with_proxy.mine_blocks(1);
+
+    server.assert_response(
+      format!("/r/sat/{ordinal}/at/-1/content"),
+      StatusCode::OK,
+      "foo",
+    );
+    server_with_proxy.assert_response(
+      format!("/r/sat/{ordinal}/at/-1/content"),
+      StatusCode::OK,
+      "foo",
+    );
+    sat_indexed_server_with_proxy.assert_response(
+      format!("/r/sat/{ordinal}/at/-1/content"),
+      StatusCode::OK,
+      "foo",
     );
   }
 
