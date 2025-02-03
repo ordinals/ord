@@ -305,6 +305,20 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn get_frozen_runes_balances_in_output(
+    &self,
+    output: &OutPoint,
+  ) -> Result<Option<BTreeMap<SpacedRune, Pile>>> {
+    Ok(
+      self
+        .output_info
+        .get(output)
+        .ok_or(anyhow!("output not found in wallet"))?
+        .frozen_runes
+        .clone(),
+    )
+  }
+
   pub(crate) fn get_rune(
     &self,
     rune: Rune,

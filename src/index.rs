@@ -1035,9 +1035,12 @@ impl Index {
   pub fn get_rune_balances_for_output(
     &self,
     outpoint: OutPoint,
-  ) -> Result<Option<BTreeMap<SpacedRune, Pile>>> {
+  ) -> Result<(
+    Option<BTreeMap<SpacedRune, Pile>>,
+    Option<BTreeMap<SpacedRune, Pile>>,
+  )> {
     if !self.index_runes {
-      return Ok(None);
+      return Ok((None, None));
     }
 
     let rtx = self.database.begin_read()?;
@@ -1057,34 +1060,42 @@ impl Index {
       .collect::<HashSet<RuneId>>();
 
     let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
-      return Ok(Some(BTreeMap::new()));
+      return Ok((Some(BTreeMap::new()), Some(BTreeMap::new())));
     };
 
     let balances_buffer = balances.value();
 
     let mut balances = BTreeMap::new();
+    let mut frozen_balances = BTreeMap::new();
     let mut i = 0;
     while i < balances_buffer.len() {
       let ((id, amount), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
       i += length;
 
-      if frozen_runes.contains(&id) {
-        continue;
-      }
-
       let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
 
-      balances.insert(
-        entry.spaced_rune,
-        Pile {
-          amount,
-          divisibility: entry.divisibility,
-          symbol: entry.symbol,
-        },
-      );
+      if frozen_runes.contains(&id) {
+        frozen_balances.insert(
+          entry.spaced_rune,
+          Pile {
+            amount,
+            divisibility: entry.divisibility,
+            symbol: entry.symbol,
+          },
+        );
+      } else {
+        balances.insert(
+          entry.spaced_rune,
+          Pile {
+            amount,
+            divisibility: entry.divisibility,
+            symbol: entry.symbol,
+          },
+        );
+      }
     }
 
-    Ok(Some(balances))
+    Ok((Some(balances), Some(frozen_balances)))
   }
 
   pub fn get_rune_balance_map(&self) -> Result<BTreeMap<SpacedRune, BTreeMap<OutPoint, Pile>>> {
@@ -2408,7 +2419,7 @@ impl Index {
     let mut runes = BTreeMap::new();
 
     for output in outputs {
-      let Some(rune_balances) = self.get_rune_balances_for_output(*output)? else {
+      let (Some(rune_balances), _) = self.get_rune_balances_for_output(*output)? else {
         return Ok(None);
       };
 
@@ -2468,7 +2479,7 @@ impl Index {
 
     Ok(Some(api::UtxoRecursive {
       inscriptions: self.get_inscriptions_for_output(outpoint)?,
-      runes: self.get_rune_balances_for_output(outpoint)?,
+      runes: self.get_rune_balances_for_output(outpoint)?.0,
       sat_ranges: self.list(outpoint)?,
       value: utxo_entry.value().parse(self).total_value(),
     }))
@@ -2510,7 +2521,7 @@ impl Index {
 
     let inscriptions = self.get_inscriptions_for_output(outpoint)?;
 
-    let runes = self.get_rune_balances_for_output(outpoint)?;
+    let (runes, frozen_runes) = self.get_rune_balances_for_output(outpoint)?;
 
     let spent = self.is_output_spent(outpoint)?;
 
@@ -2522,6 +2533,7 @@ impl Index {
         txout.clone(),
         indexed,
         runes,
+        frozen_runes,
         sat_ranges,
         spent,
       ),

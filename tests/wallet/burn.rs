@@ -135,6 +135,7 @@ fn burns_only_one_sat() {
       ordinal: 0,
       runic: None,
       runes: None,
+      frozen_runes: None,
       total: 50 * COIN_VALUE,
     }
   );
@@ -161,6 +162,7 @@ fn burns_only_one_sat() {
       ordinal: 0,
       runic: None,
       runes: None,
+      frozen_runes: None,
       total: expected_balance,
     }
   );
@@ -449,6 +451,7 @@ fn burn_rune() {
         .into_iter()
         .collect()
       ),
+      frozen_runes: Some(BTreeMap::new()),
       total: 450 * COIN_VALUE,
     }
   );
@@ -470,6 +473,7 @@ fn burn_rune() {
       ordinal: 10000,
       runic: Some(0),
       runes: Some(BTreeMap::new()),
+      frozen_runes: Some(BTreeMap::new()),
       total: 500 * COIN_VALUE,
     }
   );
@@ -541,6 +545,7 @@ fn burn_rune_with_many_assets_in_wallet() {
         .into_iter()
         .collect()
       ),
+      frozen_runes: Some(BTreeMap::new()),
       total: 24 * 50 * COIN_VALUE,
     }
   );
@@ -594,6 +599,7 @@ fn burn_rune_with_many_assets_in_wallet() {
         .into_iter()
         .collect()
       ),
+      frozen_runes: Some(BTreeMap::new()),
       total: 25 * 50 * COIN_VALUE,
     }
   );
@@ -745,6 +751,7 @@ fn burning_rune_creates_change_output_for_non_burnt_runes() {
         ]
         .into()
       ),
+      frozen_runes: Some(BTreeMap::new()),
       runic: Some(10000),
       total: 17 * 50 * COIN_VALUE,
     }

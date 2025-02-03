@@ -1585,6 +1585,7 @@ fn batch_can_etch_rune() {
         .into_iter()
         .collect()
       ),
+      frozen_runes: Some(BTreeMap::new()),
       total: 400 * COIN_VALUE,
     }
   );
@@ -1770,6 +1771,7 @@ fn batch_can_etch_rune_without_premine() {
       ordinal: 10000,
       runic: Some(0),
       runes: Some(default()),
+      frozen_runes: Some(BTreeMap::new()),
       total: 400 * COIN_VALUE,
     }
   );

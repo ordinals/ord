@@ -166,6 +166,7 @@ pub struct Output {
   pub inscriptions: Option<Vec<InscriptionId>>,
   pub outpoint: OutPoint,
   pub runes: Option<BTreeMap<SpacedRune, Pile>>,
+  pub frozen_runes: Option<BTreeMap<SpacedRune, Pile>>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub script_pubkey: ScriptBuf,
   pub spent: bool,
@@ -181,6 +182,7 @@ impl Output {
     tx_out: TxOut,
     indexed: bool,
     runes: Option<BTreeMap<SpacedRune, Pile>>,
+    frozen_runes: Option<BTreeMap<SpacedRune, Pile>>,
     sat_ranges: Option<Vec<(u64, u64)>>,
     spent: bool,
   ) -> Self {
@@ -193,6 +195,7 @@ impl Output {
       inscriptions,
       outpoint,
       runes,
+      frozen_runes,
       sat_ranges,
       script_pubkey: tx_out.script_pubkey,
       spent,

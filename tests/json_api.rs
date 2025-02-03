@@ -413,6 +413,7 @@ fn get_output() {
       ]),
       indexed: true,
       runes: None,
+      frozen_runes: None,
       sat_ranges: Some(vec![
         (5000000000, 10000000000,),
         (10000000000, 15000000000,),
@@ -820,6 +821,7 @@ fn outputs_address() {
       },
       indexed: true,
       runes: Some(BTreeMap::new()),
+      frozen_runes: Some(BTreeMap::new()),
       sat_ranges: None,
       script_pubkey: ScriptBuf::from(
         address
@@ -864,6 +866,7 @@ fn outputs_address() {
       },
       indexed: true,
       runes: Some(expected_runes),
+      frozen_runes: Some(BTreeMap::new()),
       sat_ranges: None,
       script_pubkey: ScriptBuf::from(
         address
@@ -898,6 +901,7 @@ fn outputs_address() {
       },
       indexed: true,
       runes: Some(BTreeMap::new()),
+      frozen_runes: Some(BTreeMap::new()),
       sat_ranges: None,
       script_pubkey: ScriptBuf::from(
         address

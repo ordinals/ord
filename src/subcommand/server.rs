@@ -871,6 +871,7 @@ impl Server {
               .is_empty()
               && index
                 .get_rune_balances_for_output(output)?
+                .0
                 .unwrap_or_default()
                 .is_empty()
           }
@@ -880,6 +881,7 @@ impl Server {
             .is_empty(),
           OutputType::Runic => !index
             .get_rune_balances_for_output(output)?
+            .0
             .unwrap_or_default()
             .is_empty(),
         };
@@ -3377,6 +3379,7 @@ mod tests {
           .into_iter()
           .collect()
         ),
+        frozen_runes: Some(BTreeMap::new()),
         spent: false,
       }
     );

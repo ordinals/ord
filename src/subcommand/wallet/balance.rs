@@ -7,6 +7,8 @@ pub struct Output {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub runes: Option<BTreeMap<SpacedRune, Decimal>>,
   #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub frozen_runes: Option<BTreeMap<SpacedRune, Decimal>>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
   pub runic: Option<u64>,
   pub total: u64,
 }
@@ -23,15 +25,19 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   let mut cardinal = 0;
   let mut ordinal = 0;
   let mut runes = BTreeMap::new();
+  let mut frozen_runes = BTreeMap::new();
   let mut runic = 0;
 
   for (output, txout) in unspent_outputs {
     let rune_balances = wallet
       .get_runes_balances_in_output(output)?
       .unwrap_or_default();
+    let frozen_rune_balances = wallet
+      .get_frozen_runes_balances_in_output(output)?
+      .unwrap_or_default();
 
     let is_ordinal = inscription_outputs.contains(output);
-    let is_runic = !rune_balances.is_empty();
+    let is_runic = !rune_balances.is_empty() || !frozen_rune_balances.is_empty();
 
     if is_ordinal {
       ordinal += txout.value.to_sat();
@@ -40,6 +46,18 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     if is_runic {
       for (spaced_rune, pile) in rune_balances {
         runes
+          .entry(spaced_rune)
+          .and_modify(|decimal: &mut Decimal| {
+            assert_eq!(decimal.scale, pile.divisibility);
+            decimal.value += pile.amount;
+          })
+          .or_insert(Decimal {
+            value: pile.amount,
+            scale: pile.divisibility,
+          });
+      }
+      for (spaced_rune, pile) in frozen_rune_balances {
+        frozen_runes
           .entry(spaced_rune)
           .and_modify(|decimal: &mut Decimal| {
             assert_eq!(decimal.scale, pile.divisibility);
@@ -66,6 +84,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
     cardinal,
     ordinal,
     runes: wallet.has_rune_index().then_some(runes),
+    frozen_runes: wallet.has_rune_index().then_some(frozen_runes),
     runic: wallet.has_rune_index().then_some(runic),
     total: cardinal + ordinal + runic,
   })))
@@ -82,6 +101,7 @@ mod tests {
         cardinal: 0,
         ordinal: 0,
         runes: None,
+        frozen_runes: None,
         runic: None,
         total: 0
       })

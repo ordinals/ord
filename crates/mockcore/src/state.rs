@@ -174,6 +174,8 @@ impl State {
 
       for input in tx.input.iter() {
         if !input.previous_output.is_null() {
+          println!("Tx {}", tx.compute_txid());
+          println!("Remove {}", input.previous_output);
           assert!(self.utxos.remove(&input.previous_output).is_some());
         }
       }
