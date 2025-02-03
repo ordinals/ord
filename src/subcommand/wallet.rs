@@ -30,6 +30,7 @@ mod shared_args;
 pub mod sign;
 pub mod split;
 pub mod transactions;
+pub mod unfreeze;
 
 #[derive(Debug, Parser)]
 pub(crate) struct WalletCommand {
@@ -97,6 +98,8 @@ pub(crate) enum Subcommand {
   Split(split::Split),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
+  #[command(about = "Unfreeze runes")]
+  Unfreeze(unfreeze::Unfreeze),
 }
 
 impl WalletCommand {
@@ -145,6 +148,7 @@ impl WalletCommand {
       Subcommand::Sign(sign) => sign.run(wallet),
       Subcommand::Split(split) => split.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
+      Subcommand::Unfreeze(unfreeze) => unfreeze.run(wallet),
     }
   }
 

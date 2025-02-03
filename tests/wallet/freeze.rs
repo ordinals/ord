@@ -518,3 +518,127 @@ fn freezing_rune_on_multiple_outpoints_removes_multiple_balances() {
 
   assert_eq!(balances.runes.get(&rune), None);
 }
+
+#[test]
+fn freeze_dry_run() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let rune = SpacedRune {
+    rune: Rune(RUNE),
+    spacers: 0,
+  };
+
+  let freezer = SpacedRune {
+    rune: Rune(RUNE + 1),
+    spacers: 0,
+  };
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 1,
+        rune,
+        supply: "1000".parse().unwrap(),
+        premine: "1000".parse().unwrap(),
+        symbol: '¢',
+        terms: None,
+        turbo: false,
+        freezer: Some(freezer),
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 1,
+        rune: freezer,
+        supply: "500".parse().unwrap(),
+        premine: "500".parse().unwrap(),
+        symbol: '¢',
+        terms: None,
+        turbo: false,
+        freezer: None,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let balance = CommandBuilder::new("--chain regtest --index-runes wallet balance")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+
+  assert_eq!(
+    *balance.runes.clone().unwrap().first_key_value().unwrap().1,
+    Decimal {
+      value: 1000,
+      scale: 0,
+    }
+  );
+
+  assert_eq!(
+    *balance.runes.clone().unwrap().iter().nth(1).unwrap().1,
+    Decimal {
+      value: 500,
+      scale: 0,
+    }
+  );
+
+  assert_eq!(balance.runic.unwrap(), 20000);
+
+  let outputs = CommandBuilder::new("--chain regtest --index-runes wallet outputs")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
+
+  let mut outpoint = OutPoint::null();
+  for output in outputs {
+    let Some(runes) = output.runes else {
+      continue;
+    };
+
+    if runes.contains_key(&rune) {
+      outpoint = output.output;
+      break;
+    }
+  }
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet freeze --fee-rate 1 --rune {} --outpoints {} --dry-run",
+    Rune(RUNE),
+    outpoint,
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<freeze::Output>();
+
+  assert!(core.mempool().is_empty());
+  assert_eq!(
+    Psbt::deserialize(&base64_decode(&output.psbt).unwrap())
+      .unwrap()
+      .fee()
+      .unwrap()
+      .to_sat(),
+    output.fee
+  );
+  assert_eq!(output.rune, rune);
+  assert_eq!(output.outpoints, vec![outpoint]);
+}

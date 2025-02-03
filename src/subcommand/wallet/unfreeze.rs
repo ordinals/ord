@@ -1,10 +1,10 @@
 use super::*;
 
 #[derive(Debug, Parser)]
-pub(crate) struct Freeze {
+pub(crate) struct Unfreeze {
   #[arg(long, help = "Don't sign or broadcast transaction")]
   dry_run: bool,
-  #[clap(long, help = "Use <FEE_RATE> sats/vbyte for freeze transaction.")]
+  #[clap(long, help = "Use <FEE_RATE> sats/vbyte for unfreeze transaction.")]
   fee_rate: FeeRate,
   #[clap(long, help = "Freeze <RUNE>. May contain `.` or `•` as spacers.")]
   rune: SpacedRune,
@@ -26,10 +26,10 @@ pub struct Output {
   pub fee: u64,
 }
 
-impl Freeze {
+impl Unfreeze {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let unsigned_transaction = wallet.create_unsigned_freeze_or_unfreeze_runes_transaction(
-      true,
+      false,
       self.fee_rate,
       self.rune,
       self.outpoints.clone(),
