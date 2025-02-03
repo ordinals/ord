@@ -1,7 +1,7 @@
 use {super::*, ord::subcommand::wallet::freeze};
 
 #[test]
-fn freezing_rune_fails_if_not_freezable() {
+fn unfreezing_rune_fails_if_not_freezable() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -36,7 +36,7 @@ fn freezing_rune_fails_if_not_freezable() {
   );
 
   CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet freeze --fee-rate 1 --rune {}",
+    "--chain regtest --index-runes wallet unfreeze --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -47,7 +47,7 @@ fn freezing_rune_fails_if_not_freezable() {
 }
 
 #[test]
-fn freezing_rune_fails_if_freezer_has_not_been_etched() {
+fn unfreezing_rune_fails_if_freezer_has_not_been_etched() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -87,7 +87,7 @@ fn freezing_rune_fails_if_freezer_has_not_been_etched() {
   );
 
   CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet freeze --fee-rate 1 --rune {}",
+    "--chain regtest --index-runes wallet unfreeze --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -98,7 +98,7 @@ fn freezing_rune_fails_if_freezer_has_not_been_etched() {
 }
 
 #[test]
-fn freezing_rune_with_no_rune_index_fails() {
+fn unfreezing_rune_with_no_rune_index_fails() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest"], &[]);
@@ -108,18 +108,20 @@ fn freezing_rune_with_no_rune_index_fails() {
   create_wallet(&core, &ord);
 
   CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet freeze --fee-rate 1 --rune {}",
+    "--chain regtest --index-runes wallet unfreeze --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
   .ord(&ord)
   .expected_exit_code(1)
-  .expected_stderr("error: `ord wallet freeze` requires index created with `--index-runes` flag\n")
+  .expected_stderr(
+    "error: `ord wallet unfreeze` requires index created with `--index-runes` flag\n",
+  )
   .run_and_extract_stdout();
 }
 
 #[test]
-fn freezing_rune_fails_if_no_freezer_balance() {
+fn unfreezing_rune_fails_if_no_freezer_balance() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -186,7 +188,7 @@ fn freezing_rune_fails_if_no_freezer_balance() {
   );
 
   CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet freeze --fee-rate 1 --rune {}",
+    "--chain regtest --index-runes wallet unfreeze --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -197,7 +199,7 @@ fn freezing_rune_fails_if_no_freezer_balance() {
 }
 
 #[test]
-fn freezing_rune_fails_with_postage_dust() {
+fn unfreezing_rune_fails_with_postage_dust() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -259,7 +261,7 @@ fn freezing_rune_fails_with_postage_dust() {
   );
 
   CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet freeze --fee-rate 1 --rune {} --postage 300sat",
+    "--chain regtest --index-runes wallet unfreeze --fee-rate 1 --rune {} --postage 300sat",
     Rune(RUNE)
   ))
   .core(&core)
@@ -270,7 +272,7 @@ fn freezing_rune_fails_with_postage_dust() {
 }
 
 #[test]
-fn freezing_rune_removes_balance() {
+fn unfreezing_rune_adds_back_balance() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -392,10 +394,35 @@ fn freezing_rune_removes_balance() {
   assert_eq!(balance.runes.clone().unwrap().get(&rune), None);
 
   assert_eq!(balance.runic.unwrap(), 19867);
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet unfreeze --fee-rate 1 --rune {} --outpoints {}",
+    Rune(RUNE),
+    outpoint,
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<freeze::Output>();
+
+  core.mine_blocks(1);
+
+  pretty_assert_eq!(output.rune, rune);
+
+  let balance = CommandBuilder::new("--chain regtest --index-runes wallet balance")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::wallet::balance::Output>();
+
+  assert_eq!(
+    balance.runes.clone().unwrap().get(&rune).unwrap().value,
+    1000
+  );
+
+  assert_eq!(balance.runic.unwrap(), 20000);
 }
 
 #[test]
-fn freezing_rune_on_multiple_outpoints_removes_multiple_balances() {
+fn unfreezing_rune_on_multiple_outpoints_adds_back_multiple_balances() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -417,7 +444,7 @@ fn freezing_rune_on_multiple_outpoints_removes_multiple_balances() {
     &ord,
     batch::File {
       etching: Some(batch::Etching {
-        divisibility: 1,
+        divisibility: 0,
         rune,
         supply: "1000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
@@ -439,7 +466,7 @@ fn freezing_rune_on_multiple_outpoints_removes_multiple_balances() {
     &ord,
     batch::File {
       etching: Some(batch::Etching {
-        divisibility: 1,
+        divisibility: 0,
         rune: freezer,
         supply: "500".parse().unwrap(),
         premine: "500".parse().unwrap(),
@@ -517,10 +544,68 @@ fn freezing_rune_on_multiple_outpoints_removes_multiple_balances() {
     .run_and_deserialize_output::<ord::subcommand::balances::Output>();
 
   assert_eq!(balances.runes.get(&rune), None);
+
+  let output = CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet unfreeze --fee-rate 1 --rune {} --outpoints {} --outpoints {}",
+    Rune(RUNE),
+    outpoints[0],
+    outpoints[1],
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<freeze::Output>();
+
+  core.mine_blocks(1);
+
+  pretty_assert_eq!(output.rune, rune);
+
+  let balances = CommandBuilder::new("--regtest --index-runes balances")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::balances::Output>();
+
+  let freezer_balance = balances
+    .runes
+    .get(&freezer)
+    .unwrap()
+    .first_key_value()
+    .unwrap();
+
+  pretty_assert_eq!(
+    balances,
+    ord::subcommand::balances::Output {
+      runes: [
+        (
+          rune,
+          [
+            (
+              outpoints[0],
+              Pile {
+                amount: 995,
+                divisibility: 0,
+                symbol: Some('¢')
+              },
+            ),
+            (
+              outpoints[1],
+              Pile {
+                amount: 5,
+                divisibility: 0,
+                symbol: Some('¢')
+              },
+            )
+          ]
+          .into()
+        ),
+        (freezer, [(*freezer_balance.0, *freezer_balance.1)].into(),),
+      ]
+      .into()
+    }
+  );
 }
 
 #[test]
-fn freeze_dry_run() {
+fn unfreeze_dry_run() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -622,7 +707,7 @@ fn freeze_dry_run() {
   }
 
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet freeze --fee-rate 1 --rune {} --outpoints {} --dry-run",
+    "--chain regtest --index-runes wallet unfreeze --fee-rate 1 --rune {} --outpoints {} --dry-run",
     Rune(RUNE),
     outpoint,
   ))

@@ -1153,7 +1153,10 @@ impl Wallet {
   ) -> Result<Transaction> {
     ensure!(
       self.has_rune_index(),
-      "`ord wallet freeze` requires index created with `--index-runes` flag",
+      format!(
+        "`ord wallet {}` requires index created with `--index-runes` flag",
+        if freeze { "freeze" } else { "unfreeze" },
+      ),
     );
 
     let rune = rune.rune;
