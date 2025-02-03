@@ -6163,11 +6163,6 @@ mod tests {
 
     let (txid0, id) = context.etch(
       Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
         etching: Some(Etching {
           rune: Some(Rune(RUNE)),
           symbol: Some('$'),
@@ -6208,11 +6203,6 @@ mod tests {
 
     let (txid1, freezer_id) = context.etch(
       Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
         etching: Some(Etching {
           rune: Some(Rune(FREEZER)),
           symbol: Some('$'),

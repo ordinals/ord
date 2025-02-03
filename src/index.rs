@@ -6602,6 +6602,7 @@ mod tests {
   #[test]
   fn rune_event_sender_channel() {
     const RUNE: u128 = 99246114928149462;
+    const FREEZER: u128 = RUNE + 1;
 
     let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
     let context = Context::builder()
@@ -6618,6 +6619,7 @@ mod tests {
             cap: Some(100),
             ..default()
           }),
+          freezer: Some(Rune(FREEZER)),
           ..default()
         }),
         ..default()
@@ -6642,6 +6644,7 @@ mod tests {
             cap: Some(100),
             ..default()
           }),
+          freezer: Some(Rune(FREEZER)),
           ..default()
         },
       )],
@@ -6689,6 +6692,7 @@ mod tests {
           },
           premine: 0,
           timestamp: id.block,
+          freezer: Some(Rune(FREEZER)),
           ..default()
         },
       )],
@@ -6746,6 +6750,7 @@ mod tests {
           }),
           timestamp: 8,
           mints: 1,
+          freezer: Some(Rune(FREEZER)),
           ..Default::default()
         },
       )],
@@ -6811,6 +6816,7 @@ mod tests {
           timestamp: 8,
           mints: 1,
           burned: 111,
+          freezer: Some(Rune(FREEZER)),
           ..Default::default()
         },
       )],
@@ -6831,6 +6837,201 @@ mod tests {
         block_height: 11,
         txid: txid3,
         amount: 111,
+        rune_id: id,
+      }
+    );
+
+    let (txid4, freezer_id) = context.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(Rune(FREEZER)),
+          symbol: Some('$'),
+          premine: Some(u128::MAX),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+    );
+
+    let txid5 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(freezer_id.block.try_into().unwrap(), 1, 0, Witness::new())],
+      outputs: 1,
+      op_return: Some(
+        Runestone {
+          freeze: Some(FreezeEdict {
+            rune_id: Some(id),
+            outpoints: vec![OutPointId::new(11, 1, 1).unwrap()],
+          }),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes_and_frozen_runes(
+      [
+        (
+          id,
+          RuneEntry {
+            block: 8,
+            etching: txid0,
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              ..default()
+            },
+            terms: Some(Terms {
+              amount: Some(1000),
+              cap: Some(100),
+              ..Default::default()
+            }),
+            timestamp: 8,
+            mints: 1,
+            burned: 111,
+            freezer: Some(Rune(FREEZER)),
+            ..Default::default()
+          },
+        ),
+        (
+          freezer_id,
+          RuneEntry {
+            block: freezer_id.block,
+            etching: txid4,
+            number: 1,
+            spaced_rune: SpacedRune {
+              rune: Rune(FREEZER),
+              spacers: 0,
+            },
+            premine: u128::MAX,
+            symbol: Some('$'),
+            timestamp: freezer_id.block,
+            ..default()
+          },
+        ),
+      ],
+      [(
+        OutPoint {
+          txid: txid5,
+          vout: 0,
+        },
+        vec![(freezer_id, u128::MAX)],
+      )],
+      [(
+        OutPoint {
+          txid: txid3,
+          vout: 1,
+        },
+        vec![(id, 889)],
+      )],
+    );
+
+    event_receiver.blocking_recv().unwrap();
+    event_receiver.blocking_recv().unwrap();
+
+    pretty_assert_eq!(
+      event_receiver.blocking_recv().unwrap(),
+      Event::RuneFreezed {
+        block_height: 20,
+        outpoint: OutPoint {
+          txid: txid3,
+          vout: 1,
+        },
+        txid: txid5,
+        rune_id: id,
+      }
+    );
+
+    let txid6 = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(20, 1, 0, Witness::new())],
+      outputs: 1,
+      op_return: Some(
+        Runestone {
+          unfreeze: Some(FreezeEdict {
+            rune_id: Some(id),
+            outpoints: vec![OutPointId::new(11, 1, 1).unwrap()],
+          }),
+          ..default()
+        }
+        .encipher(),
+      ),
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    context.assert_runes_and_frozen_runes(
+      [
+        (
+          id,
+          RuneEntry {
+            block: 8,
+            etching: txid0,
+            spaced_rune: SpacedRune {
+              rune: Rune(RUNE),
+              ..default()
+            },
+            terms: Some(Terms {
+              amount: Some(1000),
+              cap: Some(100),
+              ..Default::default()
+            }),
+            timestamp: 8,
+            mints: 1,
+            burned: 111,
+            freezer: Some(Rune(FREEZER)),
+            ..Default::default()
+          },
+        ),
+        (
+          freezer_id,
+          RuneEntry {
+            block: freezer_id.block,
+            etching: txid4,
+            number: 1,
+            spaced_rune: SpacedRune {
+              rune: Rune(FREEZER),
+              spacers: 0,
+            },
+            premine: u128::MAX,
+            symbol: Some('$'),
+            timestamp: freezer_id.block,
+            ..default()
+          },
+        ),
+      ],
+      [
+        (
+          OutPoint {
+            txid: txid3,
+            vout: 1,
+          },
+          vec![(id, 889)],
+        ),
+        (
+          OutPoint {
+            txid: txid6,
+            vout: 0,
+          },
+          vec![(freezer_id, u128::MAX)],
+        ),
+      ],
+      [],
+    );
+
+    event_receiver.blocking_recv().unwrap();
+
+    pretty_assert_eq!(
+      event_receiver.blocking_recv().unwrap(),
+      Event::RuneUnfreezed {
+        block_height: 21,
+        outpoint: OutPoint {
+          txid: txid3,
+          vout: 1,
+        },
+        txid: txid6,
         rune_id: id,
       }
     );
