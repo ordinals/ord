@@ -391,7 +391,7 @@ fn freezing_rune_removes_balance() {
 
   assert_eq!(balance.runes.clone().unwrap().get(&rune), None);
 
-  assert_eq!(balance.runic.unwrap(), 20000);
+  assert_eq!(balance.runic.unwrap(), 19867);
 }
 
 #[test]

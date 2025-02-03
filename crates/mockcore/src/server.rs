@@ -386,7 +386,7 @@ impl Api for Server {
     utxos.sort();
     utxos.reverse();
 
-    if output_value >= input_value {
+    if output_value > input_value {
       for (value, outpoint) in utxos {
         if state.locked.contains(&outpoint) {
           continue;
