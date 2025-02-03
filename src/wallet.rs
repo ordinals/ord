@@ -282,8 +282,11 @@ impl Wallet {
       let Some(runes) = &info.runes else {
         return Ok(None);
       };
+      let Some(frozen_runes) = &info.frozen_runes else {
+        return Ok(None);
+      };
 
-      if !runes.is_empty() {
+      if !runes.is_empty() || !frozen_runes.is_empty() {
         runic_outputs.insert(*output);
       }
     }
