@@ -22,6 +22,16 @@
 %% }
 %% }
 %% }
+%% if let Some(frozen_runes_balances) = self.frozen_runes_balances.as_ref().filter(|frozen_runes_balances| !frozen_runes_balances.is_empty()) {
+  <dt>frozen rune balances</dt>
+%% for (rune, decimal, symbol) in frozen_runes_balances {
+%% if let Some(symbol) = symbol {
+  <dd><a class=monospace href=/rune/{{ rune }}>{{ rune }}</a>: {{ decimal }}{{ symbol }}</dd>
+%% } else {
+  <dd><a class=monospace href=/rune/{{ rune }}>{{ rune }}</a>: {{ decimal }}¤</dd>
+%% }
+%% }
+%% }
   <dt>outputs</dt>
   <dd>
     <ul>

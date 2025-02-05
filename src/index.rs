@@ -2415,12 +2415,18 @@ impl Index {
   pub(crate) fn get_aggregated_rune_balances_for_outputs(
     &self,
     outputs: &Vec<OutPoint>,
-  ) -> Result<Option<Vec<(SpacedRune, Decimal, Option<char>)>>> {
+  ) -> Result<(
+    Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
+    Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
+  )> {
     let mut runes = BTreeMap::new();
+    let mut frozen_runes = BTreeMap::new();
 
     for output in outputs {
-      let (Some(rune_balances), _) = self.get_rune_balances_for_output(*output)? else {
-        return Ok(None);
+      let (Some(rune_balances), Some(frozen_rune_balances)) =
+        self.get_rune_balances_for_output(*output)?
+      else {
+        return Ok((None, None));
       };
 
       for (spaced_rune, pile) in rune_balances {
@@ -2438,13 +2444,37 @@ impl Index {
             pile.symbol,
           ));
       }
+
+      for (spaced_rune, pile) in frozen_rune_balances {
+        frozen_runes
+          .entry(spaced_rune)
+          .and_modify(|(decimal, _symbol): &mut (Decimal, Option<char>)| {
+            assert_eq!(decimal.scale, pile.divisibility);
+            decimal.value += pile.amount;
+          })
+          .or_insert((
+            Decimal {
+              value: pile.amount,
+              scale: pile.divisibility,
+            },
+            pile.symbol,
+          ));
+      }
     }
 
-    Ok(Some(
-      runes
-        .into_iter()
-        .map(|(spaced_rune, (decimal, symbol))| (spaced_rune, decimal, symbol))
-        .collect(),
+    Ok((
+      Some(
+        runes
+          .into_iter()
+          .map(|(spaced_rune, (decimal, symbol))| (spaced_rune, decimal, symbol))
+          .collect(),
+      ),
+      Some(
+        frozen_runes
+          .into_iter()
+          .map(|(spaced_rune, (decimal, symbol))| (spaced_rune, decimal, symbol))
+          .collect(),
+      ),
     ))
   }
 

@@ -243,4 +243,5 @@ pub struct AddressInfo {
   pub inscriptions: Option<Vec<InscriptionId>>,
   pub sat_balance: u64,
   pub runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
+  pub frozen_runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
 }

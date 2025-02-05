@@ -1086,6 +1086,7 @@ impl Server {
           outputs,
           inscriptions,
           runes_balances,
+          frozen_runes_balances,
         } = info;
 
         AddressHtml {
@@ -1094,6 +1095,7 @@ impl Server {
           inscriptions,
           outputs,
           runes_balances,
+          frozen_runes_balances,
           sat_balance,
         }
         .page(server_config)
@@ -1115,13 +1117,15 @@ impl Server {
 
     let inscriptions = index.get_inscriptions_for_outputs(&outputs)?;
 
-    let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
+    let (runes_balances, frozen_runes_balances) =
+        index.get_aggregated_rune_balances_for_outputs(&outputs)?;
 
     Ok(Some(api::AddressInfo {
       sat_balance,
       outputs,
       inscriptions,
       runes_balances,
+      frozen_runes_balances,
     }))
   }
 

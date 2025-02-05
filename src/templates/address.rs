@@ -7,6 +7,7 @@ pub(crate) struct AddressHtml {
   pub(crate) inscriptions: Option<Vec<InscriptionId>>,
   pub(crate) outputs: Vec<OutPoint>,
   pub(crate) runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
+  pub(crate) frozen_runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
   pub(crate) sat_balance: u64,
 }
 
@@ -31,6 +32,30 @@ mod tests {
       inscriptions: Some(vec![inscription_id(1)]),
       sat_balance: 99,
       runes_balances: Some(vec![
+        (
+          SpacedRune {
+            rune: Rune::from_str("TEEEEEEEEESTRUNE").unwrap(),
+            spacers: 0,
+          },
+          Decimal {
+            scale: 0,
+            value: 20000,
+          },
+          Some('R'),
+        ),
+        (
+          SpacedRune {
+            rune: Rune::from_str("ANOTHERTEESTRUNE").unwrap(),
+            spacers: 0,
+          },
+          Decimal {
+            scale: 0,
+            value: 10000,
+          },
+          Some('F'),
+        ),
+      ]),
+      frozen_runes_balances: Some(vec![
         (
           SpacedRune {
             rune: Rune::from_str("TEEEEEEEEESTRUNE").unwrap(),
@@ -83,6 +108,13 @@ mod tests {
   fn test_runes_balances_rendering() {
     let address_html = setup();
     let expected_pattern = r#".*<dt>rune balances</dt>\n\s*<dd><a class=monospace href=/rune/TEEEEEEEEESTRUNE>TEEEEEEEEESTRUNE</a>: 20000R</dd>\n\s*<dd><a class=monospace href=/rune/ANOTHERTEESTRUNE>ANOTHERTEESTRUNE</a>: 10000F</dd>.*"#;
+    assert_regex_match!(address_html, expected_pattern);
+  }
+
+  #[test]
+  fn test_frozen_runes_balances_rendering() {
+    let address_html = setup();
+    let expected_pattern = r#".*<dt>frozen rune balances</dt>\n\s*<dd><a class=monospace href=/rune/TEEEEEEEEESTRUNE>TEEEEEEEEESTRUNE</a>: 20000R</dd>\n\s*<dd><a class=monospace href=/rune/ANOTHERTEESTRUNE>ANOTHERTEESTRUNE</a>: 10000F</dd>.*"#;
     assert_regex_match!(address_html, expected_pattern);
   }
 
