@@ -1153,6 +1153,63 @@ impl Index {
     Ok(rune_balances)
   }
 
+  pub fn get_frozen_rune_balance_map(
+    &self,
+  ) -> Result<BTreeMap<SpacedRune, BTreeMap<OutPoint, Pile>>> {
+    let outpoint_balances = self.get_frozen_rune_balances()?;
+
+    let rtx = self.database.begin_read()?;
+
+    let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+
+    let mut rune_balances_by_id: BTreeMap<RuneId, BTreeMap<OutPoint, u128>> = BTreeMap::new();
+
+    for (outpoint, balances) in outpoint_balances {
+      for (rune_id, amount) in balances {
+        *rune_balances_by_id
+          .entry(rune_id)
+          .or_default()
+          .entry(outpoint)
+          .or_default() += amount;
+      }
+    }
+
+    let mut rune_balances = BTreeMap::new();
+
+    for (rune_id, balances) in rune_balances_by_id {
+      let RuneEntry {
+        divisibility,
+        spaced_rune,
+        symbol,
+        ..
+      } = RuneEntry::load(
+        rune_id_to_rune_entry
+          .get(&rune_id.store())?
+          .unwrap()
+          .value(),
+      );
+
+      rune_balances.insert(
+        spaced_rune,
+        balances
+          .into_iter()
+          .map(|(outpoint, amount)| {
+            (
+              outpoint,
+              Pile {
+                amount,
+                divisibility,
+                symbol,
+              },
+            )
+          })
+          .collect(),
+      );
+    }
+
+    Ok(rune_balances)
+  }
+
   pub fn get_rune_balances(&self) -> Result<Vec<(OutPoint, Vec<(RuneId, u128)>)>> {
     let (unfrozen_result, _) = self.get_rune_balances_helper()?;
     Ok(unfrozen_result)
