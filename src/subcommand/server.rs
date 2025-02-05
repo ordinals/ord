@@ -743,6 +743,7 @@ impl Server {
           outpoint,
           output: txout,
           runes: output_info.runes,
+          frozen_runes: output_info.frozen_runes,
           sat_ranges: output_info.sat_ranges,
           spent: output_info.spent,
         }

@@ -25,6 +25,23 @@
     </table>
   </dd>
 %% }
+%% if let Some(frozen_runes) = self.frozen_runes.as_ref().filter(|frozen_runes| !frozen_runes.is_empty()) {
+  <dt>frozen runes</dt>
+  <dd>
+    <table>
+      <tr>
+        <th>rune</th>
+        <th>frozen balance</th>
+      </tr>
+%% for (rune, frozen_balance) in frozen_runes {
+      <tr>
+        <td><a href=/rune/{{ rune }}>{{ rune }}</a></td>
+        <td>{{ frozen_balance }}</td>
+      </tr>
+%% }
+    </table>
+  </dd>
+%% }
   <dt>value</dt><dd>{{ self.output.value.to_sat() }}</dd>
   <dt>script pubkey</dt><dd class=monospace>{{ self.output.script_pubkey.to_asm_string() }}</dd>
 %% if let Ok(address) = self.chain.address_from_script(&self.output.script_pubkey ) {

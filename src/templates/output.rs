@@ -7,6 +7,7 @@ pub(crate) struct OutputHtml {
   pub(crate) outpoint: OutPoint,
   pub(crate) output: TxOut,
   pub(crate) runes: Option<BTreeMap<SpacedRune, Pile>>,
+  pub(crate) frozen_runes: Option<BTreeMap<SpacedRune, Pile>>,
   pub(crate) sat_ranges: Option<Vec<(u64, u64)>>,
   pub(crate) spent: bool,
 }
@@ -33,6 +34,7 @@ mod tests {
         outpoint: outpoint(1),
         output: TxOut { value: Amount::from_sat(3), script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
         runes: Some(BTreeMap::new()),
+        frozen_runes: Some(BTreeMap::new()),
         sat_ranges: Some(vec![(0, 1), (1, 3)]),
         spent: false,
       },
@@ -67,6 +69,7 @@ mod tests {
           script_pubkey: script::Builder::new().push_int(0).into_script(),
         },
         runes: None,
+        frozen_runes: None,
         sat_ranges: None,
         spent: true,
       },
@@ -92,6 +95,7 @@ mod tests {
         outpoint: outpoint(1),
         output: TxOut { value: Amount::from_sat(3), script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
         runes: None,
+        frozen_runes: None,
         sat_ranges: Some(vec![(0, 1), (1, 3)]),
         spent: true,
       },
@@ -123,6 +127,7 @@ mod tests {
         outpoint: outpoint(1),
         output: TxOut { value: Amount::from_sat(3), script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()), },
         runes: None,
+        frozen_runes: None,
         sat_ranges: None,
         spent: false,
       }
@@ -153,6 +158,7 @@ mod tests {
           script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
         },
         runes: None,
+        frozen_runes: None,
         sat_ranges: None,
         spent: false,
       },
@@ -196,6 +202,7 @@ mod tests {
           .into_iter()
           .collect()
         ),
+        frozen_runes: None,
         sat_ranges: None,
         spent: false,
       },
@@ -208,6 +215,59 @@ mod tests {
               <tr>
                 <th>rune</th>
                 <th>balance</th>
+              </tr>
+              <tr>
+                <td><a href=/rune/A•A>A•A</a></td>
+                <td>1.1\u{A0}¤</td>
+              </tr>
+            </table>
+          </dd>
+          .*
+        </dl>
+      "
+      .unindent()
+    );
+  }
+
+  #[test]
+  fn with_frozen_runes() {
+    assert_regex_match!(
+      OutputHtml {
+        chain: Chain::Mainnet,
+        inscriptions: None,
+        outpoint: outpoint(1),
+        output: TxOut {
+          value: Amount::from_sat(3),
+          script_pubkey: ScriptBuf::new_p2pkh(&PubkeyHash::all_zeros()),
+        },
+        runes: None,
+        frozen_runes: Some(
+          vec![(
+            SpacedRune {
+              rune: Rune(26),
+              spacers: 1
+            },
+            Pile {
+              amount: 11,
+              divisibility: 1,
+              symbol: None,
+            }
+          )]
+          .into_iter()
+          .collect()
+        ),
+        sat_ranges: None,
+        spent: false,
+      },
+      "
+        <h1>Output <span class=monospace>1{64}:1</span></h1>
+        <dl>
+          <dt>frozen runes</dt>
+          <dd>
+            <table>
+              <tr>
+                <th>rune</th>
+                <th>frozen balance</th>
               </tr>
               <tr>
                 <td><a href=/rune/A•A>A•A</a></td>
