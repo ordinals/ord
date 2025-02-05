@@ -14,15 +14,15 @@ pub(super) enum Tag {
   OffsetEnd = 18,
   Mint = 20,
   Pointer = 22,
+  Freezer = 24,
   #[allow(unused)]
   Cenotaph = 126,
 
   Divisibility = 1,
   Spacers = 3,
   Symbol = 5,
-  Freezer = 7,
-  Freeze = 9,
-  Unfreeze = 11,
+  Freeze = 7,
+  Unfreeze = 9,
   #[allow(unused)]
   Nop = 127,
 }
