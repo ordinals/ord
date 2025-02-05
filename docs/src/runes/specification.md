@@ -240,6 +240,8 @@ enum Tag {
   Divisibility = 1,
   Spacers = 3,
   Symbol = 5,
+  Freeze = 7,
+  Unfreeze = 9,
   Nop = 127,
 }
 ```
@@ -325,6 +327,12 @@ by edicts should be transferred. If the `Pointer` field is absent, unallocated
 runes are transferred to the first non-`OP_RETURN` output. If the pointer is
 greater than the number of outputs, the runestone is a cenotaph.
 
+##### Freezer
+
+The `Freezer` field contains the name of the rune with the authority to freeze
+this rune. Anyone holding a freezer rune can issue `Freeze` and `Unfreeze` edicts
+for this rune.
+
 ##### Cenotaph
 
 The `Cenotaph` field is unrecognized.
@@ -372,6 +380,16 @@ currency symbol, the generic currency character `¤` should be used.
 
 For example, if the `Symbol` is `#` and the divisibility is 2, the amount of
 `1234` units should be displayed as `12.34 #`.
+
+##### Freeze
+
+The `Freeze` tag designates an integer belonging to a `FreezeEdict` that can
+freeze balances.
+
+##### Unfreeze
+
+The `Unfreeze` tag designates an integer belonging to a `FreezeEdict` that can
+unfreeze balances.
 
 ##### Nop
 
@@ -534,3 +552,45 @@ runestone is a cenotaph.
 
 Note that edicts in cenotaphs are not processed, and all input runes are
 burned.
+
+#### Freezing and Unfreezing
+
+Runes are frozen and unfrozen by a freeze edict:
+
+```rust
+pub struct FreezeEdict {
+  pub rune_id: Option<RuneId>,
+  pub outpoints: Vec<OutPointId>,
+}
+```
+
+An edict freezing runes is integer encoded following `Freeze` tags.
+An edict unfreezing runes is integer encoded following `Unfreeze` tags.
+
+Outpoint IDs are encoded as the block height, the transaction index, and the
+output of the outpoint to be frozen (or unfrozen).
+
+```rust
+struct OutPointId {
+  block: u64,
+  tx: u32,
+  output: u32,
+}
+```
+
+The `rune_id` is encoded as `None` if the first integer following the `Freeze`
+or `Unfreeze` tag is zero. Otherwise, the first two integers encode the Rune ID.
+
+Freeze and unfreeze edicts are processed after input runes, as well as minted or
+premined runes, are unallocated, but before transfer edicts are processed.
+
+A freeze (or unfreeze) edict may only freeze (or unfreeze) `rune_id` if the
+freezer rune, specified when `rune_id` was etched, is unallocated.
+
+If `rune_id` is `None`, a freeze (or unfreeze) edict may freeze (or unfreeze)
+all runes that are freezable by unallocated runes.
+
+A freeze (or unfreeze) edict freezes (or unfreezes) balances at all `outpoints`
+authorized to be frozen (or unfrozen).
+
+A frozen balance is burned if the outpoint is spent while the balance is frozen.
