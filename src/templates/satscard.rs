@@ -100,6 +100,7 @@ mod tests {
             inscriptions: Some(Vec::new()),
             outputs: Vec::new(),
             runes_balances: None,
+            frozen_runes_balances: None,
             sat_balance: 0,
           })
         )),
@@ -158,6 +159,7 @@ mod tests {
             inscriptions: Some(Vec::new()),
             outputs: Vec::new(),
             runes_balances: None,
+            frozen_runes_balances: None,
             sat_balance: 0,
           })
         )),
@@ -186,6 +188,7 @@ mod tests {
             inscriptions: Some(Vec::new()),
             outputs: Vec::new(),
             runes_balances: None,
+            frozen_runes_balances: None,
             sat_balance: 0,
           })
         )),

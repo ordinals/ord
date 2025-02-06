@@ -30,7 +30,6 @@ mod tests {
       header: true,
       outputs: vec![outpoint(1), outpoint(2)],
       inscriptions: Some(vec![inscription_id(1)]),
-      sat_balance: 99,
       runes_balances: Some(vec![
         (
           SpacedRune {
@@ -79,6 +78,7 @@ mod tests {
           Some('F'),
         ),
       ]),
+      sat_balance: 99,
     }
   }
 
