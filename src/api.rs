@@ -11,6 +11,8 @@ pub use crate::templates::{
   TransactionHtml as Transaction,
 };
 
+use ciborium::Value;
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Block {
   pub hash: BlockHash,
@@ -95,6 +97,12 @@ pub struct Inscription {
   pub satpoint: SatPoint,
   pub timestamp: i64,
   pub value: Option<u64>,
+  pub charms_raw: Option<u16>,
+  pub delegate: Option<InscriptionId>,
+  pub pointer: Option<u64>,
+  pub metadata: Option<Value>,
+  pub metaprotocol: Option<String>,
+  pub content_media: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

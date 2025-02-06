@@ -278,6 +278,7 @@ impl Server {
         .route("/runes", get(Self::runes))
         .route("/runes/balances", get(Self::runes_balances))
         .route("/sat/:sat", get(Self::sat))
+        .route("/sats", post(Self::sats_json))
         .route("/search", get(Self::search_by_query))
         .route("/search/*query", get(Self::search_by_path))
         .route("/static/*path", get(Self::static_asset))
@@ -520,6 +521,67 @@ impl Server {
         )
           .into_response(),
       )
+    })
+  }
+
+  async fn sats_json(
+    Extension(_server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Json(sats): Json<Vec<Sat>>,
+  ) -> ServerResult<Response> {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        struct SatInfo {
+          sat: Sat,
+          inscriptions: Vec<InscriptionId>,
+          satpoint: Option<SatPoint>,
+          blocktime: Blocktime,
+        }
+        let mut response = Vec::new();
+        for sat in sats {
+          let inscriptions = index.get_inscription_ids_by_sat(sat.to_owned())?;
+          let satpoint = index.rare_sat_satpoint(sat.to_owned())?.or_else(|| {
+            inscriptions.first().and_then(|&first_inscription_id| {
+              index
+                .get_inscription_satpoint_by_id(first_inscription_id)
+                .ok()
+                .flatten()
+            })
+          });
+          let blocktime = index.block_time(sat.height())?;
+          response.push(SatInfo {
+            sat,
+            inscriptions,
+            satpoint,
+            blocktime,
+          });
+        }
+        Json(
+          response
+            .iter()
+            .map(|sat_info| api::Sat {
+              number: sat_info.sat.0,
+              decimal: sat_info.sat.decimal().to_string(),
+              degree: sat_info.sat.degree().to_string(),
+              name: sat_info.sat.name(),
+              block: sat_info.sat.height().0,
+              cycle: sat_info.sat.cycle(),
+              epoch: sat_info.sat.epoch().0,
+              period: sat_info.sat.period(),
+              offset: sat_info.sat.third(),
+              rarity: sat_info.sat.rarity(),
+              percentile: sat_info.sat.percentile(),
+              satpoint: sat_info.satpoint,
+              timestamp: sat_info.blocktime.timestamp().timestamp(),
+              inscriptions: sat_info.inscriptions.to_vec(),
+            })
+            .collect::<Vec<api::Sat>>(),
+        )
+        .into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
     })
   }
 
@@ -1502,10 +1564,13 @@ impl Server {
         let mut response = Vec::new();
         for inscription in inscriptions {
           let query = query::Inscription::Id(inscription);
-          let info = Index::inscription_info(&index, query)?
-            .ok_or_not_found(|| format!("inscription {query}"))?;
-
-          response.push(info);
+          let info = Index::inscription_info(&index, query);
+          if info.is_ok() {
+            let res = info.unwrap();
+            if let Some(t) = res {
+              response.push(t);
+            }
+          }
         }
 
         Json(
@@ -1542,6 +1607,12 @@ impl Server {
               satpoint: info.satpoint,
               timestamp: timestamp(info.entry.timestamp).timestamp(),
               value: info.output.as_ref().map(|o| o.value),
+              charms_raw: Some(info.charms),
+              delegate: info.inscription.delegate(),
+              pointer: info.inscription.pointer(),
+              metadata: info.inscription.metadata(),
+              metaprotocol: info.inscription.metaprotocol().map(|mp| mp.to_owned()),
+              content_media: Some(info.inscription.media().to_string()),
             })
             .collect::<Vec<api::Inscription>>(),
         )
@@ -1594,6 +1665,12 @@ impl Server {
           satpoint: info.satpoint,
           timestamp: timestamp(info.entry.timestamp).timestamp(),
           value: info.output.as_ref().map(|o| o.value),
+          charms_raw: Some(info.charms),
+          delegate: info.inscription.delegate(),
+          pointer: info.inscription.pointer(),
+          metadata: info.inscription.metadata(),
+          metaprotocol: info.inscription.metaprotocol().map(|mp| mp.to_owned()),
+          content_media: Some(info.inscription.media().to_string()),
         })
         .into_response()
       } else {
