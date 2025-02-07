@@ -2368,21 +2368,17 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     Path(params): Path<BlockHashesParams>,
   ) -> impl IntoResponse {
-    // e.g. your BlockHashesParams had `start: u64, interval: Option<u64>, page: Option<u64>`
     let interval = params.interval.unwrap_or(1);
     let page = params.page.unwrap_or(0);
 
     match tokio::task::block_in_place(|| {
-      // Convert from u64 to u32
       let start_u32 = u32::try_from(params.start).unwrap_or(u32::MAX);
       let interval_u32 = u32::try_from(interval).unwrap_or(u32::MAX);
       let page_u32 = u32::try_from(page).unwrap_or(u32::MAX);
 
-      // Now call index with u32
       index.block_hashes_in_interval_paginated(start_u32, interval_u32, page_u32)
     }) {
       Ok((block_hashes, more_blocks)) => {
-        // we got (Vec<BlockHash>, bool)
         let prev_page = if page > 0 { Some(page - 1) } else { None };
         let next_page = if more_blocks { Some(page + 1) } else { None };
 
@@ -4108,51 +4104,6 @@ mod tests {
       "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"
     );
   }
-
-  //   #[test]
-  // fn test_blockhashes_correct_content() {
-  //     let test_server = TestServer::new();
-  //     // Here we assume your TestServer loads a known test database or index.
-  //     // For example, assume the test index is pre-populated with block headers for blocks 0..119,
-  //     // where block 0 is genesis and subsequent blocks have known hash values.
-  //     //
-  //     // You can adjust the expected values below according to your test fixture.
-  //     let response = test_server.get("/blockhashes/0/1/0");
-  //     assert_eq!(response.status(), StatusCode::OK);
-
-  //     // Check that the Content-Type is correct.
-  //     let headers = response.headers();
-  //     assert_eq!(headers.get("content-type").unwrap(), "application/json");
-
-  //     // Parse the JSON.
-  //     let body = response.text().unwrap();
-  //     let json: Value = serde_json::from_str(&body).expect("Response is not valid JSON");
-
-  //     // Check for keys.
-  //     let block_hashes = json.get("block_hashes").expect("Missing block_hashes key");
-  //     let prev_page = json.get("prev_page").expect("Missing prev_page key");
-  //     let next_page = json.get("next_page").expect("Missing next_page key");
-
-  //     // For page 0 we expect prev_page to be null.
-  //     assert!(prev_page.is_null());
-
-  //     // Assume that, in your test data, page 0 returns exactly 100 block hashes.
-  //     let hashes = block_hashes.as_array().expect("block_hashes is not an array");
-  //     assert_eq!(hashes.len(), 100);
-
-  //     // Optionally, if your test data is known, verify that the first and last hash values are what you expect.
-  //     // (Replace these expected strings with the actual values from your test fixture.)
-  //     let first_hash = hashes.first().unwrap().as_str().unwrap();
-  //     let last_hash = hashes.last().unwrap().as_str().unwrap();
-  //     assert_eq!(first_hash, "000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f");
-  //     // For example, if block 99’s hash is expected to be "expected_hash_value", then:
-  //     // assert_eq!(last_hash, "expected_hash_value");
-
-  //     // If your test data does not have additional blocks beyond page 0, next_page should be null.
-  //     // Otherwise, if there are more blocks, next_page might be a number.
-  //     // Here we simply assert that the key exists and is either null or a number.
-  //     assert!(next_page.is_null() || next_page.is_number());
-  // }
 
   #[test]
   fn block_time_endpoint() {

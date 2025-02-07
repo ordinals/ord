@@ -1,5 +1,5 @@
 use super::*;
-const PAGE_SIZE: u32 = 100; // Example page size
+const PAGE_SIZE: u32 = 100;
 pub struct Rtx(pub redb::ReadTransaction);
 
 impl Rtx {
@@ -52,7 +52,6 @@ impl Rtx {
     let height_to_block_header = self.0.open_table(HEIGHT_TO_BLOCK_HEADER)?;
     let mut block_hashes = Vec::new();
 
-    // Current height starts at `start + (page * PAGE_SIZE * interval)`, saturating to avoid overflow.
     let mut current_height =
       start.saturating_add(page.saturating_mul(PAGE_SIZE).saturating_mul(interval));
 
