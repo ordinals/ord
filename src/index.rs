@@ -51,7 +51,7 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 30;
+const SCHEMA_VERSION: u64 = 31;
 
 define_multimap_table! { OUTPOINT_TO_FROZEN_RUNE_ID, &OutPointValue, RuneIdValue }
 define_multimap_table! { RUNE_TO_FREEZABLE_RUNE_ID, u128, RuneIdValue }
