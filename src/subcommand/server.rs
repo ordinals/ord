@@ -306,7 +306,7 @@ impl Server {
         ))
         .layer(
           CorsLayer::new()
-            .allow_methods([http::Method::GET])
+            .allow_methods([http::Method::GET, http::Method::POST])
             .allow_origin(Any),
         )
         .layer(CompressionLayer::new())
