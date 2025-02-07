@@ -20,6 +20,7 @@ pub struct Inscription {
   pub metaprotocol: Option<Vec<u8>>,
   pub parents: Vec<Vec<u8>>,
   pub pointer: Option<Vec<u8>>,
+  pub properties: Option<Vec<u8>>,
   pub rune: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
@@ -34,6 +35,7 @@ impl Inscription {
     parents: Vec<InscriptionId>,
     path: Option<PathBuf>,
     pointer: Option<u64>,
+    properties: Properties,
     rune: Option<Rune>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
@@ -102,6 +104,7 @@ impl Inscription {
       parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
       rune: rune.map(|rune| rune.commitment()),
+      properties: properties.to_cbor(),
       ..default()
     })
   }
@@ -130,6 +133,7 @@ impl Inscription {
     Tag::Pointer.append(&mut builder, &self.pointer);
     Tag::Metadata.append(&mut builder, &self.metadata);
     Tag::Rune.append(&mut builder, &self.rune);
+    Tag::Properties.append(&mut builder, &self.properties);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
@@ -162,41 +166,6 @@ impl Inscription {
     builder: script::Builder,
   ) -> ScriptBuf {
     Inscription::append_batch_reveal_script_to_builder(inscriptions, builder).into_script()
-  }
-
-  fn inscription_id_field(field: Option<&[u8]>) -> Option<InscriptionId> {
-    let value = field.as_ref()?;
-
-    if value.len() < Txid::LEN {
-      return None;
-    }
-
-    if value.len() > Txid::LEN + 4 {
-      return None;
-    }
-
-    let (txid, index) = value.split_at(Txid::LEN);
-
-    if let Some(last) = index.last() {
-      // Accept fixed length encoding with 4 bytes (with potential trailing zeroes)
-      // or variable length (no trailing zeroes)
-      if index.len() != 4 && *last == 0 {
-        return None;
-      }
-    }
-
-    let txid = Txid::from_slice(txid).unwrap();
-
-    let index = [
-      index.first().copied().unwrap_or(0),
-      index.get(1).copied().unwrap_or(0),
-      index.get(2).copied().unwrap_or(0),
-      index.get(3).copied().unwrap_or(0),
-    ];
-
-    let index = u32::from_le_bytes(index);
-
-    Some(InscriptionId { txid, index })
   }
 
   pub fn media(&self) -> Media {
@@ -232,7 +201,7 @@ impl Inscription {
   }
 
   pub fn delegate(&self) -> Option<InscriptionId> {
-    Self::inscription_id_field(self.delegate.as_deref())
+    InscriptionId::from_value(self.delegate.as_deref()?)
   }
 
   pub fn metadata(&self) -> Option<Value> {
@@ -247,7 +216,7 @@ impl Inscription {
     self
       .parents
       .iter()
-      .filter_map(|parent| Self::inscription_id_field(Some(parent)))
+      .filter_map(|parent| InscriptionId::from_value(parent))
       .collect()
   }
 
@@ -302,6 +271,15 @@ impl Inscription {
       .unwrap_or_default()
       || self.metaprotocol.is_some()
       || matches!(self.media(), Media::Code(_) | Media::Text | Media::Unknown)
+  }
+
+  pub(crate) fn gallery(&self) -> Vec<InscriptionId> {
+    self
+      .properties
+      .as_ref()
+      .map(|cbor| Properties::from_cbor(cbor))
+      .unwrap_or_default()
+      .gallery
   }
 }
 
@@ -409,6 +387,64 @@ mod tests {
     assert_eq!(
       Inscription {
         metadata: Some(vec![0; 521]),
+        ..default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      8
+    );
+  }
+
+  #[test]
+  fn reveal_script_chunks_properties() {
+    assert_eq!(
+      Inscription {
+        properties: None,
+        ..default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      4
+    );
+
+    assert_eq!(
+      Inscription {
+        properties: Some(Vec::new()),
+        ..default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      4
+    );
+
+    assert_eq!(
+      Inscription {
+        properties: Some(vec![0; 1]),
+        ..default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      6
+    );
+
+    assert_eq!(
+      Inscription {
+        properties: Some(vec![0; 520]),
+        ..default()
+      }
+      .append_reveal_script(script::Builder::new())
+      .instructions()
+      .count(),
+      6
+    );
+
+    assert_eq!(
+      Inscription {
+        properties: Some(vec![0; 521]),
         ..default()
       }
       .append_reveal_script(script::Builder::new())
@@ -775,6 +811,7 @@ mod tests {
       Vec::new(),
       Some(file.path().to_path_buf()),
       None,
+      Properties::default(),
       None,
     )
     .unwrap();
@@ -790,6 +827,7 @@ mod tests {
       Vec::new(),
       Some(file.path().to_path_buf()),
       Some(0),
+      Properties::default(),
       None,
     )
     .unwrap();
@@ -805,6 +843,7 @@ mod tests {
       Vec::new(),
       Some(file.path().to_path_buf()),
       Some(1),
+      Properties::default(),
       None,
     )
     .unwrap();
@@ -820,6 +859,7 @@ mod tests {
       Vec::new(),
       Some(file.path().to_path_buf()),
       Some(256),
+      Properties::default(),
       None,
     )
     .unwrap();

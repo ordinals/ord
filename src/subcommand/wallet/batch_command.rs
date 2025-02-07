@@ -18,6 +18,15 @@ impl Batch {
 
     let batchfile = batch::File::load(&self.batch)?;
 
+    for inscription in &batchfile.inscriptions {
+      for inscription_id in &inscription.gallery {
+        ensure! {
+          wallet.inscription_exists(*inscription_id)?,
+          "gallery item does not exist: {inscription_id}",
+        }
+      }
+    }
+
     let parent_info = wallet.get_parent_info(&batchfile.parents)?;
 
     let (inscriptions, reveal_satpoints, postages, destinations) = batchfile.inscriptions(

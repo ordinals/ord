@@ -54,6 +54,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
     let metaprotocol = Tag::Metaprotocol.take(&mut fields);
     let parents = Tag::Parent.take_array(&mut fields);
     let pointer = Tag::Pointer.take(&mut fields);
+    let properties = Tag::Properties.take(&mut fields);
     let rune = Tag::Rune.take(&mut fields);
 
     let unrecognized_even_field = fields
@@ -78,6 +79,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
         metaprotocol,
         parents,
         pointer,
+        properties,
         rune,
         unrecognized_even_field,
       },
@@ -875,6 +877,45 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           metadata: Some(vec![0, 1]),
+          duplicate_field: true,
+          ..default()
+        },
+        ..default()
+      }]
+    );
+  }
+
+  #[test]
+  fn properties_are_parsed_correctly() {
+    assert_eq!(
+      parse(&[envelope(&[
+        &PROTOCOL_ID,
+        &Tag::Properties.bytes(),
+        &[1, 2, 3]
+      ])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          properties: Some(vec![1, 2, 3]),
+          ..default()
+        },
+        ..default()
+      }]
+    );
+  }
+
+  #[test]
+  fn properties_are_parsed_correctly_from_chunks() {
+    assert_eq!(
+      parse(&[envelope(&[
+        &PROTOCOL_ID,
+        &Tag::Properties.bytes(),
+        &[0],
+        &Tag::Properties.bytes(),
+        &[1]
+      ])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          properties: Some(vec![0, 1]),
           duplicate_field: true,
           ..default()
         },

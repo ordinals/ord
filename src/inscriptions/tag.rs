@@ -16,13 +16,14 @@ pub(crate) enum Tag {
   Rune = 13,
   #[allow(unused)]
   Note = 15,
+  Properties = 17,
   #[allow(unused)]
   Nop = 255,
 }
 
 impl Tag {
   fn chunked(self) -> bool {
-    matches!(self, Self::Metadata)
+    matches!(self, Self::Metadata | Self::Properties)
   }
 
   pub(crate) fn bytes(self) -> [u8; 1] {

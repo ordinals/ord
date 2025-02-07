@@ -1258,3 +1258,76 @@ fn file_inscribe_with_non_existent_delegate_inscription() {
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
+
+#[test]
+fn inscribe_can_include_gallery_items() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (id0, _) = inscribe(&core, &ord);
+  let (id1, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "wallet inscribe --file foo.txt --fee-rate 1 --gallery {id0} --gallery {id1}"
+  ))
+  .write("foo.txt", "Hello World")
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let request = ord.request(format!("/content/{}", output.inscriptions[0].id));
+
+  assert_eq!(request.status(), 200);
+  assert_eq!(
+    request.headers().get("content-type").unwrap(),
+    "text/plain;charset=utf-8"
+  );
+  assert_eq!(request.text().unwrap(), "Hello World");
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    format!(
+      r".*
+  <dt>gallery</dt>
+  <dd>
+    <div class=thumbnails>
+      <a href=/inscription/{id0}>.*</a>
+      <a href=/inscription/{id1}>.*</a>
+    </div>
+  </dd>
+.*"
+    ),
+  );
+}
+
+#[test]
+fn inscribe_fails_if_gallery_inscription_does_not_exist() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(
+    "wallet inscribe --file foo.txt --fee-rate 1 --gallery \
+    0000000000000000000000000000000000000000000000000000000000000000i0",
+  )
+  .write("foo.txt", "Hello World")
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr(
+    "error: gallery item does not exist: \
+      0000000000000000000000000000000000000000000000000000000000000000i0\n",
+  )
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}

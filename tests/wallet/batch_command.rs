@@ -2807,3 +2807,94 @@ fn forbid_etching_below_rune_activation_height() {
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
+
+#[test]
+fn batch_inscribe_can_create_inscription_with_gallery() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (id0, _) = inscribe(&core, &ord);
+  let (id1, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let output = CommandBuilder::new("wallet batch --fee-rate 2.1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write(
+      "batch.yaml",
+      format!(
+        "
+mode: shared-output
+inscriptions:
+- file: inscription.txt
+  gallery:
+  - {id0}
+  - {id1}
+"
+      ),
+    )
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let request = ord.request(format!("/content/{}", output.inscriptions[0].id));
+
+  assert_eq!(request.status(), 200);
+  assert_eq!(
+    request.headers().get("content-type").unwrap(),
+    "text/plain;charset=utf-8"
+  );
+  assert_eq!(request.text().unwrap(), "Hello World");
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", output.inscriptions[0].id),
+    format!(
+      r".*
+  <dt>gallery</dt>
+  <dd>
+    <div class=thumbnails>
+      <a href=/inscription/{id0}>.*</a>
+      <a href=/inscription/{id1}>.*</a>
+    </div>
+  </dd>
+.*"
+    ),
+  );
+}
+
+#[test]
+fn batch_inscribe_fails_if_gallery_inscription_does_not_exist() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new("wallet batch --fee-rate 2.1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write(
+      "batch.yaml",
+      "
+mode: shared-output
+inscriptions:
+- file: inscription.txt
+  gallery:
+  - 0000000000000000000000000000000000000000000000000000000000000000i0
+",
+    )
+    .core(&core)
+    .ord(&ord)
+    .expected_stderr(
+      "error: gallery item does not exist: \
+      0000000000000000000000000000000000000000000000000000000000000000i0\n",
+    )
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
