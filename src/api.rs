@@ -42,6 +42,30 @@ impl Block {
   }
 }
 
+#[derive(Debug, Deserialize)]
+pub struct BlockHashesParams {
+  pub start: u64,
+  pub interval: Option<u64>,
+  pub page: Option<u64>,
+}
+
+impl BlockHashesParams {
+  pub fn new(start: u64, interval: Option<u64>, page: Option<u64>) -> Self {
+    Self {
+      start,
+      interval,
+      page,
+    }
+  }
+}
+
+#[derive(Serialize)]
+pub struct BlockHashesJson {
+  pub block_hashes: Vec<String>,
+  pub prev_page: Option<u64>,
+  pub next_page: Option<u64>,
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct BlockInfo {
   pub average_fee: u64,

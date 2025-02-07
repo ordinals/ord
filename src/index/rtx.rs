@@ -1,6 +1,6 @@
 use super::*;
-
-pub(crate) struct Rtx(pub(crate) redb::ReadTransaction);
+const PAGE_SIZE: u32 = 100; // Example page size
+pub struct Rtx(pub redb::ReadTransaction);
 
 impl Rtx {
   pub(crate) fn block_height(&self) -> Result<Option<Height>> {
@@ -42,5 +42,31 @@ impl Rtx {
       }
       .map(|header| Header::load(*header.value()).block_hash()),
     )
+  }
+  pub fn block_hashes_in_interval_paginated(
+    &self,
+    start: u32,
+    interval: u32,
+    page: u32,
+  ) -> Result<(Vec<bitcoin::BlockHash>, bool)> {
+    let height_to_block_header = self.0.open_table(HEIGHT_TO_BLOCK_HEADER)?;
+    let mut block_hashes = Vec::new();
+
+    // Current height starts at `start + (page * PAGE_SIZE * interval)`, saturating to avoid overflow.
+    let mut current_height =
+      start.saturating_add(page.saturating_mul(PAGE_SIZE).saturating_mul(interval));
+
+    let mut fetched = 0;
+    while fetched < PAGE_SIZE {
+      if let Some(header) = height_to_block_header.get(current_height)? {
+        let block_hash = Header::load(*header.value()).block_hash();
+        block_hashes.push(block_hash);
+      }
+      current_height = current_height.saturating_add(interval);
+      fetched += 1;
+    }
+
+    let more_blocks = fetched == PAGE_SIZE;
+    Ok((block_hashes, more_blocks))
   }
 }
