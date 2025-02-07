@@ -558,9 +558,9 @@ burned.
 Runes are frozen and unfrozen by a freeze edict:
 
 ```rust
-pub struct FreezeEdict {
-  pub rune_id: Option<RuneId>,
-  pub outpoints: Vec<OutPointId>,
+struct FreezeEdict {
+  rune_id: Option<RuneId>,
+  outpoints: Vec<OutPointId>,
 }
 ```
 
