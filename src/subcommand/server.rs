@@ -182,8 +182,6 @@ impl Server {
         .route("/address/{address}", get(Self::address))
         .route("/block/{query}", get(Self::block))
         .route("/blockcount", get(Self::block_count))
-        .route("/blockhash", get(Self::block_hash))
-        .route("/blockhash/{height}", get(Self::block_hash_from_height))
         .route("/blockhashes/{start}", get(Self::block_hashes_start_only))
         .route(
           "/blockhashes/{start}/{interval}",

@@ -2453,7 +2453,6 @@ impl Index {
     let mut current_height =
       start.saturating_add(page.saturating_mul(PAGE_SIZE).saturating_mul(interval));
 
-    // Instead of looping PAGE_SIZE times, fetch PAGE_SIZE + 1 items.
     for _ in 0..(PAGE_SIZE.saturating_add(1)) {
       if let Some(header) = height_to_block_header.get(current_height)? {
         let block_hash = Header::load(*header.value()).block_hash();
@@ -2466,7 +2465,6 @@ impl Index {
 
     let more = block_hashes.len() > PAGE_SIZE as usize;
     if more {
-      // Remove the extra item so that only PAGE_SIZE block hashes are returned.
       block_hashes.pop();
     }
     Ok((block_hashes, more))
@@ -2725,8 +2723,8 @@ mod tests {
       ..default()
     };
     let second_fee_paying_tx = TransactionTemplate {
-      fee: 10,
       inputs: &[(2, 0, 0, Default::default())],
+      fee: 10,
       ..default()
     };
     context.core.broadcast_tx(first_fee_paying_tx);
@@ -6780,72 +6778,50 @@ mod tests {
     assert_eq!(Statistic::Schema.key(), 0);
   }
 
-  // Test: When fewer than PAGE_SIZE headers exist.
-  // We want total = 50 headers (blocks 0–49).
   #[test]
   fn get_block_hashes_with_no_next() {
     for context in Context::configurations() {
-      // Adjusted: mine 48 blocks so that total headers = 48 + 2 = 50.
       context.mine_blocks(49);
 
-      // Call with start=0, interval=1, page=0.
       let (block_hashes, has_next) = context
         .index
         .block_hashes_in_interval_paginated(0, 1, 0)
         .unwrap();
 
-      // Expect to receive 50 block hashes.
       assert_eq!(block_hashes.len(), 50);
-      // Since there are fewer than 100 headers, there is no next page.
       assert!(!has_next);
     }
   }
 
-  // Test: When more than PAGE_SIZE headers exist on the first page.
-  // We want total = 105 headers (blocks 0–104).
   #[test]
   fn get_block_hashes_with_next() {
     for context in Context::configurations() {
-      // Adjusted: mine 103 blocks so that total headers = 103 + 2 = 105.
       context.mine_blocks(101);
 
-      // Call with start=0, interval=1, page=0.
       let (block_hashes, has_next) = context
         .index
         .block_hashes_in_interval_paginated(0, 1, 0)
         .unwrap();
 
-      // Expect to receive exactly 100 block hashes.
       assert_eq!(block_hashes.len(), 100);
-      // Because headers 100–104 exist (5 headers), we expect a next page.
       assert!(has_next);
     }
   }
 
-  // Test: Using a non-1 interval.
-  // We want total = 200 headers (blocks 0–199).
   #[test]
   fn get_block_hashes_with_interval() {
     for context in Context::configurations() {
-      // Adjusted: mine 198 blocks so that total headers = 198 + 2 = 200.
       context.mine_blocks(199);
 
-      // With interval=2, select every other header.
       let (block_hashes, has_next) = context
         .index
         .block_hashes_in_interval_paginated(0, 2, 0)
         .unwrap();
-
-      // Expect exactly 100 block hashes.
       assert_eq!(block_hashes.len(), 100);
-      // Since blocks are 0–199, with even indices we have headers 0,2,…,198 (exactly 100 items)
-      // and header 200 does not exist, so there is no next page.
       assert!(!has_next);
     }
   }
 
-  // Test: Last page behavior.
-  // We want total = 120 headers (blocks 0–119).
   #[test]
   fn get_block_hashes_last_page() {
     for context in Context::configurations() {
@@ -6862,9 +6838,7 @@ mod tests {
         .index
         .block_hashes_in_interval_paginated(0, 1, 1)
         .unwrap();
-      // Expect 20 headers on page 1.
-      assert_eq!(second_page.len(), 21); //blocks 100-119
-                                         // Since these are the final headers, there is no next page.
+      assert_eq!(second_page.len(), 21);
       assert!(!has_next_second);
     }
   }
