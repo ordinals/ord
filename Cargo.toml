@@ -76,7 +76,7 @@ mime_guess = "2.0.4"
 miniscript = "12.0.0"
 mp4 = "0.14.0"
 ordinals = { version = "0.0.15", path = "crates/ordinals" }
-redb = "2.3.0"
+redb = "2.4.0"
 ref-cast = "1.0.23"
 regex.workspace = true
 reqwest.workspace = true
