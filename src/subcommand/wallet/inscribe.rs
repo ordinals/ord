@@ -47,6 +47,12 @@ pub(crate) struct Inscribe {
   pub(crate) sat: Option<Sat>,
   #[arg(long, help = "Inscribe <SATPOINT>.", conflicts_with = "sat")]
   pub(crate) satpoint: Option<SatPoint>,
+  #[arg(
+    long,
+    help = "Include <INSCRIPTION_ID> in gallery.",
+    value_name = "INSCRIPTION_ID"
+  )]
+  pub(crate) gallery: Vec<InscriptionId>,
 }
 
 impl Inscribe {
@@ -57,6 +63,13 @@ impl Inscribe {
       ensure! {
         wallet.inscription_exists(delegate)?,
         "delegate {delegate} does not exist"
+      }
+    }
+
+    for inscription_id in &self.gallery {
+      ensure! {
+        wallet.inscription_exists(*inscription_id)?,
+        "gallery item does not exist: {inscription_id}",
       }
     }
 
@@ -77,6 +90,9 @@ impl Inscribe {
         self.parent.into_iter().collect(),
         self.file,
         None,
+        Properties {
+          gallery: self.gallery,
+        },
         None,
       )?],
       mode: batch::Mode::SeparateOutputs,

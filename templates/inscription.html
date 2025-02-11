@@ -39,6 +39,17 @@
     </div>
   </dd>
 %% }
+%% let gallery = self.inscription.gallery();
+%% if !gallery.is_empty() {
+  <dt>gallery</dt>
+  <dd>
+    <div class=thumbnails>
+%% for id in gallery {
+      {{Iframe::thumbnail(id)}}
+%% }
+    </div>
+  </dd>
+%% }
 %% if let Some(rune) = self.rune {
   <dt>rune</dt>
   <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>
