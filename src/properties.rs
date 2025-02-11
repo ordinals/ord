@@ -1,6 +1,6 @@
 use {
   super::*,
-  minicbor::{Decode, Encode},
+  minicbor::{decode, encode, Decode, Decoder, Encode, Encoder},
 };
 
 #[derive(Debug, Default, PartialEq)]
@@ -10,7 +10,7 @@ pub struct Properties {
 
 impl Properties {
   pub(crate) fn from_cbor(cbor: &[u8]) -> Self {
-    let Ok(raw) = minicbor::decode::<RawProperties>(cbor) else {
+    let Ok(raw) = decode::<RawProperties>(cbor) else {
       return Self::default();
     };
 
@@ -72,27 +72,19 @@ enum DecodeError {
   InscriptionId { len: usize },
 }
 
-impl<'a, T> minicbor::Decode<'a, T> for InscriptionId {
-  fn decode(
-    decoder: &mut minicbor::Decoder<'a>,
-    _: &mut T,
-  ) -> Result<Self, minicbor::decode::Error> {
+impl<'a, T> Decode<'a, T> for InscriptionId {
+  fn decode(decoder: &mut Decoder<'a>, _: &mut T) -> Result<Self, decode::Error> {
     let bytes = decoder.bytes()?;
 
-    Self::from_value(bytes).ok_or_else(|| {
-      minicbor::decode::Error::custom(InscriptionIdError { len: bytes.len() }.build())
-    })
+    Self::from_value(bytes)
+      .ok_or_else(|| decode::Error::custom(InscriptionIdError { len: bytes.len() }.build()))
   }
 }
 
-impl<T> minicbor::Encode<T> for InscriptionId {
-  fn encode<W>(
-    &self,
-    encoder: &mut minicbor::Encoder<W>,
-    _: &mut T,
-  ) -> Result<(), minicbor::encode::Error<W::Error>>
+impl<T> Encode<T> for InscriptionId {
+  fn encode<W>(&self, encoder: &mut Encoder<W>, _: &mut T) -> Result<(), encode::Error<W::Error>>
   where
-    W: minicbor::encode::Write,
+    W: encode::Write,
   {
     encoder.bytes(&self.value()).map(|_| ())
   }
@@ -114,7 +106,7 @@ mod tests {
     let mut buffer = Vec::new();
 
     {
-      minicbor::Encoder::new(&mut buffer)
+      Encoder::new(&mut buffer)
         .map(1)
         .unwrap()
         .u8(0)
@@ -149,7 +141,7 @@ mod tests {
     let mut buffer = Vec::new();
 
     {
-      minicbor::Encoder::new(&mut buffer)
+      Encoder::new(&mut buffer)
         .map(1)
         .unwrap()
         .u8(0)
