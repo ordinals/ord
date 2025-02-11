@@ -103,6 +103,7 @@ pub struct Inscription {
   pub metadata: Option<Value>,
   pub metaprotocol: Option<String>,
   pub content_media: Option<String>,
+  pub content_body: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

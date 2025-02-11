@@ -1,4 +1,6 @@
 use axum::routing::post;
+use base64::{engine::general_purpose, Engine as _};
+use std::env;
 // use axum_tracing_opentelemetry::middleware::{OtelAxumLayer, OtelInResponseLayer};
 
 use {
@@ -1613,6 +1615,7 @@ impl Server {
               metadata: info.inscription.metadata(),
               metaprotocol: info.inscription.metaprotocol().map(|mp| mp.to_owned()),
               content_media: Some(info.inscription.media().to_string()),
+              content_body: Self::get_encoded_content_body(info.inscription.clone()),
             })
             .collect::<Vec<api::Inscription>>(),
         )
@@ -1621,6 +1624,54 @@ impl Server {
         StatusCode::NOT_FOUND.into_response()
       })
     })
+  }
+
+  fn is_text_related(media: Media, content_type: Option<String>) -> bool {
+    if content_type
+      .map(|ct| ct.starts_with("text/"))
+      .unwrap_or(false)
+    {
+      return true;
+    }
+
+    // check if inscription.media() is within a list of streamable media
+    match media {
+      Media::Text => true,
+      Media::Code(_) => true,
+      Media::Iframe => false,
+      Media::Markdown => true,
+      Media::Image(_) => false,
+      Media::Model => false,
+      Media::Pdf => false,
+      Media::Unknown => false,
+      Media::Video => false,
+      Media::Audio => false,
+      Media::Font => false,
+    }
+  }
+
+  fn get_encoded_content_body(inscription: Inscription) -> Option<String> {
+    let content_type = inscription
+      .content_type()
+      .map(|content_type| content_type.to_string());
+    match inscription.body() {
+      Some(body) => {
+        // only encode if the body length is less than 1M bytes
+        let kafka_body_max_bytes = env::var("KAFKA_BODY_MAX_BYTES")
+          .unwrap_or("950000".to_owned())
+          .parse::<usize>()
+          .unwrap();
+
+        if Self::is_text_related(inscription.media(), content_type)
+          && body.len() < kafka_body_max_bytes
+        {
+          Some(general_purpose::STANDARD.encode(body))
+        } else {
+          None
+        }
+      }
+      None => None,
+    }
   }
 
   async fn inscription(
@@ -1671,6 +1722,7 @@ impl Server {
           metadata: info.inscription.metadata(),
           metaprotocol: info.inscription.metaprotocol().map(|mp| mp.to_owned()),
           content_media: Some(info.inscription.media().to_string()),
+          content_body: Self::get_encoded_content_body(info.inscription),
         })
         .into_response()
       } else {
