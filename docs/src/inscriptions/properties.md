@@ -56,3 +56,8 @@ create a gallery including any inscriptions. Thus, inclusion in a gallery does
 not imply provenance. Additionally, because of this, inclusion in a gallery
 does not create a backlink from the gallery item's `/inscription` page to the
 gallery.
+
+Galleries may be created when batch inscribing with `ord wallet batch` by
+including an array of string inscription IDs of under the `gallery` key of the
+inscription entry in the batch file, or when using `ord wallet inscribe` using
+the `--gallery` option.
