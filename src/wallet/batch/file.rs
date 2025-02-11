@@ -173,7 +173,9 @@ impl File {
         self.postage.map(Amount::from_sat).unwrap_or(TARGET_POSTAGE)
       };
 
-      pointer += postage.to_sat();
+      if self.mode != Mode::SameSat {
+        pointer += postage.to_sat();
+      }
 
       if self.mode == Mode::SameSat && i > 0 {
         continue;
