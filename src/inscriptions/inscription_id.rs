@@ -69,38 +69,6 @@ impl InscriptionId {
   }
 }
 
-#[derive(Debug, Snafu)]
-#[snafu(context(suffix(false)))]
-#[snafu(display("invalid inscription ID length {len}"))]
-struct DecodeError {
-  len: usize,
-}
-
-impl<'a, T> minicbor::Decode<'a, T> for InscriptionId {
-  fn decode(
-    decoder: &mut minicbor::Decoder<'a>,
-    _: &mut T,
-  ) -> Result<Self, minicbor::decode::Error> {
-    let bytes = decoder.bytes()?;
-
-    Self::from_value(bytes)
-      .ok_or_else(|| minicbor::decode::Error::custom(DecodeError { len: bytes.len() }))
-  }
-}
-
-impl<T> minicbor::Encode<T> for InscriptionId {
-  fn encode<W>(
-    &self,
-    encoder: &mut minicbor::Encoder<W>,
-    _: &mut T,
-  ) -> Result<(), minicbor::encode::Error<W::Error>>
-  where
-    W: minicbor::encode::Write,
-  {
-    encoder.bytes(&self.value()).map(|_| ())
-  }
-}
-
 impl Display for InscriptionId {
   fn fmt(&self, f: &mut Formatter) -> fmt::Result {
     write!(f, "{}i{}", self.txid, self.index)
