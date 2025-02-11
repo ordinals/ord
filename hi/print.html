@@ -502,6 +502,15 @@ OP_ENDIF
 <p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
 <p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
 <p>Reinscribe on a sat (requires sat index): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="burning"><a class="header" href="#burning">Burning</a></h1>
+<p>Inscriptions may be burned by constructing a transaction that spends them to a script pubkey beginning with <code>OP_RETURN</code>.</p>
+<p>Sending inscriptions to a so-called "burn address" is not recognized by <code>ord</code>.</p>
+<p>Burned inscriptions receive the "burned" charm, recognized with 🔥 on the inscription's <code>/inscription</code> page.</p>
+<p>When burning inscriptions, CBOR metadata may be included in a data push immediately following the <code>OP_RETURN</code>.</p>
+<p>Burn metadata is unstructured, having no meaning to the underlying protocol, and should be human readable. It is displayed on the burned inscription's <code>/inscription</code> page, in the same manner as inscription metadata, under the heading "burn metadata".</p>
+<p>Use it, if you feel like it, to commemorate the inscription, celebrate the closing of a collection, or for whatever other purposes you so desire.</p>
+<p>Data pushes after the first are currently ignored by <code>ord</code>. However, they may be given future meaning by the protocol, and should not be used.</p>
+<p>For example, transaction <a href="https://mempool.space/tx/b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683">b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683</a> burned inscription <a href="https://ordinals.com/inscription/681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0">681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="delegate"><a class="header" href="#delegate">Delegate</a></h1>
 <p>Inscriptions may nominate a delegate inscription. Requests for the content of an inscription with a delegate will instead return the content, content type and content encoding of the delegate. This can be used to cheaply create copies of an inscription.</p>
 <h3 id="विनिरदेश"><a class="header" href="#विनिरदेश">विनिर्देश</a></h3>
@@ -619,6 +628,29 @@ OP_IF
   OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="properties"><a class="header" href="#properties">Properties</a></h1>
+<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> properties, stored as data pushes in fields with tag <code>17</code>. Since data pushes are limited to 520 bytes, CBOR longer than 520 bytes must be split into multiple tag <code>17</code> fields, which will then be concatenated before decoding.</p>
+<p>Properties are a structured counterpart to <a href="inscriptions/metadata.html">metadata</a>. While metadata may contain arbitrary CBOR which has no protocol-defined meaning and is presented on <code>/inscription</code> as HTML, properties have protocol-defined meaning and must conform to a strict schema.</p>
+<p>Indefinite-length types are not supported. All maps, arrays, byte strings, and text strings must be definite.</p>
+<p>The non-normative <a href="https://datatracker.ietf.org/doc/html/rfc8610">CDDL</a> schema of the properties value is as follows:</p>
+<pre><code class="language-cddl">Properties = {
+  ? 0: [*GalleryItem],
+  * any =&gt; any,
+}
+
+GalleryItem = {
+  ? 0: bstr .size (32..36),
+  * any =&gt; any,
+}
+</code></pre>
+<p>The above CDDL schema is provided as a convenience. As always, the ordinals reference implementation <code>ord</code> is the normative specification of inscriptions, and thus the properties field.</p>
+<p>Fields matching the <code>* any =&gt; any</code> wildcard must be ignored, for compatibility with future additions.</p>
+<h1 id="galleries"><a class="header" href="#galleries">Galleries</a></h1>
+<p>Inscriptions whose properties field contains <code>GalleryItem</code>s are galleries.</p>
+<p>Galleries contain <code>GalleryItem</code>s, whose only defined key <code>0</code> contains a serialized inscription ID. Inscription ID <code>TXIDiINDEX</code> is serialized as a byte string containing the 32 byte TXID, concatenated with by the four-byte little-endian <code>INDEX</code>. Trailing zeros may be removed from four-byte <code>INDEX</code>, so IDs ending in <code>i0</code> may be serialized in 32 bytes.</p>
+<p>Gallery items are displayed on the inscriptions <code>/inscription</code> page on the explorer.</p>
+<p>Galleries are similar to children, in that they provide a way to create collections of inscriptions. However, galleries are permissionless. Anyone may create a gallery including any inscriptions. Thus, inclusion in a gallery does not imply provenance. Additionally, because of this, inclusion in a gallery does not create a backlink from the gallery item's <code>/inscription</code> page to the gallery.</p>
+<p>Galleries may be created when batch inscribing with <code>ord wallet batch</code> by including an array of string inscription IDs of under the <code>gallery</code> key of the inscription entry in the batch file, or when using <code>ord wallet inscribe</code> using the <code>--gallery</code> option.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="उतपति"><a class="header" href="#उतपति">उत्‍पति</a></h1>
 <p>एक इंस्‍क्रि‍प्‍शंस का मालिक चाइल्‍ड इंस्‍क्रि‍प्‍शंस का सृजन कर सकता है, अविश्वसनीय रूप से, उन बच्चों की ऑन-चेन उत्पत्ति को इस प्रकार से स्‍थापित किया जाएगा जिस प्रकार से उन्हें मूल इंस्‍क्रि‍प्‍शंस के मालिक द्वारा निर्मित किया गया है। इसका उपयोग संग्रहों के लिए किया जा सकता है, जिसमें मूल इंस्‍क्रि‍प्‍शंस के बच्चे उसी संग्रह के सदस्य होंगे।</p>
 <p>बच्चे स्वयं बच्चों की उत्‍पति कर सकते हैं, जटिल पदानुक्रमों सक्षम करते हुए। उदाहरण के लिए, एक कलाकार अपने स्‍वयं का प्रतिनिधित्व करने वाले इंस्‍क्रि‍प्‍शंस का सृजन कर सकता है, जिसमें वह उसके द्वारा सृजन किए गये उप इंस्‍क्रि‍प्‍शंस संग्रहों का प्रतिनिधित्व करते हैं, जिसमें उन उप इंस्‍क्रि‍प्‍शंस के बच्चे उन संग्रहों के नाते उसकी मदें होंगी।</p>
@@ -3995,15 +4027,6 @@ i               # separator
 <p>Inscription URIs are case-insensitive and can thus use the more compact alphanumeric mode when encoded as QR codes. Lowercase is, however, the preferred presentation style.</p>
 <p>The referent of an inscription URI is an HTTP resource with the content, content type, content encoding, and content length corresponding to the inscription with the given ID.</p>
 <p>The referent of an inscription URI is always the original content of the target inscription, and not the content of the delegate, regardless of whether or not the target inscription has a delegate.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="burning"><a class="header" href="#burning">Burning</a></h1>
-<p>Inscriptions may be burned by constructing a transaction that spends them to a script pubkey beginning with <code>OP_RETURN</code>.</p>
-<p>Sending inscriptions to a so-called "burn address" is not recognized by <code>ord</code>.</p>
-<p>Burned inscriptions receive the "burned" charm, recognized with 🔥 on the inscription's <code>/inscription</code> page.</p>
-<p>When burning inscriptions, CBOR metadata may be included in a data push immediately following the <code>OP_RETURN</code>.</p>
-<p>Burn metadata is unstructured, having no meaning to the underlying protocol, and should be human readable. It is displayed on the burned inscription's <code>/inscription</code> page, in the same manner as inscription metadata, under the heading "burn metadata".</p>
-<p>Use it, if you feel like it, to commemorate the inscription, celebrate the closing of a collection, or for whatever other purposes you so desire.</p>
-<p>Data pushes after the first are currently ignored by <code>ord</code>. However, they may be given future meaning by the protocol, and should not be used.</p>
-<p>For example, transaction <a href="https://mempool.space/tx/b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683">b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683</a> burned inscription <a href="https://ordinals.com/inscription/681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0">681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="inscription-examples"><a class="header" href="#inscription-examples">Inscription Examples</a></h1>
 <h2 id="delegate-1"><a class="header" href="#delegate-1">Delegate</a></h2>
 <ul>
@@ -13091,6 +13114,12 @@ inscriptions:
   destination: bc1pdqrcrxa8vx6gy75mfdfj84puhxffh4fq46h3gkp6jxdd0vjcsdyspfxcv6
   metadata:
     author: Satoshi Nakamoto
+
+- file: gallery.png
+  # gallery items
+  gallery:
+  - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0
+  - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="splitting"><a class="header" href="#splitting">Splitting</a></h1>
 <p>Complex transactions can be created using the <code>ord wallet split</code> command.</p>
