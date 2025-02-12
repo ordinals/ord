@@ -2279,31 +2279,30 @@ impl Server {
 
       let parents = ids
         .into_iter()
-        .map(|inscription_id| {
-          let entry = index
-            .get_inscription_entry(inscription_id)
-            .unwrap()
-            .unwrap();
+        .map(
+          |inscription_id| -> ServerResult<api::RelativeInscriptionRecursive> {
+            let entry = index
+              .get_inscription_entry(inscription_id)?
+              .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
-          let satpoint = index
-            .get_inscription_satpoint_by_id(inscription_id)
-            .ok()
-            .flatten()
-            .unwrap();
+            let satpoint = index
+              .get_inscription_satpoint_by_id(inscription_id)?
+              .ok_or_not_found(|| format!("satpoint for inscription {inscription_id}"))?;
 
-          api::RelativeInscriptionRecursive {
-            charms: Charm::charms(entry.charms),
-            fee: entry.fee,
-            height: entry.height,
-            id: inscription_id,
-            number: entry.inscription_number,
-            output: satpoint.outpoint,
-            sat: entry.sat,
-            satpoint,
-            timestamp: timestamp(entry.timestamp.into()).timestamp(),
-          }
-        })
-        .collect();
+            Ok(api::RelativeInscriptionRecursive {
+              charms: Charm::charms(entry.charms),
+              fee: entry.fee,
+              height: entry.height,
+              id: inscription_id,
+              number: entry.inscription_number,
+              output: satpoint.outpoint,
+              sat: entry.sat,
+              satpoint,
+              timestamp: timestamp(entry.timestamp.into()).timestamp(),
+            })
+          },
+        )
+        .collect::<Result<Vec<_>, _>>()?;
 
       Ok(
         Json(api::ParentInscriptions {
