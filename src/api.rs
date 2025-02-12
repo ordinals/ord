@@ -139,6 +139,19 @@ pub struct InscriptionRecursive {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ChildInscriptionRecursive {
+  pub charms: Vec<Charm>,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
+  pub number: i32,
+  pub output: OutPoint,
+  pub sat: Option<ordinals::Sat>,
+  pub satpoint: SatPoint,
+  pub timestamp: i64,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RelativeInscriptionRecursive {
   pub charms: Vec<Charm>,
   pub fee: u64,

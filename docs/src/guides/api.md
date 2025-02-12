@@ -5129,8 +5129,4 @@ curl -s -H "Accept: application/json" \
 
 See [Recursion](../inscriptions/recursion.md) for an explanation of these.
 
-<<<<<<< HEAD
-{{#include ../inscriptions/recursion.md:35:3483}}
-=======
 {{#include ../inscriptions/recursion.md:35:925}}
->>>>>>> 57a17c76 (Amend)

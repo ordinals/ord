@@ -187,7 +187,7 @@ pub(super) async fn children_inscriptions_paginated(
           .flatten()
           .unwrap();
 
-        api::ChildInscriptionRecursive {
+        api::RelativeInscriptionRecursive {
           charms: Charm::charms(entry.charms),
           fee: entry.fee,
           height: entry.height,
@@ -451,7 +451,7 @@ pub async fn parent_inscriptions_recursive_paginated(
     let parents = ids
       .into_iter()
       .map(
-        |inscription_id| -> ServerResult<api::ChildInscriptionRecursive> {
+        |inscription_id| -> ServerResult<api::RelativeInscriptionRecursive> {
           let entry = index
             .get_inscription_entry(inscription_id)?
             .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
@@ -460,7 +460,7 @@ pub async fn parent_inscriptions_recursive_paginated(
             .get_inscription_satpoint_by_id(inscription_id)?
             .ok_or_not_found(|| format!("satpoint for inscription {inscription_id}"))?;
 
-          Ok(api::ChildInscriptionRecursive {
+          Ok(api::RelativeInscriptionRecursive {
             charms: Charm::charms(entry.charms),
             fee: entry.fee,
             height: entry.height,
