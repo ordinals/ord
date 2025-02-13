@@ -6753,7 +6753,7 @@ mod tests {
 
   #[test]
   fn assert_schema_statistic_key_is_zero() {
-    // other schema statistic keys may chenge when the schema changes, but for
+    // other schema statistic keys may change when the schema changes, but for
     // good error messages in older versions, the schema statistic key must be
     // zero
     assert_eq!(Statistic::Schema.key(), 0);
