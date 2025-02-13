@@ -114,7 +114,7 @@ impl Accept {
 
       {
         let signed_tx = Transaction::consensus_decode(&mut signed_tx.as_slice())
-          .context("unable to decode finalized transction")?;
+          .context("unable to decode finalized transaction")?;
 
         ensure! {
           signed_tx.input.len() == psbt.inputs.len() &&
