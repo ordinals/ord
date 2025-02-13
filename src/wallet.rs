@@ -240,7 +240,7 @@ impl Wallet {
       self
         .output_info
         .get(output)
-        .ok_or(anyhow!("outpout not found in wallet"))?
+        .ok_or(anyhow!("output not found in wallet"))?
         .inscriptions
         .clone(),
     )
