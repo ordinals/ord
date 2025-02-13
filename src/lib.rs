@@ -26,6 +26,7 @@ use {
     into_usize::IntoUsize,
     option_ext::OptionExt,
     outgoing::Outgoing,
+    properties::Properties,
     representation::Representation,
     satscard::Satscard,
     settings::Settings,
@@ -124,6 +125,7 @@ mod object;
 mod option_ext;
 pub mod options;
 pub mod outgoing;
+mod properties;
 mod re;
 mod representation;
 pub mod runes;
