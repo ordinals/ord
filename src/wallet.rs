@@ -71,7 +71,6 @@ pub(crate) enum Maturity {
 }
 
 pub(crate) struct Wallet {
-  bitcoin_client: Client,
   database: Database,
   has_rune_index: bool,
   has_sat_index: bool,
@@ -150,7 +149,7 @@ impl Wallet {
   }
 
   pub(crate) fn bitcoin_client(&self) -> &Client {
-    &self.bitcoin_client
+    panic!("attempt to access bitcoin client")
   }
 
   pub(crate) fn utxos(&self) -> &BTreeMap<OutPoint, TxOut> {
@@ -333,7 +332,7 @@ impl Wallet {
   pub(crate) fn get_change_address(&self) -> Result<Address> {
     Ok(
       self
-        .bitcoin_client
+        .bitcoin_client()
         .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
         .context("could not get change addresses from wallet")?
         .require_network(self.chain().network())?,
