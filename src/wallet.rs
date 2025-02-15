@@ -519,12 +519,15 @@ impl Wallet {
     Ok(())
   }
 
+  #[allow(unused_variables, unreachable_code)]
   pub(crate) fn initialize(
     name: String,
     settings: &Settings,
     seed: [u8; 64],
     timestamp: bitcoincore_rpc::json::Timestamp,
   ) -> Result {
+    panic!("attempt to initialize bitcoin client");
+
     Self::check_version(settings.bitcoin_rpc_client(None)?)?.create_wallet(
       &name,
       None,
