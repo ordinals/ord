@@ -265,11 +265,11 @@ impl Server {
           get(r::parents_paginated),
         )
         .route(
-          "/r/parents/:inscription_id/inscriptions",
+          "/r/parents/{inscription_id}/inscriptions",
           get(r::parent_inscriptions_recursive),
         )
         .route(
-          "/r/parents/:inscription_id/inscriptions/:page",
+          "/r/parents/{inscription_id}/inscriptions/{page}",
           get(r::parent_inscriptions_recursive_paginated),
         )
         .route("/r/sat/{sat_number}", get(r::sat))
