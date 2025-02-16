@@ -430,14 +430,14 @@ pub(super) async fn parents(
   parents_paginated(Extension(index), Path((inscription_id, 0))).await
 }
 
-pub async fn parent_inscriptions_recursive(
+pub async fn parent_inscriptions(
   Extension(index): Extension<Arc<Index>>,
   Path(inscription_id): Path<InscriptionId>,
 ) -> ServerResult {
-  parent_inscriptions_recursive_paginated(Extension(index), Path((inscription_id, 0))).await
+  parent_inscriptions_paginated(Extension(index), Path((inscription_id, 0))).await
 }
 
-pub async fn parent_inscriptions_recursive_paginated(
+pub async fn parent_inscriptions_paginated(
   Extension(index): Extension<Arc<Index>>,
   Path((child, page)): Path<(InscriptionId, usize)>,
 ) -> ServerResult {

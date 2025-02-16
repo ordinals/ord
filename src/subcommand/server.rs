@@ -266,11 +266,11 @@ impl Server {
         )
         .route(
           "/r/parents/{inscription_id}/inscriptions",
-          get(r::parent_inscriptions_recursive),
+          get(r::parent_inscriptions),
         )
         .route(
           "/r/parents/{inscription_id}/inscriptions/{page}",
-          get(r::parent_inscriptions_recursive_paginated),
+          get(r::parent_inscriptions_paginated),
         )
         .route("/r/sat/{sat_number}", get(r::sat))
         .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index))
