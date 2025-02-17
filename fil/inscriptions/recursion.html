@@ -3387,11 +3387,117 @@
 <details>
   <summary>
     <code>GET</code>
-    <code><b>/r/sat/&lt;SAT_NUMBER&gt;</b></code>
+    <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
   </summary>
 <h3 id="description-15"><a class="header" href="#description-15">Description</a></h3>
-<p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
+<p>Details of the first 100 parent inscriptions.</p>
 <h3 id="halimbawa-13"><a class="header" href="#halimbawa-13">Halimbawa</a></h3>
+<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/parents/4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019i0/inscriptions
+</code></pre>
+<pre><code class="language-json">{
+  "parents": [
+    {
+      "charms": [],
+      "fee": 21730,
+      "height": 775167,
+      "id": "92c409fb749b1005fe9a1482d3a74a8e73936a72644f4979df8184aba473841di0",
+      "number": 4573,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:13",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:13:0",
+      "timestamp": 1675607405
+    },
+    {
+      "charms": [],
+      "fee": 14977,
+      "height": 775167,
+      "id": "c689cbcb8e31858c5e1476d04af4e7e7cedd1fb4fb9cae5bb62036936a08282di0",
+      "number": 4576,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:14",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:14:0",
+      "timestamp": 1675607405
+    },
+    {
+      "charms": [],
+      "fee": 12533,
+      "height": 775167,
+      "id": "982d15f6b3510307ef845f1cb3352b27e2b048616b7c0642367ebc05bbd36d3ai0",
+      "number": 4578,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:12",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:12:0",
+      "timestamp": 1675607405
+    }
+    ...
+  ],
+  "more": true,
+  "page": 0
+}
+</code></pre>
+</details>
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
+  </summary>
+<h3 id="description-16"><a class="header" href="#description-16">Description</a></h3>
+<p>Details of the set of 100 parent inscriptions on &lt;PAGE&gt;.</p>
+<h3 id="halimbawa-14"><a class="header" href="#halimbawa-14">Halimbawa</a></h3>
+<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/parents/4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019i0/inscriptions/1
+</code></pre>
+<pre><code class="language-json">{
+  "parents": [
+    {
+      "charms": [],
+      "fee": 65049,
+      "height": 775443,
+      "id": "972994a55c338e8458bfd156642f4aa56bdab54c68658d6b64d932fedef3c81fi0",
+      "number": 10804,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:102",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:102:0",
+      "timestamp": 1675780989
+    },
+    {
+      "charms": [],
+      "fee": 60111,
+      "height": 775443,
+      "id": "dbc21f2d3323df24a378fef3bdbe4e79c4947ce7da54968affcdefa7eda80d21i0",
+      "number": 10805,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:110",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:110:0",
+      "timestamp": 1675780989
+    },
+    {
+      "charms": [],
+      "fee": 49881,
+      "height": 775443,
+      "id": "97870f7cf65992a66d0413a7e6773190e686f185500f78c30f989f2d1f1ba922i0",
+      "number": 10806,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:101",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:101:0",
+      "timestamp": 1675780989
+    }
+    ...
+  ],
+  "more": false,
+  "page": 1
+}
+</code></pre>
+</details>
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/sat/&lt;SAT_NUMBER&gt;</b></code>
+  </summary>
+<h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
+<p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
+<h3 id="halimbawa-15"><a class="header" href="#halimbawa-15">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999
 </code></pre>
@@ -3412,9 +3518,9 @@
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/&lt;PAGE&gt;</b></code>
   </summary>
-<h3 id="description-16"><a class="header" href="#description-16">Description</a></h3>
+<h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
 <p>The set of 100 inscription ids on <code>&lt;PAGE&gt;</code>. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="halimbawa-14"><a class="header" href="#halimbawa-14">Halimbawa</a></h3>
+<h3 id="halimbawa-16"><a class="header" href="#halimbawa-16">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/1499676120331756/1
 </code></pre>
@@ -3442,9 +3548,9 @@
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;</b></code>
   </summary>
-<h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
+<h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
 <p>The inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="halimbawa-15"><a class="header" href="#halimbawa-15">Halimbawa</a></h3>
+<h3 id="halimbawa-17"><a class="header" href="#halimbawa-17">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999/at/-1
 </code></pre>
@@ -3458,9 +3564,9 @@
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</b></code>
   </summary>
-<h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
+<h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
 <p>The content of the inscription at <code>&lt;INDEX&gt;</code> on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="halimbawa-16"><a class="header" href="#halimbawa-16">Halimbawa</a></h3>
+<h3 id="halimbawa-18"><a class="header" href="#halimbawa-18">Halimbawa</a></h3>
 <p>Fetch the content of the most recently created inscription on sat 289488340427831.</p>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/289488340427831/at/-1/content
@@ -3473,9 +3579,9 @@
     <code>GET</code>
     <code><b>/r/tx/&lt;TRANSACTION_ID&gt;</b></code>
   </summary>
-<h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
+<h3 id="description-21"><a class="header" href="#description-21">Description</a></h3>
 <p>Get hex-encoded transaction with <code>&lt;TRANSACTION_ID&gt;</code>. In the event of a future change to Bitcoin that changes transaction serialization in a backwards-incompatible fashion, such as SegWit, this endpoint is guaranteed to remain backwards compatible.</p>
-<h3 id="halimbawa-17"><a class="header" href="#halimbawa-17">Halimbawa</a></h3>
+<h3 id="halimbawa-19"><a class="header" href="#halimbawa-19">Halimbawa</a></h3>
 <pre><code class="language-bash">curl -s http://0.0.0.0:80/r/tx/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa
 </code></pre>
 <pre><code class="language-json">"0100000000010183572872dcb32bee57003d53c2b8dbb5bc5819ff6478052599911f7778d1c7bd0000000000fdffffff011027000000000000225120e41e0cba05c6ac797cf543ff9a6c619a91a53813e59146d1e32ea89747b111a603407aa50d93d6fc01265fd52d3edc93af4e009ccc1a704ce1b5cb8ede1412a5df31eba587d080b3dc903ceb9002ed9d921aad323fd44d7b4dc2a1ad2ea12d4360424d20c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326effac0063036f7264010118746578742f706c61696e3b636861727365743d7574662d3800077072696d65730a6821c1c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326eff00000000"
@@ -3486,7 +3592,7 @@
     <code>GET</code>
     <code><b>/r/utxo/&lt;OUTPOINT&gt;</b></code>
   </summary>
-<h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
+<h3 id="description-22"><a class="header" href="#description-22">Description</a></h3>
 <p>Get assets held by an unspent transaction output.</p>
 <h3 id="examples"><a class="header" href="#examples">Examples</a></h3>
 <p>Unspent transaction output with server without any indices:</p>
