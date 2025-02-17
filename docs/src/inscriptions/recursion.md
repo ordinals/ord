@@ -721,6 +721,128 @@ curl -s \
 <details>
   <summary>
     <code>GET</code>
+    <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
+  </summary>
+
+### Description
+
+Details of the first 100 parent inscriptions.
+
+### Example
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/parents/4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019i0/inscriptions
+```
+
+```json
+{
+  "parents": [
+    {
+      "charms": [],
+      "fee": 21730,
+      "height": 775167,
+      "id": "92c409fb749b1005fe9a1482d3a74a8e73936a72644f4979df8184aba473841di0",
+      "number": 4573,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:13",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:13:0",
+      "timestamp": 1675607405
+    },
+    {
+      "charms": [],
+      "fee": 14977,
+      "height": 775167,
+      "id": "c689cbcb8e31858c5e1476d04af4e7e7cedd1fb4fb9cae5bb62036936a08282di0",
+      "number": 4576,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:14",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:14:0",
+      "timestamp": 1675607405
+    },
+    {
+      "charms": [],
+      "fee": 12533,
+      "height": 775167,
+      "id": "982d15f6b3510307ef845f1cb3352b27e2b048616b7c0642367ebc05bbd36d3ai0",
+      "number": 4578,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:12",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:12:0",
+      "timestamp": 1675607405
+    }
+    ...
+  ],
+  "more": true,
+  "page": 0
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
+  </summary>
+
+### Description
+
+Details of the set of 100 parent inscriptions on &lt;PAGE&gt;.
+
+### Example
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0:80/r/parents/4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019i0/inscriptions/1
+```
+
+```json
+{
+  "parents": [
+    {
+      "charms": [],
+      "fee": 65049,
+      "height": 775443,
+      "id": "972994a55c338e8458bfd156642f4aa56bdab54c68658d6b64d932fedef3c81fi0",
+      "number": 10804,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:102",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:102:0",
+      "timestamp": 1675780989
+    },
+    {
+      "charms": [],
+      "fee": 60111,
+      "height": 775443,
+      "id": "dbc21f2d3323df24a378fef3bdbe4e79c4947ce7da54968affcdefa7eda80d21i0",
+      "number": 10805,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:110",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:110:0",
+      "timestamp": 1675780989
+    },
+    {
+      "charms": [],
+      "fee": 49881,
+      "height": 775443,
+      "id": "97870f7cf65992a66d0413a7e6773190e686f185500f78c30f989f2d1f1ba922i0",
+      "number": 10806,
+      "output": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:101",
+      "sat": null,
+      "satpoint": "4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019:101:0",
+      "timestamp": 1675780989
+    }
+    ...
+  ],
+  "more": false,
+  "page": 1
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;</b></code>
   </summary>
 
