@@ -91,3 +91,8 @@ fn create_with_different_name() {
 
   assert!(core.wallets().contains("inscription-wallet"));
 }
+
+#[test]
+fn create_with_same_name_fails() {
+  todo!()
+}

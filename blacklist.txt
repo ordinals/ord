@@ -102,7 +102,6 @@ wallet::burn::oversize_metadata_requires_no_limit_flag
 wallet::burn::runic_outputs_are_protected
 wallet::cardinals::cardinals
 wallet::cardinals::cardinals_does_not_show_runic_outputs
-wallet::create::create
 wallet::create::create_with_different_name
 wallet::create::detect_wrong_descriptors
 wallet::create::seed_phrases_are_twelve_words_long
