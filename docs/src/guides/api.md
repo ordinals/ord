@@ -5127,6 +5127,4 @@ curl -s -H "Accept: application/json" \
 
 ## Recursive Endpoints
 
-See [Recursion](../inscriptions/recursion.md) for an explanation of these.
-
-{{#include ../inscriptions/recursion.md:35:3483}}
+See [Recursion](../inscriptions/recursion.md).
