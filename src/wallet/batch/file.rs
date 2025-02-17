@@ -52,6 +52,17 @@ impl File {
       );
     }
 
+    for inscription in &batchfile.inscriptions {
+      let mut items = BTreeSet::new();
+
+      for item in &inscription.gallery {
+        ensure! {
+          items.insert(item),
+          "duplicate gallery item: {item}",
+        }
+      }
+    }
+
     let any_entry_has_satpoint = batchfile
       .inscriptions
       .iter()
@@ -140,6 +151,7 @@ impl File {
         self.parents.clone(),
         entry.file.clone(),
         Some(pointer),
+        entry.properties(),
         self
           .etching
           .and_then(|etch| (i == 0).then_some(etch.rune.rune)),
@@ -161,7 +173,9 @@ impl File {
         self.postage.map(Amount::from_sat).unwrap_or(TARGET_POSTAGE)
       };
 
-      pointer += postage.to_sat();
+      if self.mode != Mode::SameSat {
+        pointer += postage.to_sat();
+      }
 
       if self.mode == Mode::SameSat && i > 0 {
         continue;
@@ -441,6 +455,18 @@ inscriptions:
             })),
             ..default()
           },
+          batch::Entry {
+            file: Some("gallery.png".into()),
+            gallery: vec![
+              "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0"
+                .parse()
+                .unwrap(),
+              "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3"
+                .parse()
+                .unwrap(),
+            ],
+            ..default()
+          },
         ],
       }
     );
@@ -461,5 +487,30 @@ inscriptions:
     .unwrap();
 
     assert!(batch::File::load(batch_file.as_path()).is_ok());
+  }
+
+  #[test]
+  fn batchfile_no_duplicate_gallery_items() {
+    let tempdir = TempDir::new().unwrap();
+    let batch_file = tempdir.path().join("batch.yaml");
+    fs::write(
+      batch_file.clone(),
+      r#"
+mode: separate-outputs
+inscriptions:
+- file: inscription.txt
+  gallery:
+  - 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
+  - 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
+"#,
+    )
+    .unwrap();
+
+    assert_eq!(
+      batch::File::load(batch_file.as_path())
+        .unwrap_err()
+        .to_string(),
+      "duplicate gallery item: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0"
+    );
   }
 }
