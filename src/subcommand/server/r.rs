@@ -175,8 +175,8 @@ pub(super) async fn children_inscriptions_paginated(
 
     let children = ids
       .into_iter()
-      .map(|inscription_id| to_relative_inscription(&index, inscription_id))
-      .collect::<Result<Vec<_>, _>>()?;
+      .map(|inscription_id| get_relative_inscription(&index, inscription_id))
+      .collect::<ServerResult<Vec<api::RelativeInscriptionRecursive>>>()?;
 
     Ok(
       Json(api::ChildInscriptions {
@@ -427,8 +427,8 @@ pub async fn parent_inscriptions_paginated(
 
     let parents = ids
       .into_iter()
-      .map(|inscription_id| to_relative_inscription(&index, inscription_id))
-      .collect::<Result<Vec<_>, _>>()?;
+      .map(|inscription_id| get_relative_inscription(&index, inscription_id))
+      .collect::<ServerResult<Vec<api::RelativeInscriptionRecursive>>>()?;
 
     Ok(
       Json(api::ParentInscriptions {
@@ -532,21 +532,23 @@ pub(super) async fn sat_at_index_content(
   .await
 }
 
-fn to_relative_inscription(
+fn get_relative_inscription(
   index: &Index,
-  inscription_id: InscriptionId,
+  id: InscriptionId,
 ) -> ServerResult<api::RelativeInscriptionRecursive> {
   let entry = index
-    .get_inscription_entry(inscription_id)?
-    .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+    .get_inscription_entry(id)?
+    .ok_or_not_found(|| format!("inscription {id}"))?;
+
   let satpoint = index
-    .get_inscription_satpoint_by_id(inscription_id)?
-    .ok_or_not_found(|| format!("satpoint for inscription {inscription_id}"))?;
+    .get_inscription_satpoint_by_id(id)?
+    .ok_or_not_found(|| format!("satpoint for inscription {id}"))?;
+
   Ok(api::RelativeInscriptionRecursive {
     charms: Charm::charms(entry.charms),
     fee: entry.fee,
     height: entry.height,
-    id: inscription_id,
+    id,
     number: entry.inscription_number,
     output: satpoint.outpoint,
     sat: entry.sat,
