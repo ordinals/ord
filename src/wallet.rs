@@ -1,7 +1,6 @@
 use {
   super::*,
   batch::ParentInfo,
-  bdk_wallet as bdk,
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, Xpriv},
     psbt::Psbt,
@@ -76,7 +75,8 @@ pub(crate) enum Maturity {
 }
 
 pub(crate) struct Wallet {
-  database: Database,
+  pub(crate) wallet: PersistedWallet<persister::Persister>,
+  database: Arc<Database>,
   has_rune_index: bool,
   has_sat_index: bool,
   rpc_url: Url,
@@ -89,6 +89,7 @@ pub(crate) struct Wallet {
   settings: Settings,
 }
 
+#[allow(dead_code)]
 impl Wallet {
   pub(crate) fn get_wallet_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
     ensure!(
@@ -587,7 +588,6 @@ impl Wallet {
     Ok(())
   }
 
-  #[allow(unused_variables, unreachable_code)]
   pub(crate) fn initialize_old(
     name: String,
     settings: &Settings,
@@ -703,6 +703,14 @@ impl Wallet {
       .join("wallets")
       .join(format!("{wallet_name}.redb"));
 
+    if path.exists() {
+      bail!(
+        "wallet {} at `{}` already exists",
+        wallet_name,
+        path.display()
+      );
+    }
+
     if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
       bail!(
         "failed to create data dir `{}`: {err}",
@@ -724,10 +732,84 @@ impl Wallet {
 
     tx.commit()?;
 
+    assert!(path.exists());
+
     Ok(database)
   }
 
   pub(crate) fn open_database(wallet_name: &String, settings: &Settings) -> Result<Database> {
+    let path = settings
+      .data_dir()
+      .join("wallets")
+      .join(format!("{wallet_name}.redb"));
+
+    let db_path = path.clone().to_owned();
+    let once = Once::new();
+    let progress_bar = Mutex::new(None);
+    let integration_test = settings.integration_test();
+
+    let repair_callback = move |progress: &mut RepairSession| {
+      once.call_once(|| {
+        println!(
+          "Wallet database file `{}` needs recovery. This can take some time.",
+          db_path.display()
+        )
+      });
+
+      if !(cfg!(test) || log_enabled!(log::Level::Info) || integration_test) {
+        let mut guard = progress_bar.lock().unwrap();
+
+        let progress_bar = guard.get_or_insert_with(|| {
+          let progress_bar = ProgressBar::new(100);
+          progress_bar.set_style(
+            ProgressStyle::with_template("[repairing database] {wide_bar} {pos}/{len}").unwrap(),
+          );
+          progress_bar
+        });
+
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        progress_bar.set_position((progress.progress() * 100.0) as u64);
+      }
+    };
+
+    let database = match Database::builder()
+      .set_repair_callback(repair_callback)
+      .open(&path)
+    {
+      Ok(database) => {
+        {
+          let schema_version = database
+            .begin_read()?
+            .open_table(STATISTICS)?
+            .get(&Statistic::Schema.key())?
+            .map(|x| x.value())
+            .unwrap_or(0);
+
+          match schema_version.cmp(&SCHEMA_VERSION) {
+            cmp::Ordering::Less =>
+              bail!(
+                "wallet database at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+                path.display()
+              ),
+            cmp::Ordering::Greater =>
+              bail!(
+                "wallet database at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+                path.display()
+              ),
+            cmp::Ordering::Equal => {
+            }
+          }
+        }
+
+        database
+      }
+      Err(error) => bail!("failed to open wallet database: {error}"),
+    };
+
+    Ok(database)
+  }
+
+  pub(crate) fn open_database_old(wallet_name: &String, settings: &Settings) -> Result<Database> {
     let path = settings
       .data_dir()
       .join("wallets")

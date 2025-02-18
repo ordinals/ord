@@ -102,11 +102,7 @@ wallet::burn::oversize_metadata_requires_no_limit_flag
 wallet::burn::runic_outputs_are_protected
 wallet::cardinals::cardinals
 wallet::cardinals::cardinals_does_not_show_runic_outputs
-wallet::create::create_with_different_name
 wallet::create::detect_wrong_descriptors
-wallet::create::seed_phrases_are_twelve_words_long
-wallet::create::wallet_creates_correct_mainnet_taproot_descriptor
-wallet::create::wallet_creates_correct_test_network_taproot_descriptor
 wallet::dump::dump_and_restore_descriptors_with_minify
 wallet::dump::dumped_descriptors_match_wallet_descriptors
 wallet::dump::dumped_descriptors_restore
@@ -122,6 +118,7 @@ wallet::inscribe::inscribe_creates_inscriptions
 wallet::inscribe::inscribe_does_not_pick_locked_utxos
 wallet::inscribe::inscribe_does_not_use_inscribed_sats_as_cardinal_utxos
 wallet::inscribe::inscribe_exceeds_chain_limit
+wallet::inscribe::inscribe_fails_if_bitcoin_core_is_too_old
 wallet::inscribe::inscribe_fails_if_gallery_inscription_does_not_exist
 wallet::inscribe::inscribe_no_backup
 wallet::inscribe::inscribe_to_address_on_different_network
