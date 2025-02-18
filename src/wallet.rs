@@ -732,8 +732,6 @@ impl Wallet {
 
     tx.commit()?;
 
-    assert!(path.exists());
-
     Ok(database)
   }
 
