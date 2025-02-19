@@ -77,24 +77,13 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
 
   assert_regex_match!(
     &dump.descriptor,
-    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xpub[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
+    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
   );
 
   assert_regex_match!(
     &dump.change_descriptor,
-    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xpub[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
+    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
   );
-
-  // TODO: figure out how to dump the private key descriptor
-  // assert_regex_match!(
-  //   &dump.descriptor,
-  //   r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
-  // );
-
-  // assert_regex_match!(
-  //   &dump.change_descriptor,
-  //   r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
-  // );
 }
 
 #[test]
@@ -116,43 +105,13 @@ fn wallet_creates_correct_test_network_taproot_descriptor() {
 
   assert_regex_match!(
     &dump.descriptor,
-    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tpub[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
+    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
   );
 
   assert_regex_match!(
     &dump.change_descriptor,
-    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tpub[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
+    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
   );
-
-  // TODO: figure out how to dump the private key descriptor
-  // assert_regex_match!(
-  //   &core.descriptors()[0],
-  //   r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
-  // );
-  //
-  // assert_regex_match!(
-  //   &core.descriptors()[1],
-  //   r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
-  // );
-}
-
-#[test]
-fn detect_wrong_descriptors() {
-  let core = mockcore::spawn();
-
-  CommandBuilder::new("wallet create")
-    .core(&core)
-    .run_and_deserialize_output::<Output>();
-
-  core.import_descriptor("wpkh([aslfjk])#a23ad2l".to_string());
-
-  CommandBuilder::new("wallet transactions")
-    .core(&core)
-    .stderr_regex(
-      r#"error: wallet "ord" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`\n"#,
-    )
-    .expected_exit_code(1)
-    .run_and_extract_stdout();
 }
 
 #[test]
@@ -174,4 +133,24 @@ fn create_with_different_name() {
 
   assert!(wallet_db.try_exists().unwrap());
   assert!(wallet_db.is_file());
+}
+
+// can we delete this test since there is no way to load an unknown descriptor?
+#[test]
+fn detect_wrong_descriptors() {
+  let core = mockcore::spawn();
+
+  CommandBuilder::new("wallet create")
+    .core(&core)
+    .run_and_deserialize_output::<Output>();
+
+  core.import_descriptor("wpkh([aslfjk])#a23ad2l".to_string());
+
+  CommandBuilder::new("wallet transactions")
+    .core(&core)
+    .stderr_regex(
+      r#"error: wallet "ord" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`\n"#,
+    )
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
 }

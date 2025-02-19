@@ -45,13 +45,37 @@ impl WalletConstructor {
     .build()
   }
 
+  // TODO: rename to load?
   pub(crate) fn build(self) -> Result<Wallet> {
     let database = Arc::new(Wallet::open_database(&self.name, &self.settings)?);
 
     let mut persister = persister::Persister(database.clone());
 
+    let rtx = database.begin_read()?;
+
+    let keymap = |keychain_kind: KeychainKind| -> Result<bdk::keys::KeyMap> {
+      let (pub_key, sec_key) = rtx
+        .open_table(KEYMAP)?
+        .get(keychain_kind.as_ref())?
+        .map(|keys| {
+          let (pub_key, sec_key) = keys.value();
+          (
+            pub_key.parse::<DescriptorPublicKey>().unwrap(), // TODO
+            sec_key.parse::<DescriptorSecretKey>().unwrap(), // TODO
+          )
+        })
+        .unwrap(); // TODO
+
+      Ok([(pub_key, sec_key)].into_iter().collect())
+    };
+
     let wallet = match bdk::Wallet::load()
       .check_network(self.settings.chain().network())
+      //.descriptor() https://docs.rs/bdk_wallet/1.1.0/bdk_wallet/struct.LoadParams.html#method.descriptor
+      //.extract_keys()
+      .keymap(KeychainKind::External, keymap(KeychainKind::External)?)
+      .keymap(KeychainKind::Internal, keymap(KeychainKind::Internal)?)
+      .lookahead(1000) // gap limit: very aggressive but probably necessary
       .load_wallet(&mut persister)?
     {
       Some(wallet) => wallet,

@@ -14,18 +14,8 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
 =========================================="
   );
 
-  let descriptor = wallet
-    .wallet
-    .public_descriptor(KeychainKind::External)
-    .to_string();
-
-  let change_descriptor = wallet
-    .wallet
-    .public_descriptor(KeychainKind::Internal)
-    .to_string();
-
   Ok(Some(Box::new(Output {
-    descriptor,
-    change_descriptor,
+    descriptor: wallet.descriptor(KeychainKind::External)?,
+    change_descriptor: wallet.descriptor(KeychainKind::Internal)?,
   })))
 }
