@@ -95,7 +95,7 @@ mod tests {
     let mut n = 0;
 
     for i in 0..129 {
-      n = n << 1 | (i % 2);
+      n = (n << 1) | (i % 2);
       let encoded = encode(n);
       let (decoded, length) = decode(&encoded).unwrap();
       assert_eq!(decoded, n);

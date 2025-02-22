@@ -252,7 +252,7 @@ impl InscriptionUpdater<'_, '_> {
     // still have to normalize over inscription size
     for flotsam in &mut floating_inscriptions {
       if let Flotsam {
-        origin: Origin::New { ref mut fee, .. },
+        origin: Origin::New { fee, .. },
         ..
       } = flotsam
       {

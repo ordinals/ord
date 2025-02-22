@@ -619,7 +619,7 @@ impl Server {
       };
     }
 
-    let satscard = if let Some(query) = uri.query() {
+    let satscard = if let Some(query) = uri.query().filter(|query| !query.is_empty()) {
       let satscard = Satscard::from_query_parameters(settings.chain(), query).map_err(|err| {
         ServerError::BadRequest(format!("invalid satscard query parameters: {err}"))
       })?;
@@ -7446,6 +7446,14 @@ next
       StatusCode::BAD_REQUEST,
       "invalid satscard query parameters: unknown key `foo`",
     );
+  }
+
+  #[test]
+  fn satscard_empty_query_parameters_are_allowed() {
+    TestServer::builder()
+      .chain(Chain::Mainnet)
+      .build()
+      .assert_html("/satscard?", SatscardHtml { satscard: None });
   }
 
   #[test]

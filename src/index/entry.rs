@@ -469,7 +469,7 @@ impl Entry for SatRange {
   fn store(self) -> Self::Value {
     let base = self.0;
     let delta = self.1 - self.0;
-    let n = u128::from(base) | u128::from(delta) << 51;
+    let n = u128::from(base) | (u128::from(delta) << 51);
     n.to_le_bytes()[0..11].try_into().unwrap()
   }
 }
