@@ -53,7 +53,7 @@ impl Display for SpacedRune {
     for (i, c) in rune.chars().enumerate() {
       write!(f, "{c}")?;
 
-      if i < rune.len() - 1 && self.spacers & 1 << i != 0 {
+      if i < rune.len() - 1 && self.spacers & (1 << i) != 0 {
         write!(f, "•")?;
       }
     }
