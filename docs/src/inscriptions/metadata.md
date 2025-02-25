@@ -87,4 +87,4 @@ Which would then be concatenated into
 
 
 See
-[examples](examples.md#metdata) for on-chain examples of inscriptions that feature this functionality.
+[examples](examples.md#metadata) for on-chain examples of inscriptions that feature this functionality.
