@@ -299,7 +299,7 @@ impl Server {
           "/r/sat/{sat_number}/at/{index}/content",
           get(r::sat_at_index_content),
         )
-        .layer(axum::middleware::from_fn(Self::proxy_fallback));
+        .layer(axum::middleware::from_fn(Self::proxy_layer));
 
       let router = router.merge(proxiable_routes);
 
@@ -533,7 +533,7 @@ impl Server {
     Ok(acceptor)
   }
 
-  async fn proxy_fallback(
+  async fn proxy_layer(
     server_config: Extension<Arc<ServerConfig>>,
     request: http::Request<axum::body::Body>,
     next: axum::middleware::Next,
