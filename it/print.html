@@ -586,7 +586,7 @@ OP_IF
 OP_ENDIF
 </code></pre>
 <p>Which would then be concatenated into <code>{"very":"long","metadata":"is","finally":"done"}</code>.</p>
-<p>See <a href="inscriptions/examples.html#metdata">examples</a> for on-chain examples of inscriptions that feature this functionality.</p>
+<p>See <a href="inscriptions/examples.html#metadata">examples</a> for on-chain examples of inscriptions that feature this functionality.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pointer"><a class="header" href="#pointer">Pointer</a></h1>
 <p>Per effettuare un'iscrizione su un sat diverso dal primo del suo input, è possibile fornire un intero a base zero, chiamato "puntatore", con il tag <code>2</code>, che fa sì che l'iscrizione venga effettuata sul sat nella posizione data nei suoi outputs. Se il puntatore è uguale o superiore al numero di sat totali presenti nelle uscite della transazione inscritte, viene ignorato e l'iscrizione viene effettuata come di consueto. Il valore del campo del puntatore è un intero little endian, con gli zeri finali ignorati.</p>
 <p>Viene utilizzato un tag pari, in modo che le vecchie versioni di <code>ord</code> considerino l'iscrizione come non vincolata, invece di assegnarla, erroneamente, al primo sat.</p>

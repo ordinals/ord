@@ -586,7 +586,7 @@ OP_IF
 OP_ENDIF
 </code></pre>
 <p>Que luego se concatenaría en <code>{"metadatos":"muy","largos":"porfin","se":"terminan"}</code>.</p>
-<p>See <a href="inscriptions/examples.html#metdata">examples</a> for on-chain examples of inscriptions that feature this functionality.</p>
+<p>See <a href="inscriptions/examples.html#metadata">examples</a> for on-chain examples of inscriptions that feature this functionality.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="puntero"><a class="header" href="#puntero">Puntero</a></h1>
 <p>Para crear una inscripción en un sat distinto al primero de su entrada, se puede proporcionar un entero que comienza en cero, llamado "puntero", con la etiqueta <code>2</code>. Esto hace que la inscripción se cree en el sat localizado en la posición especificada en las salidas. Si el puntero es igual o mayor que el número total de sats en las salidas de la transacción de inscripción, este se ignora y la inscripción se realiza como de costumbre. El valor del campo de puntero es un entero en formato little endian, ignorando los ceros finales.</p>
 <p>Se utiliza una etiqueta con un numero par, de modo que las versiones antiguas de <code>ord</code> consideren que la inscripción no está vinculada, en lugar de asignarla incorrectamente al primer sat.</p>

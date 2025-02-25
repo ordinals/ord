@@ -586,7 +586,7 @@ OP_IF
 OP_ENDIF
 </code></pre>
 <p>Which would then be concatenated into <code>{"very":"long","metadata":"is","finally":"done"}</code>.</p>
-<p>See <a href="inscriptions/examples.html#metdata">examples</a> for on-chain examples of inscriptions that feature this functionality.</p>
+<p>See <a href="inscriptions/examples.html#metadata">examples</a> for on-chain examples of inscriptions that feature this functionality.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pointer"><a class="header" href="#pointer">Pointer</a></h1>
 <p>In order to make an inscription on a sat other than the first of its input, a zero-based integer, called the "pointer", can be provided with tag <code>2</code>, causing the inscription to be made on the sat at the given position in the outputs. If the pointer is equal to or greater than the number of total sats in the outputs of the inscribe transaction, it is ignored, and the inscription is made as usual. The value of the pointer field is a little endian integer, with trailing zeroes ignored.</p>
 <p>An even tag is used, so that old versions of <code>ord</code> consider the inscription to be unbound, instead of assigning it, incorrectly, to the first sat.</p>

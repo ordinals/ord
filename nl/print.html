@@ -586,7 +586,7 @@ OP_IF
 OP_ENDIF
 </code></pre>
 <p>Die vervolgens zou worden samengevoegd tot <code>{"very":"long","metadata":"is","finally":"done"}</code>.</p>
-<p>See <a href="inscriptions/examples.html#metdata">examples</a> for on-chain examples of inscriptions that feature this functionality.</p>
+<p>See <a href="inscriptions/examples.html#metadata">examples</a> for on-chain examples of inscriptions that feature this functionality.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pointer"><a class="header" href="#pointer">Pointer</a></h1>
 <p>Om een inscriptie te maken op een satoshi die niet de eerste is van de invoer, kan een nulgebaseerd geheel getal, de "pointer" genoemd, worden opgegeven met tag <code>2</code>. Dit zorgt ervoor dat de inscriptie wordt gemaakt op de satoshi op de opgegeven positie in de outputs. Als de pointer gelijk is aan of groter dan het totale aantal sats in de outputs van de inscriptietransactie, wordt de pointer genegeerd en wordt de inscriptie op de gebruikelijke manier gemaakt. De waarde van het pointer-veld is een little-endian geheel getal, waarbij de nullen aan het einde worden genegeerd.</p>
 <p>Een even tag wordt gebruikt, zodat oude versies van <code>ord</code> de inscriptie als onbeheerd beschouwen, in plaats van deze onterecht toe te wijzen aan de eerste sat.</p>
