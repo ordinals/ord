@@ -45,36 +45,36 @@ impl WalletConstructor {
     .build()
   }
 
-  // TODO: rename to load?
   pub(crate) fn build(self) -> Result<Wallet> {
-    let database = Arc::new(Wallet::open_database(&self.name, &self.settings)?);
+    let database = Arc::new(database::open_database(&self.name, &self.settings)?);
 
-    let mut persister = persister::Persister(database.clone());
+    let mut persister = database::Persister(database.clone());
 
     let rtx = database.begin_read()?;
 
-    let keymap = |keychain_kind: KeychainKind| -> Result<bdk::keys::KeyMap> {
-      let (pub_key, sec_key) = rtx
-        .open_table(KEYMAP)?
-        .get(keychain_kind.as_ref())?
-        .map(|keys| {
-          let (pub_key, sec_key) = keys.value();
-          (
-            pub_key.parse::<DescriptorPublicKey>().unwrap(), // TODO
-            sec_key.parse::<DescriptorSecretKey>().unwrap(), // TODO
-          )
-        })
-        .unwrap(); // TODO
+    let master_private_key = rtx
+      .open_table(XPRIV)?
+      .get(())?
+      .map(|xpriv| Xpriv::decode(xpriv.value().as_slice()))
+      .transpose()?
+      .ok_or(anyhow!("couldn't load master private key from database"))?;
 
-      Ok([(pub_key, sec_key)].into_iter().collect())
-    };
+    let (_, external_keymap) = descriptor::standard(
+      self.settings.chain().network(),
+      master_private_key,
+      0,
+      false,
+    )?;
+
+    let (_, internal_keymap) =
+      descriptor::standard(self.settings.chain().network(), master_private_key, 0, true)?;
 
     let wallet = match bdk::Wallet::load()
       .check_network(self.settings.chain().network())
-      //.descriptor() https://docs.rs/bdk_wallet/1.1.0/bdk_wallet/struct.LoadParams.html#method.descriptor
+      // .descriptor()// https://docs.rs/bdk_wallet/1.1.0/bdk_wallet/struct.LoadParams.html#method.descriptor
       //.extract_keys()
-      .keymap(KeychainKind::External, keymap(KeychainKind::External)?)
-      .keymap(KeychainKind::Internal, keymap(KeychainKind::Internal)?)
+      .keymap(KeychainKind::External, external_keymap)
+      .keymap(KeychainKind::Internal, internal_keymap)
       .lookahead(1000) // gap limit: very aggressive but probably necessary
       .load_wallet(&mut persister)?
     {
@@ -82,19 +82,21 @@ impl WalletConstructor {
       None => bail!("no wallet found, create one first"),
     };
 
+    let status = self.get_server_status()?;
+
     Ok(Wallet {
       wallet,
       database,
-      has_rune_index: false,
-      has_sat_index: false,
-      inscription_info: BTreeMap::new(),
-      inscriptions: BTreeMap::new(),
-      locked_utxos: BTreeMap::new(),
+      has_rune_index: status.rune_index,
+      has_sat_index: status.sat_index,
+      inscription_info: BTreeMap::new(), // TODO
+      inscriptions: BTreeMap::new(), // TODO
+      locked_utxos: BTreeMap::new(), // TODO
       ord_client: self.ord_client,
-      output_info: BTreeMap::new(),
+      output_info: BTreeMap::new(), // TODO
       rpc_url: self.rpc_url,
       settings: self.settings,
-      utxos: BTreeMap::new(),
+      utxos: BTreeMap::new(), // TODO
     })
   }
 

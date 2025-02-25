@@ -365,6 +365,7 @@ impl Plan {
     }
 
     let secp256k1 = Secp256k1::new();
+    // we could derive the untweaked key pair from the descriptor?
     let key_pair = UntweakedKeypair::new(&secp256k1, &mut rand::thread_rng());
     let (public_key, _parity) = XOnlyPublicKey::from_keypair(&key_pair);
 

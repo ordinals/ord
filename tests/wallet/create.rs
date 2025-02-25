@@ -61,6 +61,7 @@ fn seed_phrases_are_twelve_words_long() {
 #[test]
 fn wallet_creates_correct_mainnet_taproot_descriptor() {
   let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
 
   let tempdir = Arc::new(TempDir::new().unwrap());
 
@@ -72,6 +73,7 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
   let dump = CommandBuilder::new("wallet dump")
     .temp_dir(tempdir)
     .core(&core)
+    .ord(&ord)
     .stderr_regex(".*")
     .run_and_deserialize_output::<Dump>();
 
@@ -89,6 +91,7 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
 #[test]
 fn wallet_creates_correct_test_network_taproot_descriptor() {
   let core = mockcore::builder().network(Network::Signet).build();
+  let ord = TestServer::spawn_with_args(&core, &["--signet"]);
 
   let tempdir = Arc::new(TempDir::new().unwrap());
 
@@ -100,6 +103,7 @@ fn wallet_creates_correct_test_network_taproot_descriptor() {
   let dump = CommandBuilder::new("--chain signet wallet dump")
     .temp_dir(tempdir)
     .core(&core)
+    .ord(&ord)
     .stderr_regex(".*")
     .run_and_deserialize_output::<Dump>();
 

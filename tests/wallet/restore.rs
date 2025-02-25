@@ -1,4 +1,7 @@
-use {super::*, ord::subcommand::wallet::create};
+use {
+  super::*,
+  ord::subcommand::wallet::{create, dump::Output as Dump},
+};
 
 #[test]
 fn restore_generates_same_descriptors() {
@@ -7,47 +10,44 @@ fn restore_generates_same_descriptors() {
 
     let ord = TestServer::spawn(&core);
 
+    let tempdir = Arc::new(TempDir::new().unwrap());
+
     let create::Output { mnemonic, .. } = CommandBuilder::new("wallet create")
+      .temp_dir(tempdir.clone())
       .core(&core)
       .run_and_deserialize_output();
 
-    let output = CommandBuilder::new("wallet dump")
+    let descriptors = CommandBuilder::new("wallet dump")
+      .temp_dir(tempdir)
       .core(&core)
       .ord(&ord)
       .stderr_regex(".*THIS STRING CONTAINS YOUR PRIVATE KEYS.*")
-      .run_and_deserialize_output::<ListDescriptorsResult>();
+      .run_and_deserialize_output::<Dump>();
 
-    // new descriptors are created with timestamp `now`
-    assert!(output
-      .descriptors
-      .iter()
-      .all(|descriptor| descriptor.timestamp == bitcoincore_rpc::json::Timestamp::Now));
-
-    (mnemonic, core.descriptors())
+    (mnemonic, descriptors)
   };
 
   let core = mockcore::spawn();
 
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
   CommandBuilder::new(["wallet", "restore", "--from", "mnemonic"])
+    .temp_dir(tempdir.clone())
     .stdin(mnemonic.to_string().into())
     .core(&core)
     .run_and_extract_stdout();
 
   let ord = TestServer::spawn(&core);
 
-  let output = CommandBuilder::new("wallet dump")
+  let dump = CommandBuilder::new("wallet dump")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .ord(&ord)
     .stderr_regex(".*THIS STRING CONTAINS YOUR PRIVATE KEYS.*")
-    .run_and_deserialize_output::<ListDescriptorsResult>();
+    .run_and_deserialize_output::<Dump>();
 
-  // restored descriptors are created with timestamp `0`
-  assert!(output
-    .descriptors
-    .iter()
-    .all(|descriptor| descriptor.timestamp == bitcoincore_rpc::json::Timestamp::Time(0)));
-
-  assert_eq!(core.descriptors(), descriptors);
+  assert_eq!(dump.descriptor, descriptors.descriptor);
+  assert_eq!(dump.change_descriptor, descriptors.change_descriptor);
 }
 
 #[test]

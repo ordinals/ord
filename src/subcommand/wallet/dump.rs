@@ -15,7 +15,7 @@ pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   );
 
   Ok(Some(Box::new(Output {
-    descriptor: wallet.descriptor(KeychainKind::External)?,
-    change_descriptor: wallet.descriptor(KeychainKind::Internal)?,
+    descriptor: wallet.priv_key_descriptor(KeychainKind::External)?,
+    change_descriptor: wallet.priv_key_descriptor(KeychainKind::Internal)?,
   })))
 }
