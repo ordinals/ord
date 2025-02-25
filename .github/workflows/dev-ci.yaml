@@ -1,0 +1,120 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - dev
+  pull_request:
+    branches:
+    - dev
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  RUSTFLAGS: --deny warnings
+  LANGUAGES: de fr es pt ru zh ja ko fil ar hi it nl
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Rust Toolchain Components
+      uses: actions-rs/toolchain@v1
+      with:
+        override: true
+        toolchain: stable
+
+    - uses: Swatinem/rust-cache@v2
+
+    - uses: peaceiris/actions-mdbook@v2
+      with:
+        mdbook-version: latest
+
+    - name: Install mdbook-i18n-helpers
+      run: cargo install mdbook-i18n-helpers
+
+    - name: Install mdbook-linkcheck
+      run: |
+        mkdir -p mdbook-linkcheck
+        cd mdbook-linkcheck
+        wget https://github.com/Michael-F-Bryan/mdbook-linkcheck/releases/latest/download/mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
+        unzip mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
+        chmod +x mdbook-linkcheck
+        pwd >> $GITHUB_PATH
+
+    - name: Build docs
+      run: mdbook build docs -d build
+
+    - name: Build all translations for docs
+      run: |
+        for lang in ${{ env.LANGUAGES }}; do
+          echo "::group::Building $lang translation"
+          MDBOOK_BOOK__LANGUAGE=$lang \
+            mdbook build docs -d build/$lang
+          mv docs/build/$lang/html docs/build/html/$lang
+          echo "::endgroup::"
+        done
+
+    - name: Deploy Pages
+      uses: peaceiris/actions-gh-pages@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        publish_branch: gh-pages
+        publish_dir: docs/build/html
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Rust Toolchain Components
+      uses: actions-rs/toolchain@v1
+      with:
+        components: clippy, rustfmt
+        override: true
+        toolchain: stable
+
+    - uses: Swatinem/rust-cache@v2
+
+    - name: Clippy
+      run: cargo clippy --all --all-targets
+
+    - name: Format
+      run: cargo fmt --all -- --check
+
+  test:
+    strategy:
+      matrix:
+        os:
+        - macos-latest
+        - ubuntu-latest
+        - windows-latest
+
+    runs-on: ${{matrix.os}}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Rust Toolchain Components
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+
+    - uses: Swatinem/rust-cache@v2
+
+    - uses: taiki-e/install-action@just
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3'
+
+    - name: Test
+      run: just test
