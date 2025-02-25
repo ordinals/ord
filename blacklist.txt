@@ -102,7 +102,6 @@ wallet::burn::oversize_metadata_requires_no_limit_flag
 wallet::burn::runic_outputs_are_protected
 wallet::cardinals::cardinals
 wallet::cardinals::cardinals_does_not_show_runic_outputs
-wallet::create::detect_wrong_descriptors
 wallet::dump::dump_and_restore_descriptors_with_minify
 wallet::dump::dumped_descriptors_match_wallet_descriptors
 wallet::dump::dumped_descriptors_restore
