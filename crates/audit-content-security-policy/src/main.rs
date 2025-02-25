@@ -2,16 +2,6 @@ use {colored::Colorize, reqwest::blocking::get, std::process};
 
 const SERVERS: &[(&str, &str, &str)] = &[
   (
-    "regtest.ordinals.net",
-    "/content/41bf99a297ca79d181160a91fc0efc8a71170ee24b87783c9c11b0fcbe23615fi0",
-    "https://regtest.ordinals.com/content/",
-  ),
-  (
-    "regtest.ordinals.com",
-    "/content/41bf99a297ca79d181160a91fc0efc8a71170ee24b87783c9c11b0fcbe23615fi0",
-    "https://regtest.ordinals.com/content/",
-  ),
-  (
     "signet.ordinals.net",
     "/content/7e1bc3b56b872aaf4d1aaf1565fac72182313c9142b207f9398afe263e234135i0",
     "https://signet.ordinals.com/content/",
