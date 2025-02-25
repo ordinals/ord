@@ -138,23 +138,3 @@ fn create_with_different_name() {
   assert!(wallet_db.try_exists().unwrap());
   assert!(wallet_db.is_file());
 }
-
-// can we delete this test since there is no way to load an unknown descriptor?
-#[test]
-fn detect_wrong_descriptors() {
-  let core = mockcore::spawn();
-
-  CommandBuilder::new("wallet create")
-    .core(&core)
-    .run_and_deserialize_output::<Output>();
-
-  core.import_descriptor("wpkh([aslfjk])#a23ad2l".to_string());
-
-  CommandBuilder::new("wallet transactions")
-    .core(&core)
-    .stderr_regex(
-      r#"error: wallet "ord" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`\n"#,
-    )
-    .expected_exit_code(1)
-    .run_and_extract_stdout();
-}
