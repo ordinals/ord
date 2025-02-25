@@ -80,7 +80,7 @@ struct Search {
 struct StaticAssets;
 
 lazy_static! {
-  static ref REGEX_SAT_AT_INDEX: Regex = Regex::new(r"(?m)r\/sat\/\d+\/at\/-?\d+$").unwrap();
+  static ref SAT_AT_INDEX_PATH: Regex = Regex::new(r"^/r/sat/[^/]+/at/[^/]+$").unwrap();
 }
 
 #[derive(Debug, Parser, Clone)]
@@ -534,25 +534,22 @@ impl Server {
   }
 
   async fn proxy_fallback(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
+    server_config: Extension<Arc<ServerConfig>>,
     request: http::Request<axum::body::Body>,
     next: axum::middleware::Next,
   ) -> ServerResult {
-    let mut path = request.uri().path().to_string();
-
-    path.remove(0); // remove leading slash
+    let path = request.uri().path().to_owned();
 
     let response = next.run(request).await;
-    let status = response.status();
 
-    if let Some(proxy) = server_config.proxy.as_ref() {
-      if status == StatusCode::NOT_FOUND {
+    if let Some(proxy) = &server_config.proxy {
+      if response.status() == StatusCode::NOT_FOUND {
         return task::block_in_place(|| Server::proxy(proxy, &path));
       }
 
-      // This is a workaround for the fact the the /r/sat/<SAT_NUMBER>/at/<INDEX>
-      // does not return a 404 when no inscription is present on the sat.
-      if REGEX_SAT_AT_INDEX.is_match(&path) {
+      // `/r/sat/<SAT_NUMBER>/at/<INDEX>` does not return a 404 when no
+      // inscription is present, so we must deserialize and check the body.
+      if SAT_AT_INDEX_PATH.is_match(&path) {
         let (parts, body) = response.into_parts();
 
         let bytes = axum::body::to_bytes(body, usize::MAX)
@@ -1878,7 +1875,7 @@ impl Server {
 
   fn proxy(proxy: &Url, path: &str) -> ServerResult<Response> {
     let response = reqwest::blocking::Client::new()
-      .get(format!("{}{}", proxy, path))
+      .get(format!("{}{}", proxy, &path[1..]))
       .send()
       .map_err(|err| anyhow!(err))?;
 
