@@ -130,11 +130,7 @@ impl Wallet {
       self.settings.chain().network(),
       master_private_key,
       0,
-      if keychain_kind == KeychainKind::External {
-        false
-      } else {
-        true
-      },
+      keychain_kind == KeychainKind::Internal,
     )?;
 
     Ok(descriptor.to_string_with_secret(&keymap))
