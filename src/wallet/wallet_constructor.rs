@@ -90,8 +90,8 @@ impl WalletConstructor {
       has_rune_index: status.rune_index,
       has_sat_index: status.sat_index,
       inscription_info: BTreeMap::new(), // TODO
-      inscriptions: BTreeMap::new(), // TODO
-      locked_utxos: BTreeMap::new(), // TODO
+      inscriptions: BTreeMap::new(),     // TODO
+      locked_utxos: BTreeMap::new(),     // TODO
       ord_client: self.ord_client,
       output_info: BTreeMap::new(), // TODO
       rpc_url: self.rpc_url,
