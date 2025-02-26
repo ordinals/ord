@@ -32,10 +32,10 @@ The donation address is
 [bc1qguzk63exy7h5uygg8m2tcenca094a8t464jfyvrmr0s6wkt74wls3zr5m3](https://mempool.space/address/bc1qguzk63exy7h5uygg8m2tcenca094a8t464jfyvrmr0s6wkt74wls3zr5m3).
 
 This address is 2 of 4 multisig wallet with keys held by
-[raphjaph](https://twitter.com/raphjaph),
-[erin](https://twitter.com/realizingerin),
-[rodarmor](https://twitter.com/rodarmor), and
-[ordinally](https://twitter.com/veryordinally).
+[raphjaph](https://x.com/raphjaph),
+[erin](https://x.com/realizingerin),
+[rodarmor](https://x.com/rodarmor), and
+[veryordinally](https://x.com/veryordinally).
 
 Bitcoin received will go towards funding maintenance and development of `ord`,
 as well as hosting costs for [ordinals.com](https://ordinals.com).
