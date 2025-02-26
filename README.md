@@ -33,7 +33,7 @@ The donation address is
 
 This address is 2 of 4 multisig wallet with keys held by
 [raphjaph](https://x.com/raphjaph),
-[erin](https://x.com/realizingerin),
+[realizingerin](https://x.com/realizingerin),
 [rodarmor](https://x.com/rodarmor), and
 [veryordinally](https://x.com/veryordinally).
 
