@@ -164,4 +164,13 @@ mod tests {
 
     assert_eq!(Properties::from_cbor(&buffer), Properties::default());
   }
+
+  #[test]
+  fn ord_tag() {
+    let mut value = 0;
+    for (i, c) in "ord".chars().enumerate() {
+      value += u32::from(c) << (i * 8);
+    }
+    assert_eq!(value, 6582895);
+  }
 }
