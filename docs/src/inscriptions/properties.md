@@ -31,11 +31,12 @@ GalleryItem = {
 }
 
 Attributes = {
-  ? 0: text,   ; title
-  ? 1: text,   ; description
-  ? 2: text,   ; alt text
-  ? 3: text,   ; author
-  ? 4: Traits, ; traits
+  ? 0: text, ; title
+  ? 1: text, ; description
+  ? 2: text, ; alt text
+  ? 3: text, ; author
+  ? 4: [+ uri], ; links
+  ? 5: Traits, ; traits
 }
 
 Traits = {
@@ -43,17 +44,17 @@ Traits = {
 }
 
 Value =
-  Proportion /
-  bool /
-  bytes /
-  float /
-  integer /
-  tdate /
-  text /
-  time /
-  uri
+  Proportion / ; progress bar
+  bool / ; "yes" or "no"
+  bytes / ; hex
+  float / ; decimal
+  integer / ; integer
+  tdate / ; date-time string
+  text / ; text
+  time / ; date-time string from epoch timestamp
+  uri ; <a> tag
 
-Proportion = #6.6582895(float)
+Proportion = #6.6582895(float) ; value may be between 0 and 1 inclusive
 ```
 
 The above CDDL schema is provided as a convenience. As always, the ordinals
