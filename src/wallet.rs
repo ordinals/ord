@@ -1,6 +1,7 @@
 use {
   super::*,
   batch::ParentInfo,
+  bdk_wallet::keys::KeyMap,
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, Xpriv},
     psbt::Psbt,
@@ -20,8 +21,6 @@ use {
   std::sync::Once,
   transaction_builder::TransactionBuilder,
 };
-
-pub use descriptor::{DescriptorJson, ListDescriptorsResult};
 
 pub mod batch;
 pub mod database;
@@ -116,7 +115,10 @@ impl Wallet {
     Ok(())
   }
 
-  pub(crate) fn priv_key_descriptor(&self, keychain_kind: KeychainKind) -> Result<String> {
+  pub(crate) fn get_descriptor(
+    &self,
+    keychain_kind: KeychainKind,
+  ) -> Result<Descriptor<DescriptorPublicKey>> {
     let rtx = self.database.begin_read()?;
 
     let master_private_key = rtx
@@ -126,14 +128,14 @@ impl Wallet {
       .transpose()?
       .ok_or(anyhow!("couldn't load master private key from database"))?;
 
-    let (descriptor, keymap) = descriptor::standard(
+    let (descriptor, _keymap) = descriptor::standard(
       self.settings.chain().network(),
       master_private_key,
       0,
       keychain_kind == KeychainKind::Internal,
     )?;
 
-    Ok(descriptor.to_string_with_secret(&keymap))
+    Ok(descriptor)
   }
 
   pub(crate) fn get_wallet_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {
@@ -516,62 +518,26 @@ impl Wallet {
     })
   }
 
-  fn check_descriptors(
-    wallet_name: &str,
-    descriptors: Vec<DescriptorJson>,
-  ) -> Result<Vec<DescriptorJson>> {
-    let tr = descriptors
-      .iter()
-      .filter(|descriptor| descriptor.desc.starts_with("tr("))
-      .count();
+  // fn check_descriptors(
+  //   wallet_name: &str,
+  //   descriptors: Vec<DescriptorJson>,
+  // ) -> Result<Vec<DescriptorJson>> {
+  //   let tr = descriptors
+  //     .iter()
+  //     .filter(|descriptor| descriptor.desc.starts_with("tr("))
+  //     .count();
 
-    let rawtr = descriptors
-      .iter()
-      .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
-      .count();
+  //   let rawtr = descriptors
+  //     .iter()
+  //     .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
+  //     .count();
 
-    if tr != 2 || descriptors.len() != 2 + rawtr {
-      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", wallet_name);
-    }
+  //   if tr != 2 || descriptors.len() != 2 + rawtr {
+  //     bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", wallet_name);
+  //   }
 
-    Ok(descriptors)
-  }
-
-  pub(crate) fn initialize_from_descriptors(
-    name: String,
-    settings: &Settings,
-    descriptors: Vec<DescriptorJson>,
-  ) -> Result {
-    let client = Self::check_version(settings.bitcoin_rpc_client(Some(name.clone()))?)?;
-
-    let descriptors = Self::check_descriptors(&name, descriptors)?;
-
-    client.create_wallet(&name, None, Some(true), None, None)?;
-
-    let descriptors = descriptors
-      .into_iter()
-      .map(|descriptor| ImportDescriptors {
-        descriptor: descriptor.desc.clone(),
-        timestamp: descriptor.timestamp,
-        active: Some(true),
-        range: descriptor.range.map(|(start, end)| {
-          (
-            usize::try_from(start).unwrap_or(0),
-            usize::try_from(end).unwrap_or(0),
-          )
-        }),
-        next_index: descriptor
-          .next
-          .map(|next| usize::try_from(next).unwrap_or(0)),
-        internal: descriptor.internal,
-        label: None,
-      })
-      .collect::<Vec<ImportDescriptors>>();
-
-    client.call::<serde_json::Value>("importdescriptors", &[serde_json::to_value(descriptors)?])?;
-
-    Ok(())
-  }
+  //   Ok(descriptors)
+  // }
 
   pub(crate) fn check_version(client: Client) -> Result<Client> {
     const MIN_VERSION: usize = 280000;

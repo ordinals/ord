@@ -1,6 +1,6 @@
 use {
   super::*,
-  ord::subcommand::wallet::{create::Output, dump::Output as Dump},
+  ord::subcommand::wallet::{create::Output, descriptors::Output as Descriptors},
 };
 
 #[test]
@@ -45,7 +45,7 @@ fn create_with_same_name_fails() {
     .core(&core)
     .temp_dir(arc.clone())
     .expected_exit_code(1)
-    .stderr_regex("error: wallet ord at .* already exists.*")
+    .stderr_regex("error: wallet `ord` at .* already exists.*")
     .run_and_extract_stdout();
 }
 
@@ -70,21 +70,21 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
     .core(&core)
     .run_and_deserialize_output::<Output>();
 
-  let dump = CommandBuilder::new("wallet dump")
+  let descriptors = CommandBuilder::new("wallet descriptors")
     .temp_dir(tempdir)
     .core(&core)
     .ord(&ord)
     .stderr_regex(".*")
-    .run_and_deserialize_output::<Dump>();
+    .run_and_deserialize_output::<Descriptors>();
 
   assert_regex_match!(
-    &dump.descriptor,
-    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
+    &descriptors.descriptor,
+    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xpub[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
   );
 
   assert_regex_match!(
-    &dump.change_descriptor,
-    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
+    &descriptors.change_descriptor,
+    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xpub[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
   );
 }
 
@@ -100,21 +100,21 @@ fn wallet_creates_correct_test_network_taproot_descriptor() {
     .core(&core)
     .run_and_deserialize_output::<Output>();
 
-  let dump = CommandBuilder::new("--chain signet wallet dump")
+  let descriptors = CommandBuilder::new("--chain signet wallet descriptors")
     .temp_dir(tempdir)
     .core(&core)
     .ord(&ord)
     .stderr_regex(".*")
-    .run_and_deserialize_output::<Dump>();
+    .run_and_deserialize_output::<Descriptors>();
 
   assert_regex_match!(
-    &dump.descriptor,
-    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
+    &descriptors.descriptor,
+    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tpub[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
   );
 
   assert_regex_match!(
-    &dump.change_descriptor,
-    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
+    &descriptors.change_descriptor,
+    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tpub[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
   );
 }
 

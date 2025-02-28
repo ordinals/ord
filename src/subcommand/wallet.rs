@@ -1,6 +1,6 @@
 use {
   super::*,
-  crate::wallet::{batch, wallet_constructor::WalletConstructor, ListDescriptorsResult, Wallet},
+  crate::wallet::{batch, wallet_constructor::WalletConstructor, Wallet},
   bitcoin::Psbt,
   shared_args::SharedArgs,
 };
@@ -11,7 +11,7 @@ mod batch_command;
 pub mod burn;
 pub mod cardinals;
 pub mod create;
-pub mod dump;
+pub mod descriptors;
 pub mod inscribe;
 pub mod inscriptions;
 mod label;
@@ -60,8 +60,8 @@ pub(crate) enum Subcommand {
   Cardinals,
   #[command(about = "Create new wallet")]
   Create(create::Create),
-  #[command(about = "Dump wallet descriptors")]
-  Dump,
+  #[command(about = "Get wallet descriptors")]
+  Descriptors,
   #[command(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
   #[command(about = "List wallet inscriptions")]
@@ -125,7 +125,7 @@ impl WalletCommand {
       Subcommand::Burn(burn) => burn.run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),
       Subcommand::Create(_) | Subcommand::Restore(_) => unreachable!(),
-      Subcommand::Dump => dump::run(wallet),
+      Subcommand::Descriptors => descriptors::run(wallet),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet),
       Subcommand::Label => label::run(wallet),

@@ -102,9 +102,6 @@ wallet::burn::oversize_metadata_requires_no_limit_flag
 wallet::burn::runic_outputs_are_protected
 wallet::cardinals::cardinals
 wallet::cardinals::cardinals_does_not_show_runic_outputs
-wallet::dump::dump_and_restore_descriptors_with_minify
-wallet::dump::dumped_descriptors_match_wallet_descriptors
-wallet::dump::dumped_descriptors_restore
 wallet::inscribe::cbor_metadata_appears_on_inscription_page
 wallet::inscribe::error_message_when_parsing_cbor_metadata_is_reasonable
 wallet::inscribe::error_message_when_parsing_json_metadata_is_reasonable
@@ -185,13 +182,6 @@ wallet::outputs::outputs_includes_sat_ranges
 wallet::outputs::outputs_includes_unbound_outputs
 wallet::pending::wallet_pending
 wallet::receive::receive
-wallet::restore::restore_generates_same_descriptors
-wallet::restore::restore_generates_same_descriptors_with_passphrase
-wallet::restore::restore_to_existing_wallet_fails
-wallet::restore::restore_with_blank_mnemonic_generates_same_descriptors
-wallet::restore::restore_with_no_timestamp_defaults_to_0
-wallet::restore::restore_with_now_timestamp
-wallet::restore::restore_with_timestamp
 wallet::resume::commitment_output_is_locked
 wallet::resume::resume_suspended
 wallet::resume::wallet_resume

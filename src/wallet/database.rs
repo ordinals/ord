@@ -53,7 +53,7 @@ pub(crate) fn create_database(wallet_name: &String, settings: &Settings) -> Resu
 
   if path.exists() {
     bail!(
-      "wallet {} at `{}` already exists",
+      "wallet `{}` at `{}` already exists",
       wallet_name,
       path.display()
     );
