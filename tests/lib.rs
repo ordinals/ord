@@ -14,8 +14,8 @@ use {
   mockcore::TransactionTemplate,
   ord::{
     api, base64_decode, base64_encode, chain::Chain, decimal::Decimal, outgoing::Outgoing,
-    subcommand::runes::RuneInfo, templates::InscriptionHtml, wallet::batch,
-    wallet::ListDescriptorsResult, Inscription, InscriptionId, RuneEntry,
+    subcommand::runes::RuneInfo, templates::InscriptionHtml, wallet::batch, Inscription,
+    InscriptionId, RuneEntry,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,

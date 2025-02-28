@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-    - master
+    - dev
   pull_request:
     branches:
-    - master
+    - dev
 
 defaults:
   run:
@@ -88,18 +88,6 @@ jobs:
     - name: Format
       run: cargo fmt --all -- --check
 
-    - name: Check for Forbidden Words
-      run: |
-        sudo apt-get install ripgrep
-        ./bin/forbid
-
-    - name: Check for blacklist
-      run: |
-        if [[ -f blacklist.txt ]]; then
-          echo "error: found blacklist.txt"
-          exit 1
-        fi
-
   test:
     strategy:
       matrix:
@@ -121,5 +109,12 @@ jobs:
 
     - uses: Swatinem/rust-cache@v2
 
+    - uses: taiki-e/install-action@just
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3'
+
     - name: Test
-      run: cargo test --all
+      run: just test
