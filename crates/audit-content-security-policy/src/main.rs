@@ -12,16 +12,6 @@ const SERVERS: &[(&str, &str, &str)] = &[
     "https://signet.ordinals.com/content/",
   ),
   (
-    "testnet.ordinals.net",
-    "/content/0a1b4e4acf89686e4d012561014041bffd57a62254486f24cb5b0a216c04f102i0",
-    "https://testnet.ordinals.com/content/",
-  ),
-  (
-    "testnet.ordinals.com",
-    "/content/0a1b4e4acf89686e4d012561014041bffd57a62254486f24cb5b0a216c04f102i0",
-    "https://testnet.ordinals.com/content/",
-  ),
-  (
     "alpha.ordinals.net",
     "/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
     "https://ordinals.com/content/",
