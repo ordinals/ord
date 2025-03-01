@@ -70,7 +70,7 @@ impl WalletConstructor {
       descriptor::standard(self.settings.chain().network(), master_private_key, 0, true)?;
 
     let wallet = match bdk::Wallet::load()
-      .check_network(self.settings.chain().network()) // TODO: add a test for this
+      .check_network(self.settings.chain().network())
       .descriptor(KeychainKind::External, Some(descriptor))
       .descriptor(KeychainKind::Internal, Some(change_descriptor))
       .extract_keys()

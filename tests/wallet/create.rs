@@ -138,3 +138,34 @@ fn create_with_different_name() {
   assert!(wallet_db.try_exists().unwrap());
   assert!(wallet_db.is_file());
 }
+
+#[test]
+fn create_wallet_with_same_name_different_network_fails() {
+  let mainnet_core = mockcore::spawn();
+  let signet_core = mockcore::builder().network(Network::Signet).build();
+
+  let tempdir = Arc::new(TempDir::new().unwrap());
+  let mainnet_wallet_db = tempdir.path().join("wallets/ord.redb");
+  let signet_wallet_db = tempdir.path().join("signet/wallets/ord.redb");
+
+  assert!(!mainnet_wallet_db.try_exists().unwrap());
+
+  CommandBuilder::new("wallet create")
+    .core(&mainnet_core)
+    .temp_dir(tempdir.clone())
+    .run_and_deserialize_output::<Output>();
+
+  assert!(mainnet_wallet_db.try_exists().unwrap());
+
+  fs::create_dir_all(signet_wallet_db.parent().unwrap()).unwrap();
+  fs::rename(&mainnet_wallet_db, &signet_wallet_db).unwrap();
+
+  CommandBuilder::new("--chain signet wallet descriptors")
+    .core(&signet_core)
+    .temp_dir(tempdir.clone())
+    .expected_exit_code(1)
+    .expected_stderr("error: data mismatch: Network { loaded: Bitcoin, expected: Signet }\n")
+    .run_and_extract_stdout();
+
+  assert!(signet_wallet_db.try_exists().unwrap());
+}
