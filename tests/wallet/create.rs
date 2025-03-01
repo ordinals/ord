@@ -78,12 +78,12 @@ fn wallet_creates_correct_mainnet_taproot_descriptor() {
     .run_and_deserialize_output::<Descriptors>();
 
   assert_regex_match!(
-    &descriptors.descriptor,
+    &descriptors.external,
     r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xpub[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
   );
 
   assert_regex_match!(
-    &descriptors.change_descriptor,
+    &descriptors.internal,
     r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xpub[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
   );
 }
@@ -108,12 +108,12 @@ fn wallet_creates_correct_test_network_taproot_descriptor() {
     .run_and_deserialize_output::<Descriptors>();
 
   assert_regex_match!(
-    &descriptors.descriptor,
+    &descriptors.external,
     r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tpub[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
   );
 
   assert_regex_match!(
-    &descriptors.change_descriptor,
+    &descriptors.internal,
     r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tpub[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
   );
 }

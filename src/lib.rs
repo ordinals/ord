@@ -58,6 +58,7 @@ use {
   error::{ResultExt, SnafuError},
   html_escaper::{Escape, Trusted},
   lazy_static::lazy_static,
+  miniscript::{Descriptor, DescriptorPublicKey},
   ordinals::{
     varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,
     Sat, SatPoint, SpacedRune, Terms,
