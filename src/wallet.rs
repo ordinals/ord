@@ -65,18 +65,18 @@ pub(crate) enum Maturity {
 
 #[allow(dead_code)]
 pub(crate) struct Wallet {
-  wallet: PersistedWallet<DatabasePersister>,
   database: Arc<Database>,
   has_rune_index: bool,
   has_sat_index: bool,
-  rpc_url: Url,
-  utxos: BTreeMap<OutPoint, TxOut>,
   ord_client: reqwest::blocking::Client,
-  inscription_info: BTreeMap<InscriptionId, api::Inscription>,
-  output_info: BTreeMap<OutPoint, api::Output>,
-  inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
-  locked_utxos: BTreeMap<OutPoint, TxOut>,
+  rpc_url: Url,
   settings: Settings,
+  wallet: PersistedWallet<DatabasePersister>,
+  // inscription_info: BTreeMap<InscriptionId, api::Inscription>,
+  // inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
+  // locked_utxos: BTreeMap<OutPoint, TxOut>,
+  // output_info: BTreeMap<OutPoint, api::Output>,
+  // utxos: BTreeMap<OutPoint, TxOut>,
 }
 
 #[allow(dead_code)]
@@ -88,7 +88,7 @@ impl Wallet {
     seed: [u8; 64],
     timestamp: bitcoincore_rpc::json::Timestamp,
   ) -> Result {
-    let database = Arc::new(create_database(&name, settings)?);
+    let database = create_database(&name, settings)?;
 
     let mut wtx = database.begin_write()?;
 
@@ -146,7 +146,7 @@ impl Wallet {
     );
 
     let mut output_sat_ranges = Vec::new();
-    for (output, info) in self.output_info.iter() {
+    for (output, info) in self.output_info().iter() {
       if let Some(sat_ranges) = &info.sat_ranges {
         output_sat_ranges.push((*output, sat_ranges.clone()));
       } else {
@@ -163,7 +163,7 @@ impl Wallet {
       "ord index must be built with `--index-sats` to see sat ranges"
     );
 
-    if let Some(info) = self.output_info.get(output) {
+    if let Some(info) = self.output_info().get(output) {
       if let Some(sat_ranges) = &info.sat_ranges {
         Ok(sat_ranges.clone())
       } else {
@@ -180,7 +180,7 @@ impl Wallet {
       "ord index must be built with `--index-sats` to use `--sat`"
     );
 
-    for (outpoint, info) in self.output_info.iter() {
+    for (outpoint, info) in self.output_info().iter() {
       if let Some(sat_ranges) = &info.sat_ranges {
         let mut offset = 0;
         for (start, end) in sat_ranges {
@@ -207,11 +207,11 @@ impl Wallet {
   }
 
   pub(crate) fn utxos(&self) -> &BTreeMap<OutPoint, TxOut> {
-    &self.utxos
+    todo!()
   }
 
   pub(crate) fn locked_utxos(&self) -> &BTreeMap<OutPoint, TxOut> {
-    &self.locked_utxos
+    todo!()
   }
 
   pub(crate) fn lock_non_cardinal_outputs(&self) -> Result {
@@ -244,11 +244,15 @@ impl Wallet {
   }
 
   pub(crate) fn inscriptions(&self) -> &BTreeMap<SatPoint, Vec<InscriptionId>> {
-    &self.inscriptions
+    todo!();
   }
 
   pub(crate) fn inscription_info(&self) -> BTreeMap<InscriptionId, api::Inscription> {
-    self.inscription_info.clone()
+    todo!();
+  }
+
+  pub(crate) fn output_info(&self) -> BTreeMap<OutPoint, api::Output> {
+    todo!();
   }
 
   pub(crate) fn get_inscription(
@@ -291,7 +295,7 @@ impl Wallet {
   ) -> Result<Option<Vec<InscriptionId>>> {
     Ok(
       self
-        .output_info
+        .output_info()
         .get(output)
         .ok_or(anyhow!("output not found in wallet"))?
         .inscriptions
@@ -307,13 +311,13 @@ impl Wallet {
       }
 
       let satpoint = self
-        .inscription_info
+        .inscription_info()
         .get(parent_id)
         .ok_or_else(|| anyhow!("parent {parent_id} not in wallet"))?
         .satpoint;
 
       let tx_out = self
-        .utxos
+        .utxos()
         .get(&satpoint.outpoint)
         .ok_or_else(|| anyhow!("parent {parent_id} not in wallet"))?
         .clone();
@@ -331,7 +335,7 @@ impl Wallet {
 
   pub(crate) fn get_runic_outputs(&self) -> Result<Option<BTreeSet<OutPoint>>> {
     let mut runic_outputs = BTreeSet::new();
-    for (output, info) in &self.output_info {
+    for (output, info) in &self.output_info() {
       let Some(runes) = &info.runes else {
         return Ok(None);
       };
@@ -350,7 +354,7 @@ impl Wallet {
   ) -> Result<Option<BTreeMap<SpacedRune, Pile>>> {
     Ok(
       self
-        .output_info
+        .output_info()
         .get(output)
         .ok_or(anyhow!("output not found in wallet"))?
         .runes

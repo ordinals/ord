@@ -60,7 +60,7 @@ pub(crate) enum Subcommand {
   Cardinals,
   #[command(about = "Create new wallet")]
   Create(create::Create),
-  #[command(about = "Get wallet descriptors")]
+  #[command(about = "Print wallet descriptors")]
   Descriptors,
   #[command(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),

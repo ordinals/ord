@@ -70,8 +70,8 @@ impl WalletConstructor {
       descriptor::standard(self.settings.chain().network(), master_private_key, 0, true)?;
 
     let wallet = match bdk::Wallet::load()
-      .check_network(self.settings.chain().network())
-      // .descriptor()// https://docs.rs/bdk_wallet/1.1.0/bdk_wallet/struct.LoadParams.html#method.descriptor
+      .check_network(self.settings.chain().network()) // TODO: add a test for this
+      // .descriptor()// https://docs.rs/bdk_wallet/1.1.0/bdk_wallet/struct.LoadParams.html#method.descriptor // TODO: try this
       //.extract_keys()
       .keymap(KeychainKind::External, external_keymap)
       .keymap(KeychainKind::Internal, internal_keymap)
@@ -85,18 +85,18 @@ impl WalletConstructor {
     let status = self.get_server_status()?;
 
     Ok(Wallet {
-      wallet,
       database,
       has_rune_index: status.rune_index,
       has_sat_index: status.sat_index,
-      inscription_info: BTreeMap::new(), // TODO
-      inscriptions: BTreeMap::new(),     // TODO
-      locked_utxos: BTreeMap::new(),     // TODO
       ord_client: self.ord_client,
-      output_info: BTreeMap::new(), // TODO
       rpc_url: self.rpc_url,
       settings: self.settings,
-      utxos: BTreeMap::new(), // TODO
+      wallet,
+      // inscription_info: BTreeMap::new(), // TODO
+      // inscriptions: BTreeMap::new(),     // TODO
+      // locked_utxos: BTreeMap::new(),     // TODO
+      // output_info: BTreeMap::new(), // TODO
+      // utxos: BTreeMap::new(), // TODO
     })
   }
 
