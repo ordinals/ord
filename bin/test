@@ -13,5 +13,4 @@ for test in blacklist:
   command.append('--skip')
   command.append(test)
 
-result = subprocess.run(command)
-sys.exit(result.returncode)
+sys.exit(subprocess.run(command).returncode)
