@@ -9,7 +9,7 @@ use {
     psbt::Psbt,
     secp256k1::Secp256k1,
   },
-  database::Persister,
+  database::{create_database, open_database, DatabasePersister, TransactionPersister},
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   index::entry::Entry,
@@ -18,7 +18,7 @@ use {
   miniscript::descriptor::{
     Descriptor, DescriptorPublicKey, DescriptorSecretKey, DescriptorXKey, Wildcard,
   },
-  redb::{Database, ReadableTable, RepairSession, StorageError, TableDefinition},
+  redb::{Database, ReadableTable, RepairSession, StorageError, TableDefinition, WriteTransaction},
   std::sync::Once,
   transaction_builder::TransactionBuilder,
 };
@@ -65,7 +65,7 @@ pub(crate) enum Maturity {
 
 #[allow(dead_code)]
 pub(crate) struct Wallet {
-  pub(crate) wallet: PersistedWallet<Persister>,
+  wallet: PersistedWallet<DatabasePersister>,
   database: Arc<Database>,
   has_rune_index: bool,
   has_sat_index: bool,
@@ -88,7 +88,9 @@ impl Wallet {
     seed: [u8; 64],
     timestamp: bitcoincore_rpc::json::Timestamp,
   ) -> Result {
-    let database = Arc::new(database::create_database(&name, settings)?);
+    let database = Arc::new(create_database(&name, settings)?);
+
+    let mut wtx = database.begin_write()?;
 
     let network = settings.chain().network();
 
@@ -97,15 +99,13 @@ impl Wallet {
     let external = descriptor::standard(network, master_private_key, 0, false)?;
     let internal = descriptor::standard(network, master_private_key, 0, true)?;
 
-    let mut persister = Persister(database.clone());
+    let mut persister = TransactionPersister(&mut wtx);
 
     let mut wallet = bdk::Wallet::create(external.clone(), internal.clone())
       .network(network)
       .create_wallet(&mut persister)?;
 
     wallet.persist(&mut persister)?;
-
-    let wtx = database.begin_write()?;
 
     wtx
       .open_table(XPRIV)?

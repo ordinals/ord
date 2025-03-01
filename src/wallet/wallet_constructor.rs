@@ -46,9 +46,9 @@ impl WalletConstructor {
   }
 
   pub(crate) fn build(self) -> Result<Wallet> {
-    let database = Arc::new(database::open_database(&self.name, &self.settings)?);
+    let database = Arc::new(open_database(&self.name, &self.settings)?);
 
-    let mut persister = database::Persister(database.clone());
+    let mut persister = DatabasePersister(database.clone());
 
     let rtx = database.begin_read()?;
 

@@ -1,11 +1,39 @@
-use {
-  super::*,
-  // std::ops::Deref,
-};
+use super::*;
 
-pub(crate) struct Persister(pub(crate) Arc<Database>);
+pub(crate) struct TransactionPersister<'a>(pub(crate) &'a mut WriteTransaction);
 
-impl WalletPersister for Persister {
+impl WalletPersister for TransactionPersister<'_> {
+  type Error = Error;
+
+  fn initialize(persister: &mut Self) -> std::result::Result<ChangeSet, Self::Error> {
+    let wtx = &persister.0;
+
+    let changeset = match wtx
+      .open_table(CHANGESET)?
+      .get(())?
+      .map(|result| result.value().to_string())
+    {
+      Some(result) => serde_json::from_str::<ChangeSet>(result.as_str())?,
+      None => ChangeSet::default(),
+    };
+
+    Ok(changeset)
+  }
+
+  fn persist(persister: &mut Self, changeset: &ChangeSet) -> std::result::Result<(), Self::Error> {
+    let wtx = &persister.0;
+
+    wtx
+      .open_table(CHANGESET)?
+      .insert((), serde_json::to_string(changeset)?.as_str())?;
+
+    Ok(())
+  }
+}
+
+pub(crate) struct DatabasePersister(pub(crate) Arc<Database>);
+
+impl WalletPersister for DatabasePersister {
   type Error = Error;
 
   fn initialize(persister: &mut Self) -> std::result::Result<ChangeSet, Self::Error> {
@@ -35,14 +63,6 @@ impl WalletPersister for Persister {
     Ok(())
   }
 }
-
-//impl Deref for Persister {
-//  type Target = Database;
-//
-//  fn deref(&self) -> &Self::Target {
-//    &self.0
-//  }
-//}
 
 pub(crate) fn create_database(wallet_name: &String, settings: &Settings) -> Result<Database> {
   let path = settings
