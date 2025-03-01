@@ -34,8 +34,6 @@ pub mod transactions;
 pub(crate) struct WalletCommand {
   #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) name: String,
-  #[arg(long, alias = "nosync", help = "Do not update index.")]
-  pub(crate) no_sync: bool,
   #[arg(
     long,
     help = "Use ord running at <SERVER_URL>. [default: http://localhost:80]"
@@ -106,7 +104,6 @@ impl WalletCommand {
 
     let wallet = WalletConstructor::construct(
       self.name.clone(),
-      self.no_sync,
       settings.clone(),
       self
         .server_url
