@@ -72,11 +72,6 @@ pub(crate) struct Wallet {
   rpc_url: Url,
   settings: Settings,
   wallet: PersistedWallet<DatabasePersister>,
-  // inscription_info: BTreeMap<InscriptionId, api::Inscription>,
-  // inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
-  // locked_utxos: BTreeMap<OutPoint, TxOut>,
-  // output_info: BTreeMap<OutPoint, api::Output>,
-  // utxos: BTreeMap<OutPoint, TxOut>,
 }
 
 #[allow(dead_code)]
