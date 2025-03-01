@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-    - dev
+    - bdk
   pull_request:
     branches:
-    - dev
+    - bdk
 
 defaults:
   run:
