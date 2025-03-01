@@ -9,7 +9,6 @@ use {
     psbt::Psbt,
     secp256k1::Secp256k1,
   },
-  bitcoincore_rpc::json::ImportDescriptors,
   database::Persister,
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
@@ -19,7 +18,7 @@ use {
   miniscript::descriptor::{
     Descriptor, DescriptorPublicKey, DescriptorSecretKey, DescriptorXKey, Wildcard,
   },
-  redb::{Database, DatabaseError, ReadableTable, RepairSession, StorageError, TableDefinition},
+  redb::{Database, ReadableTable, RepairSession, StorageError, TableDefinition},
   std::sync::Once,
   transaction_builder::TransactionBuilder,
 };
