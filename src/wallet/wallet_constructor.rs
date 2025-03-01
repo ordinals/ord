@@ -92,11 +92,11 @@ impl WalletConstructor {
       rpc_url: self.rpc_url,
       settings: self.settings,
       wallet,
-      // inscription_info: BTreeMap::new(), // TODO
-      // inscriptions: BTreeMap::new(),     // TODO
-      // locked_utxos: BTreeMap::new(),     // TODO
-      // output_info: BTreeMap::new(), // TODO
-      // utxos: BTreeMap::new(), // TODO
+      // inscription_info: BTreeMap::new(),
+      // inscriptions: BTreeMap::new(),
+      // locked_utxos: BTreeMap::new(),
+      // output_info: BTreeMap::new(),
+      // utxos: BTreeMap::new(),
     })
   }
 

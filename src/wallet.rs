@@ -207,11 +207,11 @@ impl Wallet {
   }
 
   pub(crate) fn utxos(&self) -> &BTreeMap<OutPoint, TxOut> {
-    todo!()
+    unimplemented!()
   }
 
   pub(crate) fn locked_utxos(&self) -> &BTreeMap<OutPoint, TxOut> {
-    todo!()
+    unimplemented!()
   }
 
   pub(crate) fn lock_non_cardinal_outputs(&self) -> Result {
@@ -244,15 +244,15 @@ impl Wallet {
   }
 
   pub(crate) fn inscriptions(&self) -> &BTreeMap<SatPoint, Vec<InscriptionId>> {
-    todo!();
+    unimplemented!();
   }
 
   pub(crate) fn inscription_info(&self) -> BTreeMap<InscriptionId, api::Inscription> {
-    todo!();
+    unimplemented!();
   }
 
   pub(crate) fn output_info(&self) -> BTreeMap<OutPoint, api::Output> {
-    todo!();
+    unimplemented!();
   }
 
   pub(crate) fn get_inscription(
