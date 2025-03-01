@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import os, shutil
+import shutil, subprocess, sys
 
 test = 'ltest' if shutil.which('cargo-ltest') else 'test'
 
@@ -13,4 +13,5 @@ for test in blacklist:
   command.append('--skip')
   command.append(test)
 
-os.execvp(command[0], command)
+result = subprocess.run(command)
+sys.exit(result.returncode)
