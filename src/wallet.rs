@@ -81,7 +81,7 @@ pub(crate) struct Wallet {
 
 #[allow(dead_code)]
 impl Wallet {
-  #[allow(unused_variables, unreachable_code)]
+  #[allow(unused_variables)]
   pub(crate) fn create(
     name: String,
     settings: &Settings,
