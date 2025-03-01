@@ -124,12 +124,6 @@ jobs:
       if: ${{ github.event.pull_request.base.ref == 'master' }}
       run: cargo test --all
 
-    - name: Set up Python
-      if: ${{ github.event.pull_request.base.ref == 'bdk' }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3'
-
     - name: Test
       if: ${{ github.event.pull_request.base.ref == 'bdk' }}
       run: ./bin/test
