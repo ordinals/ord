@@ -48,23 +48,23 @@ pub(crate) struct WalletCommand {
 #[derive(Debug, Parser)]
 #[allow(clippy::large_enum_variant)]
 pub(crate) enum Subcommand {
-  #[command(about = "Get wallet addresses")]
+  #[command(about = "List addresses")]
   Addresses,
-  #[command(about = "Get wallet balance")]
+  #[command(about = "Get balance")]
   Balance,
   #[command(about = "Create inscriptions and runes")]
   Batch(batch_command::Batch),
   #[command(about = "Burn an inscription")]
   Burn(burn::Burn),
-  #[command(about = "List unspent cardinal outputs in wallet")]
+  #[command(about = "List unspent cardinal outputs")]
   Cardinals,
   #[command(about = "Create new wallet")]
   Create(create::Create),
-  #[command(about = "Print wallet descriptors")]
+  #[command(about = "List descriptors")]
   Descriptors,
   #[command(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
-  #[command(about = "List wallet inscriptions")]
+  #[command(about = "List inscriptions")]
   Inscriptions,
   #[command(about = "Export output labels")]
   Label,
@@ -72,7 +72,7 @@ pub(crate) enum Subcommand {
   Mint(mint::Mint),
   #[command(subcommand, about = "Offer commands")]
   Offer(offer::Offer),
-  #[command(about = "List all unspent outputs in wallet")]
+  #[command(about = "List unspent outputs")]
   Outputs(outputs::Outputs),
   #[command(about = "List pending etchings")]
   Pending(pending::Pending),
@@ -82,9 +82,9 @@ pub(crate) enum Subcommand {
   Restore(restore::Restore),
   #[command(about = "Resume pending etchings")]
   Resume(resume::Resume),
-  #[command(about = "List unspent runic outputs in wallet")]
+  #[command(about = "List unspent runic outputs")]
   Runics,
-  #[command(about = "List wallet satoshis")]
+  #[command(about = "List satoshis")]
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
   Send(send::Send),
@@ -92,7 +92,7 @@ pub(crate) enum Subcommand {
   Sign(sign::Sign),
   #[command(about = "Split outputs")]
   Split(split::Split),
-  #[command(about = "See wallet transactions")]
+  #[command(about = "List transactions")]
   Transactions(transactions::Transactions),
 }
 
