@@ -1,7 +1,6 @@
 use {
   super::*,
-  bdk::{ChangeSet, WalletPersister},
-  std::ops::Deref,
+  // std::ops::Deref,
 };
 
 pub(crate) struct Persister(pub(crate) Arc<Database>);
@@ -37,13 +36,13 @@ impl WalletPersister for Persister {
   }
 }
 
-impl Deref for Persister {
-  type Target = Database;
-
-  fn deref(&self) -> &Self::Target {
-    &self.0
-  }
-}
+//impl Deref for Persister {
+//  type Target = Database;
+//
+//  fn deref(&self) -> &Self::Target {
+//    &self.0
+//  }
+//}
 
 pub(crate) fn create_database(wallet_name: &String, settings: &Settings) -> Result<Database> {
   let path = settings

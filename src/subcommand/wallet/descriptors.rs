@@ -8,7 +8,11 @@ pub struct Output {
 
 pub(crate) fn run(wallet: Wallet) -> SubcommandResult {
   Ok(Some(Box::new(Output {
-    descriptor: wallet.get_descriptor(KeychainKind::External)?.to_string(),
-    change_descriptor: wallet.get_descriptor(KeychainKind::Internal)?.to_string(),
+    descriptor: wallet
+      .get_descriptor(bdk_wallet::KeychainKind::External)?
+      .to_string(),
+    change_descriptor: wallet
+      .get_descriptor(bdk_wallet::KeychainKind::Internal)?
+      .to_string(),
   })))
 }
