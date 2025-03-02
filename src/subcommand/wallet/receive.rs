@@ -21,8 +21,7 @@ impl Receive {
           .wallet
           .reveal_next_address(bdk_wallet::KeychainKind::External)
           .address
-          .as_unchecked()
-          .clone(),
+          .into_unchecked(),
       );
     }
 
