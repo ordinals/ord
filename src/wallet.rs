@@ -72,8 +72,8 @@ pub(crate) struct Wallet {
 }
 
 impl Wallet {
-  pub(crate) fn create(name: &str, settings: &Settings, seed: [u8; 64]) -> Result {
-    let database = Self::create_database(&name, settings)?;
+  pub(crate) fn create(settings: &Settings, name: &str, seed: [u8; 64]) -> Result {
+    let database = Self::create_database(settings, name)?;
 
     let mut wtx = database.begin_write()?;
 
@@ -101,18 +101,11 @@ impl Wallet {
     Ok(())
   }
 
-  pub(crate) fn create_database(wallet_name: &str, settings: &Settings) -> Result<Database> {
-    let path = settings
-      .data_dir()
-      .join("wallets")
-      .join(format!("{wallet_name}.redb"));
+  pub(crate) fn create_database(settings: &Settings, name: &str) -> Result<Database> {
+    let path = Self::database_path(settings, name);
 
     if path.exists() {
-      bail!(
-        "wallet `{}` at `{}` already exists",
-        wallet_name,
-        path.display()
-      );
+      bail!("wallet `{}` at `{}` already exists", name, path.display());
     }
 
     if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {

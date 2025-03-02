@@ -7,7 +7,7 @@ pub(crate) struct Restore {
 }
 
 impl Restore {
-  pub(crate) fn run(self, name: &str, settings: &Settings) -> SubcommandResult {
+  pub(crate) fn run(self, settings: &Settings, name: &str) -> SubcommandResult {
     let mut buffer = String::new();
 
     io::stdin().read_line(&mut buffer)?;
@@ -15,8 +15,8 @@ impl Restore {
     let mnemonic = Mnemonic::from_str(&buffer)?;
 
     Wallet::create(
-      name,
       settings,
+      name,
       mnemonic.to_seed(self.passphrase.unwrap_or_default()),
     )?;
 
