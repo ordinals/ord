@@ -79,6 +79,7 @@ impl WalletConstructor {
       has_rune_index: status.rune_index,
       has_sat_index: status.sat_index,
       ord_client: self.ord_client,
+      persister,
       rpc_url: self.rpc_url,
       settings: self.settings,
       wallet,

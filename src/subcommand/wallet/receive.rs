@@ -26,6 +26,8 @@ impl Receive {
       );
     }
 
+    wallet.persist()?;
+
     Ok(Some(Box::new(Output { addresses })))
   }
 }

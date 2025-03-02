@@ -68,6 +68,7 @@ pub(crate) struct Wallet {
   has_rune_index: bool,
   has_sat_index: bool,
   ord_client: reqwest::blocking::Client,
+  persister: DatabasePersister,
   rpc_url: Url,
   settings: Settings,
   pub(crate) wallet: PersistedWallet<DatabasePersister>,
@@ -124,6 +125,12 @@ impl Wallet {
     )?;
 
     Ok(descriptor)
+  }
+
+  pub(crate) fn persist(&mut self) -> Result {
+    self.wallet.persist(&mut self.persister)?;
+
+    Ok(())
   }
 
   pub(crate) fn get_wallet_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {

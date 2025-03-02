@@ -1,3 +1,5 @@
+use bdk_wallet::chain::Merge;
+
 use super::*;
 
 pub(crate) struct TransactionPersister<'a>(pub(crate) &'a mut WriteTransaction);
@@ -21,11 +23,15 @@ impl WalletPersister for TransactionPersister<'_> {
   }
 
   fn persist(persister: &mut Self, changeset: &ChangeSet) -> std::result::Result<(), Self::Error> {
+    let mut current = Self::initialize(persister)?;
+
+    current.merge(changeset.clone());
+
     let wtx = &persister.0;
 
     wtx
       .open_table(CHANGESET)?
-      .insert((), serde_json::to_string(changeset)?.as_str())?;
+      .insert((), serde_json::to_string(&current)?.as_str())?;
 
     Ok(())
   }

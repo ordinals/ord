@@ -95,6 +95,7 @@ fn create_wallet(core: &mockcore::Handle, ord: &TestServer) -> Arc<TempDir> {
     .core(core)
     .ord(ord)
     .stdout_regex(".*")
+    .stderr_regex(".*")
     .run_and_extract_stdout();
 
   tempdir
