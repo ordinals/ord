@@ -181,7 +181,6 @@ wallet::outputs::outputs_includes_runes_and_inscriptions
 wallet::outputs::outputs_includes_sat_ranges
 wallet::outputs::outputs_includes_unbound_outputs
 wallet::pending::wallet_pending
-wallet::receive::receive
 wallet::resume::commitment_output_is_locked
 wallet::resume::resume_suspended
 wallet::resume::wallet_resume

@@ -5,9 +5,10 @@ fn receive() {
   let core = mockcore::spawn();
   let ord = TestServer::spawn(&core);
 
-  create_wallet(&core, &ord);
+  let tempdir = create_wallet(&core, &ord);
 
   let output = CommandBuilder::new("wallet receive")
+    .temp_dir(tempdir)
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<receive::Output>();

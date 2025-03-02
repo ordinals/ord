@@ -12,14 +12,17 @@ pub(crate) struct Receive {
 }
 
 impl Receive {
-  pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
+  pub(crate) fn run(self, mut wallet: Wallet) -> SubcommandResult {
     let mut addresses: Vec<Address<NetworkUnchecked>> = Vec::new();
 
     for _ in 0..self.number.unwrap_or(1) {
       addresses.push(
         wallet
-          .bitcoin_client()
-          .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?,
+          .wallet
+          .reveal_next_address(bdk_wallet::KeychainKind::External)
+          .address
+          .as_unchecked()
+          .clone(),
       );
     }
 

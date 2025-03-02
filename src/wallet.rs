@@ -70,8 +70,7 @@ pub(crate) struct Wallet {
   ord_client: reqwest::blocking::Client,
   rpc_url: Url,
   settings: Settings,
-  #[allow(unused)]
-  wallet: PersistedWallet<DatabasePersister>,
+  pub(crate) wallet: PersistedWallet<DatabasePersister>,
 }
 
 impl Wallet {

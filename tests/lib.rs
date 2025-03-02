@@ -87,12 +87,17 @@ type Send = ord::subcommand::wallet::send::Output;
 type Split = ord::subcommand::wallet::split::Output;
 type Supply = ord::subcommand::supply::Output;
 
-fn create_wallet(core: &mockcore::Handle, ord: &TestServer) {
+fn create_wallet(core: &mockcore::Handle, ord: &TestServer) -> Arc<TempDir> {
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
   CommandBuilder::new(format!("--chain {} wallet create", core.network()))
+    .temp_dir(tempdir.clone())
     .core(core)
     .ord(ord)
     .stdout_regex(".*")
     .run_and_extract_stdout();
+
+  tempdir
 }
 
 fn sats(
