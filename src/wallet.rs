@@ -1,4 +1,5 @@
 use {
+  self::persister::{DatabasePersister, TransactionPersister},
   super::*,
   batch::ParentInfo,
   bdk::{keys::KeyMap, ChangeSet, KeychainKind, PersistedWallet, WalletPersister},
@@ -7,7 +8,7 @@ use {
     psbt::Psbt,
     secp256k1::Secp256k1,
   },
-  database::{create_database, open_database, DatabasePersister, TransactionPersister},
+  database::{create_database, open_database},
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   index::entry::Entry,
@@ -25,6 +26,7 @@ pub mod batch;
 pub mod database;
 pub mod descriptor;
 pub mod entry;
+mod persister;
 pub mod transaction_builder;
 pub mod wallet_constructor;
 
@@ -66,7 +68,6 @@ pub(crate) struct Wallet {
   has_rune_index: bool,
   has_sat_index: bool,
   ord_client: reqwest::blocking::Client,
-  persister: DatabasePersister,
   rpc_url: Url,
   settings: Settings,
   pub(crate) wallet: PersistedWallet<DatabasePersister>,
@@ -126,8 +127,9 @@ impl Wallet {
   }
 
   pub(crate) fn persist(&mut self) -> Result {
-    self.wallet.persist(&mut self.persister)?;
-
+    self
+      .wallet
+      .persist(&mut DatabasePersister(self.database.clone()))?;
     Ok(())
   }
 
