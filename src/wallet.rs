@@ -22,7 +22,6 @@ use {
 };
 
 pub mod batch;
-pub mod descriptor;
 pub mod entry;
 mod persister;
 pub mod transaction_builder;
@@ -81,8 +80,8 @@ impl Wallet {
 
     let master_private_key = Xpriv::new_master(network, &seed)?;
 
-    let external = descriptor::standard(network, master_private_key, 0, false)?;
-    let internal = descriptor::standard(network, master_private_key, 0, true)?;
+    let external = Wallet::derive_descriptor(network, master_private_key, KeychainKind::External)?;
+    let internal = Wallet::derive_descriptor(network, master_private_key, KeychainKind::Internal)?;
 
     let mut persister = TransactionPersister(&mut wtx);
 
@@ -212,7 +211,7 @@ impl Wallet {
 
   pub(crate) fn get_descriptor(
     &self,
-    keychain_kind: KeychainKind,
+    kind: KeychainKind,
   ) -> Result<Descriptor<DescriptorPublicKey>> {
     let rtx = self.database.begin_read()?;
 
@@ -223,14 +222,49 @@ impl Wallet {
       .transpose()?
       .ok_or(anyhow!("couldn't load master private key from database"))?;
 
-    let (descriptor, _keymap) = descriptor::standard(
-      self.settings.chain().network(),
-      master_private_key,
-      0,
-      keychain_kind == KeychainKind::Internal,
-    )?;
+    let (descriptor, _keymap) =
+      Wallet::derive_descriptor(self.settings.chain().network(), master_private_key, kind)?;
 
     Ok(descriptor)
+  }
+
+  pub(crate) fn derive_descriptor(
+    network: Network,
+    master_private_key: Xpriv,
+    kind: KeychainKind,
+  ) -> Result<(Descriptor<DescriptorPublicKey>, KeyMap)> {
+    const ACCOUNT: u32 = 0;
+
+    let secp = Secp256k1::new();
+
+    let fingerprint = master_private_key.fingerprint(&secp);
+
+    let derivation_path = DerivationPath::master()
+      .child(ChildNumber::Hardened { index: 86 })
+      .child(ChildNumber::Hardened {
+        index: u32::from(network != Network::Bitcoin),
+      })
+      .child(ChildNumber::Hardened { index: ACCOUNT });
+
+    let derived_private_key = master_private_key.derive_priv(&secp, &derivation_path)?;
+
+    let secret_key = DescriptorSecretKey::XPrv(DescriptorXKey {
+      origin: Some((fingerprint, derivation_path.clone())),
+      xkey: derived_private_key,
+      derivation_path: DerivationPath::master().child(ChildNumber::Normal {
+        index: kind.as_byte().into(),
+      }),
+      wildcard: Wildcard::Unhardened,
+    });
+
+    let public_key = secret_key.to_public(&secp)?;
+
+    let mut key_map = BTreeMap::new();
+    key_map.insert(public_key.clone(), secret_key);
+
+    let descriptor = Descriptor::new_tr(public_key, None)?;
+
+    Ok((descriptor, key_map))
   }
 
   pub(crate) fn persist(&mut self) -> Result {

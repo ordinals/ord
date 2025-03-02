@@ -50,20 +50,24 @@ impl WalletConstructor {
       .transpose()?
       .ok_or(anyhow!("couldn't load master private key from database"))?;
 
-    let descriptor = descriptor::standard(
-      self.settings.chain().network(),
-      master_private_key,
-      0,
-      false,
-    )?;
-
-    let change_descriptor =
-      descriptor::standard(self.settings.chain().network(), master_private_key, 0, true)?;
-
     let wallet = match bdk::Wallet::load()
       .check_network(self.settings.chain().network())
-      .descriptor(KeychainKind::External, Some(descriptor))
-      .descriptor(KeychainKind::Internal, Some(change_descriptor))
+      .descriptor(
+        KeychainKind::External,
+        Some(Wallet::derive_descriptor(
+          self.settings.chain().network(),
+          master_private_key,
+          KeychainKind::External,
+        )?),
+      )
+      .descriptor(
+        KeychainKind::Internal,
+        Some(Wallet::derive_descriptor(
+          self.settings.chain().network(),
+          master_private_key,
+          KeychainKind::Internal,
+        )?),
+      )
       .extract_keys()
       .lookahead(1000)
       .load_wallet(&mut persister)?
