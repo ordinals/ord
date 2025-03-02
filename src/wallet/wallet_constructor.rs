@@ -39,8 +39,6 @@ impl WalletConstructor {
   pub(crate) fn build(self) -> Result<Wallet> {
     let database = Arc::new(Wallet::open_database(&self.settings, &self.name)?);
 
-    let mut persister = DatabasePersister(database.clone());
-
     let rtx = database.begin_read()?;
 
     let master_private_key = rtx
@@ -70,7 +68,7 @@ impl WalletConstructor {
       )
       .extract_keys()
       .lookahead(1000)
-      .load_wallet(&mut persister)?
+      .load_wallet(&mut DatabasePersister(database.clone()))?
     {
       Some(wallet) => wallet,
       None => bail!("no wallet found, create one first"),
