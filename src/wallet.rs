@@ -78,11 +78,9 @@ impl Wallet {
       bail!("wallet `{}` at `{}` already exists", name, path.display());
     }
 
-    if let Err(err) = fs::create_dir_all(path.parent().unwrap()) {
-      bail!(
-        "failed to create data dir `{}`: {err}",
-        path.parent().unwrap().display()
-      );
+    let dir = path.parent().unwrap();
+    if let Err(err) = fs::create_dir_all(dir) {
+      bail!("failed to create data dir `{}`: {err}", dir.display());
     }
 
     let database = Database::builder().create(&path)?;
