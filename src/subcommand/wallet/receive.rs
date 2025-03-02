@@ -19,7 +19,7 @@ impl Receive {
       addresses.push(
         wallet
           .wallet
-          .reveal_next_address(bdk_wallet::KeychainKind::External)
+          .reveal_next_address(KeychainKind::External)
           .address
           .into_unchecked(),
       );

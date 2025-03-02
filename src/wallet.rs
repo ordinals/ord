@@ -1,9 +1,7 @@
 use {
   super::*,
   batch::ParentInfo,
-  bdk_wallet::{
-    self as bdk, keys::KeyMap, ChangeSet, KeychainKind, PersistedWallet, WalletPersister,
-  },
+  bdk::{keys::KeyMap, ChangeSet, KeychainKind, PersistedWallet, WalletPersister},
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, Xpriv},
     psbt::Psbt,

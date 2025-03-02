@@ -1,6 +1,7 @@
 use {
   super::*,
   crate::wallet::{batch, wallet_constructor::WalletConstructor, Wallet},
+  bdk::KeychainKind,
   bitcoin::Psbt,
   shared_args::SharedArgs,
 };
