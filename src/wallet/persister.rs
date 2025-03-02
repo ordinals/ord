@@ -6,9 +6,8 @@ impl WalletPersister for TransactionPersister<'_> {
   type Error = Error;
 
   fn initialize(persister: &mut Self) -> std::result::Result<ChangeSet, Self::Error> {
-    let wtx = &persister.0;
-
-    let changeset = match wtx
+    let changeset = match persister
+      .0
       .open_table(CHANGESET)?
       .get(())?
       .map(|result| result.value().to_string())
@@ -25,9 +24,8 @@ impl WalletPersister for TransactionPersister<'_> {
 
     current.merge(changeset.clone());
 
-    let wtx = &persister.0;
-
-    wtx
+    persister
+      .0
       .open_table(CHANGESET)?
       .insert((), serde_json::to_string(&current)?.as_str())?;
 
