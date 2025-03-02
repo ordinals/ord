@@ -7,7 +7,7 @@ pub(crate) struct Restore {
 }
 
 impl Restore {
-  pub(crate) fn run(self, name: String, settings: &Settings) -> SubcommandResult {
+  pub(crate) fn run(self, name: &str, settings: &Settings) -> SubcommandResult {
     let mut buffer = String::new();
 
     io::stdin().read_line(&mut buffer)?;

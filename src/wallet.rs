@@ -72,7 +72,7 @@ pub(crate) struct Wallet {
 }
 
 impl Wallet {
-  pub(crate) fn create(name: String, settings: &Settings, seed: [u8; 64]) -> Result {
+  pub(crate) fn create(name: &str, settings: &Settings, seed: [u8; 64]) -> Result {
     let database = Self::create_database(&name, settings)?;
 
     let mut wtx = database.begin_write()?;
@@ -101,7 +101,7 @@ impl Wallet {
     Ok(())
   }
 
-  pub(crate) fn create_database(wallet_name: &String, settings: &Settings) -> Result<Database> {
+  pub(crate) fn create_database(wallet_name: &str, settings: &Settings) -> Result<Database> {
     let path = settings
       .data_dir()
       .join("wallets")
@@ -141,11 +141,15 @@ impl Wallet {
     Ok(database)
   }
 
-  pub(crate) fn open_database(wallet_name: &String, settings: &Settings) -> Result<Database> {
-    let path = settings
+  fn database_path(settings: &Settings, wallet_name: &str) -> PathBuf {
+    settings
       .data_dir()
       .join("wallets")
-      .join(format!("{wallet_name}.redb"));
+      .join(format!("{wallet_name}.redb"))
+  }
+
+  pub(crate) fn open_database(settings: &Settings, wallet_name: &str) -> Result<Database> {
+    let path = Self::database_path(settings, wallet_name);
 
     let db_path = path.clone().to_owned();
     let once = Once::new();
