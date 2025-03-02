@@ -1,7 +1,9 @@
 use {
   super::*,
   batch::ParentInfo,
-  bdk_wallet::{self as bdk, keys::KeyMap, ChangeSet, KeychainKind, WalletPersister},
+  bdk_wallet::{
+    self as bdk, keys::KeyMap, ChangeSet, KeychainKind, PersistedWallet, WalletPersister,
+  },
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, Xpriv},
     psbt::Psbt,
@@ -68,6 +70,7 @@ pub(crate) struct Wallet {
   ord_client: reqwest::blocking::Client,
   rpc_url: Url,
   settings: Settings,
+  #[allow(unused)]
   wallet: PersistedWallet<DatabasePersister>,
 }
 
