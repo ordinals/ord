@@ -72,35 +72,6 @@ pub(crate) struct Wallet {
 
 impl Wallet {
   pub(crate) fn create(settings: &Settings, name: &str, seed: [u8; 64]) -> Result {
-    let database = Self::create_database(settings, name)?;
-
-    let mut wtx = database.begin_write()?;
-
-    let network = settings.chain().network();
-
-    let master_private_key = Xpriv::new_master(network, &seed)?;
-
-    let external = Wallet::derive_descriptor(network, master_private_key, KeychainKind::External)?;
-    let internal = Wallet::derive_descriptor(network, master_private_key, KeychainKind::Internal)?;
-
-    let mut persister = TransactionPersister(&mut wtx);
-
-    let mut wallet = bdk::Wallet::create(external.clone(), internal.clone())
-      .network(network)
-      .create_wallet(&mut persister)?;
-
-    wallet.persist(&mut persister)?;
-
-    wtx
-      .open_table(XPRIV)?
-      .insert((), master_private_key.encode())?;
-
-    wtx.commit()?;
-
-    Ok(())
-  }
-
-  pub(crate) fn create_database(settings: &Settings, name: &str) -> Result<Database> {
     let path = Self::database_path(settings, name);
 
     if path.exists() {
@@ -116,21 +87,39 @@ impl Wallet {
 
     let database = Database::builder().create(&path)?;
 
+    let network = settings.chain().network();
+
+    let master_private_key = Xpriv::new_master(network, &seed)?;
+
+    let external = Wallet::derive_descriptor(network, master_private_key, KeychainKind::External)?;
+
+    let internal = Wallet::derive_descriptor(network, master_private_key, KeychainKind::Internal)?;
+
     let mut tx = database.begin_write()?;
+
     tx.set_quick_repair(true);
 
     tx.open_table(CHANGESET)?;
-
-    tx.open_table(XPRIV)?;
 
     tx.open_table(RUNE_TO_ETCHING)?;
 
     tx.open_table(STATISTICS)?
       .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
 
+    tx.open_table(XPRIV)?
+      .insert((), master_private_key.encode())?;
+
+    let mut persister = TransactionPersister(&mut tx);
+
+    let mut wallet = bdk::Wallet::create(external.clone(), internal.clone())
+      .network(network)
+      .create_wallet(&mut persister)?;
+
+    wallet.persist(&mut persister)?;
+
     tx.commit()?;
 
-    Ok(database)
+    Ok(())
   }
 
   fn database_path(settings: &Settings, wallet_name: &str) -> PathBuf {
@@ -252,7 +241,7 @@ impl Wallet {
       origin: Some((fingerprint, derivation_path.clone())),
       xkey: derived_private_key,
       derivation_path: DerivationPath::master().child(ChildNumber::Normal {
-        index: kind.as_byte().into(),
+        index: (kind as u8).into(),
       }),
       wildcard: Wildcard::Unhardened,
     });
