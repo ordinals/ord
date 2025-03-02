@@ -1,9 +1,7 @@
 use {
   super::*,
   batch::ParentInfo,
-  bdk_wallet::{
-    self as bdk, keys::KeyMap, ChangeSet, KeychainKind, PersistedWallet, WalletPersister,
-  },
+  bdk_wallet::{self as bdk, keys::KeyMap, ChangeSet, KeychainKind, WalletPersister},
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, Xpriv},
     psbt::Psbt,
@@ -63,7 +61,6 @@ pub(crate) enum Maturity {
   Mature,
 }
 
-#[allow(dead_code)]
 pub(crate) struct Wallet {
   database: Arc<Database>,
   has_rune_index: bool,
@@ -74,15 +71,8 @@ pub(crate) struct Wallet {
   wallet: PersistedWallet<DatabasePersister>,
 }
 
-#[allow(dead_code)]
 impl Wallet {
-  #[allow(unused_variables)]
-  pub(crate) fn create(
-    name: String,
-    settings: &Settings,
-    seed: [u8; 64],
-    timestamp: bitcoincore_rpc::json::Timestamp,
-  ) -> Result {
+  pub(crate) fn create(name: String, settings: &Settings, seed: [u8; 64]) -> Result {
     let database = create_database(&name, settings)?;
 
     let mut wtx = database.begin_write()?;
@@ -516,51 +506,6 @@ impl Wallet {
       reveal_broadcast: true,
       ..entry.output.clone()
     })
-  }
-
-  // fn check_descriptors(
-  //   wallet_name: &str,
-  //   descriptors: Vec<DescriptorJson>,
-  // ) -> Result<Vec<DescriptorJson>> {
-  //   let tr = descriptors
-  //     .iter()
-  //     .filter(|descriptor| descriptor.desc.starts_with("tr("))
-  //     .count();
-
-  //   let rawtr = descriptors
-  //     .iter()
-  //     .filter(|descriptor| descriptor.desc.starts_with("rawtr("))
-  //     .count();
-
-  //   if tr != 2 || descriptors.len() != 2 + rawtr {
-  //     bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", wallet_name);
-  //   }
-
-  //   Ok(descriptors)
-  // }
-
-  pub(crate) fn check_version(client: Client) -> Result<Client> {
-    const MIN_VERSION: usize = 280000;
-
-    let bitcoin_version = client.version()?;
-    if bitcoin_version < MIN_VERSION {
-      bail!(
-        "Bitcoin Core {} or newer required, current version is {}",
-        Self::format_bitcoin_core_version(MIN_VERSION),
-        Self::format_bitcoin_core_version(bitcoin_version),
-      );
-    } else {
-      Ok(client)
-    }
-  }
-
-  fn format_bitcoin_core_version(version: usize) -> String {
-    format!(
-      "{}.{}.{}",
-      version / 10000,
-      version % 10000 / 100,
-      version % 100
-    )
   }
 
   pub(crate) fn save_etching(
