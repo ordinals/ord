@@ -27,6 +27,7 @@ mod persister;
 pub mod transaction_builder;
 pub mod wallet_constructor;
 
+const LOOKAHEAD: u32 = 1000;
 const SCHEMA_VERSION: u64 = 2;
 
 define_table! { CHANGESET, (), &str }
@@ -111,7 +112,7 @@ impl Wallet {
 
     let mut wallet = bdk::Wallet::create(external.clone(), internal.clone())
       .network(network)
-      .lookahead(1000)
+      .lookahead(LOOKAHEAD)
       .create_wallet(&mut persister)?;
 
     wallet.persist(&mut persister)?;

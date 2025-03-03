@@ -67,7 +67,7 @@ impl WalletConstructor {
         )?),
       )
       .extract_keys()
-      .lookahead(1000)
+      .lookahead(LOOKAHEAD)
       .load_wallet(&mut DatabasePersister(database.clone()))?
     {
       Some(wallet) => wallet,
