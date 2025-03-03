@@ -168,7 +168,7 @@ fn create_wallet_with_same_name_different_network_fails() {
       "error: failed to load wallet
 
 because:
-- data mismatch:: Network { loaded: Bitcoin, expected: Signet }
+- data mismatch: Network { loaded: Bitcoin, expected: Signet }
 ",
     )
     .run_and_extract_stdout();
