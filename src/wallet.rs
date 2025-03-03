@@ -67,7 +67,7 @@ pub(crate) struct Wallet {
   ord_client: reqwest::blocking::Client,
   rpc_url: Url,
   settings: Settings,
-  pub(crate) wallet: PersistedWallet<DatabasePersister>,
+  wallet: PersistedWallet<DatabasePersister>,
 }
 
 impl Wallet {
@@ -213,6 +213,21 @@ impl Wallet {
       Wallet::derive_descriptor(self.settings.chain().network(), master_private_key, kind)?;
 
     Ok(descriptor)
+  }
+
+  pub(crate) fn get_receive_addresses(&mut self, n: usize) -> Vec<Address> {
+    let mut addresses = Vec::new();
+
+    for _ in 0..n {
+      addresses.push(
+        self
+          .wallet
+          .reveal_next_address(KeychainKind::External)
+          .address,
+      )
+    }
+
+    addresses
   }
 
   pub(crate) fn derive_descriptor(
