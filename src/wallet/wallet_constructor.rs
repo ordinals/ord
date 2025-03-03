@@ -68,7 +68,8 @@ impl WalletConstructor {
       )
       .extract_keys()
       .lookahead(LOOKAHEAD)
-      .load_wallet(&mut DatabasePersister(database.clone()))?
+      .load_wallet(&mut DatabasePersister(database.clone()))
+      .context("failed to load wallet")?
     {
       Some(wallet) => wallet,
       None => bail!("no wallet found, create one first"),
