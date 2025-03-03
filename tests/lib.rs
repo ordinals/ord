@@ -14,8 +14,8 @@ use {
   mockcore::TransactionTemplate,
   ord::{
     api, base64_decode, base64_encode, chain::Chain, decimal::Decimal, outgoing::Outgoing,
-    subcommand::runes::RuneInfo, templates::InscriptionHtml, wallet::batch,
-    wallet::ListDescriptorsResult, Inscription, InscriptionId, RuneEntry,
+    subcommand::runes::RuneInfo, templates::InscriptionHtml, wallet::batch, Inscription,
+    InscriptionId, RuneEntry,
   },
   ordinals::{
     Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
@@ -91,8 +91,7 @@ fn create_wallet(core: &mockcore::Handle, ord: &TestServer) {
   CommandBuilder::new(format!("--chain {} wallet create", core.network()))
     .core(core)
     .ord(ord)
-    .stdout_regex(".*")
-    .run_and_extract_stdout();
+    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
 }
 
 fn sats(
