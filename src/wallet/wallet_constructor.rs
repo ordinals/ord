@@ -39,14 +39,14 @@ impl WalletConstructor {
   pub(crate) fn build(self) -> Result<Wallet> {
     let database = Arc::new(Wallet::open_database(&self.settings, &self.name)?);
 
-    let rtx = database.begin_read()?;
+    let tx = database.begin_read()?;
 
-    let master_private_key = rtx
+    let master_private_key = tx
       .open_table(XPRIV)?
       .get(())?
       .map(|xpriv| Xpriv::decode(xpriv.value().as_slice()))
       .transpose()?
-      .ok_or(anyhow!("couldn't load master private key from database"))?;
+      .ok_or_else(|| anyhow!("failed to load master private key from database"))?;
 
     let wallet = match bdk::Wallet::load()
       .check_network(self.settings.chain().network())
