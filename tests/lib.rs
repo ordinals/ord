@@ -91,8 +91,7 @@ fn create_wallet(core: &mockcore::Handle, ord: &TestServer) {
   CommandBuilder::new(format!("--chain {} wallet create", core.network()))
     .core(core)
     .ord(ord)
-    .stdout_regex(".*")
-    .run_and_extract_stdout();
+    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
 }
 
 fn sats(
