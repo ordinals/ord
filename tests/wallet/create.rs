@@ -1,16 +1,52 @@
-use {super::*, ord::subcommand::wallet::create::Output};
+use {
+  super::*,
+  ord::subcommand::wallet::{create::Output, descriptors::Output as Descriptors},
+};
 
 #[test]
 fn create() {
   let core = mockcore::spawn();
 
-  assert!(!core.wallets().contains("ord"));
+  let tempdir = Arc::new(TempDir::new().unwrap());
+
+  let wallet_db = tempdir.path().join("wallets/ord.redb");
+
+  assert!(!wallet_db.try_exists().unwrap());
 
   CommandBuilder::new("wallet create")
     .core(&core)
+    .temp_dir(tempdir.clone())
     .run_and_deserialize_output::<Output>();
 
-  assert!(core.wallets().contains("ord"));
+  assert!(wallet_db.try_exists().unwrap());
+  assert!(wallet_db.is_file());
+}
+
+#[test]
+fn create_with_same_name_fails() {
+  let core = mockcore::spawn();
+
+  let tempdir = TempDir::new().unwrap();
+
+  let wallet_db = tempdir.path().join("wallets/ord.redb");
+
+  assert!(!wallet_db.try_exists().unwrap());
+
+  let arc = Arc::new(tempdir);
+
+  CommandBuilder::new("wallet create")
+    .core(&core)
+    .temp_dir(arc.clone())
+    .run_and_deserialize_output::<Output>();
+
+  assert!(wallet_db.try_exists().unwrap());
+
+  CommandBuilder::new("wallet create")
+    .core(&core)
+    .temp_dir(arc.clone())
+    .expected_exit_code(1)
+    .stderr_regex("error: wallet `ord` at .* already exists.*")
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -25,69 +61,117 @@ fn seed_phrases_are_twelve_words_long() {
 #[test]
 fn wallet_creates_correct_mainnet_taproot_descriptor() {
   let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  let tempdir = Arc::new(TempDir::new().unwrap());
 
   CommandBuilder::new("wallet create")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .run_and_deserialize_output::<Output>();
 
-  assert_eq!(core.descriptors().len(), 2);
+  let descriptors = CommandBuilder::new("wallet descriptors")
+    .temp_dir(tempdir)
+    .core(&core)
+    .ord(&ord)
+    .stderr_regex(".*")
+    .run_and_deserialize_output::<Descriptors>();
+
   assert_regex_match!(
-    &core.descriptors()[0],
-    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
+    &descriptors.external,
+    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xpub[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
   );
+
   assert_regex_match!(
-    &core.descriptors()[1],
-    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
+    &descriptors.internal,
+    r"tr\(\[[[:xdigit:]]{8}/86'/0'/0'\]xpub[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
   );
 }
 
 #[test]
 fn wallet_creates_correct_test_network_taproot_descriptor() {
   let core = mockcore::builder().network(Network::Signet).build();
+  let ord = TestServer::spawn_with_args(&core, &["--signet"]);
+
+  let tempdir = Arc::new(TempDir::new().unwrap());
 
   CommandBuilder::new("--chain signet wallet create")
+    .temp_dir(tempdir.clone())
     .core(&core)
     .run_and_deserialize_output::<Output>();
 
-  assert_eq!(core.descriptors().len(), 2);
-  assert_regex_match!(
-    &core.descriptors()[0],
-    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
-  );
-  assert_regex_match!(
-    &core.descriptors()[1],
-    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tprv[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
-  );
-}
-
-#[test]
-fn detect_wrong_descriptors() {
-  let core = mockcore::spawn();
-
-  CommandBuilder::new("wallet create")
+  let descriptors = CommandBuilder::new("--chain signet wallet descriptors")
+    .temp_dir(tempdir)
     .core(&core)
-    .run_and_deserialize_output::<Output>();
+    .ord(&ord)
+    .stderr_regex(".*")
+    .run_and_deserialize_output::<Descriptors>();
 
-  core.import_descriptor("wpkh([aslfjk])#a23ad2l".to_string());
+  assert_regex_match!(
+    &descriptors.external,
+    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tpub[[:alnum:]]*/0/\*\)#[[:alnum:]]{8}"
+  );
 
-  CommandBuilder::new("wallet transactions")
-    .core(&core)
-    .stderr_regex(
-      r#"error: wallet "ord" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`\n"#,
-    )
-    .expected_exit_code(1)
-    .run_and_extract_stdout();
+  assert_regex_match!(
+    &descriptors.internal,
+    r"tr\(\[[[:xdigit:]]{8}/86'/1'/0'\]tpub[[:alnum:]]*/1/\*\)#[[:alnum:]]{8}"
+  );
 }
 
 #[test]
 fn create_with_different_name() {
   let core = mockcore::spawn();
 
-  assert!(!core.wallets().contains("inscription-wallet"));
+  let tempdir = Arc::new(TempDir::new().unwrap());
 
-  CommandBuilder::new("wallet --name inscription-wallet create")
+  let name = "inscription-wallet";
+
+  let database = tempdir.path().join(format!("wallets/{name}.redb"));
+
+  assert!(!database.try_exists().unwrap());
+
+  CommandBuilder::new(format!("wallet --name {name} create"))
     .core(&core)
+    .temp_dir(tempdir.clone())
     .run_and_deserialize_output::<Output>();
 
-  assert!(core.wallets().contains("inscription-wallet"));
+  assert!(database.try_exists().unwrap());
+  assert!(database.is_file());
+}
+
+#[test]
+fn create_wallet_with_same_name_different_network_fails() {
+  let mainnet_core = mockcore::spawn();
+  let signet_core = mockcore::builder().network(Network::Signet).build();
+
+  let tempdir = Arc::new(TempDir::new().unwrap());
+  let mainnet_database = tempdir.path().join("wallets/ord.redb");
+  let signet_database = tempdir.path().join("signet/wallets/ord.redb");
+
+  assert!(!mainnet_database.try_exists().unwrap());
+
+  CommandBuilder::new("wallet create")
+    .core(&mainnet_core)
+    .temp_dir(tempdir.clone())
+    .run_and_deserialize_output::<Output>();
+
+  assert!(mainnet_database.try_exists().unwrap());
+
+  fs::create_dir_all(signet_database.parent().unwrap()).unwrap();
+  fs::rename(&mainnet_database, &signet_database).unwrap();
+
+  CommandBuilder::new("--chain signet wallet descriptors")
+    .core(&signet_core)
+    .temp_dir(tempdir.clone())
+    .expected_exit_code(1)
+    .expected_stderr(
+      "error: failed to load wallet
+
+because:
+- data mismatch: Network { loaded: Bitcoin, expected: Signet }
+",
+    )
+    .run_and_extract_stdout();
+
+  assert!(signet_database.try_exists().unwrap());
 }
