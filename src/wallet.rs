@@ -201,9 +201,9 @@ impl Wallet {
     &self,
     kind: KeychainKind,
   ) -> Result<Descriptor<DescriptorPublicKey>> {
-    let rtx = self.database.begin_read()?;
+    let tx = self.database.begin_read()?;
 
-    let master_private_key = rtx
+    let master_private_key = tx
       .open_table(XPRIV)?
       .get(())?
       .map(|xpriv| Xpriv::decode(xpriv.value().as_slice()))
@@ -217,18 +217,14 @@ impl Wallet {
   }
 
   pub(crate) fn get_receive_addresses(&mut self, n: usize) -> Vec<Address> {
-    let mut addresses = Vec::new();
-
-    for _ in 0..n {
-      addresses.push(
+    (0..n)
+      .map(|_| {
         self
           .wallet
           .reveal_next_address(KeychainKind::External)
-          .address,
-      )
-    }
-
-    addresses
+          .address
+      })
+      .collect()
   }
 
   pub(crate) fn derive_descriptor(
