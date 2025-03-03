@@ -5,8 +5,6 @@ on:
     branches:
     - master
   pull_request:
-    branches:
-    - master
 
 defaults:
   run:
@@ -94,6 +92,14 @@ jobs:
         sudo apt-get install ripgrep
         ./bin/forbid
 
+    - name: Check for blacklist
+      if: ${{ github.event.pull_request.base.ref == 'master' }}
+      run: |
+        if [[ -f blacklist.txt ]]; then
+          echo "error: found blacklist.txt"
+          exit 1
+        fi
+
   test:
     strategy:
       matrix:
@@ -116,4 +122,9 @@ jobs:
     - uses: Swatinem/rust-cache@v2
 
     - name: Test
+      if: ${{ github.event.pull_request.base.ref == 'master' }}
       run: cargo test --all
+
+    - name: Test
+      if: ${{ github.event.pull_request.base.ref == 'bdk' }}
+      run: ./bin/test
