@@ -111,6 +111,7 @@ impl Wallet {
 
     let mut wallet = bdk::Wallet::create(external.clone(), internal.clone())
       .network(network)
+      .lookahead(1000)
       .create_wallet(&mut persister)?;
 
     wallet.persist(&mut persister)?;
