@@ -20,18 +20,13 @@ pub(crate) struct Create {
 }
 
 impl Create {
-  pub(crate) fn run(self, name: String, settings: &Settings) -> SubcommandResult {
+  pub(crate) fn run(self, settings: &Settings, name: &str) -> SubcommandResult {
     let mut entropy = [0; 16];
     rand::thread_rng().fill_bytes(&mut entropy);
 
     let mnemonic = Mnemonic::from_entropy(&entropy)?;
 
-    Wallet::initialize(
-      name,
-      settings,
-      mnemonic.to_seed(&self.passphrase),
-      bitcoincore_rpc::json::Timestamp::Now,
-    )?;
+    Wallet::create(settings, name, mnemonic.to_seed(&self.passphrase))?;
 
     Ok(Some(Box::new(Output {
       mnemonic,
