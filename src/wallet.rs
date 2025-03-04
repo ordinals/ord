@@ -305,6 +305,16 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn get_value_in_output(&self, output: &OutPoint) -> Result<u64> {
+    Ok(
+      self
+        .output_info
+        .get(output)
+        .ok_or(anyhow!("output not found in wallet"))?
+        .value,
+    )
+  }
+
   pub(crate) fn get_rune(
     &self,
     rune: Rune,

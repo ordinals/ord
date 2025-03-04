@@ -45,7 +45,7 @@ fn created_offer_is_correct() {
     address,
   );
 
-  assert_eq!(create.inscription, inscription);
+  assert_eq!(create.inscription, Some(inscription));
 
   let psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
 
