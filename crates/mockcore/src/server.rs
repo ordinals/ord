@@ -969,10 +969,9 @@ impl Api for Server {
     &self,
     psbt: String,
     sign: Option<bool>,
-    sighash_type: Option<()>,
+    sighash_type: Option<String>,
     bip32derivs: Option<bool>,
   ) -> Result<WalletProcessPsbtResult, jsonrpc_core::Error> {
-    assert!(sighash_type.is_none());
     assert!(bip32derivs.is_none());
 
     let mut psbt = Psbt::deserialize(
@@ -1004,7 +1003,12 @@ impl Api for Server {
           .unwrap();
 
           if self.state().is_wallet_address(&address) {
-            input.final_script_witness = Some(Witness::from_slice(&[&[0; 64]]));
+            // indicate SINGLE|ANYONECANPAY with witness of all 1s, otherwise all 0s
+            let witness = match sighash_type.as_deref() {
+              Some("SINGLE|ANYONECANPAY") => Witness::from_slice(&[&[1; 64]]),
+              _ => Witness::from_slice(&[&[0; 64]]),
+            };
+            input.final_script_witness = Some(witness);
           }
         }
       }
