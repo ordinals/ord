@@ -1735,28 +1735,6 @@ impl Index {
     )
   }
 
-  pub fn txout(&self, outpoint: OutPoint) -> Result<Option<TxOut>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(OUTPOINT_TO_UTXO_ENTRY)?
-        .get(&outpoint.store())?
-        .map(|utxo_entry| {
-          let parsed = utxo_entry.value().parse(self);
-
-          let script_pubkey = ScriptBuf::from_bytes(parsed.script_pubkey().to_vec());
-
-          let value = Amount::from_sat(parsed.total_value());
-
-          TxOut {
-            value,
-            script_pubkey,
-          }
-        }),
-    )
-  }
-
   pub fn is_output_spent(&self, outpoint: OutPoint) -> Result<bool> {
     Ok(
       outpoint != OutPoint::null()
