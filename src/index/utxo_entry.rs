@@ -21,12 +21,11 @@ enum Sats<'a> {
 /// by that many 11-byte sat range entries, otherwise the total output value
 /// stored as a varint.
 ///
-/// If `--index-addresses`, the script pubkey stored as a varint followed by
-/// that many bytes of data.
-///
 /// If `--index-inscriptions`, the list of inscriptions stored as
 /// `(sequence_number, offset)`, with the sequence number stored as a u32 and
 /// the offset as a varint.
+///
+/// The script pubkey stored as a varint followed by that many bytes of data.
 ///
 /// Note that the list of inscriptions doesn't need an explicit length, it
 /// continues until the end of the array.
@@ -43,7 +42,7 @@ pub struct UtxoEntry {
 impl UtxoEntry {
   pub fn parse(&self, index: &Index) -> ParsedUtxoEntry {
     let sats;
-    let mut script_pubkey = None;
+    let script_pubkey;
     let mut inscriptions = None;
 
     let mut offset = 0;
@@ -61,14 +60,12 @@ impl UtxoEntry {
       offset += varint_len;
     };
 
-    if index.index_addresses {
-      let (script_pubkey_len, varint_len) = varint::decode(&self.bytes[offset..]).unwrap();
-      offset += varint_len;
+    let (script_pubkey_len, varint_len) = varint::decode(&self.bytes[offset..]).unwrap();
+    offset += varint_len;
 
-      let script_pubkey_len: usize = script_pubkey_len.try_into().unwrap();
-      script_pubkey = Some(&self.bytes[offset..offset + script_pubkey_len]);
-      offset += script_pubkey_len;
-    }
+    let script_pubkey_len: usize = script_pubkey_len.try_into().unwrap();
+    script_pubkey = Some(&self.bytes[offset..offset + script_pubkey_len]);
+    offset += script_pubkey_len;
 
     if index.index_inscriptions {
       inscriptions = Some(&self.bytes[offset..self.bytes.len()]);
@@ -229,7 +226,6 @@ impl UtxoEntryBuf {
   }
 
   pub fn push_script_pubkey(&mut self, script_pubkey: &[u8], index: &Index) {
-    assert!(index.index_addresses);
     varint::encode_to_vec(script_pubkey.len().try_into().unwrap(), &mut self.vec);
     self.vec.extend(script_pubkey);
 
@@ -255,13 +251,9 @@ impl UtxoEntryBuf {
   }
 
   #[cfg(debug_assertions)]
-  fn advance_state(&mut self, expected_state: State, new_state: State, index: &Index) {
+  fn advance_state(&mut self, expected_state: State, new_state: State, _index: &Index) {
     assert!(self.state == expected_state);
     self.state = new_state;
-
-    if self.state == State::NeedScriptPubkey && !index.index_addresses {
-      self.state = State::Valid;
-    }
   }
 
   pub fn merged(a: &UtxoEntry, b: &UtxoEntry, index: &Index) -> Self {
@@ -278,11 +270,9 @@ impl UtxoEntryBuf {
       merged.push_value(0, index);
     }
 
-    if index.index_addresses {
-      assert!(a_parsed.script_pubkey().is_empty());
-      assert!(b_parsed.script_pubkey().is_empty());
-      merged.push_script_pubkey(&[], index);
-    }
+    assert!(a_parsed.script_pubkey().is_empty());
+    assert!(b_parsed.script_pubkey().is_empty());
+    merged.push_script_pubkey(&[], index);
 
     if index.index_inscriptions {
       merged.push_inscriptions(a_parsed.inscriptions(), index);
@@ -301,9 +291,7 @@ impl UtxoEntryBuf {
       utxo_entry.push_value(0, index);
     }
 
-    if index.index_addresses {
-      utxo_entry.push_script_pubkey(&[], index);
-    }
+    utxo_entry.push_script_pubkey(&[], index);
 
     utxo_entry
   }
