@@ -84,6 +84,11 @@ impl Runestone {
         ),
       }),
       turbo: Flag::Turbo.take(&mut flags),
+      minter: Tag::Minter.take(&mut fields, |[minter]| {
+        let minter = u32::try_from(minter).ok()?;
+        // Check if the minter is a valid output index
+        (u64::from(minter) < u64::try_from(transaction.output.len()).unwrap()).then_some(minter)
+      }),
     });
 
     let mint = Tag::Mint.take(&mut fields, |[block, tx]| {
@@ -148,6 +153,7 @@ impl Runestone {
       Tag::Spacers.encode_option(etching.spacers, &mut payload);
       Tag::Symbol.encode_option(etching.symbol, &mut payload);
       Tag::Premine.encode_option(etching.premine, &mut payload);
+      Tag::Minter.encode_option(etching.minter, &mut payload);
 
       if let Some(terms) = etching.terms {
         Tag::Amount.encode_option(terms.amount, &mut payload);
@@ -1076,6 +1082,38 @@ mod tests {
   }
 
   #[test]
+  fn decipher_etching_with_minter() {
+    assert_eq!(
+      decipher(&[
+        Tag::Flags.into(),
+        Flag::Etching.mask(),
+        Tag::Rune.into(),
+        4,
+        Tag::Minter.into(),
+        2,
+        Tag::Body.into(),
+        1,
+        1,
+        2,
+        0,
+      ]),
+      Artifact::Runestone(Runestone {
+        edicts: vec![Edict {
+          id: rune_id(1),
+          amount: 2,
+          output: 0,
+        }],
+        etching: Some(Etching {
+          rune: Some(Rune(4)),
+          minter: Some(2),
+          ..default()
+        }),
+        ..default()
+      }),
+    );
+  }
+
+  #[test]
   fn decipher_etching_with_all_etching_tags() {
     assert_eq!(
       decipher(&[
@@ -1089,6 +1127,8 @@ mod tests {
         5,
         Tag::Symbol.into(),
         'a'.into(),
+        Tag::Minter.into(),
+        3,
         Tag::OffsetEnd.into(),
         2,
         Tag::Amount.into(),
@@ -1128,6 +1168,7 @@ mod tests {
             height: (None, None),
           }),
           turbo: true,
+          minter: Some(3),
         }),
         pointer: Some(0),
         mint: Some(RuneId::new(1, 1).unwrap()),
@@ -1445,6 +1486,7 @@ mod tests {
         rune: Some(Rune(u128::MAX)),
         symbol: Some('\u{10FFFF}'),
         spacers: Some(Etching::MAX_SPACERS),
+        minter: None,
       }),
       89,
     );
@@ -1713,6 +1755,7 @@ mod tests {
             offset: (Some(15), Some(16)),
           }),
           turbo: true,
+          minter: None,
         }),
         mint: Some(RuneId::new(17, 18).unwrap()),
         pointer: Some(0),
@@ -1770,6 +1813,7 @@ mod tests {
           symbol: None,
           terms: None,
           turbo: false,
+          minter: None,
         }),
         ..default()
       },
@@ -1786,6 +1830,7 @@ mod tests {
           symbol: None,
           terms: None,
           turbo: false,
+          minter: None,
         }),
         ..default()
       },
