@@ -1,7 +1,7 @@
 use super::*;
 
-type Accept = ord::subcommand::wallet::offer::accept::Output;
-type Create = ord::subcommand::wallet::offer::create::Output;
+type Accept = ord::subcommand::wallet::buy_offer::accept::Output;
+type Create = ord::subcommand::wallet::buy_offer::create::Output;
 
 #[test]
 fn accepted_offer_works() {

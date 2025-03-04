@@ -9,6 +9,7 @@ pub mod addresses;
 pub mod balance;
 mod batch_command;
 pub mod burn;
+pub mod buy_offer;
 pub mod cardinals;
 pub mod create;
 pub mod dump;
@@ -16,7 +17,6 @@ pub mod inscribe;
 pub mod inscriptions;
 mod label;
 pub mod mint;
-pub mod offer;
 pub mod outputs;
 pub mod pending;
 pub mod receive;
@@ -24,6 +24,7 @@ pub mod restore;
 pub mod resume;
 pub mod runics;
 pub mod sats;
+pub mod sell_offer;
 pub mod send;
 mod shared_args;
 pub mod sign;
@@ -70,8 +71,10 @@ pub(crate) enum Subcommand {
   Label,
   #[command(about = "Mint a rune")]
   Mint(mint::Mint),
-  #[command(subcommand, about = "Offer commands")]
-  Offer(offer::Offer),
+  #[command(subcommand, about = "Buy offer commands")]
+  Offer(buy_offer::BuyOffer),
+  #[command(subcommand, about = "Sell offer commands")]
+  SellOffer(sell_offer::SellOffer),
   #[command(about = "List all unspent outputs in wallet")]
   Outputs(outputs::Outputs),
   #[command(about = "List pending etchings")]
@@ -131,6 +134,7 @@ impl WalletCommand {
       Subcommand::Label => label::run(wallet),
       Subcommand::Mint(mint) => mint.run(wallet),
       Subcommand::Offer(offer) => offer.run(wallet),
+      Subcommand::SellOffer(sell_offer) => sell_offer.run(wallet),
       Subcommand::Outputs(outputs) => outputs.run(wallet),
       Subcommand::Pending(pending) => pending.run(wallet),
       Subcommand::Receive(receive) => receive.run(wallet),
