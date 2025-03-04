@@ -42,7 +42,6 @@ pub struct UtxoEntry {
 impl UtxoEntry {
   pub fn parse(&self, index: &Index) -> ParsedUtxoEntry {
     let sats;
-    let script_pubkey;
     let mut inscriptions = None;
 
     let mut offset = 0;
@@ -63,8 +62,8 @@ impl UtxoEntry {
     let (script_pubkey_len, varint_len) = varint::decode(&self.bytes[offset..]).unwrap();
     offset += varint_len;
 
-    let script_pubkey_len: usize = script_pubkey_len.try_into().unwrap();
-    script_pubkey = Some(&self.bytes[offset..offset + script_pubkey_len]);
+    let script_pubkey_len = usize::try_from(script_pubkey_len).unwrap();
+    let script_pubkey = Some(&self.bytes[offset..offset + script_pubkey_len]);
     offset += script_pubkey_len;
 
     if index.index_inscriptions {
