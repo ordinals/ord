@@ -1735,6 +1735,28 @@ impl Index {
     )
   }
 
+  pub fn txout(&self, outpoint: OutPoint) -> Result<Option<TxOut>> {
+    Ok(
+      self
+        .database
+        .begin_read()?
+        .open_table(OUTPOINT_TO_UTXO_ENTRY)?
+        .get(&outpoint.store())?
+        .map(|utxo_entry| {
+          let parsed = utxo_entry.value().parse(self);
+
+          let script_pubkey = ScriptBuf::from_bytes(parsed.script_pubkey().to_vec());
+
+          let value = Amount::from_sat(parsed.total_value());
+
+          TxOut {
+            value,
+            script_pubkey,
+          }
+        }),
+    )
+  }
+
   pub fn is_output_spent(&self, outpoint: OutPoint) -> Result<bool> {
     Ok(
       outpoint != OutPoint::null()
@@ -2405,7 +2427,10 @@ impl Index {
     let sat_ranges = self.list(outpoint)?;
 
     let indexed;
+    let confirmations;
+    let spent;
 
+    // make confirmations 0 for these
     let txout = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
 
@@ -2416,23 +2441,32 @@ impl Index {
       }
 
       indexed = true;
+      confirmations = 0;
+      spent = true;
 
       TxOut {
         value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
       }
     } else {
+      if let Some(result) = self
+        .client
+        .get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
+      {
+        spent = false;
+
+        result
+      } else {
+        spent = true;
+      };
+
       indexed = self.contains_output(&outpoint)?;
+      confirmations = result.confirmations;
 
-      let Some(tx) = self.get_transaction(outpoint.txid)? else {
-        return Ok(None);
-      };
-
-      let Some(txout) = tx.output.into_iter().nth(outpoint.vout as usize) else {
-        return Ok(None);
-      };
-
-      txout
+      TxOut {
+        value: result.value,
+        script_pubkey: ScriptBuf::from_bytes(result.script_pub_key.hex),
+      }
     };
 
     let inscriptions = self.get_inscriptions_for_output(outpoint)?;
@@ -2444,6 +2478,7 @@ impl Index {
     Ok(Some((
       api::Output::new(
         self.settings.chain(),
+        confirmations,
         inscriptions,
         outpoint,
         txout.clone(),
