@@ -2420,7 +2420,7 @@ impl Index {
 
       indexed = true;
       confirmations = 0;
-      spent = true;
+      spent = false;
       txout = TxOut {
         value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
