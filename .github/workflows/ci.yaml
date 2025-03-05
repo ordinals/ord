@@ -14,7 +14,6 @@ defaults:
 
 env:
   RUSTFLAGS: --deny warnings
-  LANGUAGES: de fr es pt ru zh ja ko fil ar hi it nl
 
 jobs:
   docs:
@@ -50,6 +49,8 @@ jobs:
       run: mdbook build docs -d build
 
     - name: Build all translations for docs
+      env:
+        LANGUAGES: de fr es pt ru zh ja ko fil ar hi it nl
       run: |
         for lang in ${{ env.LANGUAGES }}; do
           echo "::group::Building $lang translation"
