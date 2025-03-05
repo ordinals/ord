@@ -3386,6 +3386,7 @@ mod tests {
         value: 5000000000,
         script_pubkey: address.script_pubkey(),
         address: Some(uncheck(&address)),
+        confirmations: 1,
         transaction: txid,
         sat_ranges: None,
         indexed: true,

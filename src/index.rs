@@ -2447,7 +2447,7 @@ impl Index {
           return Ok(None);
         };
 
-        confirmations = result.confirmations.unwrap_or(0);
+        confirmations = result.confirmations.unwrap_or_default();
 
         txout = TxOut {
           value: output.value,

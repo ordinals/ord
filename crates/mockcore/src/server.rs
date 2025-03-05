@@ -258,17 +258,27 @@ impl Api for Server {
       }
     }
 
+    let Some(tx) = state.transactions.get(&txid) else {
+      return Ok(None);
+    };
+
+    let output = tx.output[vout as usize].clone();
+
     Ok(Some(GetTxOutResult {
       bestblock: BlockHash::all_zeros(),
       coinbase: false,
       confirmations: confirmations.unwrap().try_into().unwrap(),
       script_pub_key: GetRawTransactionResultVoutScriptPubKey {
         asm: String::new(),
-        hex: Vec::new(),
+        hex: output.script_pubkey.to_bytes(),
         req_sigs: None,
         type_: None,
         addresses: Vec::new(),
-        address: None,
+        address: Some(
+          Address::from_script(&output.script_pubkey.clone(), state.network)
+            .unwrap()
+            .into_unchecked(),
+        ),
       },
       value: *value,
     }))
@@ -689,8 +699,8 @@ impl Api for Server {
           serde_json::to_value(GetRawTransactionResult {
             in_active_chain: Some(true),
             hex: Vec::new(),
-            txid: Txid::all_zeros(),
-            hash: Wtxid::all_zeros(),
+            txid: transaction.compute_txid(),
+            hash: transaction.wtxid(),
             size: 0,
             vsize: 0,
             version: 2,
@@ -709,7 +719,11 @@ impl Api for Server {
                   req_sigs: None,
                   type_: None,
                   addresses: Vec::new(),
-                  address: None,
+                  address: Some(
+                    Address::from_script(&output.script_pubkey.clone(), state.network)
+                      .unwrap()
+                      .into_unchecked(),
+                  ),
                 },
               })
               .collect(),
