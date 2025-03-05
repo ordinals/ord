@@ -2427,31 +2427,40 @@ impl Index {
         script_pubkey: ScriptBuf::new(),
       }
     } else {
+      indexed = self.contains_output(&outpoint)?;
+
       if let Some(result) = self
         .client
         .get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
       {
         spent = false;
+        confirmations = result.confirmations;
 
-        result
+        TxOut {
+          value: result.value,
+          script_pubkey: ScriptBuf::from_bytes(result.script_pub_key.hex),
+        }
       } else {
         spent = true;
-      };
 
-      indexed = self.contains_output(&outpoint)?;
-      confirmations = result.confirmations;
+        let result = self.client.get_raw_transaction_info(&outpoint.txid, None)?;
 
-      TxOut {
-        value: result.value,
-        script_pubkey: ScriptBuf::from_bytes(result.script_pub_key.hex),
+        let Some(output) = result.vout.into_iter().nth(outpoint.vout as usize) else {
+          return Ok(None);
+        };
+
+        confirmations = result.confirmations.unwrap_or(0);
+
+        TxOut {
+          value: output.value,
+          script_pubkey: ScriptBuf::from_bytes(output.script_pub_key.hex),
+        }
       }
     };
 
     let inscriptions = self.get_inscriptions_for_output(outpoint)?;
 
     let runes = self.get_rune_balances_for_output(outpoint)?;
-
-    let spent = self.is_output_spent(outpoint)?;
 
     Ok(Some((
       api::Output::new(
