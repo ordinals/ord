@@ -1010,7 +1010,8 @@ curl -s \
   "inscriptions": null,
   "runes": null,
   "sat_ranges": null,
-  "value": 5000000000
+  "value": 5000000000,
+  "blockhash": "00000000000000000000f238f617bd97d3e877108328102d9adcb14a2a92ef00"
 }
 ```
 
@@ -1039,7 +1040,8 @@ curl -s \
       1905800627509443
     ]
   ],
-  "value": 330
+  "value": 330,
+  "blockhash": "00000000000000000000f238f617bd97d3e877108328102d9adcb14a2a92ef00"
 }
 ```
 </details>
