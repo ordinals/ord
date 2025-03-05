@@ -24,7 +24,7 @@ fn transactions() {
     .ord(&ord)
     .run_and_deserialize_output::<Vec<Output>>();
 
-  assert_eq!(output[0].confirmations, 1);
+  assert_eq!(output[0].confirmations, 2);
 }
 
 #[test]
@@ -47,7 +47,7 @@ fn transactions_with_limit() {
     .ord(&ord)
     .run_and_deserialize_output::<Vec<Output>>();
 
-  assert_eq!(output.len(), 1);
+  assert_eq!(output.len(), 2);
 
   core.mine_blocks(1);
 
@@ -56,7 +56,7 @@ fn transactions_with_limit() {
     .ord(&ord)
     .run_and_deserialize_output::<Vec<Output>>();
 
-  assert_eq!(output.len(), 2);
+  assert_eq!(output.len(), 3);
 
   let output = CommandBuilder::new("wallet transactions --limit 1")
     .core(&core)

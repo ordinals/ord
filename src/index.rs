@@ -2441,7 +2441,13 @@ impl Index {
       } else {
         spent = true;
 
-        let result = self.client.get_raw_transaction_info(&outpoint.txid, None)?;
+        let Some(result) = self
+          .client
+          .get_raw_transaction_info(&outpoint.txid, None)
+          .ok()
+        else {
+          return Ok(None);
+        };
 
         let Some(output) = result.vout.into_iter().nth(outpoint.vout as usize) else {
           return Ok(None);

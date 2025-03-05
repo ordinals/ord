@@ -274,11 +274,9 @@ impl Api for Server {
         req_sigs: None,
         type_: None,
         addresses: Vec::new(),
-        address: Some(
-          Address::from_script(&output.script_pubkey.clone(), state.network)
-            .unwrap()
-            .into_unchecked(),
-        ),
+        address: Address::from_script(&output.script_pubkey.clone(), state.network)
+          .ok()
+          .map(|addr| addr.into_unchecked()),
       },
       value: *value,
     }))
@@ -699,8 +697,8 @@ impl Api for Server {
           serde_json::to_value(GetRawTransactionResult {
             in_active_chain: Some(true),
             hex: Vec::new(),
-            txid: transaction.compute_txid(),
-            hash: transaction.wtxid(),
+            txid: Txid::all_zeros(),
+            hash: Wtxid::all_zeros(),
             size: 0,
             vsize: 0,
             version: 2,
@@ -719,11 +717,7 @@ impl Api for Server {
                   req_sigs: None,
                   type_: None,
                   addresses: Vec::new(),
-                  address: Some(
-                    Address::from_script(&output.script_pubkey.clone(), state.network)
-                      .unwrap()
-                      .into_unchecked(),
-                  ),
+                  address: None,
                 },
               })
               .collect(),
