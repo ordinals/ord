@@ -2404,12 +2404,12 @@ impl Index {
   pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
     let sat_ranges = self.list(outpoint)?;
 
-    let indexed;
     let confirmations;
+    let indexed;
     let spent;
+    let txout;
 
-    // make confirmations 0 for these
-    let txout = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+    if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
 
       if let Some(ranges) = &sat_ranges {
@@ -2421,11 +2421,10 @@ impl Index {
       indexed = true;
       confirmations = 0;
       spent = true;
-
-      TxOut {
+      txout = TxOut {
         value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
-      }
+      };
     } else {
       indexed = self.contains_output(&outpoint)?;
 
@@ -2435,11 +2434,10 @@ impl Index {
       {
         spent = false;
         confirmations = result.confirmations;
-
-        TxOut {
+        txout = TxOut {
           value: result.value,
           script_pubkey: ScriptBuf::from_bytes(result.script_pub_key.hex),
-        }
+        };
       } else {
         spent = true;
 
@@ -2451,10 +2449,10 @@ impl Index {
 
         confirmations = result.confirmations.unwrap_or(0);
 
-        TxOut {
+        txout = TxOut {
           value: output.value,
           script_pubkey: ScriptBuf::from_bytes(output.script_pub_key.hex),
-        }
+        };
       }
     };
 
