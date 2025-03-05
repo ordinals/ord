@@ -11,8 +11,7 @@ pub(crate) struct TestServer {
   bitcoin_rpc_url: String,
   ord_server_handle: Handle,
   port: u16,
-  #[allow(unused)]
-  tempdir: TempDir,
+  tempdir: Arc<TempDir>,
 }
 
 impl TestServer {
@@ -77,8 +76,21 @@ impl TestServer {
       bitcoin_rpc_url: core.url(),
       ord_server_handle,
       port,
-      tempdir,
+      tempdir: tempdir.into(),
     }
+  }
+
+  pub(crate) fn create_wallet(&self, core: &mockcore::Handle) {
+    CommandBuilder::new(format!("--chain {} wallet create", core.network()))
+      .temp_dir(self.tempdir.clone())
+      .core(core)
+      .ord(self)
+      .stdout_regex(".*")
+      .run_and_extract_stdout();
+  }
+
+  pub(crate) fn tempdir(&self) -> &Arc<TempDir> {
+    &self.tempdir
   }
 
   pub(crate) fn url(&self) -> Url {
