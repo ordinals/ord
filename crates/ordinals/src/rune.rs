@@ -119,7 +119,7 @@ impl Rune {
   pub fn reserved(block: u64, tx: u32) -> Self {
     Self(
       Self::RESERVED
-        .checked_add(u128::from(block) << 32 | u128::from(tx))
+        .checked_add((u128::from(block) << 32) | u128::from(tx))
         .unwrap(),
     )
   }
@@ -416,7 +416,7 @@ mod tests {
     assert_eq!(Rune::reserved(1, 1), Rune(Rune::RESERVED + (1 << 32) + 1));
     assert_eq!(
       Rune::reserved(u64::MAX, u32::MAX),
-      Rune(Rune::RESERVED + (u128::from(u64::MAX) << 32 | u128::from(u32::MAX))),
+      Rune(Rune::RESERVED + ((u128::from(u64::MAX) << 32) | u128::from(u32::MAX))),
     );
   }
 

@@ -94,7 +94,7 @@ impl WalletConstructor {
     if !self.no_sync {
       for i in 0.. {
         let ord_block_count = self.get("/blockcount")?.text()?.parse::<u64>().expect(
-          "wallet failed to retreive block count from server. Make sure `ord server` is running.",
+          "wallet failed to retrieve block count from server. Make sure `ord server` is running.",
         );
 
         if ord_block_count >= bitcoin_block_count {

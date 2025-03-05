@@ -19,10 +19,6 @@ impl Display for Error {
 
 impl std::error::Error for Error {}
 
-const MAX_SAVEPOINTS: u32 = 2;
-const SAVEPOINT_INTERVAL: u32 = 10;
-const CHAIN_TIP_DISTANCE: u32 = 21;
-
 pub(crate) struct Reorg {}
 
 impl Reorg {
@@ -32,8 +28,10 @@ impl Reorg {
     match index.block_hash(height.checked_sub(1))? {
       Some(index_prev_blockhash) if index_prev_blockhash == bitcoind_prev_blockhash => Ok(()),
       Some(index_prev_blockhash) if index_prev_blockhash != bitcoind_prev_blockhash => {
+        let savepoint_interval = u32::try_from(index.settings.savepoint_interval()).unwrap();
+        let max_savepoints = u32::try_from(index.settings.max_savepoints()).unwrap();
         let max_recoverable_reorg_depth =
-          (MAX_SAVEPOINTS - 1) * SAVEPOINT_INTERVAL + height % SAVEPOINT_INTERVAL;
+          (max_savepoints - 1) * savepoint_interval + height % savepoint_interval;
 
         for depth in 1..max_recoverable_reorg_depth {
           let index_block_hash = index.block_hash(height.checked_sub(depth))?;
@@ -78,9 +76,9 @@ impl Reorg {
     Ok(())
   }
 
-  pub(crate) fn update_savepoints(index: &Index, height: u32) -> Result {
+  pub(crate) fn is_savepoint_required(index: &Index, height: u32) -> Result<bool> {
     if let redb::Durability::None = index.durability {
-      return Ok(());
+      return Ok(false);
     }
 
     let height = u64::from(height);
@@ -95,15 +93,39 @@ impl Reorg {
 
     let blocks = index.client.get_blockchain_info()?.headers;
 
-    if (height < SAVEPOINT_INTERVAL.into()
-      || height.saturating_sub(last_savepoint_height) >= SAVEPOINT_INTERVAL.into())
-      && blocks.saturating_sub(height) <= CHAIN_TIP_DISTANCE.into()
-    {
+    let savepoint_interval = u64::try_from(index.settings.savepoint_interval()).unwrap();
+    let max_savepoints = u64::try_from(index.settings.max_savepoints()).unwrap();
+
+    let result = (height < savepoint_interval
+      || height.saturating_sub(last_savepoint_height) >= savepoint_interval)
+      && blocks.saturating_sub(height) <= savepoint_interval * max_savepoints + 1;
+
+    log::trace!(
+      "is_savepoint_required={}: height={}, last_savepoint_height={}, blocks={}",
+      result,
+      height,
+      last_savepoint_height,
+      blocks
+    );
+
+    Ok(result)
+  }
+
+  pub(crate) fn update_savepoints(index: &Index, height: u32) -> Result {
+    if let redb::Durability::None = index.durability {
+      return Ok(());
+    }
+
+    if Self::is_savepoint_required(index, height)? {
       let wtx = index.begin_write()?;
 
       let savepoints = wtx.list_persistent_savepoints()?.collect::<Vec<u64>>();
 
-      if savepoints.len() >= usize::try_from(MAX_SAVEPOINTS).unwrap() {
+      if savepoints.len() >= index.settings.max_savepoints() {
+        log::info!(
+          "Cleaning up savepoints, keeping max {}",
+          index.settings.max_savepoints()
+        );
         wtx.delete_persistent_savepoint(savepoints.into_iter().min().unwrap())?;
       }
 
@@ -112,12 +134,13 @@ impl Reorg {
 
       let wtx = index.begin_write()?;
 
-      log::debug!("creating savepoint at height {}", height);
+      log::info!("Creating savepoint at height {}", height);
+
       wtx.persistent_savepoint()?;
 
       wtx
         .open_table(STATISTIC_TO_COUNT)?
-        .insert(&Statistic::LastSavepointHeight.key(), &height)?;
+        .insert(&Statistic::LastSavepointHeight.key(), &height.into())?;
 
       Index::increment_statistic(&wtx, Statistic::Commits, 1)?;
       wtx.commit()?;

@@ -18,6 +18,39 @@ impl Default for InscriptionId {
 }
 
 impl InscriptionId {
+  pub(crate) fn from_value(value: &[u8]) -> Option<Self> {
+    if value.len() < Txid::LEN {
+      return None;
+    }
+
+    if value.len() > Txid::LEN + 4 {
+      return None;
+    }
+
+    let (txid, index) = value.split_at(Txid::LEN);
+
+    if let Some(last) = index.last() {
+      // Accept fixed length encoding with 4 bytes (with potential trailing zeroes)
+      // or variable length (no trailing zeroes)
+      if index.len() != 4 && *last == 0 {
+        return None;
+      }
+    }
+
+    let txid = Txid::from_slice(txid).unwrap();
+
+    let index = [
+      index.first().copied().unwrap_or_default(),
+      index.get(1).copied().unwrap_or_default(),
+      index.get(2).copied().unwrap_or_default(),
+      index.get(3).copied().unwrap_or_default(),
+    ];
+
+    let index = u32::from_le_bytes(index);
+
+    Some(Self { txid, index })
+  }
+
   pub(crate) fn value(self) -> Vec<u8> {
     let index = self.index.to_le_bytes();
     let mut index_slice = index.as_slice();

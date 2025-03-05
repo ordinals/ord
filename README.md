@@ -1,5 +1,20 @@
-`ord`
-=====
+<h1 align=center><code>ord</code></h1>
+
+<div align=center>
+  <a href=https://crates.io/crates/ord>
+    <img src=https://img.shields.io/crates/v/ord.svg alt="crates.io version">
+  </a>
+  <a href=https://github.com/ordinals/ord/actions/workflows/ci.yaml>
+    <img src=https://github.com/ordinals/ord/actions/workflows/ci.yaml/badge.svg alt="build status">
+  </a>
+  <a href=https://github.com/ordinals/ord/releases>
+    <img src=https://img.shields.io/github/downloads/ordinals/ord/total.svg alt=downloads>
+  </a>
+  <a href=https://discord.gg/ordinals>
+    <img src=https://img.shields.io/discord/987504378242007100?logo=discord alt="chat on discord">
+  </a>
+</div>
+<br>
 
 `ord` is an index, block explorer, and command-line wallet. It is experimental
 software with no warranty. See [LICENSE](LICENSE) for more details.

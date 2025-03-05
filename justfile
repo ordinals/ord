@@ -229,3 +229,6 @@ replicate:
 swap host:
   rsync --archive bin/swap root@{{ host }}.ordinals.net:swap
   ssh root@{{ host }}.ordinals.net ./swap
+
+changed-files tag:
+  git diff --name-only {{tag}}

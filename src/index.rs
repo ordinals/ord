@@ -462,6 +462,11 @@ impl Index {
     })
   }
 
+  #[cfg(test)]
+  pub(crate) fn chain(&self) -> Chain {
+    self.settings.chain()
+  }
+
   pub fn have_full_utxo_index(&self) -> bool {
     self.first_index_height == 0
   }
@@ -1303,17 +1308,17 @@ impl Index {
   pub fn get_parents_by_sequence_number_paginated(
     &self,
     parent_sequence_numbers: Vec<u32>,
+    page_size: usize,
     page_index: usize,
   ) -> Result<(Vec<InscriptionId>, bool)> {
-    const PAGE_SIZE: usize = 100;
     let rtx = self.database.begin_read()?;
 
     let sequence_number_to_entry = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
     let mut parents = parent_sequence_numbers
       .iter()
-      .skip(page_index * PAGE_SIZE)
-      .take(PAGE_SIZE.saturating_add(1))
+      .skip(page_index * page_size)
+      .take(page_size.saturating_add(1))
       .map(|sequence_number| {
         sequence_number_to_entry
           .get(sequence_number)
@@ -1322,7 +1327,7 @@ impl Index {
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
 
-    let more_parents = parents.len() > PAGE_SIZE;
+    let more_parents = parents.len() > page_size;
 
     if more_parents {
       parents.pop();
@@ -1608,6 +1613,19 @@ impl Index {
     }
 
     self.client.get_raw_transaction(&txid, None).into_option()
+  }
+
+  pub fn get_transaction_hex_recursive(&self, txid: Txid) -> Result<Option<String>> {
+    if txid == self.genesis_block_coinbase_txid {
+      return Ok(Some(consensus::encode::serialize_hex(
+        &self.genesis_block_coinbase_transaction,
+      )));
+    }
+
+    self
+      .client
+      .get_raw_transaction_hex(&txid, None)
+      .into_option()
   }
 
   pub fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
@@ -6735,7 +6753,7 @@ mod tests {
 
   #[test]
   fn assert_schema_statistic_key_is_zero() {
-    // other schema statistic keys may chenge when the schema changes, but for
+    // other schema statistic keys may change when the schema changes, but for
     // good error messages in older versions, the schema statistic key must be
     // zero
     assert_eq!(Statistic::Schema.key(), 0);
