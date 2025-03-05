@@ -16,8 +16,9 @@ pub(crate) use {
   output::OutputHtml,
   parents::ParentsHtml,
   preview::{
-    PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml,
-    PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
+    PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewIframeHtml, PreviewImageHtml,
+    PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+    PreviewVideoHtml,
   },
   rare::RareTxt,
   rune_not_found::RuneNotFoundHtml,
