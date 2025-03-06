@@ -4513,7 +4513,7 @@ mod tests {
         .any(|value| value == HeaderValue::from_name(SecFetchDest::HEADER_NAME)));
 
       let text = response.text().unwrap();
-      let re = Regex::new(&expected).unwrap();
+      let re = Regex::new(expected).unwrap();
 
       if !re.is_match(&text) {
         panic!(
