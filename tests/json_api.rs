@@ -632,6 +632,7 @@ fn get_runes() {
         txid: a.output.reveal,
         index: 0,
       }),
+      reserved: Some(1000),
     }
   );
 

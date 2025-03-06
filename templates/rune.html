@@ -54,8 +54,15 @@
 %% } else {
   <dd>no</dd>
 %% }
+%% if let Some(reserved) = self.reserved {
   <dt>supply</dt>
-  <dd>{{ self.entry.pile(self.entry.supply()) }}</dd>
+  <dd>{{ self.entry.pile(self.entry.supply() - reserved) }}</dd>
+  <dt>reserved</dt>
+  <dd>{{ self.entry.pile(reserved) }}</dd>
+%% } else {
+    <dt>supply</dt>
+    <dd>{{ self.entry.pile(self.entry.supply()) }}</dd>
+%% }
   <dt>premine</dt>
   <dd>{{ self.entry.pile(self.entry.premine) }}</dd>
   <dt>premine percentage</dt>

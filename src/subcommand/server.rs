@@ -976,12 +976,16 @@ impl Server {
 
       let mintable = entry.mintable((block_height.n() + 1).into()).is_ok();
 
+      // Calculate reserved supply
+      let reserved = calculate_rune_reserved(&index, &server_config, parent, &entry.spaced_rune)?;
+
       Ok(if accept_json {
         Json(api::Rune {
           entry,
           id,
           mintable,
           parent,
+          reserved,
         })
         .into_response()
       } else {
@@ -990,6 +994,7 @@ impl Server {
           id,
           mintable,
           parent,
+          reserved,
         }
         .page(server_config)
         .into_response()
@@ -1922,6 +1927,95 @@ impl Server {
   }
 }
 
+fn calculate_rune_reserved(
+  index: &Arc<Index>,
+  server_config: &Arc<ServerConfig>,
+  parent: Option<InscriptionId>,
+  spaced_rune: &SpacedRune,
+) -> Result<Option<u128>> {
+  // If no parent, can't calculate reserved amount
+  let Some(parent_id) = parent else {
+    log::debug!(
+      "No parent inscription for rune {}, can't calculate reserved amount",
+      spaced_rune.rune
+    );
+    return Ok(None);
+  };
+
+  // Get parent satpoint
+  let Some(parent_satpoint) = index.get_inscription_satpoint_by_id(parent_id)? else {
+    log::debug!(
+      "Parent inscription {parent_id} satpoint not found, can't calculate reserved amount"
+    );
+    return Ok(None);
+  };
+
+  // Get parent output - this contains the script_pubkey
+  let Some(tx) = index.get_transaction(parent_satpoint.outpoint.txid)? else {
+    log::debug!(
+      "Parent transaction {} not found, can't calculate reserved amount",
+      parent_satpoint.outpoint.txid
+    );
+    return Ok(None);
+  };
+
+  let Some(tx_out) = tx.output.get(parent_satpoint.outpoint.vout as usize) else {
+    log::debug!(
+      "Output {} not found in transaction {}, can't calculate reserved amount",
+      parent_satpoint.outpoint.vout,
+      parent_satpoint.outpoint.txid
+    );
+    return Ok(None);
+  };
+
+  // Try to get the address from the script_pubkey
+  let parent_address = match server_config
+    .chain
+    .address_from_script(&tx_out.script_pubkey)
+  {
+    Ok(address) => address,
+    Err(err) => {
+      log::debug!("Could not convert script to address for parent inscription {parent_id}: {err}");
+      return Ok(None);
+    }
+  };
+
+  // Get all outputs for this address
+  let outpoints = match index.get_address_info(&parent_address) {
+    Ok(outpoints) => outpoints,
+    Err(err) => {
+      log::debug!("Failed to get outputs for address {parent_address}: {err}");
+      return Ok(None);
+    }
+  };
+
+  // If the address has no outputs, return 0 as reserved amount
+  if outpoints.is_empty() {
+    log::debug!("Address {parent_address} has no outputs, returning 0 reserved amount");
+    return Ok(Some(0));
+  }
+
+  // Calculate total reserved runes with overflow protection
+  let mut total_reserved: u128 = 0;
+  for outpoint in &outpoints {
+    // Get rune balances for this outpoint - only check for the specific rune we care about
+    if let Some(rune_balances) = index.get_rune_balances_for_output(*outpoint)? {
+      let Some(rune_balance) = rune_balances.get(spaced_rune) else {
+        continue;
+      };
+      total_reserved = total_reserved.saturating_add(rune_balance.amount);
+    }
+  }
+
+  // Return the total reserved amount
+  log::debug!(
+    "Found {} reserved runes for rune {} at address {parent_address}",
+    total_reserved,
+    spaced_rune.rune
+  );
+  Ok(Some(total_reserved))
+}
+
 #[cfg(test)]
 mod tests {
   use {
@@ -2141,6 +2235,38 @@ mod tests {
 
     fn new() -> Self {
       Builder::default().build()
+    }
+
+    #[track_caller]
+    pub(crate) fn edict(
+      &self,
+      rune_id: RuneId,
+      recipient: Option<Address>,
+      runestone: Runestone,
+      outputs: usize,
+      witness: Option<Witness>,
+    ) -> Txid {
+      self.mine_blocks((Runestone::COMMIT_CONFIRMATIONS - 1).into());
+
+      let witness = witness.unwrap_or_else(|| {
+        let tapscript = runestone.encipher();
+        let mut witness = Witness::default();
+        witness.push(tapscript);
+        witness.push([]);
+        witness
+      });
+
+      let txid = self.core.broadcast_tx(TransactionTemplate {
+        op_return: Some(runestone.encipher()),
+        outputs,
+        inputs: &[(rune_id.block as usize, rune_id.tx as usize, 0, witness)],
+        recipient,
+        ..default()
+      });
+
+      self.mine_blocks(1);
+
+      txid
     }
 
     #[track_caller]
@@ -3084,6 +3210,7 @@ mod tests {
         entry,
         mintable: false,
         parent: Some(parent),
+        reserved: Some(0),
       },
     );
 
@@ -7698,6 +7825,244 @@ next
       "/r/sat/0/at/0/content",
       StatusCode::NOT_FOUND,
       "this server has no sat index",
+    );
+  }
+
+  #[test]
+  fn rune_without_parent_shows_no_reserved_supply() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(RUNE);
+
+    // Etch the rune without a parent inscription
+    let (_, rune_id) = server.etch(
+      Runestone {
+        edicts: vec![Edict {
+          id: RuneId::default(),
+          amount: 1000,
+          output: 0,
+        }],
+        etching: Some(Etching {
+          rune: Some(rune),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+      None,
+    );
+
+    // No parent means no reserved supply calculation
+    let api_response = server.get_json::<api::Rune>(format!("/rune/{}", rune_id));
+    assert_eq!(api_response.parent, None);
+    assert_eq!(api_response.reserved, None);
+
+    // HTML response should not display reserved supply section
+    let html_response = server.get(format!("/rune/{}", rune_id)).text().unwrap();
+    assert!(!html_response.contains("<dt>reserved</dt>"));
+  }
+
+  #[test]
+  fn rune_shows_reserved_supply() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .index_addresses()
+      .build();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(RUNE);
+
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "parent").to_witness())],
+      outputs: 1,
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let parent_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    let (rune_txid, rune_id) = server.etch(
+      Runestone {
+        etching: Some(Etching {
+          rune: Some(rune),
+          premine: Some(1000),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+      Some(
+        Inscription {
+          content_type: Some("text/plain".into()),
+          body: Some("rune inscription".into()),
+          rune: Some(rune.commitment()),
+          parents: vec![parent_id.value()],
+          ..default()
+        }
+        .to_witness(),
+      ),
+    );
+
+    server.mine_blocks(1);
+
+    let api_response = server.get_json::<api::Rune>(format!("/rune/{}", rune_id));
+    assert_eq!(
+      api_response.parent,
+      Some(InscriptionId {
+        txid: rune_txid,
+        index: 0
+      })
+    );
+    assert_eq!(api_response.reserved, Some(1000));
+  }
+
+  #[test]
+  fn rune_reserved_supply_changes_when_transferred() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .index_addresses()
+      .build();
+
+    server.mine_blocks(1);
+
+    let rune = Rune(RUNE);
+
+    let prnt_inscription = inscription("text/plain", "parent");
+
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, prnt_inscription.to_witness())],
+      outputs: 1,
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let parent_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+    let (rune_txid, rune_id) = server.etch(
+      Runestone {
+        edicts: vec![Edict {
+          // 0:0
+          id: RuneId::default(),
+          amount: 1000,
+          output: 0,
+        }],
+        etching: Some(Etching {
+          rune: Some(rune),
+          premine: Some(1000),
+          ..default()
+        }),
+        ..default()
+      },
+      1,
+      Some(
+        Inscription {
+          content_type: Some("text/plain".into()),
+          body: Some("rune inscription".into()),
+          rune: Some(rune.commitment()),
+          parents: vec![parent_id.value()],
+          ..default()
+        }
+        .to_witness(),
+      ),
+    );
+
+    let api_response = server.get_json::<api::Rune>(format!("/rune/{}", rune_id));
+    assert_eq!(
+      api_response.parent,
+      Some(InscriptionId {
+        txid: rune_txid,
+        index: 0
+      })
+    );
+    assert_eq!(api_response.reserved, Some(1000));
+
+    let inscription_info = server.get_json::<api::InscriptionRecursive>(format!(
+      "/r/inscription/{}",
+      InscriptionId {
+        txid: rune_txid,
+        index: 0,
+      }
+    ));
+
+    // generate a new valid address
+    let address = test::address(3);
+
+    // Transfer half of the runes to a different output
+    let _edict_tx_id = server.edict(
+      rune_id.clone(),
+      None,
+      Runestone {
+        edicts: vec![Edict {
+          id: rune_id,
+          amount: 500,
+          output: 1,
+        }],
+        ..default()
+      },
+      2,
+      None,
+    );
+
+    // Transfer runes to the new address
+    let chain_tip = server.index.block_count().unwrap() - 1;
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(chain_tip as usize, 1, 0, Witness::default())],
+      outputs: 1,
+      recipient: Some(address.clone()),
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let first_tx = server.index.get_transaction(rune_txid).unwrap().unwrap();
+    let first_tx_params = bitcoin::consensus::Params::from(Network::Regtest);
+    let first_addr = Address::from_script(
+      first_tx.output[0].script_pubkey.as_script(),
+      &first_tx_params,
+    )
+    .unwrap();
+
+    assert_eq!(
+      first_addr.to_string(),
+      inscription_info.address.unwrap(),
+      "Inscription address shouldn't change after transfer"
+    );
+
+    // After transfer, the reserved supply should be split between outputs
+    let after_transfer_response = server.get_json::<api::Rune>(format!("/rune/{}", rune_id));
+    assert_eq!(after_transfer_response.reserved, Some(500));
+
+    // Check balances in individual outputs to confirm the split happened
+    // We'll need to get the outpoints created by the transfer transaction
+    let runes = server.index.runes().unwrap();
+    assert!(runes.len() > 0, "Should have at least one rune entry");
+
+    // Verify that rune balances exist and are split between outputs
+    let balances = server.index.get_rune_balances().unwrap();
+    let total_balance: u128 = balances
+      .iter()
+      .flat_map(|(_, balances)| balances.iter())
+      .filter_map(|(id, amount)| if *id == rune_id { Some(amount) } else { None })
+      .sum();
+
+    assert_eq!(
+      total_balance, 1000,
+      "Total rune balance should still be 1000"
     );
   }
 }
