@@ -251,12 +251,12 @@ pub(super) async fn content(
 
 #[derive(Debug)]
 pub(crate) struct ContentResponse {
-  body: Vec<u8>,
-  cache_control: Option<HeaderValue>,
-  content_encoding: Option<HeaderValue>,
-  content_security_policy: HeaderValue,
-  content_security_policy_additional: Option<HeaderValue>,
-  content_type: HeaderValue,
+  pub(crate) body: Vec<u8>,
+  pub(crate) cache_control: Option<HeaderValue>,
+  pub(crate) content_encoding: Option<HeaderValue>,
+  pub(crate) content_security_policy: HeaderValue,
+  pub(crate) content_security_policy_additional: Option<HeaderValue>,
+  pub(crate) content_type: HeaderValue,
 }
 
 impl IntoResponse for ContentResponse {
