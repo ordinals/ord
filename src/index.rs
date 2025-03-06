@@ -1595,7 +1595,8 @@ impl Index {
 
     Ok(Some(result))
   }
-
+  // TODO: make a new function for get_transaction_info that return confirmations and handles
+  // genesis block coinbase
   pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
