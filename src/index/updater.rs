@@ -574,9 +574,7 @@ impl Updater<'_> {
 
               let mut entry = UtxoEntryBuf::new();
               entry.push_value(txout.value.to_sat(), self.index);
-              if self.index.index_addresses {
-                entry.push_script_pubkey(txout.script_pubkey.as_bytes(), self.index);
-              }
+              entry.push_script_pubkey(txout.script_pubkey.as_bytes());
 
               entry
             };
@@ -632,9 +630,7 @@ impl Updater<'_> {
         }
       }
 
-      if self.index.index_addresses {
-        self.index_transaction_output_script_pubkeys(tx, &mut output_utxo_entries);
-      }
+      self.index_transaction_output_script_pubkeys(tx, &mut output_utxo_entries);
 
       if index_inscriptions {
         inscription_updater.index_inscriptions(
@@ -685,9 +681,7 @@ impl Updater<'_> {
 
       let mut new_utxo_entry = UtxoEntryBuf::new();
       new_utxo_entry.push_sat_ranges(&lost_sat_ranges, self.index);
-      if self.index.index_addresses {
-        new_utxo_entry.push_script_pubkey(&[], self.index);
-      }
+      new_utxo_entry.push_script_pubkey(&[]);
 
       *utxo_entry = UtxoEntryBuf::merged(utxo_entry, &new_utxo_entry, self.index);
     }
@@ -725,7 +719,7 @@ impl Updater<'_> {
     output_utxo_entries: &mut [UtxoEntryBuf],
   ) {
     for (vout, txout) in tx.output.iter().enumerate() {
-      output_utxo_entries[vout].push_script_pubkey(txout.script_pubkey.as_bytes(), self.index);
+      output_utxo_entries[vout].push_script_pubkey(txout.script_pubkey.as_bytes());
     }
   }
 
