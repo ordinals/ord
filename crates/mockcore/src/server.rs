@@ -258,17 +258,25 @@ impl Api for Server {
       }
     }
 
+    let Some(tx) = state.transactions.get(&txid) else {
+      return Ok(None);
+    };
+
+    let output = tx.output[vout as usize].clone();
+
     Ok(Some(GetTxOutResult {
       bestblock: BlockHash::all_zeros(),
       coinbase: false,
       confirmations: confirmations.unwrap().try_into().unwrap(),
       script_pub_key: GetRawTransactionResultVoutScriptPubKey {
         asm: String::new(),
-        hex: Vec::new(),
+        hex: output.script_pubkey.to_bytes(),
         req_sigs: None,
         type_: None,
         addresses: Vec::new(),
-        address: None,
+        address: Address::from_script(&output.script_pubkey.clone(), state.network)
+          .ok()
+          .map(|addr| addr.into_unchecked()),
       },
       value: *value,
     }))

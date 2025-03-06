@@ -345,6 +345,7 @@ inscriptions:
     output_json,
     api::Output {
       address: Some(destination.clone()),
+      confirmations: 1,
       outpoint: OutPoint {
         txid: reveal_txid,
         vout: 0

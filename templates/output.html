@@ -31,6 +31,7 @@
   <dt>address</dt><dd><a class=collapse href=/address/{{address}}>{{ address }}</a></dd>
 %% }
   <dt>transaction</dt><dd><a class=collapse href=/tx/{{ self.outpoint.txid }}>{{ self.outpoint.txid }}</a></dd>
+  <dt>confirmations</dt><dd>{{ self.confirmations }}</dd>
   <dt>spent</dt><dd>{{ self.spent }}</dd>
 </dl>
 %% if let Some(sat_ranges) = &self.sat_ranges {

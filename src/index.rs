@@ -2404,9 +2404,12 @@ impl Index {
   pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
     let sat_ranges = self.list(outpoint)?;
 
+    let confirmations;
     let indexed;
+    let spent;
+    let txout;
 
-    let txout = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+    if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
 
       if let Some(ranges) = &sat_ranges {
@@ -2416,34 +2419,57 @@ impl Index {
       }
 
       indexed = true;
-
-      TxOut {
+      confirmations = 0;
+      spent = false;
+      txout = TxOut {
         value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
-      }
+      };
     } else {
       indexed = self.contains_output(&outpoint)?;
 
-      let Some(tx) = self.get_transaction(outpoint.txid)? else {
-        return Ok(None);
-      };
+      if let Some(result) = self
+        .client
+        .get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
+      {
+        spent = false;
+        confirmations = result.confirmations;
+        txout = TxOut {
+          value: result.value,
+          script_pubkey: ScriptBuf::from_bytes(result.script_pub_key.hex),
+        };
+      } else {
+        spent = true;
 
-      let Some(txout) = tx.output.into_iter().nth(outpoint.vout as usize) else {
-        return Ok(None);
-      };
+        let Some(result) = self
+          .client
+          .get_raw_transaction_info(&outpoint.txid, None)
+          .ok()
+        else {
+          return Ok(None);
+        };
 
-      txout
+        let Some(output) = result.vout.into_iter().nth(outpoint.vout as usize) else {
+          return Ok(None);
+        };
+
+        confirmations = result.confirmations.unwrap_or_default();
+
+        txout = TxOut {
+          value: output.value,
+          script_pubkey: ScriptBuf::from_bytes(output.script_pub_key.hex),
+        };
+      }
     };
 
     let inscriptions = self.get_inscriptions_for_output(outpoint)?;
 
     let runes = self.get_rune_balances_for_output(outpoint)?;
 
-    let spent = self.is_output_spent(outpoint)?;
-
     Ok(Some((
       api::Output::new(
         self.settings.chain(),
+        confirmations,
         inscriptions,
         outpoint,
         txout.clone(),

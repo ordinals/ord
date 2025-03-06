@@ -1803,6 +1803,7 @@ curl -s -H "Accept: application/json" \
 ```json
 {
   "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
+  "confirmations": 6,
   "indexed": false,
   "inscriptions": [],
   "outpoint": "bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0",
