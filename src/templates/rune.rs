@@ -6,6 +6,12 @@ pub struct RuneHtml {
   pub id: RuneId,
   pub mintable: bool,
   pub parent: Option<InscriptionId>,
+  /// The amount of runes held at the same address as the parent inscription (reserved supply)
+  /// 
+  /// This is calculated by finding all balances of this rune at the same address that
+  /// holds the parent inscription. These runes can be considered "reserved" or "in reserve"
+  /// and are often used by creators to distribute later.
+  pub reserved: Option<u128>,
 }
 
 impl RuneHtml {
@@ -39,6 +45,7 @@ impl PageContent for RuneHtml {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use regex::Regex;
 
   #[test]
   fn display() {
@@ -72,6 +79,7 @@ mod tests {
           txid: Txid::all_zeros(),
           index: 0,
         }),
+        reserved: Some(100),
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 .*<a href=/inscription/.*<iframe .* src=/preview/0{64}i0></iframe></a>.*
@@ -108,7 +116,9 @@ mod tests {
     </dl>
   </dd>
   <dt>supply</dt>
-  <dd>100.123456889\u{A0}@</dd>
+  <dd>100.123456789\u{A0}@</dd>
+  <dt>reserved</dt>
+  <dd>0.0000001\u{A0}@</dd>
   <dt>premine</dt>
   <dd>0.123456789\u{A0}@</dd>
   <dt>premine percentage</dt>
@@ -154,6 +164,7 @@ mod tests {
         id: RuneId { block: 10, tx: 9 },
         mintable: false,
         parent: None,
+        reserved: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>.*
@@ -188,6 +199,7 @@ mod tests {
         id: RuneId { block: 10, tx: 9 },
         mintable: false,
         parent: None,
+        reserved: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>.*
@@ -227,6 +239,7 @@ mod tests {
         id: RuneId { block: 10, tx: 9 },
         mintable: false,
         parent: None,
+        reserved: None,
       },
       "<h1>B•CGDENLQRQWDSLRUGSNLBTMFIJAV</h1>
 <dl>.*
@@ -286,6 +299,7 @@ mod tests {
           txid: Txid::all_zeros(),
           index: 0,
         }),
+        reserved: Some(100),
       },
       ".*
       <dt>mintable</dt>
@@ -323,6 +337,7 @@ mod tests {
           txid: Txid::all_zeros(),
           index: 0,
         }),
+        reserved: Some(200),
       },
       ".*
       <dt>mintable</dt>
