@@ -7579,4 +7579,125 @@ next
       "this server has no sat index",
     );
   }
+
+  #[test]
+  fn content_response_no_content_type() {
+    let content_response = r::content_response(
+      &ServerConfig::default(),
+      inscription_id(0),
+      AcceptEncoding::default(),
+      SecFetchDest::Other,
+      Inscription {
+        content_type: None,
+        body: Some(Vec::new()),
+        ..default()
+      },
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(content_response.content_type, "application/octet-stream");
+    assert!(content_response.body.is_empty());
+  }
+
+  #[test]
+  fn content_response_bad_content_type() {
+    let content_response = r::content_response(
+      &ServerConfig::default(),
+      inscription_id(0),
+      AcceptEncoding::default(),
+      SecFetchDest::Other,
+      Inscription {
+        content_type: Some("\n".as_bytes().to_vec()),
+        body: Some(Vec::new()),
+        ..Default::default()
+      },
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(content_response.content_type, "application/octet-stream");
+    assert!(content_response.body.is_empty());
+  }
+
+  #[test]
+  fn content_response_no_content() {
+    assert!(r::content_response(
+      &ServerConfig::default(),
+      inscription_id(0),
+      AcceptEncoding::default(),
+      SecFetchDest::Other,
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: None,
+        ..default()
+      },
+    )
+    .unwrap()
+    .is_none());
+  }
+
+  #[test]
+  fn content_response_with_content() {
+    let response = r::content_response(
+      &ServerConfig::default(),
+      inscription_id(0),
+      AcceptEncoding::default(),
+      SecFetchDest::Other,
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: Some(vec![1, 2, 3]),
+        ..default()
+      },
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(response.content_type, "text/plain");
+    assert_eq!(response.body, vec![1, 2, 3]);
+  }
+
+  #[test]
+  fn content_security_policy_no_origin() {
+    let response = r::content_response(
+      &ServerConfig::default(),
+      inscription_id(0),
+      AcceptEncoding::default(),
+      SecFetchDest::Other,
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: Some(vec![1, 2, 3]),
+        ..default()
+      },
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(
+      response.content_security_policy,
+      "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
+    );
+  }
+
+  #[test]
+  fn content_security_policy_with_origin() {
+    let response = r::content_response(
+      &ServerConfig {
+        csp_origin: Some("https://ordinals.com".into()),
+        ..default()
+      },
+      inscription_id(0),
+      AcceptEncoding::default(),
+      SecFetchDest::Other,
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: Some(vec![1, 2, 3]),
+        ..default()
+      },
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(response.content_security_policy, "default-src https://ordinals.com/content/ https://ordinals.com/blockheight https://ordinals.com/blockhash https://ordinals.com/blockhash/ https://ordinals.com/blocktime https://ordinals.com/r/ 'unsafe-eval' 'unsafe-inline' data: blob:");
+  }
 }
