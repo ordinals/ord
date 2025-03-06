@@ -21,11 +21,11 @@ enum Sats<'a> {
 /// by that many 11-byte sat range entries, otherwise the total output value
 /// stored as a varint.
 ///
+/// The script pubkey stored as a varint followed by that many bytes of data.
+///
 /// If `--index-inscriptions`, the list of inscriptions stored as
 /// `(sequence_number, offset)`, with the sequence number stored as a u32 and
 /// the offset as a varint.
-///
-/// The script pubkey stored as a varint followed by that many bytes of data.
 ///
 /// Note that the list of inscriptions doesn't need an explicit length, it
 /// continues until the end of the array.
