@@ -232,3 +232,6 @@ swap host:
 
 changed-files tag:
   git diff --name-only {{tag}}
+
+test:
+  ./bin/test
