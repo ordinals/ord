@@ -33,10 +33,9 @@ GalleryItem = {
 Attributes = {
   ? 0: text, ; title
   ? 1: text, ; description
-  ? 2: text, ; alt text
-  ? 3: text, ; author
-  ? 4: [+ uri], ; links
-  ? 5: Traits, ; traits
+  ? 2: text, ; author
+  ? 3: [+ uri], ; links
+  ? 4: Traits, ; traits
 }
 
 Traits = {
