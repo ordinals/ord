@@ -1475,10 +1475,11 @@ impl Server {
       if settings.is_hidden(inscription_id) {
         return Ok(PreviewUnknownHtml.into_response());
       }
-      let entry = index
+      let inscription_number = index
         .get_inscription_entry(inscription_id)
         .unwrap()
-        .unwrap();
+        .unwrap()
+        .inscription_number;
 
       let mut inscription = index
         .get_inscription_by_id(inscription_id)?
@@ -1497,6 +1498,7 @@ impl Server {
           r::content_response(
             &server_config,
             inscription_id,
+            inscription_number,
             accept_encoding,
             sec_fetch_dest,
             inscription,
@@ -1514,7 +1516,7 @@ impl Server {
             content_security_policy,
             PreviewAudioHtml {
               inscription_id,
-              inscription_number: entry.inscription_number,
+              inscription_number,
             },
           )
             .into_response(),
@@ -1525,7 +1527,7 @@ impl Server {
             PreviewCodeHtml {
               inscription_id,
               language,
-              inscription_number: entry.inscription_number,
+              inscription_number,
             },
           )
             .into_response(),
@@ -1535,7 +1537,7 @@ impl Server {
             content_security_policy,
             PreviewFontHtml {
               inscription_id,
-              inscription_number: entry.inscription_number,
+              inscription_number,
             },
           )
             .into_response(),
@@ -1547,7 +1549,7 @@ impl Server {
             PreviewImageHtml {
               image_rendering,
               inscription_id,
-              inscription_number: entry.inscription_number,
+              inscription_number,
             },
           )
             .into_response(),
@@ -1557,7 +1559,7 @@ impl Server {
             content_security_policy,
             PreviewMarkdownHtml {
               inscription_id,
-              inscription_number: entry.inscription_number,
+              inscription_number,
             },
           )
             .into_response(),
@@ -1567,7 +1569,7 @@ impl Server {
             content_security_policy,
             PreviewModelHtml {
               inscription_id,
-              inscription_number: entry.inscription_number,
+              inscription_number,
             },
           )
             .into_response(),
@@ -1577,7 +1579,7 @@ impl Server {
             content_security_policy,
             PreviewPdfHtml {
               inscription_id,
-              inscription_number: entry.inscription_number,
+              inscription_number,
             },
           )
             .into_response(),
@@ -1587,7 +1589,7 @@ impl Server {
             content_security_policy,
             PreviewTextHtml {
               inscription_id,
-              inscription_number: entry.inscription_number,
+              inscription_number,
             },
           )
             .into_response(),
@@ -1598,7 +1600,7 @@ impl Server {
             content_security_policy,
             PreviewVideoHtml {
               inscription_id,
-              inscription_number: entry.inscription_number,
+              inscription_number,
             },
           )
             .into_response(),
@@ -4336,6 +4338,7 @@ mod tests {
     assert!(r::content_response(
       &ServerConfig::default(),
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
@@ -4353,6 +4356,7 @@ mod tests {
     let response = r::content_response(
       &ServerConfig::default(),
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
@@ -4373,6 +4377,7 @@ mod tests {
     let response = r::content_response(
       &ServerConfig::default(),
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
@@ -4398,6 +4403,7 @@ mod tests {
         ..default()
       },
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
@@ -4492,6 +4498,7 @@ mod tests {
     let content_response = r::content_response(
       &ServerConfig::default(),
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
@@ -4512,6 +4519,7 @@ mod tests {
     let content_response = r::content_response(
       &ServerConfig::default(),
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
