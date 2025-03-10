@@ -299,8 +299,14 @@ pub(crate) fn content_response(
   inscription: Inscription,
 ) -> ServerResult<Option<ContentResponse>> {
   if sec_fetch_dest == SecFetchDest::Document {
+    let inscription_number = 0;
     return Ok(Some(ContentResponse {
-      body: PreviewIframeHtml { inscription_id }.to_string().into(),
+      body: PreviewIframeHtml {
+        inscription_id,
+        inscription_number,
+      }
+      .to_string()
+      .into(),
       cache_control: None,
       content_encoding: None,
       content_security_policy: HeaderValue::from_static("default-src 'self'"),

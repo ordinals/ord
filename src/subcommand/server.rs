@@ -1475,6 +1475,10 @@ impl Server {
       if settings.is_hidden(inscription_id) {
         return Ok(PreviewUnknownHtml.into_response());
       }
+      let entry = index
+        .get_inscription_entry(inscription_id)
+        .unwrap()
+        .unwrap();
 
       let mut inscription = index
         .get_inscription_by_id(inscription_id)?
@@ -1505,22 +1509,37 @@ impl Server {
       let content_security_policy = server_config.preview_content_security_policy(media)?;
 
       match media {
-        Media::Audio => {
-          Ok((content_security_policy, PreviewAudioHtml { inscription_id }).into_response())
-        }
+        Media::Audio => Ok(
+          (
+            content_security_policy,
+            PreviewAudioHtml {
+              inscription_id,
+              inscription_number: entry.inscription_number,
+            },
+          )
+            .into_response(),
+        ),
         Media::Code(language) => Ok(
           (
             content_security_policy,
             PreviewCodeHtml {
               inscription_id,
               language,
+              inscription_number: entry.inscription_number,
             },
           )
             .into_response(),
         ),
-        Media::Font => {
-          Ok((content_security_policy, PreviewFontHtml { inscription_id }).into_response())
-        }
+        Media::Font => Ok(
+          (
+            content_security_policy,
+            PreviewFontHtml {
+              inscription_id,
+              inscription_number: entry.inscription_number,
+            },
+          )
+            .into_response(),
+        ),
         Media::Iframe => unreachable!(),
         Media::Image(image_rendering) => Ok(
           (
@@ -1528,6 +1547,7 @@ impl Server {
             PreviewImageHtml {
               image_rendering,
               inscription_id,
+              inscription_number: entry.inscription_number,
             },
           )
             .into_response(),
@@ -1535,23 +1555,54 @@ impl Server {
         Media::Markdown => Ok(
           (
             content_security_policy,
-            PreviewMarkdownHtml { inscription_id },
+            PreviewMarkdownHtml {
+              inscription_id,
+              inscription_number: entry.inscription_number,
+            },
           )
             .into_response(),
         ),
-        Media::Model => {
-          Ok((content_security_policy, PreviewModelHtml { inscription_id }).into_response())
-        }
-        Media::Pdf => {
-          Ok((content_security_policy, PreviewPdfHtml { inscription_id }).into_response())
-        }
-        Media::Text => {
-          Ok((content_security_policy, PreviewTextHtml { inscription_id }).into_response())
-        }
+        Media::Model => Ok(
+          (
+            content_security_policy,
+            PreviewModelHtml {
+              inscription_id,
+              inscription_number: entry.inscription_number,
+            },
+          )
+            .into_response(),
+        ),
+        Media::Pdf => Ok(
+          (
+            content_security_policy,
+            PreviewPdfHtml {
+              inscription_id,
+              inscription_number: entry.inscription_number,
+            },
+          )
+            .into_response(),
+        ),
+        Media::Text => Ok(
+          (
+            content_security_policy,
+            PreviewTextHtml {
+              inscription_id,
+              inscription_number: entry.inscription_number,
+            },
+          )
+            .into_response(),
+        ),
         Media::Unknown => Ok((content_security_policy, PreviewUnknownHtml).into_response()),
-        Media::Video => {
-          Ok((content_security_policy, PreviewVideoHtml { inscription_id }).into_response())
-        }
+        Media::Video => Ok(
+          (
+            content_security_policy,
+            PreviewVideoHtml {
+              inscription_id,
+              inscription_number: entry.inscription_number,
+            },
+          )
+            .into_response(),
+        ),
       }
     })
   }
