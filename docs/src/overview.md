@@ -121,7 +121,7 @@ This satoshi is uncommon:
 This satoshi is rare:
 
 ```
-1°1′0″0‴
+1°2016′0″0‴
 │ │ │ ╰─ First sat in block
 │ │ ╰─── First block in difficulty adjustment period
 │ ╰───── Not the first block in halving epoch
@@ -131,7 +131,7 @@ This satoshi is rare:
 This satoshi is epic:
 
 ```
-1°0′1″0‴
+1°0′336″0‴
 │ │ │ ╰─ First sat in block
 │ │ ╰─── Not first block in difficulty adjustment period
 │ ╰───── First block in halving epoch
