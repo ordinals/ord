@@ -103,8 +103,13 @@ impl Accept {
 
     let postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
-    let mut output = TxOut {
+    let receive_output = TxOut {
       value: postage,
+      script_pubkey: wallet.get_change_address()?.into(),
+    };
+
+    let mut change_output = TxOut {
+      value: Amount::ZERO,
       script_pubkey: wallet.get_change_address()?.into(),
     };
 
@@ -130,7 +135,7 @@ impl Accept {
 
     unlocked_sorted_utxos.sort_by_key(|(_, txout)| std::cmp::Reverse(txout.value));
 
-    let mut funding_amount = output_sat_value - input_sat_value;
+    let mut remaining_amount_to_fund = output_sat_value - input_sat_value;
     let mut next_utxo = 0;
 
     // insert inputs until funding amount is satisfied
@@ -143,27 +148,28 @@ impl Accept {
       });
       next_utxo += 1;
 
-      if txout.value >= funding_amount {
+      if txout.value >= remaining_amount_to_fund {
         // add residual amount to postage
-        output.value += txout.value - funding_amount;
+        change_output.value += txout.value - remaining_amount_to_fund;
         break;
       } else {
-        funding_amount -= txout.value;
+        remaining_amount_to_fund -= txout.value;
       }
     }
 
     ensure! {
-      unlocked_sorted_utxos.is_empty() || funding_amount == Amount::ZERO,
+      remaining_amount_to_fund == Amount::ZERO,
       "Insufficient funds to purchase PSBT offer (requires {} additional sats)",
-      funding_amount,
+      remaining_amount_to_fund,
     }
 
     // insert inputs in PSBT offer, starting at 1th-index
     inputs.splice(1..1, psbt.clone().unsigned_tx.input);
 
     // insert the postage/change output first, followed by outputs in PSBT offer
-    outputs.push(output.clone());
+    outputs.push(receive_output.clone());
     outputs.extend(psbt.clone().unsigned_tx.output);
+    outputs.push(change_output.clone());
 
     let mut unsigned_tx = Transaction {
       version: Version(2),
@@ -179,8 +185,9 @@ impl Accept {
       let desired_fee = self.fee_rate.fee(signed_tx.vsize());
 
       // reduce output value by desired fee, if remainder satisfies postage
-      if output.value - postage >= desired_fee {
-        unsigned_tx.output[0].value -= desired_fee;
+      let change_output = unsigned_tx.output.last_mut().unwrap();
+      if change_output.value >= desired_fee {
+        change_output.value -= desired_fee;
         break;
       }
 
@@ -201,7 +208,13 @@ impl Accept {
         witness: Witness::new(),
       });
 
-      unsigned_tx.output[0].value += txout.value;
+      change_output.value += txout.value;
+    }
+
+    // remove change output if dust
+    let change_output = unsigned_tx.output.last().unwrap();
+    if change_output.value < change_output.script_pubkey.minimal_non_dust() {
+      unsigned_tx.output.pop();
     }
 
     let (txid, psbt, fee) =
