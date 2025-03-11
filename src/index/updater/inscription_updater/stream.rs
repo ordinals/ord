@@ -378,15 +378,17 @@ impl StreamEvent {
     self
   }
 
-  pub fn publish(&mut self) -> Result {
+  pub fn publish(&mut self, transfer_count: u32) -> Result {
     if env::var("KAFKA_TOPIC").is_err() {
       return Ok(());
     }
 
-    // skip brc20 sats mint transfer events
+    // when old_owner exists, only publish "transfer" inscriptions once.
     if let Some(brc20) = &self.brc20 {
-      if brc20.op == "mint" && self.old_owner.is_some() {
-        return Ok(());
+      if self.old_owner.is_some() {
+        if brc20.op != "transfer" || transfer_count > 0 {
+          return Ok(());
+        }
       }
     }
 
