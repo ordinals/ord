@@ -72,7 +72,7 @@ pub(crate) enum Subcommand {
   #[command(about = "Mint a rune")]
   Mint(mint::Mint),
   #[command(subcommand, about = "Buy offer commands")]
-  Offer(buy_offer::BuyOffer),
+  BuyOffer(buy_offer::BuyOffer),
   #[command(subcommand, about = "Sell offer commands")]
   SellOffer(sell_offer::SellOffer),
   #[command(about = "List all unspent outputs in wallet")]
@@ -97,6 +97,16 @@ pub(crate) enum Subcommand {
   Split(split::Split),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
+
+  #[deprecated(
+    since = "0.23.0",
+    note = "This command is deprecated and may be removed in future versions"
+  )]
+  #[command(
+    subcommand,
+    about = "This command is no longer recommended. Use buy-offer instead."
+  )]
+  Offer(buy_offer::BuyOffer),
 }
 
 impl WalletCommand {
@@ -133,7 +143,7 @@ impl WalletCommand {
       Subcommand::Inscriptions => inscriptions::run(wallet),
       Subcommand::Label => label::run(wallet),
       Subcommand::Mint(mint) => mint.run(wallet),
-      Subcommand::Offer(offer) => offer.run(wallet),
+      Subcommand::BuyOffer(buy_offer) => buy_offer.run(wallet),
       Subcommand::SellOffer(sell_offer) => sell_offer.run(wallet),
       Subcommand::Outputs(outputs) => outputs.run(wallet),
       Subcommand::Pending(pending) => pending.run(wallet),
@@ -145,6 +155,9 @@ impl WalletCommand {
       Subcommand::Sign(sign) => sign.run(wallet),
       Subcommand::Split(split) => split.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
+
+      #[allow(deprecated)]
+      Subcommand::Offer(offer) => offer.run(wallet),
     }
   }
 
