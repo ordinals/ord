@@ -6,7 +6,6 @@ use {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub psbt: String,
-  pub seller_address: Address<NetworkUnchecked>,
   pub inscription: Option<InscriptionId>,
   pub rune: Option<Outgoing>,
 }
@@ -106,8 +105,6 @@ impl Create {
 
     let postage = Amount::from_sat(wallet.get_value_in_output(&input)?);
 
-    let seller_address = wallet.get_change_address()?;
-
     let tx = Transaction {
       version: Version(2),
       lock_time: LockTime::ZERO,
@@ -119,7 +116,7 @@ impl Create {
       }],
       output: vec![TxOut {
         value: self.amount + postage,
-        script_pubkey: seller_address.clone().into(),
+        script_pubkey: wallet.get_change_address()?.into(),
       }],
     };
 
@@ -145,7 +142,6 @@ impl Create {
       psbt: result.psbt,
       inscription: None,
       rune: Some(outgoing),
-      seller_address: seller_address.clone().into_unchecked(),
     })))
   }
 }
