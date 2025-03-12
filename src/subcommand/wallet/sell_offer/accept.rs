@@ -134,7 +134,7 @@ impl Accept {
 
     unlocked_sorted_utxos.sort_by_key(|(_, txout)| std::cmp::Reverse(txout.value));
 
-    let mut remaining_amount_to_fund = output_sat_value - input_sat_value;
+    let mut remaining_amount_to_fund = postage + output_sat_value - input_sat_value;
     let mut next_utxo = 0;
 
     // insert inputs until funding amount is satisfied
@@ -150,6 +150,7 @@ impl Accept {
       if txout.value >= remaining_amount_to_fund {
         // add residual amount to postage
         change_output.value += txout.value - remaining_amount_to_fund;
+        remaining_amount_to_fund = Amount::ZERO;
         break;
       } else {
         remaining_amount_to_fund -= txout.value;
@@ -158,7 +159,7 @@ impl Accept {
 
     ensure! {
       remaining_amount_to_fund == Amount::ZERO,
-      "Insufficient funds to purchase PSBT offer (requires {} additional sats)",
+      "Insufficient funds to purchase PSBT offer (requires additional {})",
       remaining_amount_to_fund,
     }
 
@@ -229,42 +230,32 @@ impl Accept {
     psbt: &Psbt,
     unsigned_tx: &Transaction,
   ) -> Result<Transaction> {
-    let unsigned_psbt = wallet
-      .bitcoin_client()
-      .wallet_process_psbt(
-        &base64_encode(&Psbt::from_unsigned_tx(unsigned_tx.clone())?.serialize()),
-        Some(false),
-        None,
-        None,
-      )?
-      .psbt;
-
-    let unsigned_psbt = base64_decode(&unsigned_psbt).context("failed to base64 decode PSBT")?;
-    let mut unsigned_psbt =
-      Psbt::deserialize(&unsigned_psbt).context("failed to deserialize PSBT")?;
-
+    let mut unsigned_psbt = Psbt::from_unsigned_tx(unsigned_tx.clone())?;
     unsigned_psbt.inputs.splice(1.., psbt.inputs.clone());
 
-    let signed_psbt = wallet
+    let result = wallet
+      .bitcoin_client()
+      .call::<String>("utxoupdatepsbt", &[base64_encode(&unsigned_psbt.serialize()).into()])?;
+
+    let result = wallet
       .bitcoin_client()
       .wallet_process_psbt(
-        &base64_encode(&unsigned_psbt.serialize()),
+        &result,
         Some(true),
         None,
         None,
-      )?
-      .psbt;
+      )?;
 
-    let finalized_psbt = wallet
-      .bitcoin_client()
-      .finalize_psbt(&signed_psbt, None)?
-      .hex
-      .ok_or_else(|| anyhow!("unable to sign transaction"))?;
+    ensure! {
+      result.complete,
+      "At least 1 PSBT input is unsigned and cannot be signed by wallet"
+    }
+    
+    let signed_psbt = base64_decode(&result.psbt).context("failed to base64 decode PSBT")?;
 
-    let finalized_psbt =
-      Psbt::deserialize(&finalized_psbt).context("failed to deserialize PSBT")?;
+    let signed_psbt = Psbt::deserialize(&signed_psbt).context("failed to deserialize PSBT")?;
 
-    let signed_tx = finalized_psbt.extract_tx()?;
+    let signed_tx = signed_psbt.extract_tx()?;
 
     Ok(signed_tx)
   }
