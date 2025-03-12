@@ -4,6 +4,7 @@ use super::*;
 pub struct Output {
   pub txid: Txid,
   pub psbt: String,
+  pub completed_psbt: String,
   pub fee: u64,
 }
 
@@ -181,7 +182,8 @@ impl Accept {
     // deduct fee from first output or add necessary inputs to meet desired fee rate
     loop {
       // calculate fee using vsize of fully signed transaction
-      let signed_tx = self.get_signed_tx(&wallet, &psbt, &unsigned_tx)?;
+      let (signed_psbt, _) = self.get_signed_psbt(&wallet, &psbt, &unsigned_tx)?;
+      let signed_tx = signed_psbt.extract_tx()?;
       let desired_fee = self.fee_rate.fee(signed_tx.vsize());
 
       // reduce output value by desired fee, if remainder satisfies postage
@@ -217,19 +219,52 @@ impl Accept {
       unsigned_tx.output.pop();
     }
 
-    let (txid, psbt, fee) =
-      wallet.sign_and_broadcast_transaction(unsigned_tx, self.dry_run, None)?;
+    let (txid, completed_psbt, fee) = if self.dry_run {
+      let mut unsigned_psbt = Psbt::from_unsigned_tx(unsigned_tx.clone())?;
+      unsigned_psbt.inputs.splice(1.., psbt.inputs.clone());
+      unsigned_psbt.outputs.splice(1.., psbt.outputs.clone());
 
-    Ok(Some(Box::new(Output { txid, psbt, fee })))
+      let result = wallet.bitcoin_client().call::<String>(
+        "utxoupdatepsbt",
+        &[base64_encode(&unsigned_psbt.serialize()).into()],
+      )?;
+
+      let result = wallet
+        .bitcoin_client()
+        .wallet_process_psbt(&result, Some(false), None, None)?;
+
+      let psbt = base64_decode(&result.psbt).context("failed to base64 decode PSBT")?;
+
+      let psbt = Psbt::deserialize(&psbt).context("failed to deserialize PSBT")?;
+
+      (unsigned_tx.compute_txid(), result.psbt, psbt.fee()?)
+    } else {
+      let (signed_psbt, encoded_psbt) = self.get_signed_psbt(&wallet, &psbt, &unsigned_tx)?;
+      let fee = signed_psbt.fee()?;
+      let signed_tx = signed_psbt.extract_tx()?;
+
+      (
+        wallet.send_raw_transaction(&consensus::encode::serialize(&signed_tx), None)?,
+        encoded_psbt,
+        fee,
+      )
+    };
+
+    Ok(Some(Box::new(Output {
+      txid,
+      psbt: self.psbt.clone(),
+      completed_psbt,
+      fee: fee.to_sat(),
+    })))
   }
 
   // returns signed tx given psbt offer and full unsigned transaction
-  fn get_signed_tx(
+  fn get_signed_psbt(
     &self,
     wallet: &Wallet,
     psbt: &Psbt,
     unsigned_tx: &Transaction,
-  ) -> Result<Transaction> {
+  ) -> Result<(Psbt, String)> {
     let mut unsigned_psbt = Psbt::from_unsigned_tx(unsigned_tx.clone())?;
     unsigned_psbt.inputs.splice(1.., psbt.inputs.clone());
 
@@ -251,8 +286,6 @@ impl Accept {
 
     let signed_psbt = Psbt::deserialize(&signed_psbt).context("failed to deserialize PSBT")?;
 
-    let signed_tx = signed_psbt.extract_tx()?;
-
-    Ok(signed_tx)
+    Ok((signed_psbt, result.psbt))
   }
 }
