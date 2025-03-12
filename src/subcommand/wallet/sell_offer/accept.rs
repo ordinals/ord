@@ -11,15 +11,16 @@ pub struct Output {
 pub(crate) struct Accept {
   #[arg(long, help = "Accept <PSBT> offer")]
   psbt: String,
-  #[arg(long, help = "Assert offer is for <INSCRIPTION>")]
-  inscription: Option<InscriptionId>,
-  #[arg(long, help = "Assert offer is for at least <DECIMAL:RUNE>")]
-  rune: Option<Outgoing>,
+  #[arg(
+    long,
+    help = "Assert offer is for <INSCRIPTION> or at least <DECIMAL:RUNE>"
+  )]
+  outgoing: Outgoing,
   #[arg(long, help = "Assert offer requires at most <AMOUNT>")]
   amount: Amount,
   #[arg(
     long,
-    help = "Include <AMOUNT> postage with mint output. [default: 10000sat]"
+    help = "Include <AMOUNT> postage with receive output. [default: 10000sat]"
   )]
   postage: Option<Amount>,
   #[arg(long, help = "Don't sign or broadcast transaction")]
@@ -30,11 +31,12 @@ pub(crate) struct Accept {
 
 impl Accept {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    match (self.inscription, self.rune.clone()) {
-      (Some(inscription), None) => self.accept_inscription_sell_offer(wallet, inscription),
-      (None, Some(rune)) => self.accept_rune_sell_offer(wallet, rune),
-      (None, None) => bail!("must provide either --inscription or --rune"),
-      (Some(_), Some(_)) => bail!("cannot provide both --inscription and --rune"),
+    match self.outgoing {
+      Outgoing::InscriptionId(inscription_id) => {
+        self.accept_inscription_sell_offer(wallet, inscription_id)
+      }
+      Outgoing::Rune { decimal, rune } => self.accept_rune_sell_offer(wallet, decimal, rune),
+      _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
     }
   }
 
@@ -46,19 +48,16 @@ impl Accept {
     bail!("inscription sell offers not yet implemented");
   }
 
-  fn accept_rune_sell_offer(&self, wallet: Wallet, outgoing: Outgoing) -> SubcommandResult {
+  fn accept_rune_sell_offer(
+    &self,
+    wallet: Wallet,
+    decimal: Decimal,
+    spaced_rune: SpacedRune,
+  ) -> SubcommandResult {
     ensure!(
       wallet.has_rune_index(),
       "creating runes offer with `ord offer` requires index created with `--index-runes` flag",
     );
-
-    let Outgoing::Rune {
-      decimal,
-      rune: spaced_rune,
-    } = outgoing
-    else {
-      bail!("must provide --rune with <DECIMAL:RUNE>");
-    };
 
     let psbt = base64_decode(&self.psbt).context("failed to base64 decode PSBT")?;
 

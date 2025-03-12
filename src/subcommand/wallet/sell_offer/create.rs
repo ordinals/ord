@@ -6,27 +6,25 @@ use {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub psbt: String,
-  pub inscription: Option<InscriptionId>,
-  pub rune: Option<Outgoing>,
+  pub outgoing: Outgoing,
 }
 
 #[derive(Debug, Parser)]
 pub(crate) struct Create {
-  #[arg(long, help = "<INSCRIPTION> to make offer for.")]
-  inscription: Option<InscriptionId>,
-  #[arg(long, help = "<DECIMAL:RUNE> to make offer for.")]
-  rune: Option<Outgoing>,
+  #[arg(long, help = "<INSCRIPTION> or <DECIMAL:RUNE> to make offer for.")]
+  outgoing: Outgoing,
   #[arg(long, help = "<AMOUNT> to offer.")]
   amount: Amount,
 }
 
 impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    match (self.inscription, self.rune.clone()) {
-      (Some(inscription), None) => self.create_inscription_sell_offer(wallet, inscription),
-      (None, Some(rune)) => self.create_rune_sell_offer(wallet, rune),
-      (None, None) => bail!("must provide either --inscription or --rune"),
-      (Some(_), Some(_)) => bail!("cannot provide both --inscription and --rune"),
+    match self.outgoing {
+      Outgoing::InscriptionId(inscription_id) => {
+        self.create_inscription_sell_offer(wallet, inscription_id)
+      }
+      Outgoing::Rune { decimal, rune } => self.create_rune_sell_offer(wallet, decimal, rune),
+      _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
     }
   }
 
@@ -35,22 +33,19 @@ impl Create {
     _wallet: Wallet,
     _inscription_id: InscriptionId,
   ) -> SubcommandResult {
-    bail!("--inscription sell offers not yet implemented");
+    bail!("inscription sell offers not yet implemented");
   }
 
-  fn create_rune_sell_offer(&self, wallet: Wallet, outgoing: Outgoing) -> SubcommandResult {
+  fn create_rune_sell_offer(
+    &self,
+    wallet: Wallet,
+    decimal: Decimal,
+    spaced_rune: SpacedRune,
+  ) -> SubcommandResult {
     ensure!(
       wallet.has_rune_index(),
       "creating runes offer with `ord offer` requires index created with `--index-runes` flag",
     );
-
-    let Outgoing::Rune {
-      decimal,
-      rune: spaced_rune,
-    } = outgoing
-    else {
-      bail!("must provide --rune with <DECIMAL:RUNE>");
-    };
 
     wallet.lock_non_cardinal_outputs()?;
 
@@ -140,8 +135,7 @@ impl Create {
 
     Ok(Some(Box::new(Output {
       psbt: result.psbt,
-      inscription: None,
-      rune: Some(outgoing),
+      outgoing: self.outgoing.clone(),
     })))
   }
 }

@@ -13,6 +13,7 @@ mod inscribe;
 mod inscriptions;
 mod label;
 mod mint;
+mod offer;
 mod outputs;
 #[cfg(unix)]
 mod pending;

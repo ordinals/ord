@@ -14,17 +14,33 @@ pub struct Output {
 #[derive(Debug, Parser)]
 pub(crate) struct Accept {
   #[arg(long, help = "Assert offer is for <AMOUNT>")]
-  amount: Amount,
+  pub amount: Amount,
   #[arg(long, help = "Don't sign or broadcast transaction")]
-  dry_run: bool,
-  #[arg(long, help = "Assert offer is for <INSCRIPTION>")]
-  inscription: InscriptionId,
+  pub dry_run: bool,
+  #[arg(long, help = "Assert offer is for <INSCRIPTION> or <DECIMAL:RUNE>")]
+  pub outgoing: Outgoing,
   #[arg(long, help = "Accept <PSBT> offer")]
-  psbt: String,
+  pub psbt: String,
 }
 
 impl Accept {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
+    let txid = match self.outgoing {
+      Outgoing::InscriptionId(inscription_id) => {
+        self.accept_inscription_buy_offer(wallet, inscription_id)?
+      }
+      Outgoing::Rune { decimal, rune } => self.accept_rune_buy_offer(wallet, decimal, rune)?,
+      _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
+    };
+
+    Ok(Some(Box::new(Output { txid })))
+  }
+
+  pub fn accept_inscription_buy_offer(
+    &self,
+    wallet: Wallet,
+    inscription_id: InscriptionId,
+  ) -> Result<Txid> {
     let psbt = base64_decode(&self.psbt).context("failed to base64 decode PSBT")?;
 
     let psbt = Psbt::deserialize(&psbt).context("failed to deserialize PSBT")?;
@@ -69,7 +85,7 @@ impl Accept {
     };
 
     ensure! {
-      inscription == self.inscription,
+      inscription == inscription_id,
       "unexpected outgoing inscription {inscription}",
     }
 
@@ -146,7 +162,16 @@ impl Accept {
       wallet.send_raw_transaction(&signed_tx, None)?
     };
 
-    Ok(Some(Box::new(Output { txid })))
+    Ok(txid)
+  }
+
+  fn accept_rune_buy_offer(
+    &self,
+    _wallet: Wallet,
+    _decimal: Decimal,
+    _spaced_rune: SpacedRune,
+  ) -> Result<Txid> {
+    bail!("rune buy offers not yet implemented");
   }
 
   fn psbt_signatures(psbt: &Psbt) -> Result<Vec<Option<Signature>>> {

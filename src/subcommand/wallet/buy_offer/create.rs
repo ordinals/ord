@@ -4,37 +4,41 @@ use super::*;
 pub struct Output {
   pub psbt: String,
   pub seller_address: Address<NetworkUnchecked>,
-  pub inscription: Option<InscriptionId>,
-  pub rune: Option<Outgoing>,
+  pub outgoing: Outgoing,
 }
 
 #[derive(Debug, Parser)]
 pub(crate) struct Create {
-  #[arg(long, help = "<INSCRIPTION> to make offer for.")]
-  inscription: Option<InscriptionId>,
-  #[arg(long, help = "<DECIMAL:RUNE> to make offer for.")]
-  rune: Option<Outgoing>,
+  #[arg(long, help = "<INSCRIPTION> or <DECIMAL:RUNE> to make offer for.")]
+  pub outgoing: Outgoing,
   #[arg(long, help = "<AMOUNT> to offer.")]
-  amount: Amount,
+  pub amount: Amount,
   #[arg(long, help = "<FEE_RATE> for finalized transaction.")]
-  fee_rate: FeeRate,
+  pub fee_rate: FeeRate,
 }
 
 impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    match (self.inscription, self.rune.clone()) {
-      (Some(inscription), None) => self.create_inscription_buy_offer(wallet, inscription),
-      (None, Some(rune)) => self.create_rune_buy_offer(wallet, rune),
-      (None, None) => bail!("must provide either --inscription or --rune"),
-      (Some(_), Some(_)) => bail!("cannot provide both --inscription and --rune"),
-    }
+    let (psbt, seller_address) = match self.outgoing {
+      Outgoing::InscriptionId(inscription_id) => {
+        self.create_inscription_buy_offer(wallet, inscription_id)?
+      }
+      Outgoing::Rune { decimal, rune } => self.create_rune_buy_offer(wallet, decimal, rune)?,
+      _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
+    };
+
+    Ok(Some(Box::new(Output {
+      psbt,
+      seller_address,
+      outgoing: self.outgoing.clone(),
+    })))
   }
 
-  fn create_inscription_buy_offer(
+  pub fn create_inscription_buy_offer(
     &self,
     wallet: Wallet,
     inscription_id: InscriptionId,
-  ) -> SubcommandResult {
+  ) -> Result<(String, Address<NetworkUnchecked>)> {
     ensure!(
       !wallet.inscription_info().contains_key(&inscription_id),
       "inscription {} already in wallet",
@@ -105,15 +109,15 @@ impl Create {
       "PSBT unexpectedly complete after processing with wallet",
     }
 
-    Ok(Some(Box::new(Output {
-      psbt: result.psbt,
-      inscription: Some(inscription_id),
-      rune: None,
-      seller_address: seller_address.into_unchecked(),
-    })))
+    Ok((result.psbt, seller_address.into_unchecked()))
   }
 
-  fn create_rune_buy_offer(&self, _wallet: Wallet, _outgoing: Outgoing) -> SubcommandResult {
+  fn create_rune_buy_offer(
+    &self,
+    _wallet: Wallet,
+    _decimal: Decimal,
+    _spaced_rune: SpacedRune,
+  ) -> Result<(String, Address<NetworkUnchecked>)> {
     bail!("rune buy offers not yet implemented");
   }
 }

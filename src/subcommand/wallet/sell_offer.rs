@@ -5,9 +5,9 @@ pub mod create;
 
 #[derive(Debug, Parser)]
 pub(crate) enum SellOffer {
-  #[command(about = "Accept offer to sell rune")]
+  #[command(about = "Accept offer to sell inscription or rune")]
   Accept(accept::Accept),
-  #[command(about = "Create offer to sell rune")]
+  #[command(about = "Create offer to sell inscription or rune")]
   Create(create::Create),
 }
 

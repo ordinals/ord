@@ -1,6 +1,6 @@
 use super::*;
 
-type Create = ord::subcommand::wallet::buy_offer::create::Output;
+type Create = ord::subcommand::wallet::offer::create::Output;
 
 #[test]
 fn created_inscription_offer_is_correct() {
@@ -31,7 +31,7 @@ fn created_inscription_offer_is_correct() {
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
 
   let create = CommandBuilder::new(format!(
-    "wallet buy-offer create --outgoing {inscription} --amount 1btc --fee-rate 1"
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1"
   ))
   .core(&core)
   .ord(&ord)
@@ -45,7 +45,7 @@ fn created_inscription_offer_is_correct() {
     address,
   );
 
-  assert_eq!(create.outgoing, Outgoing::InscriptionId(inscription));
+  assert_eq!(create.inscription, inscription);
 
   let psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
 
@@ -125,7 +125,7 @@ fn inscription_must_exist() {
   create_wallet(&core, &ord);
 
   CommandBuilder::new(
-    "wallet buy-offer create --outgoing 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 --amount 1btc --fee-rate 1",
+    "wallet offer create --inscription 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 --amount 1btc --fee-rate 1",
   )
   .core(&core)
   .ord(&ord)
@@ -145,7 +145,7 @@ fn inscription_must_not_be_in_wallet() {
   let (inscription, _) = inscribe(&core, &ord);
 
   CommandBuilder::new(format!(
-    "wallet buy-offer create --outgoing {inscription} --amount 1btc --fee-rate 1",
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1",
   ))
   .core(&core)
   .ord(&ord)
@@ -175,7 +175,7 @@ fn inscription_must_have_valid_address() {
   core.mine_blocks(1);
 
   CommandBuilder::new(format!(
-    "wallet buy-offer create --outgoing {inscription} --amount 1btc --fee-rate 1",
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1",
   ))
   .core(&core)
   .ord(&ord)

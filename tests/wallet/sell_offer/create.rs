@@ -30,7 +30,7 @@ fn created_rune_sell_offer_is_correct() {
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --rune {}:{} --amount 1btc",
+    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc",
     250,
     Rune(RUNE),
   ))
@@ -39,14 +39,14 @@ fn created_rune_sell_offer_is_correct() {
   .run_and_deserialize_output::<Create>();
 
   assert_eq!(
-    create.rune,
-    Some(Outgoing::Rune {
+    create.outgoing,
+    Outgoing::Rune {
       rune: SpacedRune {
         rune: Rune(RUNE),
         spacers: 0,
       },
       decimal: "250".parse().unwrap(),
-    })
+    }
   );
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
@@ -67,14 +67,6 @@ fn created_rune_sell_offer_is_correct() {
   assert!(core.state().is_wallet_address(
     &Address::from_script(&psbt.unsigned_tx.output[0].script_pubkey, Network::Regtest).unwrap()
   ));
-
-  assert_eq!(
-    create
-      .seller_address
-      .require_network(Network::Regtest)
-      .unwrap(),
-    Address::from_script(&psbt.unsigned_tx.output[0].script_pubkey, Network::Regtest).unwrap()
-  );
 
   assert_eq!(
     psbt.unsigned_tx.output[0].value,
@@ -117,9 +109,9 @@ fn rune_must_exist() {
 
   create_wallet(&core, &ord);
 
-  CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --rune 1:FOO --amount 1btc",
-  ))
+  CommandBuilder::new(
+    "--regtest --index-runes wallet sell-offer create --outgoing 1:FOO --amount 1btc",
+  )
   .core(&core)
   .ord(&ord)
   .expected_stderr("error: rune `FOO` has not been etched\n")
@@ -135,12 +127,12 @@ fn rune_outgoing_must_be_formatted_correctly() {
 
   create_wallet(&core, &ord);
 
-  CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --rune 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 --amount 1btc",
-  ))
+  CommandBuilder::new(
+    "--regtest --index-runes wallet sell-offer create --outgoing 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 --amount 1btc"
+  )
   .core(&core)
   .ord(&ord)
-  .expected_stderr("error: must provide --rune with <DECIMAL:RUNE>\n")
+  .expected_stderr("error: inscription sell offers not yet implemented\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
@@ -156,7 +148,7 @@ fn outpoint_must_exist_in_wallet_with_exact_rune_offer_balance() {
   etch(&core, &ord, Rune(RUNE));
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --rune 2000:{} --amount 1btc",
+    "--regtest --index-runes wallet sell-offer create --outgoing 2000:{} --amount 1btc",
     Rune(RUNE),
   ))
   .core(&core)
