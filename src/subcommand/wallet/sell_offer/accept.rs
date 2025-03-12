@@ -233,24 +233,20 @@ impl Accept {
     let mut unsigned_psbt = Psbt::from_unsigned_tx(unsigned_tx.clone())?;
     unsigned_psbt.inputs.splice(1.., psbt.inputs.clone());
 
-    let result = wallet
-      .bitcoin_client()
-      .call::<String>("utxoupdatepsbt", &[base64_encode(&unsigned_psbt.serialize()).into()])?;
+    let result = wallet.bitcoin_client().call::<String>(
+      "utxoupdatepsbt",
+      &[base64_encode(&unsigned_psbt.serialize()).into()],
+    )?;
 
     let result = wallet
       .bitcoin_client()
-      .wallet_process_psbt(
-        &result,
-        Some(true),
-        None,
-        None,
-      )?;
+      .wallet_process_psbt(&result, Some(true), None, None)?;
 
     ensure! {
       result.complete,
       "At least 1 PSBT input is unsigned and cannot be signed by wallet"
     }
-    
+
     let signed_psbt = base64_decode(&result.psbt).context("failed to base64 decode PSBT")?;
 
     let signed_psbt = Psbt::deserialize(&signed_psbt).context("failed to deserialize PSBT")?;

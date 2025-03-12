@@ -106,7 +106,7 @@ pub(crate) enum Subcommand {
   #[command(
     subcommand,
     about = "(DEPRECATED) This command is no longer recommended. Use buy-offer instead.",
-    hide = true,
+    hide = true
   )]
   Offer(offer::Offer),
 }
