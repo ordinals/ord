@@ -54,6 +54,8 @@ Value =
   uri ; <a> tag
 
 Proportion = #6.6582895(float) ; value may be between 0 and 1 inclusive
+InscriptionId = #6.6582896(bytes .size (32..36)) ; links to `/inscription/<id>`
+RuneId = #6.6582897([integer, integer]) ; links to `/rune/<id>`
 ```
 
 The above CDDL schema is provided as a convenience. As always, the ordinals
