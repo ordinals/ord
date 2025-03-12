@@ -93,7 +93,7 @@ impl Create {
     let Some(input) = input else {
       bail!(
         "missing outpoint with exact `{}:{}` balance in wallet",
-        amount,
+        decimal,
         spaced_rune
       );
     };
@@ -129,8 +129,8 @@ impl Create {
     )?;
 
     ensure! {
-      !result.complete,
-      "PSBT unexpectedly complete after processing with wallet",
+      result.complete,
+      "Failed to sign PSBT after processing with wallet",
     }
 
     Ok(Some(Box::new(Output {

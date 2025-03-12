@@ -1014,9 +1014,11 @@ impl Api for Server {
       }
     }
 
+    let complete = psbt.inputs.iter().all(|input| input.final_script_witness.is_some());
+
     Ok(WalletProcessPsbtResult {
       psbt: base64::engine::general_purpose::STANDARD.encode(psbt.serialize()),
-      complete: false,
+      complete,
     })
   }
 
