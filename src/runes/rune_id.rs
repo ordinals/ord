@@ -19,7 +19,7 @@ impl TryFrom<u128> for RuneId {
 
 impl From<RuneId> for u128 {
   fn from(id: RuneId) -> Self {
-    u128::from(id.height) << 16 | u128::from(id.index)
+    (u128::from(id.height) << 16) | u128::from(id.index)
   }
 }
 

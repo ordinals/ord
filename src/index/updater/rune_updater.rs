@@ -355,7 +355,7 @@ impl RuneUpdater<'_, '_, '_> {
         u128::MAX
       },
       divisibility: etching.divisibility,
-      id: u128::from(self.height) << 16 | u128::from(index),
+      id: (u128::from(self.height) << 16) | u128::from(index),
       rune,
       spacers: etching.spacers,
       symbol: etching.symbol,

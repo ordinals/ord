@@ -400,6 +400,7 @@ impl Updater<'_> {
     let mut sequence_number_to_satpoint = wtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
     let mut statistic_to_count = wtx.open_table(STATISTIC_TO_COUNT)?;
     let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
+    let mut inscription_transfer_count = wtx.open_table(INSCRIPTION_TRANSFER_COUNT)?;
 
     let mut lost_sats = statistic_to_count
       .get(&Statistic::LostSats.key())?
@@ -459,6 +460,7 @@ impl Updater<'_> {
       value_cache,
       value_receiver,
       block_hash: block.header.block_hash(),
+      inscription_transfer_count: &mut inscription_transfer_count,
     };
 
     if self.index.index_sats {
