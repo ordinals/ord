@@ -3,7 +3,7 @@ use super::*;
 type Create = ord::subcommand::wallet::sell_offer::create::Output;
 
 #[test]
-fn created_rune_sell_offer_is_correct() {
+fn single_input_rune_sell_offer() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -57,12 +57,11 @@ fn created_rune_sell_offer_is_correct() {
   let psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
 
   assert_eq!(psbt.unsigned_tx.input.len(), 1);
-
-  let payment_input = psbt.unsigned_tx.input[0].previous_output;
-
-  assert!(outputs.iter().any(|output| output.output == payment_input));
-
   assert_eq!(psbt.unsigned_tx.output.len(), 1);
+
+  assert!(outputs
+    .iter()
+    .any(|output| output.output == psbt.unsigned_tx.input[0].previous_output));
 
   assert!(core.state().is_wallet_address(
     &Address::from_script(&psbt.unsigned_tx.output[0].script_pubkey, Network::Regtest).unwrap()
@@ -71,6 +70,12 @@ fn created_rune_sell_offer_is_correct() {
   assert_eq!(
     psbt.unsigned_tx.output[0].value,
     Amount::from_sat(100_010_000)
+  );
+
+  // verify input is signed with SINGLE|ANYONECANPAY
+  assert_eq!(
+    psbt.inputs[0].final_script_witness,
+    Some(Witness::from_slice(&[&[1; 64]]))
   );
 
   pretty_assertions::assert_eq!(
@@ -93,11 +98,322 @@ fn created_rune_sell_offer_is_correct() {
       }],
     }
   );
+}
 
-  // verify input is signed with SINGLE|ANYONECANPAY
+#[test]
+fn multi_input_rune_sell_offer() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune: SpacedRune {
+          rune: Rune(RUNE),
+          spacers: 0,
+        },
+        premine: "0".parse().unwrap(),
+        supply: "2000".parse().unwrap(),
+        symbol: '¢',
+        terms: Some(batch::Terms {
+          cap: 2,
+          offset: None,
+          amount: "1000".parse().unwrap(),
+          height: None,
+        }),
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let mint0 = CommandBuilder::new(format!(
+    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+
+  core.mine_blocks(1);
+
+  let mint1 = CommandBuilder::new(format!(
+    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+
+  core.mine_blocks(1);
+
+  let create = CommandBuilder::new(format!(
+    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc",
+    2000,
+    Rune(RUNE),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Create>();
+
   assert_eq!(
-    psbt.inputs[0].final_script_witness,
-    Some(Witness::from_slice(&[&[1; 64]]))
+    create.outgoing,
+    vec![Outgoing::Rune {
+      rune: SpacedRune {
+        rune: Rune(RUNE),
+        spacers: 0,
+      },
+      decimal: "2000".parse().unwrap(),
+    }]
+  );
+
+  let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
+
+  let psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
+
+  assert_eq!(psbt.unsigned_tx.input.len(), 2);
+  assert_eq!(psbt.unsigned_tx.output.len(), 2);
+
+  for i in 0..2 {
+    assert!(outputs
+      .iter()
+      .any(|output| output.output == psbt.unsigned_tx.input[i].previous_output));
+
+    assert!(core.state().is_wallet_address(
+      &Address::from_script(&psbt.unsigned_tx.output[i].script_pubkey, Network::Regtest).unwrap()
+    ));
+
+    assert_eq!(
+      psbt.unsigned_tx.output[0].value,
+      Amount::from_sat(50_010_000)
+    );
+
+    // verify input is signed with SINGLE|ANYONECANPAY
+    assert_eq!(
+      psbt.inputs[i].final_script_witness,
+      Some(Witness::from_slice(&[&[1; 64]]))
+    );
+  }
+
+  pretty_assertions::assert_eq!(
+    psbt.unsigned_tx,
+    Transaction {
+      version: Version(2),
+      lock_time: LockTime::ZERO,
+      input: vec![
+        TxIn {
+          previous_output: OutPoint {
+            txid: mint0.mint,
+            vout: 1,
+          },
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },
+        TxIn {
+          previous_output: OutPoint {
+            txid: mint1.mint,
+            vout: 1,
+          },
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        }
+      ],
+      output: vec![
+        TxOut {
+          value: Amount::from_sat(50_010_000),
+          script_pubkey: psbt.unsigned_tx.output[0].script_pubkey.clone(),
+        },
+        TxOut {
+          value: Amount::from_sat(50_010_000),
+          script_pubkey: psbt.unsigned_tx.output[1].script_pubkey.clone(),
+        }
+      ],
+    }
+  );
+}
+
+#[test]
+fn multi_input_rune_sell_offer_with_remainder() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune: SpacedRune {
+          rune: Rune(RUNE),
+          spacers: 0,
+        },
+        premine: "0".parse().unwrap(),
+        supply: "3000".parse().unwrap(),
+        symbol: '¢',
+        terms: Some(batch::Terms {
+          cap: 3,
+          offset: None,
+          amount: "1000".parse().unwrap(),
+          height: None,
+        }),
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let mint0 = CommandBuilder::new(format!(
+    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+
+  core.mine_blocks(1);
+
+  let mint1 = CommandBuilder::new(format!(
+    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+
+  core.mine_blocks(1);
+
+  let mint2 = CommandBuilder::new(format!(
+    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+
+  core.mine_blocks(1);
+
+  let create = CommandBuilder::new(format!(
+    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc",
+    3000,
+    Rune(RUNE),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Create>();
+
+  assert_eq!(
+    create.outgoing,
+    vec![Outgoing::Rune {
+      rune: SpacedRune {
+        rune: Rune(RUNE),
+        spacers: 0,
+      },
+      decimal: "3000".parse().unwrap(),
+    }]
+  );
+
+  let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
+
+  let psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
+
+  assert_eq!(psbt.unsigned_tx.input.len(), 3);
+  assert_eq!(psbt.unsigned_tx.output.len(), 3);
+
+  for i in 0..3 {
+    assert!(outputs
+      .iter()
+      .any(|output| output.output == psbt.unsigned_tx.input[i].previous_output));
+
+    assert!(core.state().is_wallet_address(
+      &Address::from_script(&psbt.unsigned_tx.output[i].script_pubkey, Network::Regtest).unwrap()
+    ));
+
+    assert_eq!(
+      psbt.unsigned_tx.output[i].value,
+      Amount::from_sat(if i == 0 { 33_343_334 } else { 33_343_333 })
+    );
+
+    // verify input is signed with SINGLE|ANYONECANPAY
+    assert_eq!(
+      psbt.inputs[i].final_script_witness,
+      Some(Witness::from_slice(&[&[1; 64]]))
+    );
+  }
+
+  pretty_assertions::assert_eq!(
+    psbt.unsigned_tx,
+    Transaction {
+      version: Version(2),
+      lock_time: LockTime::ZERO,
+      input: vec![
+        TxIn {
+          previous_output: OutPoint {
+            txid: mint0.mint,
+            vout: 1,
+          },
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },
+        TxIn {
+          previous_output: OutPoint {
+            txid: mint1.mint,
+            vout: 1,
+          },
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },
+        TxIn {
+          previous_output: OutPoint {
+            txid: mint2.mint,
+            vout: 1,
+          },
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        }
+      ],
+      output: vec![
+        TxOut {
+          value: Amount::from_sat(33_343_334),
+          script_pubkey: psbt.unsigned_tx.output[0].script_pubkey.clone(),
+        },
+        TxOut {
+          value: Amount::from_sat(33_343_333),
+          script_pubkey: psbt.unsigned_tx.output[1].script_pubkey.clone(),
+        },
+        TxOut {
+          value: Amount::from_sat(33_343_333),
+          script_pubkey: psbt.unsigned_tx.output[2].script_pubkey.clone(),
+        },
+      ],
+    }
   );
 }
 
@@ -154,7 +470,8 @@ fn outpoint_must_exist_in_wallet_with_exact_rune_offer_balance() {
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!(
-    "error: missing outpoint with exact `2000:{}` balance in wallet\n",
+    "error: missing outpoint in wallet with exact `2000:{}` balance or set of outpoints summing to `2000:{}`\n",
+    Rune(RUNE),
     Rune(RUNE),
   ))
   .expected_exit_code(1)
