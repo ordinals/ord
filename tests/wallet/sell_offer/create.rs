@@ -90,7 +90,7 @@ fn created_rune_sell_offer_is_correct() {
       output: vec![TxOut {
         value: Amount::from_sat(100_010_000),
         script_pubkey: psbt.unsigned_tx.output[0].script_pubkey.clone(),
-      },],
+      }],
     }
   );
 

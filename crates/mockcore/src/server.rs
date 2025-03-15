@@ -996,6 +996,10 @@ impl Api for Server {
     if let Some(sign) = sign {
       if sign {
         for input in psbt.inputs.iter_mut() {
+          if input.final_script_witness.is_some() || input.final_script_sig.is_some() {
+            continue;
+          }
+
           let address = Address::from_script(
             &input.witness_utxo.as_ref().unwrap().script_pubkey,
             self.network,

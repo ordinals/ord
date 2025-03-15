@@ -4,7 +4,6 @@ use super::*;
 pub struct Output {
   pub txid: Txid,
   pub psbt: String,
-  pub completed_psbt: String,
   pub fee: u64,
 }
 
@@ -32,26 +31,37 @@ pub(crate) struct Accept {
 
 impl Accept {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
+    let psbt = base64_decode(&self.psbt).context("failed to base64 decode PSBT")?;
+
+    let psbt = Psbt::deserialize(&psbt).context("failed to deserialize PSBT")?;
+
+    ensure! {
+      psbt.inputs.len() == psbt.outputs.len() &&
+      psbt.unsigned_tx.input.len() == psbt.unsigned_tx.output.len(),
+      "PSBT must contain the same number of inputs and outputs",
+    }
+
+    ensure! {
+      psbt.unsigned_tx.input.len() == psbt.inputs.len(),
+      "PSBT input length mismatch",
+    }
+
+    ensure! {
+      buy_offer::accept::psbt_signatures(&psbt)?.into_iter().flatten().count() == psbt.inputs.len(),
+      "PSBT must be fully signed",
+    }
+
     match self.outgoing {
-      Outgoing::InscriptionId(inscription_id) => {
-        self.accept_inscription_sell_offer(wallet, inscription_id)
-      }
-      Outgoing::Rune { decimal, rune } => self.accept_rune_sell_offer(wallet, decimal, rune),
+      Outgoing::Rune { decimal, rune } => self.accept_rune_sell_offer(wallet, psbt, decimal, rune),
+      Outgoing::InscriptionId(_) => bail!("inscription sell offers not yet implemented"),
       _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
     }
-  }
-
-  fn accept_inscription_sell_offer(
-    &self,
-    _wallet: Wallet,
-    _inscription_id: InscriptionId,
-  ) -> SubcommandResult {
-    bail!("inscription sell offers not yet implemented");
   }
 
   fn accept_rune_sell_offer(
     &self,
     wallet: Wallet,
+    psbt: Psbt,
     decimal: Decimal,
     spaced_rune: SpacedRune,
   ) -> SubcommandResult {
@@ -59,10 +69,6 @@ impl Accept {
       wallet.has_rune_index(),
       "creating runes offer with `ord offer` requires index created with `--index-runes` flag",
     );
-
-    let psbt = base64_decode(&self.psbt).context("failed to base64 decode PSBT")?;
-
-    let psbt = Psbt::deserialize(&psbt).context("failed to deserialize PSBT")?;
 
     let mut input_rune_balance = 0;
     let mut input_sat_value = Amount::from_sat(0);
@@ -135,7 +141,12 @@ impl Accept {
 
     unlocked_sorted_utxos.sort_by_key(|(_, txout)| std::cmp::Reverse(txout.value));
 
-    let mut remaining_amount_to_fund = postage + output_sat_value - input_sat_value;
+    let mut remaining_amount_to_fund = if postage + output_sat_value > input_sat_value {
+      postage + output_sat_value - input_sat_value
+    } else {
+      Amount::ZERO
+    };
+
     let mut next_utxo = 0;
 
     // insert inputs until funding amount is satisfied
@@ -195,7 +206,7 @@ impl Accept {
 
       ensure! {
         next_utxo < unlocked_sorted_utxos.len(),
-        "Insufficient funds to meet desired fee rate (at least {} sats required)",
+        "Insufficient funds to meet desired fee rate (at least {} required)",
         desired_fee,
       }
 
@@ -213,13 +224,21 @@ impl Accept {
       change_output.value += txout.value;
     }
 
-    // remove change output if dust
-    let change_output = unsigned_tx.output.last().unwrap();
-    if change_output.value < change_output.script_pubkey.minimal_non_dust() {
+    let last_index = unsigned_tx.output.len() - 1;
+    let change_value = unsigned_tx.output[last_index].value;
+    let minimal_dust = unsigned_tx.output[last_index]
+      .script_pubkey
+      .minimal_non_dust();
+
+    // remove change output if dust and add dust value to receive output
+    if change_value < minimal_dust {
+      let size = consensus::encode::serialize(&unsigned_tx.output[last_index]).len();
+      let fee_saving = self.fee_rate.fee(size) - Amount::from_sat(1); // deduct 1 sat to avoid overshooting
+      unsigned_tx.output[0].value += change_value + fee_saving;
       unsigned_tx.output.pop();
     }
 
-    let (txid, completed_psbt, fee) = if self.dry_run {
+    let (txid, psbt, fee) = if self.dry_run {
       let (psbt, encoded_psbt) = self.process_psbt(&wallet, &psbt, &unsigned_tx, false)?;
 
       (unsigned_tx.compute_txid(), encoded_psbt, psbt.fee()?)
@@ -237,8 +256,7 @@ impl Accept {
 
     Ok(Some(Box::new(Output {
       txid,
-      psbt: self.psbt.clone(),
-      completed_psbt,
+      psbt,
       fee: fee.to_sat(),
     })))
   }
@@ -252,8 +270,12 @@ impl Accept {
     sign: bool,
   ) -> Result<(Psbt, String)> {
     let mut unsigned_psbt = Psbt::from_unsigned_tx(unsigned_tx.clone())?;
-    unsigned_psbt.inputs.splice(1..1 + psbt.inputs.len(), psbt.inputs.clone());
-    unsigned_psbt.outputs.splice(1..1 + psbt.outputs.len(), psbt.outputs.clone());
+    unsigned_psbt
+      .inputs
+      .splice(1..1 + psbt.inputs.len(), psbt.inputs.clone());
+    unsigned_psbt
+      .outputs
+      .splice(1..1 + psbt.outputs.len(), psbt.outputs.clone());
 
     let result = wallet.bitcoin_client().call::<String>(
       "utxoupdatepsbt",

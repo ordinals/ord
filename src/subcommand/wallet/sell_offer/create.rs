@@ -20,20 +20,10 @@ pub(crate) struct Create {
 impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
     match self.outgoing {
-      Outgoing::InscriptionId(inscription_id) => {
-        self.create_inscription_sell_offer(wallet, inscription_id)
-      }
       Outgoing::Rune { decimal, rune } => self.create_rune_sell_offer(wallet, decimal, rune),
+      Outgoing::InscriptionId(_) => bail!("inscription sell offers not yet implemented"),
       _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
     }
-  }
-
-  fn create_inscription_sell_offer(
-    &self,
-    _wallet: Wallet,
-    _inscription_id: InscriptionId,
-  ) -> SubcommandResult {
-    bail!("inscription sell offers not yet implemented");
   }
 
   fn create_rune_sell_offer(

@@ -1,7 +1,7 @@
 use super::*;
 
 #[derive(PartialEq)]
-enum Signature<'a> {
+pub enum Signature<'a> {
   Script(&'a Script),
   Witness(&'a Witness),
 }
@@ -96,7 +96,7 @@ impl Accept {
       "unexpected balance change of {balance_change}",
     }
 
-    let signatures = Self::psbt_signatures(&psbt)?;
+    let signatures = psbt_signatures(&psbt)?;
 
     for (i, signature) in signatures.iter().enumerate() {
       let outpoint = psbt.unsigned_tx.input[i].previous_output;
@@ -140,7 +140,7 @@ impl Accept {
 
         for (i, (old, new)) in signatures
           .into_iter()
-          .zip(Self::tx_signatures(&signed_tx)?)
+          .zip(tx_signatures(&signed_tx)?)
           .enumerate()
         {
           let outpoint = signed_tx.input[i].previous_output;
@@ -173,36 +173,36 @@ impl Accept {
   ) -> Result<Txid> {
     bail!("rune buy offers not yet implemented");
   }
+}
 
-  fn psbt_signatures(psbt: &Psbt) -> Result<Vec<Option<Signature>>> {
-    psbt
-      .inputs
-      .iter()
-      .map(
-        |input| match (&input.final_script_sig, &input.final_script_witness) {
-          (None, None) => Ok(None),
-          (Some(script), None) => Ok(Some(Signature::Script(script))),
-          (None, Some(witness)) => Ok(Some(Signature::Witness(witness))),
-          (Some(_), Some(_)) => bail!("input contains both scriptsig and witness"),
-        },
-      )
-      .collect()
-  }
+pub fn psbt_signatures(psbt: &Psbt) -> Result<Vec<Option<Signature>>> {
+  psbt
+    .inputs
+    .iter()
+    .map(
+      |input| match (&input.final_script_sig, &input.final_script_witness) {
+        (None, None) => Ok(None),
+        (Some(script), None) => Ok(Some(Signature::Script(script))),
+        (None, Some(witness)) => Ok(Some(Signature::Witness(witness))),
+        (Some(_), Some(_)) => bail!("input contains both scriptsig and witness"),
+      },
+    )
+    .collect()
+}
 
-  fn tx_signatures(tx: &Transaction) -> Result<Vec<Option<Signature>>> {
-    tx.input
-      .iter()
-      .map(|input| {
-        match (
-          (!input.script_sig.is_empty()).then_some(&input.script_sig),
-          (!input.witness.is_empty()).then_some(&input.witness),
-        ) {
-          (None, None) => Ok(None),
-          (Some(script), None) => Ok(Some(Signature::Script(script))),
-          (None, Some(witness)) => Ok(Some(Signature::Witness(witness))),
-          (Some(_), Some(_)) => bail!("input contains both scriptsig and witness"),
-        }
-      })
-      .collect()
-  }
+fn tx_signatures(tx: &Transaction) -> Result<Vec<Option<Signature>>> {
+  tx.input
+    .iter()
+    .map(|input| {
+      match (
+        (!input.script_sig.is_empty()).then_some(&input.script_sig),
+        (!input.witness.is_empty()).then_some(&input.witness),
+      ) {
+        (None, None) => Ok(None),
+        (Some(script), None) => Ok(Some(Signature::Script(script))),
+        (None, Some(witness)) => Ok(Some(Signature::Witness(witness))),
+        (Some(_), Some(_)) => bail!("input contains both scriptsig and witness"),
+      }
+    })
+    .collect()
 }
