@@ -40,13 +40,13 @@ fn created_rune_sell_offer_is_correct() {
 
   assert_eq!(
     create.outgoing,
-    Outgoing::Rune {
+    vec![Outgoing::Rune {
       rune: SpacedRune {
         rune: Rune(RUNE),
         spacers: 0,
       },
       decimal: "250".parse().unwrap(),
-    }
+    }]
   );
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")

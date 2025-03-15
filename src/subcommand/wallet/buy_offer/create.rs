@@ -3,14 +3,14 @@ use super::*;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub psbt: String,
-  pub seller_address: Address<NetworkUnchecked>,
-  pub outgoing: Outgoing,
+  pub seller_address: Vec<Address<NetworkUnchecked>>,
+  pub outgoing: Vec<Outgoing>,
 }
 
 #[derive(Debug, Parser)]
 pub(crate) struct Create {
   #[arg(long, help = "<INSCRIPTION> or <DECIMAL:RUNE> to make offer for.")]
-  pub outgoing: Outgoing,
+  pub outgoing: Vec<Outgoing>,
   #[arg(long, help = "<AMOUNT> to offer.")]
   pub amount: Amount,
   #[arg(long, help = "<FEE_RATE> for finalized transaction.")]
@@ -19,7 +19,12 @@ pub(crate) struct Create {
 
 impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let (psbt, seller_address) = match self.outgoing {
+    ensure! {
+      self.outgoing.len() == 1,
+      "multiple outgoings not yet supported"
+    }
+
+    let (psbt, seller_address) = match self.outgoing[0] {
       Outgoing::InscriptionId(inscription_id) => {
         self.create_inscription_buy_offer(wallet, inscription_id)?
       }
@@ -29,7 +34,7 @@ impl Create {
 
     Ok(Some(Box::new(Output {
       psbt,
-      seller_address,
+      seller_address: vec![seller_address],
       outgoing: self.outgoing.clone(),
     })))
   }

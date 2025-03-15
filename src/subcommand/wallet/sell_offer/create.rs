@@ -6,24 +6,34 @@ use {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub psbt: String,
-  pub outgoing: Outgoing,
+  pub outgoing: Vec<Outgoing>,
 }
 
 #[derive(Debug, Parser)]
 pub(crate) struct Create {
   #[arg(long, help = "<INSCRIPTION> or <DECIMAL:RUNE> to make offer for.")]
-  outgoing: Outgoing,
+  outgoing: Vec<Outgoing>,
   #[arg(long, help = "<AMOUNT> to offer.")]
   amount: Amount,
 }
 
 impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    match self.outgoing {
-      Outgoing::Rune { decimal, rune } => self.create_rune_sell_offer(wallet, decimal, rune),
+    ensure! {
+      self.outgoing.len() == 1,
+      "multiple outgoings not yet supported"
+    }
+
+    let psbt = match self.outgoing[0] {
+      Outgoing::Rune { decimal, rune } => self.create_rune_sell_offer(wallet, decimal, rune)?,
       Outgoing::InscriptionId(_) => bail!("inscription sell offers not yet implemented"),
       _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
-    }
+    };
+
+    Ok(Some(Box::new(Output {
+      psbt,
+      outgoing: self.outgoing.clone(),
+    })))
   }
 
   fn create_rune_sell_offer(
@@ -31,7 +41,7 @@ impl Create {
     wallet: Wallet,
     decimal: Decimal,
     spaced_rune: SpacedRune,
-  ) -> SubcommandResult {
+  ) -> Result<String> {
     ensure!(
       wallet.has_rune_index(),
       "creating runes offer with `ord offer` requires index created with `--index-runes` flag",
@@ -123,9 +133,6 @@ impl Create {
       "Failed to sign PSBT after processing with wallet",
     }
 
-    Ok(Some(Box::new(Output {
-      psbt: result.psbt,
-      outgoing: self.outgoing.clone(),
-    })))
+    Ok(result.psbt)
   }
 }

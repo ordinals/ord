@@ -9,6 +9,8 @@ pub enum Signature<'a> {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub txid: Txid,
+  pub psbt: String,
+  pub fee: u64,
 }
 
 #[derive(Debug, Parser)]
@@ -18,14 +20,19 @@ pub(crate) struct Accept {
   #[arg(long, help = "Don't sign or broadcast transaction")]
   pub dry_run: bool,
   #[arg(long, help = "Assert offer is for <INSCRIPTION> or <DECIMAL:RUNE>")]
-  pub outgoing: Outgoing,
+  pub outgoing: Vec<Outgoing>,
   #[arg(long, help = "Accept <PSBT> offer")]
   pub psbt: String,
 }
 
 impl Accept {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let txid = match self.outgoing {
+    ensure! {
+      self.outgoing.len() == 1,
+      "multiple outgoings not yet supported"
+    }
+
+    let (txid, psbt, fee) = match self.outgoing[0] {
       Outgoing::InscriptionId(inscription_id) => {
         self.accept_inscription_buy_offer(wallet, inscription_id)?
       }
@@ -33,14 +40,18 @@ impl Accept {
       _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
     };
 
-    Ok(Some(Box::new(Output { txid })))
+    Ok(Some(Box::new(Output {
+      txid,
+      psbt,
+      fee: fee.to_sat(),
+    })))
   }
 
   pub fn accept_inscription_buy_offer(
     &self,
     wallet: Wallet,
     inscription_id: InscriptionId,
-  ) -> Result<Txid> {
+  ) -> Result<(Txid, String, Amount)> {
     let psbt = base64_decode(&self.psbt).context("failed to base64 decode PSBT")?;
 
     let psbt = Psbt::deserialize(&psbt).context("failed to deserialize PSBT")?;
@@ -114,8 +125,12 @@ impl Accept {
       }
     }
 
-    let txid = if self.dry_run {
-      psbt.unsigned_tx.compute_txid()
+    let result = if self.dry_run {
+      (
+        psbt.unsigned_tx.compute_txid(),
+        base64_encode(&psbt.serialize()),
+        psbt.fee()?,
+      )
     } else {
       let signed_psbt = wallet
         .bitcoin_client()
@@ -159,10 +174,14 @@ impl Accept {
         }
       }
 
-      wallet.send_raw_transaction(&signed_tx, None)?
+      (
+        wallet.send_raw_transaction(&signed_tx, None)?,
+        signed_psbt,
+        psbt.fee()?,
+      )
     };
 
-    Ok(txid)
+    Ok(result)
   }
 
   fn accept_rune_buy_offer(
@@ -170,7 +189,7 @@ impl Accept {
     _wallet: Wallet,
     _decimal: Decimal,
     _spaced_rune: SpacedRune,
-  ) -> Result<Txid> {
+  ) -> Result<(Txid, String, Amount)> {
     bail!("rune buy offers not yet implemented");
   }
 }

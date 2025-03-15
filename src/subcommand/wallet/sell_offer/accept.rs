@@ -15,7 +15,7 @@ pub(crate) struct Accept {
     long,
     help = "Assert offer is for <INSCRIPTION> or at least <DECIMAL:RUNE>"
   )]
-  outgoing: Outgoing,
+  outgoing: Vec<Outgoing>,
   #[arg(long, help = "Assert offer requires at most <AMOUNT>")]
   amount: Amount,
   #[arg(
@@ -51,11 +51,24 @@ impl Accept {
       "PSBT must be fully signed",
     }
 
-    match self.outgoing {
-      Outgoing::Rune { decimal, rune } => self.accept_rune_sell_offer(wallet, psbt, decimal, rune),
+    ensure! {
+      self.outgoing.len() == 1,
+      "multiple outgoings not yet supported"
+    }
+
+    let (txid, psbt, fee) = match self.outgoing[0] {
+      Outgoing::Rune { decimal, rune } => {
+        self.accept_rune_sell_offer(wallet, psbt, decimal, rune)?
+      }
       Outgoing::InscriptionId(_) => bail!("inscription sell offers not yet implemented"),
       _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
-    }
+    };
+
+    Ok(Some(Box::new(Output {
+      txid,
+      psbt,
+      fee: fee.to_sat(),
+    })))
   }
 
   fn accept_rune_sell_offer(
@@ -64,7 +77,7 @@ impl Accept {
     psbt: Psbt,
     decimal: Decimal,
     spaced_rune: SpacedRune,
-  ) -> SubcommandResult {
+  ) -> Result<(Txid, String, Amount)> {
     ensure!(
       wallet.has_rune_index(),
       "creating runes offer with `ord offer` requires index created with `--index-runes` flag",
@@ -238,7 +251,7 @@ impl Accept {
       unsigned_tx.output.pop();
     }
 
-    let (txid, psbt, fee) = if self.dry_run {
+    let result = if self.dry_run {
       let (psbt, encoded_psbt) = self.process_psbt(&wallet, &psbt, &unsigned_tx, false)?;
 
       (unsigned_tx.compute_txid(), encoded_psbt, psbt.fee()?)
@@ -254,11 +267,7 @@ impl Accept {
       )
     };
 
-    Ok(Some(Box::new(Output {
-      txid,
-      psbt,
-      fee: fee.to_sat(),
-    })))
+    Ok(result)
   }
 
   // returns processed psbt given psbt offer and full unsigned transaction

@@ -46,10 +46,10 @@ fn accepted_offer_works() {
 
   assert_eq!(
     create.outgoing,
-    Outgoing::Rune {
+    vec![Outgoing::Rune {
       rune: spaced_rune,
       decimal: "250".parse().unwrap(),
-    }
+    }]
   );
 
   let balances = CommandBuilder::new("--regtest --index-runes balances")
@@ -237,10 +237,10 @@ fn accept_dry_run() {
 
   assert_eq!(
     create.outgoing,
-    Outgoing::Rune {
+    vec![Outgoing::Rune {
       rune: spaced_rune,
       decimal: "250".parse().unwrap(),
-    }
+    }]
   );
 
   let balances = CommandBuilder::new("--regtest --index-runes balances")
