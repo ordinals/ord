@@ -16,6 +16,8 @@ pub(crate) struct Create {
   pub amount: Amount,
   #[arg(long, help = "<FEE_RATE> for finalized transaction.")]
   pub fee_rate: FeeRate,
+  #[arg(long, help = "UTXO to make an offer for. (format: <TXID:VOUT>)")]
+  pub outpoint: Option<OutPoint>,
 }
 
 impl Create {
@@ -61,6 +63,8 @@ impl Create {
         inscription_id,
       );
     };
+
+    ensure! { self.outpoint.is_none(), "--outpoint may not be set" };
 
     let seller_address = seller_address
       .parse::<Address<NetworkUnchecked>>()
