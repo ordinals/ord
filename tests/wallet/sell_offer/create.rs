@@ -49,7 +49,9 @@ fn single_input_rune_sell_offer() {
     }
   );
 
-  assert_eq!(create.amount, Amount::from_sat(100_000_000),);
+  assert_eq!(create.amount, Amount::from_sat(100_000_000));
+
+  assert!(!create.partial);
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
     .core(&core)
@@ -174,7 +176,9 @@ fn multi_input_rune_sell_offer() {
     }
   );
 
-  assert_eq!(create.amount, Amount::from_sat(100_000_000),);
+  assert_eq!(create.amount, Amount::from_sat(100_000_000));
+
+  assert!(!create.partial);
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
     .core(&core)
@@ -328,7 +332,9 @@ fn multi_input_rune_sell_offer_with_remainder() {
     }
   );
 
-  assert_eq!(create.amount, Amount::from_sat(100_000_000),);
+  assert_eq!(create.amount, Amount::from_sat(100_000_000));
+
+  assert!(!create.partial);
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
     .core(&core)
@@ -455,7 +461,9 @@ fn single_input_rune_partial_sell_offer() {
     }
   );
 
-  assert_eq!(create.amount, Amount::from_sat(50_000_000),);
+  assert_eq!(create.amount, Amount::from_sat(50_000_000));
+
+  assert!(create.partial);
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
     .core(&core)
@@ -497,6 +505,103 @@ fn single_input_rune_partial_sell_offer() {
       }],
       output: vec![TxOut {
         value: Amount::from_sat(50_010_000),
+        script_pubkey: psbt.unsigned_tx.output[0].script_pubkey.clone(),
+      }],
+    }
+  );
+}
+
+#[test]
+fn single_input_rune_partial_sell_offer_that_fills() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  etch(&core, &ord, Rune(RUNE));
+
+  let send = CommandBuilder::new(format!(
+    "
+      --chain regtest
+      --index-runes
+      wallet
+      send
+      --fee-rate 1
+      bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750:{}
+    ",
+    Rune(RUNE),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  let create = CommandBuilder::new(format!(
+    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc --allow-partial",
+    250,
+    Rune(RUNE),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Create>();
+
+  assert_eq!(
+    create.outgoing,
+    Outgoing::Rune {
+      rune: SpacedRune {
+        rune: Rune(RUNE),
+        spacers: 0,
+      },
+      decimal: "250".parse().unwrap(),
+    }
+  );
+
+  assert_eq!(create.amount, Amount::from_sat(100_000_000));
+
+  assert!(!create.partial);
+
+  let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
+
+  let psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
+
+  assert_eq!(psbt.unsigned_tx.input.len(), 1);
+  assert_eq!(psbt.unsigned_tx.output.len(), 1);
+
+  assert!(outputs
+    .iter()
+    .any(|output| output.output == psbt.unsigned_tx.input[0].previous_output));
+
+  assert!(core.state().is_wallet_address(
+    &Address::from_script(&psbt.unsigned_tx.output[0].script_pubkey, Network::Regtest).unwrap()
+  ));
+
+  // verify input is signed with SINGLE|ANYONECANPAY
+  assert_eq!(
+    psbt.inputs[0].final_script_witness,
+    Some(Witness::from_slice(&[&[1; 64]]))
+  );
+
+  pretty_assertions::assert_eq!(
+    psbt.unsigned_tx,
+    Transaction {
+      version: Version(2),
+      lock_time: LockTime::ZERO,
+      input: vec![TxIn {
+        previous_output: OutPoint {
+          txid: send.txid,
+          vout: 1,
+        },
+        script_sig: ScriptBuf::new(),
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        witness: Witness::new(),
+      }],
+      output: vec![TxOut {
+        value: Amount::from_sat(100_010_000),
         script_pubkey: psbt.unsigned_tx.output[0].script_pubkey.clone(),
       }],
     }

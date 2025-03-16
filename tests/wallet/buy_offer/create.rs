@@ -48,7 +48,7 @@ fn created_inscription_offer_is_correct() {
 
   assert_eq!(create.outgoing, Outgoing::InscriptionId(inscription));
 
-  assert_eq!(create.amount, Amount::from_sat(100_000_000),);
+  assert_eq!(create.amount, Amount::from_sat(100_000_000));
 
   let psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
 
