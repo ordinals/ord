@@ -190,3 +190,46 @@ fn inscription_must_have_valid_address() {
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
+
+#[test]
+fn inscription_must_match_outpoint_if_provided() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  let send = CommandBuilder::new(format!("wallet send --fee-rate 0 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}"))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  let correct_outpoint = OutPoint {
+    txid: send.txid,
+    vout: 0,
+  };
+
+  CommandBuilder::new(format!(
+    "wallet buy-offer create --outgoing {inscription} --amount 1btc --fee-rate 1 --outpoint {correct_outpoint}",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Create>();
+
+  let incorrect_outpoint = OutPoint::null();
+
+  CommandBuilder::new(format!(
+    "wallet buy-offer create --outgoing {inscription} --amount 1btc --fee-rate 1 --outpoint {incorrect_outpoint}",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr(format!(
+    "error: inscription outpoint {correct_outpoint} does not match provided outpoint {incorrect_outpoint}\n"
+  ))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}

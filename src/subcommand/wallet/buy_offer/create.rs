@@ -72,8 +72,9 @@ impl Create {
     if let Some(outpoint) = self.outpoint {
       ensure! {
         inscription.satpoint.outpoint == outpoint,
-        "inscription outpoint {} does not match provided outpoint",
-        inscription.satpoint.outpoint
+        "inscription outpoint {} does not match provided outpoint {}",
+        inscription.satpoint.outpoint,
+        outpoint
       };
     }
 
