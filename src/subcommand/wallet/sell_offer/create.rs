@@ -7,6 +7,7 @@ use {
 pub struct Output {
   pub psbt: String,
   pub outgoing: Outgoing,
+  pub amount: Amount,
   pub partial: bool,
 }
 
@@ -22,7 +23,7 @@ pub(crate) struct Create {
 
 impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let (psbt, outgoing, partial) = match self.outgoing {
+    let (psbt, outgoing, amount, partial) = match self.outgoing {
       Outgoing::Rune { decimal, rune } => self.create_rune_sell_offer(wallet, decimal, rune)?,
       Outgoing::InscriptionId(_) => bail!("inscription sell offers not yet implemented"),
       _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
@@ -31,6 +32,7 @@ impl Create {
     Ok(Some(Box::new(Output {
       psbt,
       outgoing,
+      amount,
       partial,
     })))
   }
@@ -42,7 +44,7 @@ impl Create {
     wallet: Wallet,
     decimal: Decimal,
     spaced_rune: SpacedRune,
-  ) -> Result<(String, Outgoing, bool)> {
+  ) -> Result<(String, Outgoing, Amount, bool)> {
     ensure!(
       wallet.has_rune_index(),
       "creating runes offer with `ord offer` requires index created with `--index-runes` flag",
@@ -187,7 +189,7 @@ impl Create {
       rune: spaced_rune,
     };
 
-    Ok((result.psbt, outgoing, partial))
+    Ok((result.psbt, outgoing, Amount::from_sat(sat_amount), partial))
   }
 }
 

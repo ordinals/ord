@@ -49,6 +49,8 @@ fn single_input_rune_sell_offer() {
     }
   );
 
+  assert_eq!(create.amount, Amount::from_sat(100_000_000),);
+
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
     .core(&core)
     .ord(&ord)
@@ -171,6 +173,8 @@ fn multi_input_rune_sell_offer() {
       decimal: "2000".parse().unwrap(),
     }
   );
+
+  assert_eq!(create.amount, Amount::from_sat(100_000_000),);
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
     .core(&core)
@@ -324,6 +328,8 @@ fn multi_input_rune_sell_offer_with_remainder() {
     }
   );
 
+  assert_eq!(create.amount, Amount::from_sat(100_000_000),);
+
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
     .core(&core)
     .ord(&ord)
@@ -448,6 +454,8 @@ fn single_input_rune_partial_sell_offer() {
       decimal: "250".parse().unwrap(),
     }
   );
+
+  assert_eq!(create.amount, Amount::from_sat(50_000_000),);
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
     .core(&core)

@@ -5,6 +5,7 @@ pub struct Output {
   pub psbt: String,
   pub seller_address: Address<NetworkUnchecked>,
   pub outgoing: Outgoing,
+  pub amount: Amount,
 }
 
 #[derive(Debug, Parser)]
@@ -31,6 +32,7 @@ impl Create {
       psbt,
       seller_address,
       outgoing: self.outgoing.clone(),
+      amount: self.amount,
     })))
   }
 
