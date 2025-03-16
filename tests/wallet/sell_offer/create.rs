@@ -40,13 +40,13 @@ fn single_input_rune_sell_offer() {
 
   assert_eq!(
     create.outgoing,
-    vec![Outgoing::Rune {
+    Outgoing::Rune {
       rune: SpacedRune {
         rune: Rune(RUNE),
         spacers: 0,
       },
       decimal: "250".parse().unwrap(),
-    }]
+    }
   );
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
@@ -163,13 +163,13 @@ fn multi_input_rune_sell_offer() {
 
   assert_eq!(
     create.outgoing,
-    vec![Outgoing::Rune {
+    Outgoing::Rune {
       rune: SpacedRune {
         rune: Rune(RUNE),
         spacers: 0,
       },
       decimal: "2000".parse().unwrap(),
-    }]
+    }
   );
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
@@ -315,13 +315,13 @@ fn multi_input_rune_sell_offer_with_remainder() {
 
   assert_eq!(
     create.outgoing,
-    vec![Outgoing::Rune {
+    Outgoing::Rune {
       rune: SpacedRune {
         rune: Rune(RUNE),
         spacers: 0,
       },
       decimal: "3000".parse().unwrap(),
-    }]
+    }
   );
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
@@ -440,13 +440,13 @@ fn single_input_rune_partial_sell_offer() {
 
   assert_eq!(
     create.outgoing,
-    vec![Outgoing::Rune {
+    Outgoing::Rune {
       rune: SpacedRune {
         rune: Rune(RUNE),
         spacers: 0,
       },
       decimal: "250".parse().unwrap(),
-    }]
+    }
   );
 
   let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")

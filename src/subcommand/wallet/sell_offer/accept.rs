@@ -15,7 +15,7 @@ pub(crate) struct Accept {
     long,
     help = "Assert offer is for <INSCRIPTION> or at least <DECIMAL:RUNE>"
   )]
-  outgoing: Vec<Outgoing>,
+  outgoing: Outgoing,
   #[arg(long, help = "Assert offer requires at most <AMOUNT>")]
   amount: Amount,
   #[arg(
@@ -51,12 +51,7 @@ impl Accept {
       "PSBT must be fully signed",
     }
 
-    ensure! {
-      self.outgoing.len() == 1,
-      "multiple outgoings not yet supported"
-    }
-
-    let (txid, psbt, fee) = match self.outgoing[0] {
+    let (txid, psbt, fee) = match self.outgoing {
       Outgoing::Rune { decimal, rune } => {
         self.accept_rune_sell_offer(wallet, psbt, decimal, rune)?
       }

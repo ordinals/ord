@@ -6,28 +6,23 @@ use {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub psbt: String,
-  pub outgoing: Vec<Outgoing>,
+  pub outgoing: Outgoing,
   pub partial: bool,
 }
 
 #[derive(Debug, Parser)]
 pub(crate) struct Create {
   #[arg(long, help = "<INSCRIPTION> or <DECIMAL:RUNE> to make offer for.")]
-  outgoing: Vec<Outgoing>,
+  outgoing: Outgoing,
   #[arg(long, help = "<AMOUNT> to offer.")]
   amount: Amount,
-  #[arg(long, help = "Allow partial offers if exact balance does not exist.")]
+  #[arg(long, help = "Allow partial offer if exact balance does not exist.")]
   allow_partial: bool,
 }
 
 impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    ensure! {
-      self.outgoing.len() == 1,
-      "multiple outgoings not yet supported"
-    }
-
-    let (psbt, outgoing, partial) = match self.outgoing[0] {
+    let (psbt, outgoing, partial) = match self.outgoing {
       Outgoing::Rune { decimal, rune } => self.create_rune_sell_offer(wallet, decimal, rune)?,
       Outgoing::InscriptionId(_) => bail!("inscription sell offers not yet implemented"),
       _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
@@ -35,7 +30,7 @@ impl Create {
 
     Ok(Some(Box::new(Output {
       psbt,
-      outgoing: vec![outgoing],
+      outgoing,
       partial,
     })))
   }
