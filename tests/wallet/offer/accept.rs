@@ -11,9 +11,9 @@ fn accepted_offer_works() {
 
   create_wallet(&core, &ord);
 
-  let postage = 9000;
+  let seller_postage = 9000;
 
-  let (inscription, txid) = inscribe_with_options(&core, &ord, Some(postage), 0);
+  let (inscription, txid) = inscribe_with_options(&core, &ord, Some(seller_postage), 0);
 
   let inscription_address = Address::from_script(
     &core.tx_by_id(txid).output[0].script_pubkey,
@@ -52,7 +52,7 @@ fn accepted_offer_works() {
     .ord(&ord)
     .run_and_deserialize_output::<Balance>();
 
-  assert_eq!(balance.ordinal, postage);
+  assert_eq!(balance.ordinal, seller_postage);
   assert_eq!(balance.cardinal, 50 * COIN_VALUE);
 
   CommandBuilder::new(format!(
@@ -71,7 +71,10 @@ fn accepted_offer_works() {
     .run_and_deserialize_output::<Balance>();
 
   assert_eq!(balance.ordinal, 0);
-  assert_eq!(balance.cardinal, 2 * 50 * COIN_VALUE + COIN_VALUE + postage);
+  assert_eq!(
+    balance.cardinal,
+    2 * 50 * COIN_VALUE + COIN_VALUE + seller_postage
+  );
 
   core
     .state()
@@ -95,10 +98,12 @@ fn accepted_offer_works() {
     .ord(&ord)
     .run_and_deserialize_output::<Balance>();
 
-  assert_eq!(balance.ordinal, postage);
+  let buyer_postage = 10_000;
+
+  assert_eq!(balance.ordinal, buyer_postage);
   assert_eq!(
     balance.cardinal,
-    4 * 50 * COIN_VALUE - postage * 2 - COIN_VALUE
+    4 * 50 * COIN_VALUE - seller_postage - buyer_postage - COIN_VALUE
   );
 }
 

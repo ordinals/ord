@@ -10,7 +10,8 @@ fn created_inscription_offer_is_correct() {
 
   create_wallet(&core, &ord);
 
-  let (inscription, _) = inscribe_with_options(&core, &ord, Some(9000), 0);
+  let seller_postage = 9000;
+  let (inscription, _) = inscribe_with_options(&core, &ord, Some(seller_postage), 0);
 
   let address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
     .parse::<Address<NetworkUnchecked>>()
@@ -61,7 +62,8 @@ fn created_inscription_offer_is_correct() {
     }
   }
 
-  let payment = 100_009_000;
+  let buyer_postage = 10_000;
+  let payment = 100_000_000;
   let fee = 226;
 
   let fee_rate = fee as f64 / psbt.unsigned_tx.vsize() as f64;
@@ -92,15 +94,15 @@ fn created_inscription_offer_is_correct() {
       ],
       output: vec![
         TxOut {
-          value: Amount::from_sat(9_000),
+          value: Amount::from_sat(buyer_postage),
           script_pubkey: psbt.unsigned_tx.output[0].script_pubkey.clone(),
         },
         TxOut {
-          value: Amount::from_sat(payment),
+          value: Amount::from_sat(seller_postage + payment),
           script_pubkey: address.clone().into(),
         },
         TxOut {
-          value: Amount::from_sat(5_000_000_000 - payment - fee),
+          value: Amount::from_sat(5_000_000_000 - payment - buyer_postage - fee),
           script_pubkey: psbt.unsigned_tx.output[2].script_pubkey.clone(),
         },
       ],

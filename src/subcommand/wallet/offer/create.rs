@@ -24,6 +24,7 @@ impl Create {
       amount: self.amount,
       fee_rate: self.fee_rate,
       outpoint: None,
+      postage: None,
     };
 
     let (psbt, seller_address) = create.create_inscription_buy_offer(wallet, self.inscription)?;

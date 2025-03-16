@@ -84,7 +84,7 @@ impl Accept {
 
     // get input sats and input rune balance of PSBT offer
     for input in &psbt.unsigned_tx.input {
-      if let Some(output_info) = wallet.get_output_info(input.previous_output)? {
+      if let Some(output_info) = wallet.get_any_output_info(input.previous_output)? {
         if let Some(runes) = output_info.runes {
           if let Some(pile) = runes.get(&spaced_rune) {
             input_rune_balance += pile.amount;

@@ -198,6 +198,10 @@ impl Wallet {
     self.inscription_info.clone()
   }
 
+  pub(crate) fn output_info(&self) -> BTreeMap<OutPoint, api::Output> {
+    self.output_info.clone()
+  }
+
   pub(crate) fn get_inscription(
     &self,
     inscription_id: InscriptionId,
@@ -216,7 +220,7 @@ impl Wallet {
     Ok(inscription)
   }
 
-  pub(crate) fn get_output_info(&self, output: OutPoint) -> Result<Option<api::Output>> {
+  pub(crate) fn get_any_output_info(&self, output: OutPoint) -> Result<Option<api::Output>> {
     let output_info = self
       .ord_client
       .get(self.rpc_url.join(&format!("/output/{output}")).unwrap())
