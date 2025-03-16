@@ -20,7 +20,7 @@ pub(crate) struct Create {
 impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
     let create = buy_offer::create::Create {
-      outgoing: vec![Outgoing::InscriptionId(self.inscription)],
+      outgoing: Outgoing::InscriptionId(self.inscription),
       amount: self.amount,
       fee_rate: self.fee_rate,
     };

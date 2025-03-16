@@ -20,19 +20,14 @@ pub(crate) struct Accept {
   #[arg(long, help = "Don't sign or broadcast transaction")]
   pub dry_run: bool,
   #[arg(long, help = "Assert offer is for <INSCRIPTION> or <DECIMAL:RUNE>")]
-  pub outgoing: Vec<Outgoing>,
+  pub outgoing: Outgoing,
   #[arg(long, help = "Accept <PSBT> offer")]
   pub psbt: String,
 }
 
 impl Accept {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    ensure! {
-      self.outgoing.len() == 1,
-      "multiple outgoings not yet supported"
-    }
-
-    let (txid, psbt, fee) = match self.outgoing[0] {
+    let (txid, psbt, fee) = match self.outgoing {
       Outgoing::InscriptionId(inscription_id) => {
         self.accept_inscription_buy_offer(wallet, inscription_id)?
       }

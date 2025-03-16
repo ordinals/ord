@@ -40,15 +40,13 @@ fn created_inscription_offer_is_correct() {
   assert_eq!(
     create
       .seller_address
-      .first()
-      .unwrap()
       .clone()
       .require_network(Network::Bitcoin)
       .unwrap(),
     address,
   );
 
-  assert_eq!(create.outgoing, vec![Outgoing::InscriptionId(inscription)]);
+  assert_eq!(create.outgoing, Outgoing::InscriptionId(inscription));
 
   let psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
 

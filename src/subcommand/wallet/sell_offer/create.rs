@@ -7,6 +7,7 @@ use {
 pub struct Output {
   pub psbt: String,
   pub outgoing: Vec<Outgoing>,
+  pub partial: bool,
 }
 
 #[derive(Debug, Parser)]
@@ -15,6 +16,8 @@ pub(crate) struct Create {
   outgoing: Vec<Outgoing>,
   #[arg(long, help = "<AMOUNT> to offer.")]
   amount: Amount,
+  #[arg(long, help = "Allow partial offers if exact balance does not exist.")]
+  allow_partial: bool,
 }
 
 impl Create {
@@ -24,7 +27,7 @@ impl Create {
       "multiple outgoings not yet supported"
     }
 
-    let psbt = match self.outgoing[0] {
+    let (psbt, outgoing, partial) = match self.outgoing[0] {
       Outgoing::Rune { decimal, rune } => self.create_rune_sell_offer(wallet, decimal, rune)?,
       Outgoing::InscriptionId(_) => bail!("inscription sell offers not yet implemented"),
       _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
@@ -32,16 +35,19 @@ impl Create {
 
     Ok(Some(Box::new(Output {
       psbt,
-      outgoing: self.outgoing.clone(),
+      outgoing: vec![outgoing],
+      partial,
     })))
   }
 
+  #[allow(clippy::cast_possible_truncation)]
+  #[allow(clippy::cast_sign_loss)]
   fn create_rune_sell_offer(
     &self,
     wallet: Wallet,
     decimal: Decimal,
     spaced_rune: SpacedRune,
-  ) -> Result<String> {
+  ) -> Result<(String, Outgoing, bool)> {
     ensure!(
       wallet.has_rune_index(),
       "creating runes offer with `ord offer` requires index created with `--index-runes` flag",
@@ -53,7 +59,7 @@ impl Create {
       .get_rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
-    let amount = decimal.to_integer(entry.divisibility)?;
+    let rune_amount = decimal.to_integer(entry.divisibility)?;
 
     let inscribed_outputs = wallet
       .inscriptions()
@@ -89,35 +95,51 @@ impl Create {
           rune_balances.push(*balance);
           balance_to_outpoints
             .entry(*balance)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(output);
         }
       }
     }
 
-    let Some(smallest_subset) = smallest_subset_sum(rune_balances, amount) else {
+    if rune_balances.is_empty() {
       bail!(
-        "missing outpoint in wallet with exact `{}:{}` balance or set of outpoints summing to `{}:{}`",
-        decimal,
-        spaced_rune,
-        decimal,
+        "missing outpoint in wallet with only a `{}` balance",
         spaced_rune
       );
-    };
+    }
+
+    let (subset, sum) = find_best_knapsack(rune_balances, rune_amount);
+    let partial = sum < rune_amount;
+    let mut sat_amount = self.amount.to_sat();
+
+    if partial {
+      if self.allow_partial {
+        // proportionally round down required sats
+        sat_amount = ((sat_amount as f64 * sum as f64) / rune_amount as f64).round() as u64;
+      } else {
+        bail!(
+          "missing outpoint in wallet with exact `{}:{}` balance or set of outpoints summing to `{}:{}` (try using --allow-partial)",
+          decimal,
+          spaced_rune,
+          decimal,
+          spaced_rune
+        );
+      }
+    }
 
     let mut inputs = Vec::<OutPoint>::new();
-    for balance in &smallest_subset {
+    for balance in &subset {
       if let Some(outpoint) = balance_to_outpoints.get_mut(balance).unwrap().pop() {
         inputs.push(outpoint);
       }
     }
 
-    let amount_per_output = self.amount.to_sat() / inputs.len() as u64;
-    let remainder = usize::try_from(self.amount.to_sat() % inputs.len() as u64).unwrap();
+    let amount_per_output = sat_amount / inputs.len() as u64;
+    let remainder = usize::try_from(sat_amount % inputs.len() as u64).unwrap();
 
     let mut outputs = Vec::new();
-    for i in 0..inputs.len() {
-      let postage = wallet.get_value_in_output(&inputs[i])?;
+    for (i, input) in inputs.iter().enumerate() {
+      let postage = wallet.get_value_in_output(input)?;
 
       outputs.push(TxOut {
         value: if i < remainder {
@@ -162,14 +184,25 @@ impl Create {
       "Failed to sign PSBT after processing with wallet",
     }
 
-    Ok(result.psbt)
+    let outgoing = Outgoing::Rune {
+      decimal: Decimal {
+        value: sum,
+        scale: decimal.scale,
+      },
+      rune: spaced_rune,
+    };
+
+    Ok((result.psbt, outgoing, partial))
   }
 }
 
-pub fn smallest_subset_sum(nums: Vec<u128>, target: u128) -> Option<Vec<u128>> {
-  // create a DP table where dp[sum] stores the best subset to reach that sum
+// classic knapsack algorithm, optimized to choose smallest subset that sums to the largest value at or below target
+pub fn find_best_knapsack(nums: Vec<u128>, target: u128) -> (Vec<u128>, u128) {
+  // create a DP table where dp[sum] stores the smallest subset to reach that sum
   let mut dp: BTreeMap<u128, Vec<u128>> = BTreeMap::new();
   dp.insert(0, Vec::new()); // empty set for sum 0
+
+  let mut max_sum = 0;
 
   // fill the DP table
   for &num in &nums {
@@ -177,27 +210,30 @@ pub fn smallest_subset_sum(nums: Vec<u128>, target: u128) -> Option<Vec<u128>> {
       let sums: Vec<(u128, Vec<u128>)> = dp
         .iter()
         .filter(|&(k, _)| k + num <= target)
-        .map(|(k, v)| (*k, v.clone()))
+        .map(|(&k, v)| (k, v.clone()))
         .collect();
 
       // process each existing sum
-      for (current_sum, prev_subset) in sums {
-        let next_sum = current_sum + num;
-        let mut new_subset = prev_subset;
+      for (sum, subset) in sums {
+        let new_sum = sum + num;
+        let mut new_subset = subset;
         new_subset.push(num);
 
         // add subset if new or replace if smaller
-        dp.entry(next_sum)
+        dp.entry(new_sum)
           .and_modify(|existing| {
             if existing.len() > new_subset.len() {
               *existing = new_subset.clone();
             }
           })
           .or_insert(new_subset);
+
+        if new_sum > max_sum {
+          max_sum = new_sum;
+        }
       }
     }
   }
 
-  // return the subset for the target sum if it exists
-  dp.get(&target).cloned()
+  (dp.get(&max_sum).unwrap().clone(), max_sum)
 }

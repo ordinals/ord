@@ -20,7 +20,7 @@ pub(crate) struct Accept {
 impl Accept {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
     let accept = buy_offer::accept::Accept {
-      outgoing: vec![Outgoing::InscriptionId(self.inscription)],
+      outgoing: Outgoing::InscriptionId(self.inscription),
       amount: self.amount,
       dry_run: self.dry_run,
       psbt: self.psbt.clone(),
