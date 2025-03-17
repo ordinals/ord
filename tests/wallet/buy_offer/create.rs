@@ -216,7 +216,7 @@ fn inscription_must_match_outpoint_if_provided() {
   };
 
   CommandBuilder::new(format!(
-    "wallet buy-offer create --outgoing {inscription} --amount 1btc --fee-rate 1 --outpoint {correct_outpoint}",
+    "wallet buy-offer create --outgoing {inscription} --amount 1btc --fee-rate 1 --utxo {correct_outpoint}",
   ))
   .core(&core)
   .ord(&ord)
@@ -225,12 +225,12 @@ fn inscription_must_match_outpoint_if_provided() {
   let incorrect_outpoint = OutPoint::null();
 
   CommandBuilder::new(format!(
-    "wallet buy-offer create --outgoing {inscription} --amount 1btc --fee-rate 1 --outpoint {incorrect_outpoint}",
+    "wallet buy-offer create --outgoing {inscription} --amount 1btc --fee-rate 1 --utxo {incorrect_outpoint}",
   ))
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!(
-    "error: inscription outpoint {correct_outpoint} does not match provided outpoint {incorrect_outpoint}\n"
+    "error: inscription utxo {correct_outpoint} does not match provided utxo {incorrect_outpoint}\n"
   ))
   .expected_exit_code(1)
   .run_and_extract_stdout();
@@ -283,7 +283,7 @@ fn created_rune_offer_is_correct() {
   };
 
   let create = CommandBuilder::new(format!(
-    "--regtest wallet buy-offer create --outgoing {}:{} --amount 1btc --fee-rate 1 --outpoint {}",
+    "--regtest wallet buy-offer create --outgoing {}:{} --amount 1btc --fee-rate 1 --utxo {}",
     750,
     Rune(RUNE),
     outpoint
@@ -425,7 +425,7 @@ fn outpoint_must_be_set() {
   ))
   .core(&core)
   .ord(&ord)
-  .expected_stderr("error: --outpoint must be set\n")
+  .expected_stderr("error: --utxo must be set\n")
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
@@ -462,13 +462,13 @@ fn outpoint_must_not_be_in_wallet() {
   };
 
   CommandBuilder::new(format!(
-    "--regtest wallet buy-offer create --outgoing 1:{} --amount 1btc --fee-rate 1 --outpoint {outpoint}",
+    "--regtest wallet buy-offer create --outgoing 1:{} --amount 1btc --fee-rate 1 --utxo {outpoint}",
     Rune(RUNE)
   ))
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!(
-    "error: outpoint {} already in wallet\n",
+    "error: utxo {} already in wallet\n",
     outpoint
   ))
   .expected_exit_code(1)
@@ -504,13 +504,13 @@ fn outpoint_must_exist() {
   };
 
   CommandBuilder::new(format!(
-    "--regtest wallet buy-offer create --outgoing 1:{} --amount 1btc --fee-rate 1 --outpoint {outpoint}",
+    "--regtest wallet buy-offer create --outgoing 1:{} --amount 1btc --fee-rate 1 --utxo {outpoint}",
     Rune(RUNE)
   ))
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!(
-    "error: outpoint {} does not exist\n",
+    "error: utxo {} does not exist\n",
     outpoint
   ))
   .expected_exit_code(1)
@@ -548,13 +548,13 @@ fn outpoint_must_hold_runes() {
   };
 
   CommandBuilder::new(format!(
-    "--regtest wallet buy-offer create --outgoing 1:{} --amount 1btc --fee-rate 1 --outpoint {outpoint}",
+    "--regtest wallet buy-offer create --outgoing 1:{} --amount 1btc --fee-rate 1 --utxo {outpoint}",
     Rune(RUNE)
   ))
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!(
-    "error: outpoint {} does not hold any {} runes\n",
+    "error: utxo {} does not hold any {} runes\n",
     outpoint,
     Rune(RUNE)
   ))
@@ -594,13 +594,13 @@ fn outpoint_holds_more_runes_than_expected() {
   };
 
   CommandBuilder::new(format!(
-    "--regtest wallet buy-offer create --outgoing 1:{} --amount 1btc --fee-rate 1 --outpoint {outpoint}",
+    "--regtest wallet buy-offer create --outgoing 1:{} --amount 1btc --fee-rate 1 --utxo {outpoint}",
     Rune(RUNE)
   ))
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!(
-    "error: outpoint {} holds more {} than expected (750 > 1)\n",
+    "error: utxo {} holds more {} than expected (750 > 1)\n",
     outpoint,
     Rune(RUNE)
   ))
@@ -640,13 +640,13 @@ fn outpoint_holds_fewer_runes_than_required() {
   };
 
   CommandBuilder::new(format!(
-    "--regtest wallet buy-offer create --outgoing 1000:{} --amount 1btc --fee-rate 1 --outpoint {outpoint}",
+    "--regtest wallet buy-offer create --outgoing 1000:{} --amount 1btc --fee-rate 1 --utxo {outpoint}",
     Rune(RUNE)
   ))
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!(
-    "error: outpoint {} holds less {} than required (750 < 1000)\n",
+    "error: utxo {} holds less {} than required (750 < 1000)\n",
     outpoint,
     Rune(RUNE)
   ))
@@ -677,10 +677,10 @@ fn outpoint_must_have_valid_address() {
     vout: 0,
   };
 
-  CommandBuilder::new(format!("--regtest wallet buy-offer create --outgoing 750:{rune} --amount 1btc --fee-rate 1 --outpoint {outpoint}"))
+  CommandBuilder::new(format!("--regtest wallet buy-offer create --outgoing 750:{rune} --amount 1btc --fee-rate 1 --utxo {outpoint}"))
   .core(&core)
   .ord(&ord)
-  .expected_stderr(format!("error: outpoint {outpoint} script pubkey not valid address\n"))
+  .expected_stderr(format!("error: utxo {outpoint} script pubkey not valid address\n"))
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }

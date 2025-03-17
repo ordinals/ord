@@ -17,7 +17,7 @@ pub(crate) struct Create {
   #[arg(long, help = "<FEE_RATE> for finalized transaction.")]
   pub fee_rate: FeeRate,
   #[arg(long, help = "UTXO to make an offer for. (format: <TXID:VOUT>)")]
-  pub outpoint: Option<OutPoint>,
+  pub utxo: Option<OutPoint>,
   #[arg(
     long,
     help = "Include <AMOUNT> postage with receive output. [default: 10000sat]"
@@ -69,12 +69,12 @@ impl Create {
       );
     };
 
-    if let Some(outpoint) = self.outpoint {
+    if let Some(utxo) = self.utxo {
       ensure! {
-        inscription.satpoint.outpoint == outpoint,
-        "inscription outpoint {} does not match provided outpoint {}",
+        inscription.satpoint.outpoint == utxo,
+        "inscription utxo {} does not match provided utxo {}",
         inscription.satpoint.outpoint,
-        outpoint
+        utxo
       };
     }
 
@@ -108,52 +108,48 @@ impl Create {
       .get_rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
-    let Some(outpoint) = self.outpoint else {
-      bail!("--outpoint must be set");
+    let Some(utxo) = self.utxo else {
+      bail!("--utxo must be set");
     };
 
     ensure!(
-      !wallet.output_info().contains_key(&outpoint),
-      "outpoint {} already in wallet",
-      outpoint
+      !wallet.output_info().contains_key(&utxo),
+      "utxo {} already in wallet",
+      utxo
     );
 
     ensure! {
-      wallet.output_exists(outpoint)?,
-      "outpoint {} does not exist",
-      outpoint
+      wallet.output_exists(utxo)?,
+      "utxo {} does not exist",
+      utxo
     }
 
-    let Some(output_info) = wallet.get_any_output_info(outpoint)? else {
-      bail!("outpoint {} does not exist", outpoint);
+    let Some(output_info) = wallet.get_any_output_info(utxo)? else {
+      bail!("utxo {} does not exist", utxo);
     };
 
     let Some(seller_address) = output_info.address else {
-      bail!("outpoint {} script pubkey not valid address", outpoint);
+      bail!("utxo {} script pubkey not valid address", utxo);
     };
 
     let Some(runes) = output_info.runes else {
-      bail!("outpoint {} does not hold any runes", outpoint);
+      bail!("utxo {} does not hold any runes", utxo);
     };
 
     let Some(pile) = runes.get(&spaced_rune) else {
-      bail!(
-        "outpoint {} does not hold any {} runes",
-        outpoint,
-        spaced_rune
-      );
+      bail!("utxo {} does not hold any {} runes", utxo, spaced_rune);
     };
 
     ensure! {
       runes.len() == 1,
-      "outpoint {} holds multiple runes",
-      outpoint
+      "utxo {} holds multiple runes",
+      utxo
     };
 
     if pile.amount < decimal.value {
       bail!(
-        "outpoint {} holds less {} than required ({} < {})",
-        outpoint,
+        "utxo {} holds less {} than required ({} < {})",
+        utxo,
         spaced_rune,
         pile.amount,
         decimal.value,
@@ -162,8 +158,8 @@ impl Create {
 
     if pile.amount > decimal.value {
       bail!(
-        "outpoint {} holds more {} than expected ({} > {})",
-        outpoint,
+        "utxo {} holds more {} than expected ({} > {})",
+        utxo,
         spaced_rune,
         pile.amount,
         decimal.value,
@@ -174,7 +170,7 @@ impl Create {
 
     let seller_postage = Amount::from_sat(output_info.value);
 
-    self.create_buy_offer(wallet, outpoint, seller_postage, seller_address)
+    self.create_buy_offer(wallet, utxo, seller_postage, seller_address)
   }
 
   fn create_buy_offer(

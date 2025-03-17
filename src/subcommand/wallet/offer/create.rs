@@ -23,7 +23,7 @@ impl Create {
       outgoing: Outgoing::InscriptionId(self.inscription),
       amount: self.amount,
       fee_rate: self.fee_rate,
-      outpoint: None,
+      utxo: None,
       postage: None,
     };
 
