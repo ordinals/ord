@@ -31,8 +31,12 @@ fn created_inscription_offer_is_correct() {
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
 
+  let buyer_postage = 8_000;
+
   let create = CommandBuilder::new(format!(
-    "wallet buy-offer create --outgoing {inscription} --amount 1btc --fee-rate 1"
+    "wallet buy-offer create --outgoing {} --amount 1btc --fee-rate 1 --postage {}sat",
+    inscription,
+    buyer_postage
   ))
   .core(&core)
   .ord(&ord)
@@ -65,7 +69,6 @@ fn created_inscription_offer_is_correct() {
     }
   }
 
-  let buyer_postage = 10_000;
   let payment = 100_000_000;
   let fee = 226;
 
@@ -282,10 +285,13 @@ fn created_rune_offer_is_correct() {
     vout: 2,
   };
 
+  let buyer_postage = 8_000;
+
   let create = CommandBuilder::new(format!(
-    "--regtest wallet buy-offer create --outgoing {}:{} --amount 1btc --fee-rate 1 --utxo {}",
+    "--regtest wallet buy-offer create --outgoing {}:{} --amount 1btc --postage {}sat --fee-rate 1 --utxo {}",
     750,
     Rune(RUNE),
+    buyer_postage,
     outpoint
   ))
   .core(&core)
@@ -333,7 +339,6 @@ fn created_rune_offer_is_correct() {
     }
   }
 
-  let buyer_postage = 10_000;
   let payment = 100_000_000;
   let fee = 226;
 

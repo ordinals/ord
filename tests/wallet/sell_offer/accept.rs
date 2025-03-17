@@ -105,12 +105,14 @@ fn accepted_offer_works() {
     .run_and_deserialize_output::<Balance>();
 
   let bid = COIN_VALUE;
+  let postage = 9000;
 
   let accept = CommandBuilder::new(format!(
-    "--regtest wallet sell-offer accept --outgoing {}:{} --amount {}btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount {}btc --postage {}sat --fee-rate 1 --psbt {}",
     250,
     Rune(RUNE),
     bid / COIN_VALUE,
+    postage,
     create.psbt
   ))
   .core(&core)
@@ -172,10 +174,10 @@ fn accepted_offer_works() {
     .ord(&ord)
     .run_and_deserialize_output::<Balance>();
 
-  assert_eq!(balance.runic.unwrap(), 10_000);
+  assert_eq!(balance.runic.unwrap(), postage);
   assert_eq!(
     balance.cardinal,
-    pre_balance.cardinal + 50 * COIN_VALUE - bid - 10_000
+    pre_balance.cardinal + 50 * COIN_VALUE - bid - postage
   );
 
   assert_eq!(
