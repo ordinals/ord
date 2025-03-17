@@ -99,6 +99,15 @@ impl Create {
     decimal: Decimal,
     spaced_rune: SpacedRune,
   ) -> Result<(String, Address<NetworkUnchecked>)> {
+    ensure!(
+      wallet.has_rune_index(),
+      "creating runes offer with `buy-offer` requires index created with `--index-runes` flag",
+    );
+
+    wallet
+      .get_rune(spaced_rune.rune)?
+      .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
+
     let Some(outpoint) = self.outpoint else {
       bail!("--outpoint must be set");
     };
@@ -109,8 +118,18 @@ impl Create {
       outpoint
     );
 
+    ensure! {
+      wallet.output_exists(outpoint)?,
+      "outpoint {} does not exist",
+      outpoint
+    }
+
     let Some(output_info) = wallet.get_any_output_info(outpoint)? else {
       bail!("outpoint {} does not exist", outpoint);
+    };
+
+    let Some(seller_address) = output_info.address else {
+      bail!("outpoint {} script pubkey not valid address", outpoint);
     };
 
     let Some(runes) = output_info.runes else {
@@ -150,10 +169,6 @@ impl Create {
         decimal.value,
       );
     }
-
-    let Some(seller_address) = output_info.address else {
-      bail!("outpoint {} script pubkey not valid address", outpoint,);
-    };
 
     let seller_address = seller_address.require_network(wallet.chain().network())?;
 

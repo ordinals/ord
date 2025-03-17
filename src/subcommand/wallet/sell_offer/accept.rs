@@ -84,6 +84,12 @@ impl Accept {
 
     // get input sats and input rune balance of PSBT offer
     for input in &psbt.unsigned_tx.input {
+      ensure! {
+        wallet.output_exists(input.previous_output)?,
+        "PSBT spends outpoint {} that has not been indexed",
+        input.previous_output
+      }
+
       if let Some(output_info) = wallet.get_any_output_info(input.previous_output)? {
         if let Some(runes) = output_info.runes {
           if let Some(pile) = runes.get(&spaced_rune) {

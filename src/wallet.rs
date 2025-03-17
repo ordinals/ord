@@ -230,6 +230,17 @@ impl Wallet {
     Ok(output_info)
   }
 
+  pub(crate) fn output_exists(&self, output: OutPoint) -> Result<bool> {
+    Ok(
+      !self
+        .ord_client
+        .get(self.rpc_url.join(&format!("/output/{output}")).unwrap())
+        .send()?
+        .status()
+        .is_client_error(),
+    )
+  }
+
   pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
     Ok(
       !self
