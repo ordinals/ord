@@ -1079,7 +1079,7 @@ impl Api for Server {
 
         let txout = &tx.output[usize::try_from(input.previous_output.vout).unwrap()];
 
-        let address = Address::from_script(&txout.script_pubkey, Network::Bitcoin).unwrap();
+        let address = Address::from_script(&txout.script_pubkey, self.network).unwrap();
 
         if self.state().is_wallet_address(&address) {
           balance_change -= i64::try_from(txout.value.to_sat()).unwrap();
@@ -1087,7 +1087,7 @@ impl Api for Server {
       }
 
       for output in tx.output {
-        let address = Address::from_script(&output.script_pubkey, Network::Bitcoin).unwrap();
+        let address = Address::from_script(&output.script_pubkey, self.network).unwrap();
         if self.state().is_wallet_address(&address) {
           balance_change += i64::try_from(output.value.to_sat()).unwrap();
         }

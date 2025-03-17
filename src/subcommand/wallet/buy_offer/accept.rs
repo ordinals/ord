@@ -195,6 +195,15 @@ impl Accept {
     decimal: Decimal,
     spaced_rune: SpacedRune,
   ) -> Result {
+    ensure!(
+      wallet.has_rune_index(),
+      "accepting rune offer with `buy-offer` requires index created with `--index-runes` flag",
+    );
+
+    wallet
+      .get_rune(spaced_rune.rune)?
+      .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
+
     let Some(runes) = wallet.get_runes_balances_in_output(&outgoing)? else {
       bail!("outgoing input contains no runes");
     };
@@ -202,17 +211,24 @@ impl Accept {
     if let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing)? {
       ensure! {
         inscriptions.is_empty(),
-        "outgoing input {} contains inscriptions",
-        outgoing
+        "outgoing input {} contains {} inscription(s)",
+        outgoing,
+        inscriptions.len()
       }
     };
 
     let Some(pile) = runes.get(&spaced_rune) else {
       bail!(format!(
-        "outgoing input does not contain rune {}",
-        spaced_rune
+        "outgoing input {} does not contain rune {}",
+        outgoing, spaced_rune
       ));
     };
+
+    ensure! {
+      runes.len() == 1,
+      "outgoing input {} contains multiple runes",
+      outgoing
+    }
 
     ensure! {
       pile.amount == decimal.value,
