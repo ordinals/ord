@@ -16,7 +16,6 @@ fn accepted_offer_works() {
   let send = CommandBuilder::new(format!(
     "
       --regtest
-      --index-runes
       wallet
       send
       --fee-rate 1
@@ -31,7 +30,7 @@ fn accepted_offer_works() {
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc",
+    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc",
     250,
     Rune(RUNE),
   ))
@@ -100,7 +99,7 @@ fn accepted_offer_works() {
 
   core.state().remove_wallet_address(rune_address.clone());
 
-  let pre_balance = CommandBuilder::new("--regtest --index-runes wallet balance")
+  let pre_balance = CommandBuilder::new("--regtest wallet balance")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Balance>();
@@ -108,7 +107,7 @@ fn accepted_offer_works() {
   let bid = COIN_VALUE;
 
   let accept = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount {}btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount {}btc --fee-rate 1 --psbt {}",
     250,
     Rune(RUNE),
     bid / COIN_VALUE,
@@ -168,7 +167,7 @@ fn accepted_offer_works() {
 
   core.state().remove_wallet_address(seller_address.clone());
 
-  let balance = CommandBuilder::new("--regtest --index-runes wallet balance")
+  let balance = CommandBuilder::new("--regtest wallet balance")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Balance>();
@@ -207,7 +206,6 @@ fn accept_dry_run() {
   let send = CommandBuilder::new(format!(
     "
       --regtest
-      --index-runes
       wallet
       send
       --fee-rate 1
@@ -222,7 +220,7 @@ fn accept_dry_run() {
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc",
+    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc",
     250,
     Rune(RUNE),
   ))
@@ -284,7 +282,7 @@ fn accept_dry_run() {
   );
 
   let accept = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {} --dry-run",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {} --dry-run",
     250,
     Rune(RUNE),
     create.psbt
@@ -379,7 +377,7 @@ fn accepted_multi_input_offer_works() {
   );
 
   let mint0 = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -389,7 +387,7 @@ fn accepted_multi_input_offer_works() {
   core.mine_blocks(1);
 
   let mint1 = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -506,7 +504,7 @@ fn accepted_multi_input_offer_works() {
     .run_and_deserialize_output::<Balance>();
 
   let accept = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount {}btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount {}btc --fee-rate 1 --psbt {}",
     2000,
     Rune(RUNE),
     (bid0 + bid1) / COIN_VALUE,
@@ -597,7 +595,6 @@ fn error_on_base64_psbt_decode() {
 
   CommandBuilder::new([
     "--regtest",
-    "--index-runes",
     "wallet",
     "sell-offer",
     "accept",
@@ -627,7 +624,6 @@ fn error_on_psbt_deserialize() {
 
   CommandBuilder::new([
     "--regtest",
-    "--index-runes",
     "wallet",
     "sell-offer",
     "accept",
@@ -657,7 +653,7 @@ fn error_when_more_inputs_than_outputs() {
 
   core.mine_blocks(1);
 
-  let outputs = CommandBuilder::new("--index-runes --regtest wallet outputs")
+  let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
@@ -677,7 +673,7 @@ fn error_when_more_inputs_than_outputs() {
   let psbt = Psbt::from_unsigned_tx(tx).unwrap();
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -712,7 +708,7 @@ fn error_when_more_outputs_than_inputs() {
   let psbt = Psbt::from_unsigned_tx(tx).unwrap();
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -734,7 +730,7 @@ fn error_when_not_fully_signed() {
 
   core.mine_blocks(1);
 
-  let outputs = CommandBuilder::new("--index-runes --regtest wallet outputs")
+  let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
@@ -757,7 +753,7 @@ fn error_when_not_fully_signed() {
   let psbt = Psbt::from_unsigned_tx(tx).unwrap();
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -804,7 +800,7 @@ fn error_when_input_does_not_exist() {
   psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -829,7 +825,7 @@ fn error_when_inputs_contain_no_runes() {
 
   core.mine_blocks(1);
 
-  let outputs = CommandBuilder::new("--index-runes --regtest wallet outputs")
+  let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
@@ -854,7 +850,7 @@ fn error_when_inputs_contain_no_runes() {
   psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -909,7 +905,7 @@ fn error_when_more_sats_required_than_allowed() {
   );
 
   let mint = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -941,7 +937,7 @@ fn error_when_more_sats_required_than_allowed() {
   psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -991,7 +987,7 @@ fn allow_more_sats_to_be_allowed_than_needed() {
   );
 
   let mint = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -1023,7 +1019,7 @@ fn allow_more_sats_to_be_allowed_than_needed() {
   psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
 
   let accept = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 2btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 2btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -1076,7 +1072,7 @@ fn allow_already_funded_psbt_offer() {
   );
 
   let mint = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -1108,7 +1104,7 @@ fn allow_already_funded_psbt_offer() {
   psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
 
   let accept = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 2btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 2btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -1161,7 +1157,7 @@ fn error_insufficient_funds() {
   );
 
   let mint = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -1193,7 +1189,7 @@ fn error_insufficient_funds() {
   psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 1000btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 1000btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -1201,7 +1197,9 @@ fn error_insufficient_funds() {
   .core(&core)
   .ord(&ord)
   .expected_exit_code(1)
-  .expected_stderr("error: Insufficient funds to purchase PSBT offer (requires additional 600.00030000 BTC)\n")
+  .expected_stderr(
+    "error: Insufficient funds to purchase PSBT offer (requires additional 600.00030000 BTC)\n",
+  )
   .run_and_extract_stdout();
 }
 
@@ -1243,7 +1241,7 @@ fn error_insufficient_funds_for_fees() {
   );
 
   let mint = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -1275,7 +1273,7 @@ fn error_insufficient_funds_for_fees() {
   psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 400btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 400btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -1283,7 +1281,9 @@ fn error_insufficient_funds_for_fees() {
   .core(&core)
   .ord(&ord)
   .expected_exit_code(1)
-  .expected_stderr("error: Insufficient funds to meet desired fee rate (at least 0.00000657 BTC required)\n")
+  .expected_stderr(
+    "error: Insufficient funds to meet desired fee rate (at least 0.00000657 BTC required)\n",
+  )
   .run_and_extract_stdout();
 }
 
@@ -1325,7 +1325,7 @@ fn remove_change_output_if_dust() {
   );
 
   let mint = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -1357,7 +1357,7 @@ fn remove_change_output_if_dust() {
   psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
 
   let accept = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 400btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 400btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -1415,7 +1415,7 @@ fn add_second_input_if_needed() {
   );
 
   let mint = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -1447,7 +1447,7 @@ fn add_second_input_if_needed() {
   psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
 
   let accept = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 75btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 75btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())
@@ -1514,7 +1514,7 @@ fn add_second_input_if_needed_for_fee() {
   );
 
   let mint = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -1546,7 +1546,7 @@ fn add_second_input_if_needed_for_fee() {
   psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
 
   let accept = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 50btc --fee-rate 1 --psbt {}",
+    "--regtest wallet sell-offer accept --outgoing {}:{} --amount 50btc --fee-rate 1 --psbt {}",
     1000,
     Rune(RUNE),
     base64_encode(&psbt.serialize())

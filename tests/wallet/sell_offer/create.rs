@@ -15,7 +15,6 @@ fn single_input_rune_sell_offer() {
   let send = CommandBuilder::new(format!(
     "
       --chain regtest
-      --index-runes
       wallet
       send
       --fee-rate 1
@@ -30,7 +29,7 @@ fn single_input_rune_sell_offer() {
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc",
+    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc",
     250,
     Rune(RUNE),
   ))
@@ -53,7 +52,7 @@ fn single_input_rune_sell_offer() {
 
   assert!(!create.partial);
 
-  let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
+  let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
@@ -137,7 +136,7 @@ fn multi_input_rune_sell_offer() {
   );
 
   let mint0 = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -147,7 +146,7 @@ fn multi_input_rune_sell_offer() {
   core.mine_blocks(1);
 
   let mint1 = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -157,7 +156,7 @@ fn multi_input_rune_sell_offer() {
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc",
+    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc",
     2000,
     Rune(RUNE),
   ))
@@ -180,7 +179,7 @@ fn multi_input_rune_sell_offer() {
 
   assert!(!create.partial);
 
-  let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
+  let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
@@ -283,7 +282,7 @@ fn multi_input_rune_sell_offer_with_remainder() {
   );
 
   let mint0 = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -293,7 +292,7 @@ fn multi_input_rune_sell_offer_with_remainder() {
   core.mine_blocks(1);
 
   let mint1 = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -303,7 +302,7 @@ fn multi_input_rune_sell_offer_with_remainder() {
   core.mine_blocks(1);
 
   let mint2 = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet mint --fee-rate 1 --rune {}",
+    "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -313,7 +312,7 @@ fn multi_input_rune_sell_offer_with_remainder() {
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc",
+    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc",
     3000,
     Rune(RUNE),
   ))
@@ -336,7 +335,7 @@ fn multi_input_rune_sell_offer_with_remainder() {
 
   assert!(!create.partial);
 
-  let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
+  let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
@@ -427,7 +426,6 @@ fn single_input_rune_partial_sell_offer() {
   let send = CommandBuilder::new(format!(
     "
       --chain regtest
-      --index-runes
       wallet
       send
       --fee-rate 1
@@ -442,7 +440,7 @@ fn single_input_rune_partial_sell_offer() {
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc --allow-partial",
+    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc --allow-partial",
     500,
     Rune(RUNE),
   ))
@@ -465,7 +463,7 @@ fn single_input_rune_partial_sell_offer() {
 
   assert!(create.partial);
 
-  let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
+  let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
@@ -524,7 +522,6 @@ fn single_input_rune_partial_sell_offer_that_fills() {
   let send = CommandBuilder::new(format!(
     "
       --chain regtest
-      --index-runes
       wallet
       send
       --fee-rate 1
@@ -539,7 +536,7 @@ fn single_input_rune_partial_sell_offer_that_fills() {
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --outgoing {}:{} --amount 1btc --allow-partial",
+    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc --allow-partial",
     250,
     Rune(RUNE),
   ))
@@ -562,7 +559,7 @@ fn single_input_rune_partial_sell_offer_that_fills() {
 
   assert!(!create.partial);
 
-  let outputs = CommandBuilder::new("--regtest --index-runes wallet outputs")
+  let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
@@ -616,14 +613,12 @@ fn error_rune_must_exist() {
 
   create_wallet(&core, &ord);
 
-  CommandBuilder::new(
-    "--regtest --index-runes wallet sell-offer create --outgoing 1:FOO --amount 1btc",
-  )
-  .core(&core)
-  .ord(&ord)
-  .expected_stderr("error: rune `FOO` has not been etched\n")
-  .expected_exit_code(1)
-  .run_and_extract_stdout();
+  CommandBuilder::new("--regtest wallet sell-offer create --outgoing 1:FOO --amount 1btc")
+    .core(&core)
+    .ord(&ord)
+    .expected_stderr("error: rune `FOO` has not been etched\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -635,7 +630,7 @@ fn error_rune_outgoing_must_be_formatted_correctly() {
   create_wallet(&core, &ord);
 
   CommandBuilder::new(
-    "--regtest --index-runes wallet sell-offer create --outgoing 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 --amount 1btc"
+    "--regtest wallet sell-offer create --outgoing 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 --amount 1btc"
   )
   .core(&core)
   .ord(&ord)
@@ -682,7 +677,7 @@ fn error_no_rune_balance_in_wallet() {
   );
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --outgoing 1000:{} --amount 1btc",
+    "--regtest wallet sell-offer create --outgoing 1000:{} --amount 1btc",
     Rune(RUNE),
   ))
   .core(&core)
@@ -706,7 +701,7 @@ fn error_inexact_rune_balance() {
   etch(&core, &ord, Rune(RUNE));
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet sell-offer create --outgoing 2000:{} --amount 1btc",
+    "--regtest wallet sell-offer create --outgoing 2000:{} --amount 1btc",
     Rune(RUNE),
   ))
   .core(&core)
