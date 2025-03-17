@@ -27,13 +27,7 @@ pub(crate) struct Accept {
 
 impl Accept {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let (txid, psbt, fee) = match self.outgoing {
-      Outgoing::InscriptionId(inscription_id) => {
-        self.accept_inscription_buy_offer(wallet, inscription_id)?
-      }
-      Outgoing::Rune { decimal, rune } => self.accept_rune_buy_offer(wallet, decimal, rune)?,
-      _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
-    };
+    let (txid, psbt, fee) = self.accept_buy_offer(&wallet)?;
 
     Ok(Some(Box::new(Output {
       txid,
@@ -42,11 +36,7 @@ impl Accept {
     })))
   }
 
-  pub fn accept_inscription_buy_offer(
-    &self,
-    wallet: Wallet,
-    inscription_id: InscriptionId,
-  ) -> Result<(Txid, String, Amount)> {
+  pub fn accept_buy_offer(&self, wallet: &Wallet) -> Result<(Txid, String, Amount)> {
     let psbt = base64_decode(&self.psbt).context("failed to base64 decode PSBT")?;
 
     let psbt = Psbt::deserialize(&psbt).context("failed to deserialize PSBT")?;
@@ -68,32 +58,15 @@ impl Accept {
       bail!("PSBT contains no inputs owned by wallet");
     };
 
-    if let Some(runes) = wallet.get_runes_balances_in_output(&outgoing)? {
-      ensure! {
-        runes.is_empty(),
-        "outgoing input {} contains runes", outgoing,
+    match self.outgoing {
+      Outgoing::InscriptionId(inscription_id) => {
+        self.check_inscription_buy_offer(wallet, outgoing, inscription_id)?
       }
-    }
-
-    let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing)? else {
-      bail! {
-        "index must have inscription index to accept PSBT",
+      Outgoing::Rune { decimal, rune } => {
+        self.check_rune_buy_offer(wallet, outgoing, decimal, rune)?
       }
+      _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
     };
-
-    ensure! {
-      inscriptions.len() <= 1,
-      "outgoing input {} contains {} inscriptions", outgoing, inscriptions.len(),
-    }
-
-    let Some(inscription) = inscriptions.into_iter().next() else {
-      bail!("outgoing input contains no inscriptions");
-    };
-
-    ensure! {
-      inscription == inscription_id,
-      "unexpected outgoing inscription {inscription}",
-    }
 
     let balance_change = wallet.simulate_transaction(&psbt.unsigned_tx)?;
 
@@ -179,13 +152,77 @@ impl Accept {
     Ok(result)
   }
 
-  fn accept_rune_buy_offer(
+  fn check_inscription_buy_offer(
     &self,
-    _wallet: Wallet,
-    _decimal: Decimal,
-    _spaced_rune: SpacedRune,
-  ) -> Result<(Txid, String, Amount)> {
-    bail!("rune buy offers not yet implemented");
+    wallet: &Wallet,
+    outgoing: OutPoint,
+    inscription_id: InscriptionId,
+  ) -> Result {
+    if let Some(runes) = wallet.get_runes_balances_in_output(&outgoing)? {
+      ensure! {
+        runes.is_empty(),
+        "outgoing input {} contains runes", outgoing,
+      }
+    }
+
+    let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing)? else {
+      bail! {
+        "index must have inscription index to accept PSBT",
+      }
+    };
+
+    ensure! {
+      inscriptions.len() <= 1,
+      "outgoing input {} contains {} inscriptions", outgoing, inscriptions.len(),
+    }
+
+    let Some(inscription) = inscriptions.into_iter().next() else {
+      bail!("outgoing input contains no inscriptions");
+    };
+
+    ensure! {
+      inscription == inscription_id,
+      "unexpected outgoing inscription {inscription}",
+    }
+
+    Ok(())
+  }
+
+  fn check_rune_buy_offer(
+    &self,
+    wallet: &Wallet,
+    outgoing: OutPoint,
+    decimal: Decimal,
+    spaced_rune: SpacedRune,
+  ) -> Result {
+    let Some(runes) = wallet.get_runes_balances_in_output(&outgoing)? else {
+      bail!("outgoing input contains no runes");
+    };
+
+    if let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing)? {
+      ensure! {
+        inscriptions.is_empty(),
+        "outgoing input {} contains inscriptions",
+        outgoing
+      }
+    };
+
+    let Some(pile) = runes.get(&spaced_rune) else {
+      bail!(format!(
+        "outgoing input does not contain rune {}",
+        spaced_rune
+      ));
+    };
+
+    ensure! {
+      pile.amount == decimal.value,
+      "unexpected outgoing input rune {} balance ({} vs. {})",
+      spaced_rune,
+      pile.amount,
+      decimal.value
+    }
+
+    Ok(())
   }
 }
 

@@ -26,7 +26,7 @@ impl Accept {
       psbt: self.psbt.clone(),
     };
 
-    let (txid, _, _) = accept.accept_inscription_buy_offer(wallet, self.inscription)?;
+    let (txid, _, _) = accept.accept_buy_offer(&wallet)?;
 
     Ok(Some(Box::new(Output { txid })))
   }
