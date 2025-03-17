@@ -770,6 +770,56 @@ fn error_when_not_fully_signed() {
 }
 
 #[test]
+fn error_when_input_does_not_exist() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let outpoint = OutPoint {
+    txid: OutPoint::null().txid,
+    vout: 1,
+  };
+
+  let tx = Transaction {
+    version: Version(2),
+    lock_time: LockTime::ZERO,
+    input: vec![TxIn {
+      previous_output: outpoint,
+      script_sig: ScriptBuf::new(),
+      sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+      witness: Witness::new(),
+    }],
+    output: vec![TxOut {
+      value: Amount::from_sat(0),
+      script_pubkey: core.state().new_address(true).into(),
+    }],
+  };
+
+  let mut psbt = Psbt::from_unsigned_tx(tx).unwrap();
+
+  psbt.inputs[0].final_script_witness = Some(Witness::from_slice(&[&[1; 64]]));
+
+  CommandBuilder::new(format!(
+    "--regtest --index-runes wallet sell-offer accept --outgoing {}:{} --amount 1btc --fee-rate 1 --psbt {}",
+    1000,
+    Rune(RUNE),
+    base64_encode(&psbt.serialize())
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_exit_code(1)
+  .expected_stderr(format!(
+    "error: PSBT spends utxo {} that does not exist\n",
+    outpoint
+  ))
+  .run_and_extract_stdout();
+}
+
+#[test]
 fn error_when_inputs_contain_no_runes() {
   let core = mockcore::builder().network(Network::Regtest).build();
 

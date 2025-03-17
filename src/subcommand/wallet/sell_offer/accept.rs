@@ -86,7 +86,7 @@ impl Accept {
     for input in &psbt.unsigned_tx.input {
       ensure! {
         wallet.output_exists(input.previous_output)?,
-        "PSBT spends outpoint {} that has not been indexed",
+        "PSBT spends utxo {} that does not exist",
         input.previous_output
       }
 
