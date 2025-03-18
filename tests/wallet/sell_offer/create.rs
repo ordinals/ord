@@ -10,28 +10,13 @@ fn single_input_rune_sell_offer() {
 
   create_wallet(&core, &ord);
 
-  etch(&core, &ord, Rune(RUNE));
-
-  let send = CommandBuilder::new(format!(
-    "
-      --chain regtest
-      wallet
-      send
-      --fee-rate 1
-      bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750:{}
-    ",
-    Rune(RUNE),
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Send>();
+  let rune = Rune(RUNE);
+  let a = etch(&core, &ord, rune);
 
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
-    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc",
-    250,
-    Rune(RUNE),
+    "--regtest wallet sell-offer create --outgoing 1000:{rune} --amount 1btc",
   ))
   .core(&core)
   .ord(&ord)
@@ -40,11 +25,8 @@ fn single_input_rune_sell_offer() {
   assert_eq!(
     create.outgoing,
     Outgoing::Rune {
-      rune: SpacedRune {
-        rune: Rune(RUNE),
-        spacers: 0,
-      },
-      decimal: "250".parse().unwrap(),
+      rune: SpacedRune { rune, spacers: 0 },
+      decimal: "1000".parse().unwrap(),
     }
   );
 
@@ -84,7 +66,7 @@ fn single_input_rune_sell_offer() {
       lock_time: LockTime::ZERO,
       input: vec![TxIn {
         previous_output: OutPoint {
-          txid: send.txid,
+          txid: a.output.reveal,
           vout: 1,
         },
         script_sig: ScriptBuf::new(),
@@ -107,58 +89,25 @@ fn multi_input_rune_sell_offer() {
 
   create_wallet(&core, &ord);
 
-  batch(
-    &core,
-    &ord,
-    batch::File {
-      etching: Some(batch::Etching {
-        divisibility: 0,
-        rune: SpacedRune {
-          rune: Rune(RUNE),
-          spacers: 0,
-        },
-        premine: "0".parse().unwrap(),
-        supply: "2000".parse().unwrap(),
-        symbol: '¢',
-        terms: Some(batch::Terms {
-          cap: 2,
-          offset: None,
-          amount: "1000".parse().unwrap(),
-          height: None,
-        }),
-        turbo: false,
-      }),
-      inscriptions: vec![batch::Entry {
-        file: Some("inscription.jpeg".into()),
-        ..default()
-      }],
-      ..default()
-    },
-  );
-
-  let mint0 = CommandBuilder::new(format!(
-    "--regtest wallet mint --fee-rate 1 --rune {}",
-    Rune(RUNE)
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+  let rune = Rune(RUNE);
+  etch(&core, &ord, rune);
 
   core.mine_blocks(1);
 
-  let mint1 = CommandBuilder::new(format!(
-    "--regtest wallet mint --fee-rate 1 --rune {}",
-    Rune(RUNE)
+  let address = core.state().new_address(false);
+
+  let send = CommandBuilder::new(format!(
+    "--regtest wallet send --fee-rate 0 {address} 500:{rune}"
   ))
   .core(&core)
   .ord(&ord)
-  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+  .run_and_deserialize_output::<Send>();
 
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
     "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc --allow-multiple-utxos",
-    2000,
+    1000,
     Rune(RUNE),
   ))
   .core(&core)
@@ -168,11 +117,8 @@ fn multi_input_rune_sell_offer() {
   assert_eq!(
     create.outgoing,
     Outgoing::Rune {
-      rune: SpacedRune {
-        rune: Rune(RUNE),
-        spacers: 0,
-      },
-      decimal: "2000".parse().unwrap(),
+      rune: SpacedRune { rune, spacers: 0 },
+      decimal: "1000".parse().unwrap(),
     }
   );
 
@@ -215,8 +161,8 @@ fn multi_input_rune_sell_offer() {
       input: vec![
         TxIn {
           previous_output: OutPoint {
-            txid: mint0.mint,
-            vout: 1,
+            txid: send.txid,
+            vout: 2,
           },
           script_sig: ScriptBuf::new(),
           sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
@@ -224,7 +170,7 @@ fn multi_input_rune_sell_offer() {
         },
         TxIn {
           previous_output: OutPoint {
-            txid: mint1.mint,
+            txid: send.txid,
             vout: 1,
           },
           script_sig: ScriptBuf::new(),
@@ -678,18 +624,11 @@ fn error_no_isolated_rune_balance_in_wallet() {
 
   core.mine_blocks(1);
 
-  let address = CommandBuilder::new("--regtest wallet receive")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
-    .addresses
-    .into_iter()
-    .next()
-    .unwrap();
+  let address = core.state().new_address(false);
 
   core.broadcast_tx(TransactionTemplate {
     inputs: &[(block0, tx0, 1, default()), (block1, tx1, 1, default())],
-    recipient: Some(address.require_network(Network::Regtest).unwrap()),
+    recipient: Some(address),
     ..default()
   });
 
