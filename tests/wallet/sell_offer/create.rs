@@ -661,41 +661,39 @@ fn error_rune_outgoing_must_be_formatted_correctly() {
 }
 
 #[test]
-fn error_no_rune_balance_in_wallet() {
+fn error_no_isolated_rune_balance_in_wallet() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
 
   create_wallet(&core, &ord);
 
-  batch(
-    &core,
-    &ord,
-    batch::File {
-      etching: Some(batch::Etching {
-        divisibility: 0,
-        rune: SpacedRune {
-          rune: Rune(RUNE),
-          spacers: 0,
-        },
-        premine: "0".parse().unwrap(),
-        supply: "1000".parse().unwrap(),
-        symbol: '¢',
-        terms: Some(batch::Terms {
-          cap: 1,
-          offset: None,
-          amount: "1000".parse().unwrap(),
-          height: None,
-        }),
-        turbo: false,
-      }),
-      inscriptions: vec![batch::Entry {
-        file: Some("inscription.jpeg".into()),
-        ..default()
-      }],
-      ..default()
-    },
-  );
+  let rune0 = Rune(RUNE);
+  let rune1 = Rune(RUNE + 1);
+  let a = etch(&core, &ord, rune0);
+  let b = etch(&core, &ord, rune1);
+
+  let (block0, tx0) = core.tx_index(a.output.reveal);
+  let (block1, tx1) = core.tx_index(b.output.reveal);
+
+  core.mine_blocks(1);
+
+  let address = CommandBuilder::new("--regtest wallet receive")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
+    .addresses
+    .into_iter()
+    .next()
+    .unwrap();
+
+  core.broadcast_tx(TransactionTemplate {
+    inputs: &[(block0, tx0, 1, default()), (block1, tx1, 1, default())],
+    recipient: Some(address.require_network(Network::Regtest).unwrap()),
+    ..default()
+  });
+
+  core.mine_blocks(1);
 
   CommandBuilder::new(format!(
     "--regtest wallet sell-offer create --outgoing 1000:{} --amount 1btc",
@@ -870,7 +868,7 @@ fn error_no_exact_set_of_multiple_utxos() {
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!(
-    "error: missing set of utxos in wallet summing to exactly `3000:{}` (trying using --allow-partial)\n",
+    "error: missing set of utxos in wallet summing to exactly `3000:{}` (try using --allow-partial)\n",
     Rune(RUNE),
   ))
   .expected_exit_code(1)
