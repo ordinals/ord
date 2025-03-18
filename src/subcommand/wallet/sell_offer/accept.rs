@@ -192,7 +192,7 @@ impl Accept {
     // insert inputs in PSBT offer, starting at 1th-index
     inputs.splice(1..1, psbt.clone().unsigned_tx.input);
 
-    // insert the postage/change output first, followed by outputs in PSBT offer
+    // insert the receive output first, followed by outputs in PSBT offer, followed by change output
     outputs.push(receive_output.clone());
     outputs.extend(psbt.clone().unsigned_tx.output);
     outputs.push(change_output.clone());
