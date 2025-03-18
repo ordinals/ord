@@ -35,8 +35,7 @@ fn created_inscription_offer_is_correct() {
 
   let create = CommandBuilder::new(format!(
     "wallet buy-offer create --outgoing {} --amount 1btc --fee-rate 1 --postage {}sat",
-    inscription,
-    buyer_postage
+    inscription, buyer_postage
   ))
   .core(&core)
   .ord(&ord)

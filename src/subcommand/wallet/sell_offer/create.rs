@@ -8,7 +8,8 @@ pub struct Output {
   pub psbt: String,
   pub outgoing: Outgoing,
   pub amount: Amount,
-  pub partial: bool,
+  pub has_multiple: bool,
+  pub is_partial: bool,
 }
 
 #[derive(Debug, Parser)]
@@ -17,13 +18,18 @@ pub(crate) struct Create {
   outgoing: Outgoing,
   #[arg(long, help = "<AMOUNT> to offer.")]
   amount: Amount,
+  #[arg(
+    long,
+    help = "Allow multiple utxos if exact balance at single UTXO does not exist."
+  )]
+  allow_multiple_utxos: bool,
   #[arg(long, help = "Allow partial offer if exact balance does not exist.")]
   allow_partial: bool,
 }
 
 impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let (psbt, outgoing, amount, partial) = match self.outgoing {
+    let (psbt, outgoing, amount, has_multiple, is_partial) = match self.outgoing {
       Outgoing::Rune { decimal, rune } => self.create_rune_sell_offer(wallet, decimal, rune)?,
       Outgoing::InscriptionId(_) => bail!("inscription sell offers not yet implemented"),
       _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
@@ -33,7 +39,8 @@ impl Create {
       psbt,
       outgoing,
       amount,
-      partial,
+      has_multiple,
+      is_partial,
     })))
   }
 
@@ -44,7 +51,7 @@ impl Create {
     wallet: Wallet,
     decimal: Decimal,
     spaced_rune: SpacedRune,
-  ) -> Result<(String, Outgoing, Amount, bool)> {
+  ) -> Result<(String, Outgoing, Amount, bool, bool)> {
     ensure!(
       wallet.has_rune_index(),
       "creating runes offer with `ord offer` requires index created with `--index-runes` flag",
@@ -100,50 +107,81 @@ impl Create {
 
     if rune_balances.is_empty() {
       bail!(
-        "missing outpoint in wallet with only a `{}` balance",
+        "missing utxo in wallet with only a `{}` balance",
         spaced_rune
       );
     }
 
-    let (subset, sum) = find_best_knapsack(rune_balances, rune_amount);
-    let partial = sum < rune_amount;
-    let mut sat_amount = self.amount.to_sat();
+    let (knapsack, knapsack_sum) = find_best_knapsack(rune_balances.clone(), rune_amount);
 
-    if partial {
-      if self.allow_partial {
-        // proportionally round down required sats
-        sat_amount = ((sat_amount as f64 * sum as f64) / rune_amount as f64).round() as u64;
+    let (subset, sum) = if self.allow_multiple_utxos {
+      (knapsack, knapsack_sum)
+    } else {
+      let highest_value = rune_balances
+        .into_iter()
+        .filter(|&x| x <= rune_amount)
+        .max();
+
+      if let Some(value) = highest_value {
+        (vec![value], value)
       } else {
-        bail!(
-          "missing outpoint in wallet with exact `{}:{}` balance or set of outpoints summing to `{}:{}` (try using --allow-partial)",
-          decimal,
-          spaced_rune,
+        (Vec::new(), 0)
+      }
+    };
+
+    let partial = sum < rune_amount;
+
+    if subset.is_empty() || (partial && !self.allow_partial) {
+      if partial && self.allow_partial {
+        bail! {
+          "missing utxo in wallet with balance below `{}:{}`",
           decimal,
           spaced_rune
-        );
+        }
+      } else if self.allow_multiple_utxos {
+        bail! {
+          "missing set of utxos in wallet summing to exactly `{}:{}` (trying using --allow-partial)",
+          decimal,
+          spaced_rune
+        }
+      } else if knapsack_sum == rune_amount {
+        bail! {
+          "missing utxo in wallet with exact `{}:{}` balance, but an exact multi-utxo offer exists (hint: use --allow-multiple-utxos)",
+          decimal,
+          spaced_rune
+        }
+      } else {
+        bail! {
+          "missing utxo in wallet with exact `{}:{}` balance (try using --allow-partial)",
+          decimal,
+          spaced_rune
+        }
       }
     }
 
-    let mut inputs = Vec::<OutPoint>::new();
+    let mut inputs = Vec::<(OutPoint, u128)>::new();
     for balance in &subset {
       if let Some(outpoint) = balance_to_outpoints.get_mut(balance).unwrap().pop() {
-        inputs.push(outpoint);
+        inputs.push((outpoint, *balance));
       }
     }
 
-    let amount_per_output = sat_amount / inputs.len() as u64;
-    let remainder = usize::try_from(sat_amount % inputs.len() as u64).unwrap();
+    let mut sats_required = 0;
 
     let mut outputs = Vec::new();
-    for (i, input) in inputs.iter().enumerate() {
+    for (input, balance) in &inputs {
       let postage = wallet.get_value_in_output(input)?;
 
+      let value = if inputs.len() > 1 || partial {
+        // create offer at same price as `AMOUNT` / `DECIMAL`, rounding up
+        ((self.amount.to_sat() as f64 * *balance as f64) / rune_amount as f64).ceil() as u64
+      } else {
+        self.amount.to_sat()
+      };
+      sats_required += value;
+
       outputs.push(TxOut {
-        value: if i < remainder {
-          Amount::from_sat(amount_per_output + postage + 1)
-        } else {
-          Amount::from_sat(amount_per_output + postage)
-        },
+        value: Amount::from_sat(value + postage),
         script_pubkey: wallet.get_change_address()?.into(),
       });
     }
@@ -153,7 +191,7 @@ impl Create {
       lock_time: LockTime::ZERO,
       input: inputs
         .into_iter()
-        .map(|previous_output| TxIn {
+        .map(|(previous_output, _)| TxIn {
           previous_output,
           script_sig: ScriptBuf::new(),
           sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
@@ -189,7 +227,13 @@ impl Create {
       rune: spaced_rune,
     };
 
-    Ok((result.psbt, outgoing, Amount::from_sat(sat_amount), partial))
+    Ok((
+      result.psbt,
+      outgoing,
+      Amount::from_sat(sats_required),
+      subset.len() > 1,
+      partial,
+    ))
   }
 }
 

@@ -50,7 +50,8 @@ fn single_input_rune_sell_offer() {
 
   assert_eq!(create.amount, Amount::from_sat(100_000_000));
 
-  assert!(!create.partial);
+  assert!(!create.has_multiple);
+  assert!(!create.is_partial);
 
   let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
@@ -156,7 +157,7 @@ fn multi_input_rune_sell_offer() {
   core.mine_blocks(1);
 
   let create = CommandBuilder::new(format!(
-    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc",
+    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc --allow-multiple-utxos",
     2000,
     Rune(RUNE),
   ))
@@ -177,7 +178,8 @@ fn multi_input_rune_sell_offer() {
 
   assert_eq!(create.amount, Amount::from_sat(100_000_000));
 
-  assert!(!create.partial);
+  assert!(create.has_multiple);
+  assert!(!create.is_partial);
 
   let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
@@ -245,7 +247,7 @@ fn multi_input_rune_sell_offer() {
 }
 
 #[test]
-fn multi_input_rune_sell_offer_with_remainder() {
+fn multi_unequal_input_rune_sell_offer_with_rounding() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -301,7 +303,7 @@ fn multi_input_rune_sell_offer_with_remainder() {
 
   core.mine_blocks(1);
 
-  let mint2 = CommandBuilder::new(format!(
+  CommandBuilder::new(format!(
     "--regtest wallet mint --fee-rate 1 --rune {}",
     Rune(RUNE)
   ))
@@ -311,9 +313,25 @@ fn multi_input_rune_sell_offer_with_remainder() {
 
   core.mine_blocks(1);
 
+  let send = CommandBuilder::new(format!(
+    "
+      --chain regtest
+      wallet
+      send
+      --fee-rate 1
+      bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 750:{}
+    ",
+    Rune(RUNE),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
   let create = CommandBuilder::new(format!(
-    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc",
-    3000,
+    "--regtest wallet sell-offer create --outgoing {}:{} --amount 1btc --allow-multiple-utxos",
+    2250,
     Rune(RUNE),
   ))
   .core(&core)
@@ -327,13 +345,14 @@ fn multi_input_rune_sell_offer_with_remainder() {
         rune: Rune(RUNE),
         spacers: 0,
       },
-      decimal: "3000".parse().unwrap(),
+      decimal: "2250".parse().unwrap(),
     }
   );
 
-  assert_eq!(create.amount, Amount::from_sat(100_000_000));
+  assert_eq!(create.amount, Amount::from_sat(100_000_002));
 
-  assert!(!create.partial);
+  assert!(create.has_multiple);
+  assert!(!create.is_partial);
 
   let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
@@ -369,6 +388,15 @@ fn multi_input_rune_sell_offer_with_remainder() {
       input: vec![
         TxIn {
           previous_output: OutPoint {
+            txid: send.txid,
+            vout: 1,
+          },
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },
+        TxIn {
+          previous_output: OutPoint {
             txid: mint0.mint,
             vout: 1,
           },
@@ -384,28 +412,19 @@ fn multi_input_rune_sell_offer_with_remainder() {
           script_sig: ScriptBuf::new(),
           sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
           witness: Witness::new(),
-        },
-        TxIn {
-          previous_output: OutPoint {
-            txid: mint2.mint,
-            vout: 1,
-          },
-          script_sig: ScriptBuf::new(),
-          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-          witness: Witness::new(),
         }
       ],
       output: vec![
         TxOut {
-          value: Amount::from_sat(33_343_334),
+          value: Amount::from_sat(11_121_112),
           script_pubkey: psbt.unsigned_tx.output[0].script_pubkey.clone(),
         },
         TxOut {
-          value: Amount::from_sat(33_343_333),
+          value: Amount::from_sat(44_454_445),
           script_pubkey: psbt.unsigned_tx.output[1].script_pubkey.clone(),
         },
         TxOut {
-          value: Amount::from_sat(33_343_333),
+          value: Amount::from_sat(44_454_445),
           script_pubkey: psbt.unsigned_tx.output[2].script_pubkey.clone(),
         },
       ],
@@ -461,7 +480,8 @@ fn single_input_rune_partial_sell_offer() {
 
   assert_eq!(create.amount, Amount::from_sat(50_000_000));
 
-  assert!(create.partial);
+  assert!(!create.has_multiple);
+  assert!(create.is_partial);
 
   let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
@@ -557,7 +577,8 @@ fn single_input_rune_partial_sell_offer_that_fills() {
 
   assert_eq!(create.amount, Amount::from_sat(100_000_000));
 
-  assert!(!create.partial);
+  assert!(!create.has_multiple);
+  assert!(!create.is_partial);
 
   let outputs = CommandBuilder::new("--regtest wallet outputs")
     .core(&core)
@@ -683,7 +704,7 @@ fn error_no_rune_balance_in_wallet() {
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!(
-    "error: missing outpoint in wallet with only a `{}` balance\n",
+    "error: missing utxo in wallet with only a `{}` balance\n",
     Rune(RUNE),
   ))
   .expected_exit_code(1)
@@ -707,8 +728,173 @@ fn error_inexact_rune_balance() {
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!(
-    "error: missing outpoint in wallet with exact `2000:{}` balance or set of outpoints summing to `2000:{}` (try using --allow-partial)\n",
+    "error: missing utxo in wallet with exact `2000:{}` balance (try using --allow-partial)\n",
     Rune(RUNE),
+  ))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn error_multiple_utxos_required() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune: SpacedRune {
+          rune: Rune(RUNE),
+          spacers: 0,
+        },
+        premine: "0".parse().unwrap(),
+        supply: "2000".parse().unwrap(),
+        symbol: '¢',
+        terms: Some(batch::Terms {
+          cap: 2,
+          offset: None,
+          amount: "1000".parse().unwrap(),
+          height: None,
+        }),
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  CommandBuilder::new(format!(
+    "--regtest wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "--regtest wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "--regtest wallet sell-offer create --outgoing 2000:{} --amount 1btc",
+    Rune(RUNE),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr(format!(
+    "error: missing utxo in wallet with exact `2000:{}` balance, but an exact multi-utxo offer exists (hint: use --allow-multiple-utxos)\n",
+    Rune(RUNE),
+  ))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn error_no_exact_set_of_multiple_utxos() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune: SpacedRune {
+          rune: Rune(RUNE),
+          spacers: 0,
+        },
+        premine: "0".parse().unwrap(),
+        supply: "2000".parse().unwrap(),
+        symbol: '¢',
+        terms: Some(batch::Terms {
+          cap: 2,
+          offset: None,
+          amount: "1000".parse().unwrap(),
+          height: None,
+        }),
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  CommandBuilder::new(format!(
+    "--regtest wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "--regtest wallet mint --fee-rate 1 --rune {}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<ord::subcommand::wallet::mint::Output>();
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "--regtest wallet sell-offer create --outgoing 3000:{} --amount 1btc --allow-multiple-utxos",
+    Rune(RUNE),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr(format!(
+    "error: missing set of utxos in wallet summing to exactly `3000:{}` (trying using --allow-partial)\n",
+    Rune(RUNE),
+  ))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn error_unable_to_create_partial() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  etch(&core, &ord, Rune(RUNE));
+
+  CommandBuilder::new(format!(
+    "--regtest wallet sell-offer create --outgoing 500:{} --amount 1btc --allow-partial",
+    Rune(RUNE),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr(format!(
+    "error: missing utxo in wallet with balance below `500:{}`\n",
     Rune(RUNE),
   ))
   .expected_exit_code(1)
