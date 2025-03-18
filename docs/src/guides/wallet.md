@@ -490,7 +490,7 @@ ord wallet buy-offer accept --outgoing <DECIMAL:RUNE> --amount <AMOUNT> --psbt <
 ```
 
 Creating a Runes Sell Offer
-----------------------
+---------------------------
 
 Offer to sell the rune balance `<DECIMAL:RUNE>` for `AMOUNT` using:
 
@@ -504,11 +504,19 @@ By default, you may only offer to sell an amount of runes `<DECIMAL:RUNE>` that 
 
 To create an offer for a non-exact balance, you must first send that balance to yourself and wait for the transaction to be confirmed.
 
+Creating a Multi-UTXO Runes Sell Offer
+--------------------------------------
+
 To create multiple sub-offers that sum to `<DECIMAL:RUNE>` in a single PSBT, use the flag `--allow-multiple-utxos`:
 
 ```
 ord wallet sell-offer create --outgoing <DECIMAL:RUNE> --amount <AMOUNT> --allow-multiple-utxos
 ```
+
+Sub-offers are created at a price per rune equivalent to `AMOUNT` / `DECIMAL`, rounding up to the nearest sat.
+
+Creating a Partial Runes Sell Offer
+-----------------------------------
 
 If an exact offer for `<DECIMAL:RUNE>` is not possible, add the flag `--allow-partial` to offer the largest exact balance below `<DECIMAL:RUNE>`:
 
@@ -522,10 +530,10 @@ The flag `--allow-multiple-utxos` may be combined with `--allow-partial` to crea
 ord wallet sell-offer create --outgoing <DECIMAL:RUNE> --amount <AMOUNT> --allow-multiple-utxos --allow-partial
 ```
 
-Sub-offers and partial offers are created at a price per rune equivalent to `AMOUNT` / `DECIMAL`, rounding up to the nearest sat.
+Partial offers are created at a price per rune equivalent to `AMOUNT` / `DECIMAL`, rounding up to the nearest sat.
 
 Accepting a Runes Sell Offer
---------------------------
+----------------------------
 
 Accept the offer in `PSBT` to sell at least `<DECIMAL:RUNE>` for `AMOUNT` using:
 
