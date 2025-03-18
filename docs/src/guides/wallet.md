@@ -522,7 +522,7 @@ The flag `--allow-multiple-utxos` may be combined with `--allow-partial` to crea
 ord wallet sell-offer create --outgoing <DECIMAL:RUNE> --amount <AMOUNT> --allow-multiple-utxos --allow-partial
 ```
 
-Sub-offers and partial offers are created at a price per rune equivalent to `AMOUNT` / `DECIMAL`, rounding up to the nearest integer.
+Sub-offers and partial offers are created at a price per rune equivalent to `AMOUNT` / `DECIMAL`, rounding up to the nearest sat.
 
 Accepting a Runes Sell Offer
 --------------------------
