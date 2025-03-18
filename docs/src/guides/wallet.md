@@ -447,7 +447,7 @@ Once the send transaction confirms, you can confirm receipt by running:
 ord wallet inscriptions
 ```
 
-Creating Inscription or Runes Buy Offer
+Creating an Inscription or Runes Buy Offer
 ---------------------------------------
 
 Bid `AMOUNT` on the inscription `INSCRIPTION_ID` using:
@@ -474,7 +474,7 @@ Once the accept transaction confirms, you can view your updated balance with:
 ord wallet balance
 ```
 
-Accepting Inscription or Runes Buy Offer
+Accepting an Inscription or Runes Buy Offer
 ----------------------------------------
 
 Accept the offer to buy the inscription `INSCRIPTION_ID` for `AMOUNT` via `PSBT` using:
@@ -489,10 +489,10 @@ Accept the offer to buy the rune balance `<DECIMAL:RUNE>` sold in `PSBT` using:
 ord wallet buy-offer accept --outgoing <DECIMAL:RUNE> --amount <AMOUNT> --psbt <PSBT>
 ```
 
-Creating Runes Sell Offer
+Creating a Runes Sell Offer
 ----------------------
 
-Offer to sell some or all of your `RUNE` balance for `AMOUNT` using:
+Offer to sell the rune balance `<DECIMAL:RUNE>` for `AMOUNT` using:
 
 ```
 ord wallet sell-offer create --outgoing <DECIMAL:RUNE> --amount <AMOUNT>
@@ -510,7 +510,7 @@ To create multiple sub-offers that sum to `<DECIMAL:RUNE>` in a single PSBT, use
 ord wallet sell-offer create --outgoing <DECIMAL:RUNE> --amount <AMOUNT> --allow-multiple-utxos
 ```
 
-If an offer for exactly `<DECIMAL:RUNE>` is not possible, a user can add the flag `--allow-partial` to offer the largest exact balance below `<DECIMAL:RUNE>`:
+If an exact offer for `<DECIMAL:RUNE>` is not possible, add the flag `--allow-partial` to offer the largest exact balance below `<DECIMAL:RUNE>`:
 
 ```
 ord wallet sell-offer create --outgoing <DECIMAL:RUNE> --amount <AMOUNT> --allow-partial
@@ -524,7 +524,7 @@ ord wallet sell-offer create --outgoing <DECIMAL:RUNE> --amount <AMOUNT> --allow
 
 Sub-offers and partial offers are created at a price per rune equivalent to `AMOUNT` / `DECIMAL`, rounding up to the nearest integer.
 
-Accepting Runes Sell Offer
+Accepting a Runes Sell Offer
 --------------------------
 
 Accept the offer in `PSBT` to sell `<DECIMAL:RUNE>` for `AMOUNT` using:
