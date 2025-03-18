@@ -527,7 +527,7 @@ Sub-offers and partial offers are created at a price per rune equivalent to `AMO
 Accepting a Runes Sell Offer
 --------------------------
 
-Accept the offer in `PSBT` to sell `<DECIMAL:RUNE>` for `AMOUNT` using:
+Accept the offer in `PSBT` to sell at least `<DECIMAL:RUNE>` for `AMOUNT` using:
 
 ```
 ord wallet sell-offer accept --outgoing <DECIMAL:RUNE> --amount <AMOUNT> --fee-rate <FEE_RATE>
