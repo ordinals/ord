@@ -140,7 +140,7 @@ impl Create {
         }
       } else if self.allow_multiple_utxos {
         bail! {
-          "missing set of utxos in wallet summing to exactly `{}:{}` (trying using --allow-partial)",
+          "missing set of utxos in wallet summing to exactly `{}:{}` (try using --allow-partial)",
           decimal,
           spaced_rune
         }
