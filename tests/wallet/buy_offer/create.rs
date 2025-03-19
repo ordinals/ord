@@ -99,7 +99,7 @@ fn created_inscription_offer_is_correct() {
       ],
       output: vec![
         TxOut {
-          value: Amount::from_sat(buyer_postage),
+          value: Amount::from_sat(seller_postage),
           script_pubkey: psbt.unsigned_tx.output[0].script_pubkey.clone(),
         },
         TxOut {
@@ -107,7 +107,7 @@ fn created_inscription_offer_is_correct() {
           script_pubkey: address.clone().into(),
         },
         TxOut {
-          value: Amount::from_sat(5_000_000_000 - payment - buyer_postage - fee),
+          value: Amount::from_sat(5_000_000_000 - payment - seller_postage - fee),
           script_pubkey: psbt.unsigned_tx.output[2].script_pubkey.clone(),
         },
       ],

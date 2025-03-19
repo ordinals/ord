@@ -85,9 +85,16 @@ impl Create {
 
     let seller_postage = Amount::from_sat(postage);
 
+    let mut buyer_postage = self.postage.unwrap_or(TARGET_POSTAGE);
+
+    if seller_postage > buyer_postage {
+      buyer_postage = seller_postage;
+    }
+
     self.create_buy_offer(
       wallet,
       inscription.satpoint.outpoint,
+      buyer_postage,
       seller_postage,
       seller_address,
     )
@@ -170,18 +177,19 @@ impl Create {
 
     let seller_postage = Amount::from_sat(output_info.value);
 
-    self.create_buy_offer(wallet, utxo, seller_postage, seller_address)
+    let buyer_postage = self.postage.unwrap_or(TARGET_POSTAGE);
+
+    self.create_buy_offer(wallet, utxo, buyer_postage, seller_postage, seller_address)
   }
 
   fn create_buy_offer(
     &self,
     wallet: Wallet,
     outpoint: OutPoint,
+    buyer_postage: Amount,
     seller_postage: Amount,
     seller_address: Address,
   ) -> Result<(String, Address<NetworkUnchecked>)> {
-    let buyer_postage = self.postage.unwrap_or(TARGET_POSTAGE);
-
     let tx = Transaction {
       version: Version(2),
       lock_time: LockTime::ZERO,
