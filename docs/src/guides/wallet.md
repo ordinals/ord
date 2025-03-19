@@ -446,3 +446,45 @@ Once the send transaction confirms, you can confirm receipt by running:
 ```
 ord wallet inscriptions
 ```
+
+Creating an Inscription or Runes Buy Offer
+---------------------------------------
+
+Bid `AMOUNT` on the inscription `INSCRIPTION_ID` using:
+
+```
+ord wallet offer create --inscription <INSCRIPTION_ID> --fee-rate <FEE_RATE> --amount <AMOUNT>
+```
+
+Bid `AMOUNT` on the rune balance `DECIMAL:RUNE` at `UTXO` using:
+
+```
+ord wallet offer create --rune <DECIMAL:RUNE> --fee-rate <FEE_RATE> --amount <AMOUNT> --utxo <UTXO>
+```
+
+Accepting an Inscription or Runes Buy Offer
+----------------------------------------
+
+Accept the offer to buy the inscription `INSCRIPTION_ID` for `AMOUNT` via `PSBT` using:
+
+```
+ord wallet offer accept --inscription <INSCRIPTION_ID> --amount <AMOUNT> --psbt <PSBT>
+```
+
+Accept the offer to buy the rune balance `DECIMAL:RUNE` sold in `PSBT` using:
+
+```
+ord wallet offer accept --rune <DECIMAL:RUNE> --amount <AMOUNT> --psbt <PSBT>
+```
+
+See the pending transaction with:
+
+```
+ord wallet transactions
+```
+
+Once the accept transaction confirms, you can view your updated balance with:
+
+```
+ord wallet balance
+```
