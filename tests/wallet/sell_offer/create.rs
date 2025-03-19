@@ -32,7 +32,7 @@ fn single_input_rune_sell_offer() {
 
   assert_eq!(create.amount, Amount::from_sat(100_000_000));
 
-  assert!(!create.has_multiple);
+  assert!(!create.has_multiple_utxos);
   assert!(!create.is_partial);
 
   let outputs = CommandBuilder::new("--regtest wallet outputs")
@@ -124,7 +124,7 @@ fn multi_input_rune_sell_offer() {
 
   assert_eq!(create.amount, Amount::from_sat(100_000_000));
 
-  assert!(create.has_multiple);
+  assert!(create.has_multiple_utxos);
   assert!(!create.is_partial);
 
   let outputs = CommandBuilder::new("--regtest wallet outputs")
@@ -297,7 +297,7 @@ fn multi_unequal_input_rune_sell_offer_with_rounding() {
 
   assert_eq!(create.amount, Amount::from_sat(100_000_002));
 
-  assert!(create.has_multiple);
+  assert!(create.has_multiple_utxos);
   assert!(!create.is_partial);
 
   let outputs = CommandBuilder::new("--regtest wallet outputs")
@@ -426,7 +426,7 @@ fn single_input_rune_partial_sell_offer() {
 
   assert_eq!(create.amount, Amount::from_sat(50_000_000));
 
-  assert!(!create.has_multiple);
+  assert!(!create.has_multiple_utxos);
   assert!(create.is_partial);
 
   let outputs = CommandBuilder::new("--regtest wallet outputs")
@@ -523,7 +523,7 @@ fn single_input_rune_partial_sell_offer_that_fills() {
 
   assert_eq!(create.amount, Amount::from_sat(100_000_000));
 
-  assert!(!create.has_multiple);
+  assert!(!create.has_multiple_utxos);
   assert!(!create.is_partial);
 
   let outputs = CommandBuilder::new("--regtest wallet outputs")
