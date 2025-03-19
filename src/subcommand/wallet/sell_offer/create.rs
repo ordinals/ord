@@ -6,7 +6,7 @@ use {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub psbt: String,
-  pub outgoing: Outgoing,
+  pub asset: Outgoing,
   pub amount: Amount,
   pub has_multiple_utxos: bool,
   pub is_partial: bool,
@@ -29,7 +29,7 @@ pub(crate) struct Create {
 
 impl Create {
   pub(crate) fn run(&self, wallet: Wallet) -> SubcommandResult {
-    let (psbt, outgoing, amount, has_multiple_utxos, is_partial) = match self.outgoing {
+    let (psbt, asset, amount, has_multiple_utxos, is_partial) = match self.outgoing {
       Outgoing::Rune { decimal, rune } => self.create_rune_sell_offer(wallet, decimal, rune)?,
       Outgoing::InscriptionId(_) => bail!("inscription sell offers not yet implemented"),
       _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
@@ -37,7 +37,7 @@ impl Create {
 
     Ok(Some(Box::new(Output {
       psbt,
-      outgoing,
+      asset,
       amount,
       has_multiple_utxos,
       is_partial,

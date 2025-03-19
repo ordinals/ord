@@ -44,7 +44,7 @@ fn accepted_offer_works() {
   };
 
   assert_eq!(
-    create.outgoing,
+    create.asset,
     Outgoing::Rune {
       rune: spaced_rune,
       decimal: "250".parse().unwrap(),
@@ -236,7 +236,7 @@ fn accept_dry_run() {
   };
 
   assert_eq!(
-    create.outgoing,
+    create.asset,
     Outgoing::Rune {
       rune: spaced_rune,
       decimal: "250".parse().unwrap(),

@@ -4,7 +4,7 @@ use super::*;
 pub struct Output {
   pub psbt: String,
   pub seller_address: Address<NetworkUnchecked>,
-  pub outgoing: Outgoing,
+  pub asset: Outgoing,
   pub amount: Amount,
 }
 
@@ -38,7 +38,7 @@ impl Create {
     Ok(Some(Box::new(Output {
       psbt,
       seller_address,
-      outgoing: self.outgoing.clone(),
+      asset: self.outgoing.clone(),
       amount: self.amount,
     })))
   }

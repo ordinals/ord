@@ -50,7 +50,7 @@ fn created_inscription_offer_is_correct() {
     address,
   );
 
-  assert_eq!(create.outgoing, Outgoing::InscriptionId(inscription));
+  assert_eq!(create.asset, Outgoing::InscriptionId(inscription));
 
   assert_eq!(create.amount, Amount::from_sat(100_000_000));
 
@@ -307,7 +307,7 @@ fn created_rune_offer_is_correct() {
   );
 
   assert_eq!(
-    create.outgoing,
+    create.asset,
     Outgoing::Rune {
       rune: SpacedRune {
         rune: Rune(RUNE),

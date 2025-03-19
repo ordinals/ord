@@ -23,7 +23,7 @@ fn single_input_rune_sell_offer() {
   .run_and_deserialize_output::<Create>();
 
   assert_eq!(
-    create.outgoing,
+    create.asset,
     Outgoing::Rune {
       rune: SpacedRune { rune, spacers: 0 },
       decimal: "1000".parse().unwrap(),
@@ -115,7 +115,7 @@ fn multi_input_rune_sell_offer() {
   .run_and_deserialize_output::<Create>();
 
   assert_eq!(
-    create.outgoing,
+    create.asset,
     Outgoing::Rune {
       rune: SpacedRune { rune, spacers: 0 },
       decimal: "1000".parse().unwrap(),
@@ -285,7 +285,7 @@ fn multi_unequal_input_rune_sell_offer_with_rounding() {
   .run_and_deserialize_output::<Create>();
 
   assert_eq!(
-    create.outgoing,
+    create.asset,
     Outgoing::Rune {
       rune: SpacedRune {
         rune: Rune(RUNE),
@@ -414,7 +414,7 @@ fn single_input_rune_partial_sell_offer() {
   .run_and_deserialize_output::<Create>();
 
   assert_eq!(
-    create.outgoing,
+    create.asset,
     Outgoing::Rune {
       rune: SpacedRune {
         rune: Rune(RUNE),
@@ -511,7 +511,7 @@ fn single_input_rune_partial_sell_offer_that_fills() {
   .run_and_deserialize_output::<Create>();
 
   assert_eq!(
-    create.outgoing,
+    create.asset,
     Outgoing::Rune {
       rune: SpacedRune {
         rune: Rune(RUNE),
