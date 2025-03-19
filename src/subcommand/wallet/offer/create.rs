@@ -32,7 +32,8 @@ impl Create {
     let (psbt, seller_address) = match (self.inscription, self.rune.clone()) {
       (Some(inscription), None) => self.create_inscription_buy_offer(wallet, inscription)?,
       (None, Some(outgoing)) => self.create_rune_buy_offer(wallet, outgoing)?,
-      _ => bail!("outgoing must be either <INSCRIPTION> or <DECIMAL:RUNE>"),
+      (None, None) => bail!("must include either --inscription or --rune"),
+      (Some(_), Some(_)) => bail!("cannot include both --inscription and --rune"),
     };
 
     Ok(Some(Box::new(Output {

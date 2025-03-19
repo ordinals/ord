@@ -726,3 +726,63 @@ fn utxo_can_only_hold_one_rune() {
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
+
+#[test]
+fn error_must_include_either_inscription_or_rune() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  CommandBuilder::new("--regtest wallet offer create --amount 1btc --fee-rate 1")
+    .core(&core)
+    .ord(&ord)
+    .expected_stderr("error: must include either --inscription or --rune\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn error_cannot_include_both_inscription_and_rune() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "wallet offer create --inscription {inscription} --rune 500:FOO --amount 1btc --fee-rate 1"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr("error: cannot include both --inscription and --rune\n")
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn error_rune_not_properly_formatted() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "wallet offer create --rune {inscription} --amount 1btc --fee-rate 1"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr("error: invalid format for --rune (must be `DECIMAL:RUNE`)\n")
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
