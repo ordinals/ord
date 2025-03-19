@@ -448,7 +448,7 @@ ord wallet inscriptions
 ```
 
 Creating an Inscription or Runes Buy Offer
----------------------------------------
+------------------------------------------
 
 Bid `AMOUNT` on the inscription `INSCRIPTION_ID` using:
 
@@ -463,7 +463,7 @@ ord wallet offer create --rune <DECIMAL:RUNE> --fee-rate <FEE_RATE> --amount <AM
 ```
 
 Accepting an Inscription or Runes Buy Offer
-----------------------------------------
+-------------------------------------------
 
 Accept the offer to buy the inscription `INSCRIPTION_ID` for `AMOUNT` via `PSBT` using:
 
