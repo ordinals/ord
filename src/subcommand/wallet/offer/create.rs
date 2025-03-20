@@ -130,7 +130,7 @@ impl Create {
 
     ensure!(
       wallet.has_rune_index(),
-      "creating runes offer with `buy-offer` requires index created with `--index-runes` flag",
+      "creating runes offer with `offer` requires index created with `--index-runes` flag",
     );
 
     let (id, _, _) = wallet
