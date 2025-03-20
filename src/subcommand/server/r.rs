@@ -524,7 +524,7 @@ pub(super) async fn parents_paginated(
 
 pub(super) async fn sat(
   Extension(index): Extension<Arc<Index>>,
-  Path(sat): Path<u64>,
+  Path(sat): Path<DeserializeFromStr<Sat>>,
 ) -> ServerResult<Json<api::SatInscriptions>> {
   sat_paginated(Extension(index), Path((sat, 0))).await
 }
@@ -548,14 +548,14 @@ pub(super) async fn sat_at_index(
 
 pub(super) async fn sat_paginated(
   Extension(index): Extension<Arc<Index>>,
-  Path((sat, page)): Path<(u64, u64)>,
+  Path((DeserializeFromStr(sat), page)): Path<(DeserializeFromStr<Sat>, u64)>,
 ) -> ServerResult<Json<api::SatInscriptions>> {
   task::block_in_place(|| {
     if !index.has_sat_index() {
       return Err(ServerError::NotFound("this server has no sat index".into()));
     }
 
-    let (ids, more) = index.get_inscription_ids_by_sat_paginated(Sat(sat), 100, page)?;
+    let (ids, more) = index.get_inscription_ids_by_sat_paginated(sat, 100, page)?;
 
     Ok(Json(api::SatInscriptions { ids, more, page }))
   })
