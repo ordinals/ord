@@ -215,7 +215,7 @@ impl Accept {
           utxo,
           inscriptions.len()
         }
-      };
+      }
 
       let Some(pile) = runes.get(&spaced_rune) else {
         bail!(format!(
