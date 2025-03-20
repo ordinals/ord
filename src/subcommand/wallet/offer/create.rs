@@ -19,7 +19,7 @@ pub(crate) struct Create {
   #[arg(long, help = "<FEE_RATE> for finalized transaction.")]
   fee_rate: FeeRate,
   #[arg(long, help = "UTXO to make an offer for. (format: <TXID:VOUT>)")]
-  utxo: Option<OutPoint>,
+  utxo: Vec<OutPoint>,
   #[arg(
     long,
     help = "Include at least <AMOUNT> postage with receive output. [default: 10000sat]"
@@ -70,9 +70,9 @@ impl Create {
       );
     };
 
-    if let Some(utxo) = self.utxo {
+    for utxo in &self.utxo {
       ensure! {
-        inscription.satpoint.outpoint == utxo,
+        inscription.satpoint.outpoint == *utxo,
         "inscription utxo {} does not match provided utxo {}",
         inscription.satpoint.outpoint,
         utxo
@@ -137,65 +137,83 @@ impl Create {
       .get_rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
-    let Some(utxo) = self.utxo else {
-      bail!("--utxo must be set");
-    };
-
-    ensure!(
-      !wallet.utxos().contains_key(&utxo),
-      "utxo {} already in wallet",
-      utxo
-    );
-
     ensure! {
-      wallet.output_exists(utxo)?,
-      "utxo {} does not exist",
-      utxo
+      !self.utxo.is_empty(),
+      "--utxo must be set"
     }
 
-    let Some(output_info) = wallet.get_output_info(utxo)? else {
-      bail!("utxo {} does not exist", utxo);
-    };
+    let mut contains_multiple_runes = false;
+    let mut amount = 0;
+    let mut seller_address = None;
+    let mut seller_postage = Amount::ZERO;
 
-    let Some(seller_address) = output_info.address else {
-      bail!("utxo {} script pubkey not valid address", utxo);
-    };
+    for utxo in &self.utxo {
+      ensure!(
+        !wallet.utxos().contains_key(utxo),
+        "utxo {} already in wallet",
+        *utxo
+      );
 
-    let Some(runes) = output_info.runes else {
-      bail!("utxo {} does not hold any runes", utxo);
-    };
+      ensure! {
+        wallet.output_exists(*utxo)?,
+        "utxo {} does not exist",
+        *utxo
+      }
 
-    let Some(pile) = runes.get(&spaced_rune) else {
-      bail!("utxo {} does not hold any {} runes", utxo, spaced_rune);
-    };
+      let Some(output_info) = wallet.get_output_info(*utxo)? else {
+        bail!("utxo {} does not exist", *utxo);
+      };
 
-    if pile.amount < decimal.value {
+      let Some(utxo_seller_address) = output_info.address else {
+        bail!("utxo {} script pubkey not valid address", *utxo);
+      };
+
+      let Some(runes) = output_info.runes else {
+        bail!("utxo {} does not hold any runes", *utxo);
+      };
+
+      let Some(pile) = runes.get(&spaced_rune) else {
+        bail!("utxo {} does not hold any {} runes", *utxo, spaced_rune);
+      };
+
+      if runes.len() > 1 {
+        contains_multiple_runes = true;
+      }
+
+      amount += pile.amount;
+
+      if seller_address.is_none() {
+        seller_address = Some(utxo_seller_address);
+      }
+
+      seller_postage += Amount::from_sat(output_info.value);
+    }
+
+    if amount < decimal.value {
       bail!(
-        "utxo {} holds less {} than required ({} < {})",
-        utxo,
+        "utxo(s) hold less {} than required ({} < {})",
         spaced_rune,
-        pile.amount,
+        amount,
         decimal.value,
       );
     }
 
-    if pile.amount > decimal.value {
+    if amount > decimal.value {
       bail!(
-        "utxo {} holds more {} than expected ({} > {})",
-        utxo,
+        "utxo(s) hold more {} than expected ({} > {})",
         spaced_rune,
-        pile.amount,
+        amount,
         decimal.value,
       );
     }
 
     let buyer_postage = self.postage.unwrap_or(TARGET_POSTAGE);
 
-    let seller_postage = Amount::from_sat(output_info.value);
+    let seller_address = seller_address
+      .unwrap()
+      .require_network(wallet.chain().network())?;
 
-    let seller_address = seller_address.require_network(wallet.chain().network())?;
-
-    let output = if runes.len() > 1 {
+    let output = if contains_multiple_runes {
       let runestone = Runestone {
         edicts: vec![Edict {
           amount: 0,
@@ -239,12 +257,17 @@ impl Create {
     let tx = Transaction {
       version: Version(2),
       lock_time: LockTime::ZERO,
-      input: vec![TxIn {
-        previous_output: utxo,
-        script_sig: ScriptBuf::new(),
-        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        witness: Witness::new(),
-      }],
+      input: self
+        .utxo
+        .clone()
+        .into_iter()
+        .map(|utxo| TxIn {
+          previous_output: utxo,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        })
+        .collect(),
       output,
     };
 

@@ -465,13 +465,13 @@ ord wallet offer create --rune <DECIMAL:RUNE> --fee-rate <FEE_RATE> --amount <AM
 Accepting an Inscription or Runes Buy Offer
 -------------------------------------------
 
-Accept the offer to buy the inscription `INSCRIPTION_ID` for `AMOUNT` via `PSBT` using:
+Accept the offer to buy the inscription `INSCRIPTION_ID` for `AMOUNT` in `PSBT` using:
 
 ```
 ord wallet offer accept --inscription <INSCRIPTION_ID> --amount <AMOUNT> --psbt <PSBT>
 ```
 
-Accept the offer to buy the rune balance `DECIMAL:RUNE` sold in `PSBT` using:
+Accept the offer to buy the rune balance `DECIMAL:RUNE` in `PSBT` using:
 
 ```
 ord wallet offer accept --rune <DECIMAL:RUNE> --amount <AMOUNT> --psbt <PSBT>
