@@ -343,8 +343,6 @@ fn created_rune_offer_is_correct() {
 
   assert!((fee_rate - 1.0).abs() < 0.1);
 
-  println!("{}", psbt.fee().unwrap().to_sat());
-
   pretty_assertions::assert_eq!(
     psbt.unsigned_tx,
     Transaction {
@@ -379,6 +377,172 @@ fn created_rune_offer_is_correct() {
         TxOut {
           value: Amount::from_sat(payment_input_value - payment - buyer_postage - fee),
           script_pubkey: psbt.unsigned_tx.output[2].script_pubkey.clone(),
+        },
+      ],
+    }
+  );
+
+  for (i, input) in psbt.inputs.iter().enumerate() {
+    if i == 0 {
+      assert_eq!(input.final_script_witness, None);
+    } else {
+      assert!(input.final_script_witness.is_some());
+    }
+  }
+}
+
+#[test]
+fn created_rune_offer_on_utxo_with_multiple_runes_is_correct() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let rune = Rune(RUNE);
+  let a = etch(&core, &ord, rune);
+  let b = etch(&core, &ord, Rune(RUNE + 1));
+
+  let (a_block, a_tx) = core.tx_index(a.output.reveal);
+  let (b_block, b_tx) = core.tx_index(b.output.reveal);
+
+  core.mine_blocks(1);
+
+  let address = core.state().new_address(false);
+
+  let merge = core.broadcast_tx(TransactionTemplate {
+    inputs: &[(a_block, a_tx, 1, default()), (b_block, b_tx, 1, default())],
+    recipient: Some(address.clone()),
+    ..default()
+  });
+
+  core.mine_blocks(1);
+
+  core.state().remove_wallet_address(address.clone());
+
+  let outpoint = OutPoint {
+    txid: merge,
+    vout: 0,
+  };
+
+  let buyer_postage = 8_000;
+  let seller_postage = 20_000;
+
+  let create = CommandBuilder::new(format!(
+    "--regtest wallet offer create --rune {}:{} --amount 1btc --postage {}sat --fee-rate 1 --utxo {}",
+    1000,
+    rune,
+    buyer_postage,
+    outpoint
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Create>();
+
+  assert_eq!(
+    create
+      .seller_address
+      .clone()
+      .require_network(Network::Regtest)
+      .unwrap(),
+    address,
+  );
+
+  assert_eq!(create.inscription, None);
+
+  assert_eq!(
+    create.rune,
+    Some(Outgoing::Rune {
+      rune: SpacedRune {
+        rune: Rune(RUNE),
+        spacers: 0,
+      },
+      decimal: "1000".parse().unwrap(),
+    })
+  );
+
+  let outputs = CommandBuilder::new("--regtest wallet outputs")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
+
+  let psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
+
+  let payment_input = psbt.unsigned_tx.input[1].previous_output;
+
+  assert!(outputs.iter().any(|output| output.output == payment_input));
+
+  let payment_input_value = outputs
+    .iter()
+    .find(|o| o.output == payment_input)
+    .map_or(0, |o| o.amount);
+
+  for (i, output) in psbt.unsigned_tx.output.iter().enumerate() {
+    if i > 1 && !output.script_pubkey.is_op_return() {
+      assert!(core.state().is_wallet_address(
+        &Address::from_script(&output.script_pubkey, Network::Regtest).unwrap()
+      ));
+    }
+  }
+
+  let payment = 100_000_000;
+  let fee = 298;
+
+  let fee_rate = fee as f64 / psbt.unsigned_tx.vsize() as f64;
+
+  assert!((fee_rate - 1.0).abs() < 0.1);
+
+  let runestone = Runestone {
+    edicts: vec![Edict {
+      amount: 0,
+      id: a.id,
+      output: 2,
+    }],
+    ..default()
+  };
+
+  pretty_assertions::assert_eq!(
+    psbt.unsigned_tx,
+    Transaction {
+      version: Version(2),
+      lock_time: LockTime::ZERO,
+      input: vec![
+        TxIn {
+          previous_output: OutPoint {
+            txid: merge,
+            vout: 0,
+          },
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },
+        TxIn {
+          previous_output: payment_input,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        }
+      ],
+      output: vec![
+        TxOut {
+          value: Amount::from_sat(seller_postage),
+          script_pubkey: address.clone().into(),
+        },
+        TxOut {
+          value: Amount::from_sat(payment),
+          script_pubkey: address.clone().into(),
+        },
+        TxOut {
+          value: Amount::from_sat(buyer_postage),
+          script_pubkey: psbt.unsigned_tx.output[2].script_pubkey.clone(),
+        },
+        TxOut {
+          value: Amount::ZERO,
+          script_pubkey: runestone.encipher(),
+        },
+        TxOut {
+          value: Amount::from_sat(payment_input_value - payment - buyer_postage - fee),
+          script_pubkey: psbt.unsigned_tx.output[4].script_pubkey.clone(),
         },
       ],
     }
@@ -679,50 +843,6 @@ fn utxo_must_have_valid_address() {
   .expected_stderr(format!(
     "error: utxo {outpoint} script pubkey not valid address\n"
   ))
-  .expected_exit_code(1)
-  .run_and_extract_stdout();
-}
-
-#[test]
-fn utxo_can_only_hold_one_rune() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&core, &ord);
-
-  let rune = Rune(RUNE);
-  let a = etch(&core, &ord, rune);
-  let b = etch(&core, &ord, Rune(RUNE + 1));
-
-  let (a_block, a_tx) = core.tx_index(a.output.reveal);
-  let (b_block, b_tx) = core.tx_index(b.output.reveal);
-
-  core.mine_blocks(1);
-
-  let address = core.state().new_address(false);
-
-  let merge = core.broadcast_tx(TransactionTemplate {
-    inputs: &[(a_block, a_tx, 1, default()), (b_block, b_tx, 1, default())],
-    recipient: Some(address.clone()),
-    ..default()
-  });
-
-  core.mine_blocks(1);
-
-  let outpoint = OutPoint {
-    txid: merge,
-    vout: 0,
-  };
-
-  core.state().remove_wallet_address(address);
-
-  CommandBuilder::new(format!(
-    "--regtest wallet offer create --rune 1000:{rune} --amount 1btc --fee-rate 1 --utxo {outpoint}"
-  ))
-  .core(&core)
-  .ord(&ord)
-  .expected_stderr(format!("error: utxo {outpoint} holds multiple runes\n"))
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }

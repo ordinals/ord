@@ -133,7 +133,7 @@ impl Create {
       "creating runes offer with `buy-offer` requires index created with `--index-runes` flag",
     );
 
-    wallet
+    let (id, _, _) = wallet
       .get_rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
@@ -169,12 +169,6 @@ impl Create {
       bail!("utxo {} does not hold any {} runes", utxo, spaced_rune);
     };
 
-    ensure! {
-      runes.len() == 1,
-      "utxo {} holds multiple runes",
-      utxo
-    };
-
     if pile.amount < decimal.value {
       bail!(
         "utxo {} holds less {} than required ({} < {})",
@@ -201,6 +195,47 @@ impl Create {
 
     let seller_address = seller_address.require_network(wallet.chain().network())?;
 
+    let output = if runes.len() > 1 {
+      let runestone = Runestone {
+        edicts: vec![Edict {
+          amount: 0,
+          id,
+          output: 2,
+        }],
+        ..default()
+      };
+
+      vec![
+        TxOut {
+          value: seller_postage,
+          script_pubkey: seller_address.clone().into(),
+        },
+        TxOut {
+          value: self.amount,
+          script_pubkey: seller_address.clone().into(),
+        },
+        TxOut {
+          value: buyer_postage,
+          script_pubkey: wallet.get_change_address()?.into(),
+        },
+        TxOut {
+          value: Amount::ZERO,
+          script_pubkey: runestone.encipher(),
+        },
+      ]
+    } else {
+      vec![
+        TxOut {
+          value: buyer_postage,
+          script_pubkey: wallet.get_change_address()?.into(),
+        },
+        TxOut {
+          value: self.amount + seller_postage,
+          script_pubkey: seller_address.clone().into(),
+        },
+      ]
+    };
+
     let tx = Transaction {
       version: Version(2),
       lock_time: LockTime::ZERO,
@@ -210,16 +245,7 @@ impl Create {
         sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
         witness: Witness::new(),
       }],
-      output: vec![
-        TxOut {
-          value: buyer_postage,
-          script_pubkey: wallet.get_change_address()?.into(),
-        },
-        TxOut {
-          value: self.amount + seller_postage,
-          script_pubkey: seller_address.clone().into(),
-        },
-      ],
+      output,
     };
 
     let psbt = self.create_funded_buy_offer(wallet, tx)?;

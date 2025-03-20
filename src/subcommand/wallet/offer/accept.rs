@@ -52,7 +52,9 @@ impl Accept {
       (Some(inscription), None) => {
         self.check_inscription_buy_offer(&wallet, outgoing, inscription)?
       }
-      (None, Some(rune)) => self.check_rune_buy_offer(&wallet, outgoing, rune)?,
+      (None, Some(rune)) => {
+        self.check_rune_buy_offer(&wallet, psbt.unsigned_tx.clone(), outgoing, rune)?
+      }
       (None, None) => bail!("must include either --inscription or --rune"),
       (Some(_), Some(_)) => bail!("cannot include both --inscription and --rune"),
     }
@@ -169,7 +171,13 @@ impl Accept {
     Ok(())
   }
 
-  fn check_rune_buy_offer(&self, wallet: &Wallet, outgoing: OutPoint, rune: Outgoing) -> Result {
+  fn check_rune_buy_offer(
+    &self,
+    wallet: &Wallet,
+    unsigned_tx: Transaction,
+    outgoing: OutPoint,
+    rune: Outgoing,
+  ) -> Result {
     let (decimal, spaced_rune) = match rune {
       Outgoing::Rune { decimal, rune } => (decimal, rune),
       _ => bail!("invalid format for --rune (must be `DECIMAL:RUNE`)"),
@@ -180,7 +188,7 @@ impl Accept {
       "accepting rune offer with `offer` requires index created with `--index-runes` flag",
     );
 
-    wallet
+    let (id, _, _) = wallet
       .get_rune(spaced_rune.rune)?
       .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
@@ -205,18 +213,43 @@ impl Accept {
     };
 
     ensure! {
-      runes.len() == 1,
-      "outgoing input {} contains multiple runes",
-      outgoing
-    }
-
-    ensure! {
       pile.amount == decimal.value,
       "unexpected rune {} balance at outgoing input {} ({} vs. {})",
       spaced_rune,
       outgoing,
       pile.amount,
       decimal.value
+    }
+
+    if runes.len() > 1 {
+      let Some(runestone) = Runestone::decipher(&unsigned_tx) else {
+        bail!("missing runestone in PSBT");
+      };
+
+      let expected_runestone = Runestone {
+        edicts: vec![Edict {
+          amount: 0,
+          id,
+          output: 2,
+        }],
+        ..default()
+      };
+
+      ensure! {
+        runestone == Artifact::Runestone(expected_runestone),
+        "unexpected runestone in PSBT"
+      }
+
+      ensure! {
+        !unsigned_tx.output.is_empty() &&
+        unsigned_tx.output[0].script_pubkey == wallet.utxos().get(&outgoing).unwrap().script_pubkey,
+        "unexpected seller address in PSBT"
+      }
+    } else {
+      ensure! {
+        Runestone::decipher(&unsigned_tx).is_none(),
+        "unexpected runestone in PSBT"
+      }
     }
 
     Ok(())
