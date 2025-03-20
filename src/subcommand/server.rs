@@ -1689,11 +1689,13 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
+    accept_json: AcceptJson,
   ) -> ServerResult {
     Self::children_paginated(
       Extension(server_config),
       Extension(index),
       Path((inscription_id, 0)),
+      accept_json,
     )
     .await
   }
@@ -1702,6 +1704,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((parent, page)): Path<(InscriptionId, usize)>,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
       let entry = index
@@ -1717,7 +1720,14 @@ impl Server {
 
       let next_page = more_children.then_some(page + 1);
 
-      Ok(
+      Ok(if accept_json {
+        Json(api::Children {
+          ids: children,
+          more: more_children,
+          page,
+        })
+        .into_response()
+      } else {
         ChildrenHtml {
           parent,
           parent_number,
@@ -1726,8 +1736,8 @@ impl Server {
           next_page,
         }
         .page(server_config)
-        .into_response(),
-      )
+        .into_response()
+      })
     })
   }
 
