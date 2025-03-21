@@ -285,7 +285,7 @@ impl Server {
           "/r/undelegated-content/{inscription_id}",
           get(r::undelegated_content),
         )
-        .route("/r/utxo/{outpoint}", get(Self::utxo));
+        .route("/r/utxo/{outpoint}", get(r::utxo));
 
       let proxiable_routes = Router::new()
         .route("/content/{inscription_id}", get(r::content))
@@ -779,22 +779,6 @@ impl Server {
         .page(server_config)
         .into_response()
       })
-    })
-  }
-
-  async fn utxo(
-    Extension(index): Extension<Arc<Index>>,
-    Path(outpoint): Path<OutPoint>,
-  ) -> ServerResult {
-    task::block_in_place(|| {
-      Ok(
-        Json(
-          index
-            .get_utxo_recursive(outpoint)?
-            .ok_or_not_found(|| format!("output {outpoint}"))?,
-        )
-        .into_response(),
-      )
     })
   }
 
