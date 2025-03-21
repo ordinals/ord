@@ -677,3 +677,19 @@ pub(super) async fn undelegated_content(
     )
   })
 }
+
+pub(super) async fn utxo(
+  Extension(index): Extension<Arc<Index>>,
+  Path(outpoint): Path<OutPoint>,
+) -> ServerResult {
+  task::block_in_place(|| {
+    Ok(
+      Json(
+        index
+          .get_utxo_recursive(outpoint)?
+          .ok_or_not_found(|| format!("output {outpoint}"))?,
+      )
+      .into_response(),
+    )
+  })
+}
