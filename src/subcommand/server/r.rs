@@ -229,17 +229,17 @@ pub(super) async fn content(
       )));
     };
 
+    let inscription_number = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?
+      .inscription_number;
+
     if let Some(delegate) = inscription.delegate() {
       inscription = index
         .get_inscription_by_id(delegate)?
         .ok_or_not_found(|| format!("delegate {inscription_id}"))?
     }
 
-    let inscription_number = index
-      .get_inscription_entry(inscription_id)
-      .unwrap()
-      .unwrap()
-      .inscription_number;
     Ok(
       content_response(
         &server_config,
@@ -658,9 +658,8 @@ pub(super) async fn undelegated_content(
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     let inscription_number = index
-      .get_inscription_entry(inscription_id)
-      .unwrap()
-      .unwrap()
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?
       .inscription_number;
 
     Ok(

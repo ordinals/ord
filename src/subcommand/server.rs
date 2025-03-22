@@ -1459,15 +1459,15 @@ impl Server {
       if settings.is_hidden(inscription_id) {
         return Ok(PreviewUnknownHtml.into_response());
       }
-      let inscription_number = index
-        .get_inscription_entry(inscription_id)
-        .unwrap()
-        .unwrap()
-        .inscription_number;
 
       let mut inscription = index
         .get_inscription_by_id(inscription_id)?
         .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+      let inscription_number = index
+        .get_inscription_entry(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?
+        .inscription_number;
 
       if let Some(delegate) = inscription.delegate() {
         inscription = index
