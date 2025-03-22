@@ -1047,9 +1047,8 @@ curl -s \
 &nbsp;
 &nbsp;
 
-Note: `<SAT_NUMBER>` only allows the actual number of a sat no other sat
-notations like degree, percentile or decimal. We may expand to allow those in
-the future.
+Note: `<SAT_NUMBER>` allows the actual number of a sat or any other sat
+notations like degree, percentile or decimal.
 
 Responses from most of the above recursive endpoints are JSON. For backwards
 compatibility, some endpoints are supported which only return
