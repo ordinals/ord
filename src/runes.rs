@@ -643,7 +643,10 @@ mod tests {
           ..default()
         },
       )],
-      [(OutPoint { txid, vout: 0 }, vec![(id, 100)])],
+      [
+        (OutPoint { txid, vout: 0 }, vec![(id, 100)]),
+        (OutPoint { txid, vout: 1 }, vec![(id, 100)]),
+      ],
     );
   }
 
@@ -1266,7 +1269,7 @@ mod tests {
       )],
     );
 
-    context.core.broadcast_tx(TransactionTemplate {
+    let txid1 = context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       outputs: 2,
       op_return: Some(
@@ -1297,7 +1300,7 @@ mod tests {
           ..default()
         },
       )],
-      [],
+      [(OutPoint { txid: txid1, vout: 2 }, vec![(id, u128::MAX)])],
     );
   }
 
@@ -2617,7 +2620,7 @@ mod tests {
           ..default()
         },
       )],
-      [],
+      [(OutPoint { txid, vout: 1 }, vec![(id, u128::MAX)])],
     );
   }
 

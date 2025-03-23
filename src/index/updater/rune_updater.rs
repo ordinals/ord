@@ -180,7 +180,6 @@ impl RuneUpdater<'_, '_, '_> {
         for (id, balance) in &balances {
           *burned.entry(*id).or_default() += *balance;
         }
-        continue;
       }
 
       buffer.clear();
@@ -198,14 +197,16 @@ impl RuneUpdater<'_, '_, '_> {
       for (id, balance) in balances {
         Index::encode_rune_balance(id, balance.n(), &mut buffer);
 
-        if let Some(sender) = self.event_sender {
-          sender.blocking_send(Event::RuneTransferred {
-            outpoint,
-            block_height: self.height,
-            txid,
-            rune_id: id,
-            amount: balance.0,
-          })?;
+        if !tx.output[vout].script_pubkey.is_op_return() {
+          if let Some(sender) = self.event_sender {
+            sender.blocking_send(Event::RuneTransferred {
+              outpoint,
+              block_height: self.height,
+              txid,
+              rune_id: id,
+              amount: balance.0,
+            })?;
+          }
         }
       }
 

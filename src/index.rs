@@ -6729,13 +6729,22 @@ mod tests {
           ..Default::default()
         },
       )],
-      [(
-        OutPoint {
-          txid: txid3,
-          vout: 1,
-        },
-        vec![(id, 889)],
-      )],
+      [
+        (
+          OutPoint {
+            txid: txid3,
+            vout: 0,
+          },
+          vec![(id, 111)],
+        ),
+        (
+          OutPoint {
+            txid: txid3,
+            vout: 1,
+          },
+          vec![(id, 889)],
+        ),
+      ],
     );
 
     event_receiver.blocking_recv().unwrap();
