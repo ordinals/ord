@@ -1599,7 +1599,7 @@ impl Index {
     Ok(Some(result))
   }
 
-  pub fn get_tx_out(&self, txid: &Txid, vout: u32) -> Result<Option<GetTxOutResult>> {
+  pub fn get_utxo(&self, txid: &Txid, vout: u32) -> Result<Option<GetTxOutResult>> {
     if txid == &self.genesis_block_coinbase_txid {
       let transaction = self.genesis_block_coinbase_transaction.clone();
       let output = transaction.output[vout as usize].clone();
@@ -2498,7 +2498,7 @@ impl Index {
     } else {
       indexed = self.contains_output(&outpoint)?;
 
-      if let Some(result) = self.get_tx_out(&outpoint.txid, outpoint.vout)? {
+      if let Some(result) = self.get_utxo(&outpoint.txid, outpoint.vout)? {
         confirmations = result.confirmations;
         spent = false;
         txout = TxOut {
