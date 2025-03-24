@@ -28,7 +28,6 @@ impl State {
 
     let genesis_block = bitcoin::blockdata::constants::genesis_block(network);
     let genesis_block_hash = genesis_block.block_hash();
-
     hashes.push(genesis_block_hash);
     blocks.insert(genesis_block_hash, genesis_block);
 
