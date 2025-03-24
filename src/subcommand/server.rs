@@ -1465,6 +1465,11 @@ impl Server {
         .get_inscription_by_id(inscription_id)?
         .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
+      let inscription_number = index
+        .get_inscription_entry(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?
+        .inscription_number;
+
       if let Some(delegate) = inscription.delegate() {
         inscription = index
           .get_inscription_by_id(delegate)?
@@ -1478,6 +1483,7 @@ impl Server {
           r::content_response(
             &server_config,
             inscription_id,
+            inscription_number,
             accept_encoding,
             sec_fetch_dest,
             inscription,
@@ -1490,22 +1496,37 @@ impl Server {
       let content_security_policy = server_config.preview_content_security_policy(media)?;
 
       match media {
-        Media::Audio => {
-          Ok((content_security_policy, PreviewAudioHtml { inscription_id }).into_response())
-        }
+        Media::Audio => Ok(
+          (
+            content_security_policy,
+            PreviewAudioHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
         Media::Code(language) => Ok(
           (
             content_security_policy,
             PreviewCodeHtml {
               inscription_id,
               language,
+              inscription_number,
             },
           )
             .into_response(),
         ),
-        Media::Font => {
-          Ok((content_security_policy, PreviewFontHtml { inscription_id }).into_response())
-        }
+        Media::Font => Ok(
+          (
+            content_security_policy,
+            PreviewFontHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
         Media::Iframe => unreachable!(),
         Media::Image(image_rendering) => Ok(
           (
@@ -1513,6 +1534,7 @@ impl Server {
             PreviewImageHtml {
               image_rendering,
               inscription_id,
+              inscription_number,
             },
           )
             .into_response(),
@@ -1520,23 +1542,54 @@ impl Server {
         Media::Markdown => Ok(
           (
             content_security_policy,
-            PreviewMarkdownHtml { inscription_id },
+            PreviewMarkdownHtml {
+              inscription_id,
+              inscription_number,
+            },
           )
             .into_response(),
         ),
-        Media::Model => {
-          Ok((content_security_policy, PreviewModelHtml { inscription_id }).into_response())
-        }
-        Media::Pdf => {
-          Ok((content_security_policy, PreviewPdfHtml { inscription_id }).into_response())
-        }
-        Media::Text => {
-          Ok((content_security_policy, PreviewTextHtml { inscription_id }).into_response())
-        }
+        Media::Model => Ok(
+          (
+            content_security_policy,
+            PreviewModelHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
+        Media::Pdf => Ok(
+          (
+            content_security_policy,
+            PreviewPdfHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
+        Media::Text => Ok(
+          (
+            content_security_policy,
+            PreviewTextHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
         Media::Unknown => Ok((content_security_policy, PreviewUnknownHtml).into_response()),
-        Media::Video => {
-          Ok((content_security_policy, PreviewVideoHtml { inscription_id }).into_response())
-        }
+        Media::Video => Ok(
+          (
+            content_security_policy,
+            PreviewVideoHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
       }
     })
   }
@@ -4274,6 +4327,7 @@ mod tests {
     assert!(r::content_response(
       &ServerConfig::default(),
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
@@ -4291,6 +4345,7 @@ mod tests {
     let response = r::content_response(
       &ServerConfig::default(),
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
@@ -4311,6 +4366,7 @@ mod tests {
     let response = r::content_response(
       &ServerConfig::default(),
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
@@ -4336,6 +4392,7 @@ mod tests {
         ..default()
       },
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
@@ -4370,7 +4427,10 @@ mod tests {
         format!("/preview/{}", inscription_id),
         StatusCode::OK,
         "default-src 'self'",
-        format!(".*<html lang=en data-inscription={}>.*", inscription_id),
+        format!(
+          ".*<html lang=en data-inscription={}>.*<title>Inscription 0 Preview</title>.*",
+          inscription_id
+        ),
       );
     }
 
@@ -4430,6 +4490,7 @@ mod tests {
     let content_response = r::content_response(
       &ServerConfig::default(),
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
@@ -4450,6 +4511,7 @@ mod tests {
     let content_response = r::content_response(
       &ServerConfig::default(),
       inscription_id(0),
+      0,
       AcceptEncoding::default(),
       SecFetchDest::Other,
       Inscription {
