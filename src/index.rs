@@ -1646,6 +1646,7 @@ impl Index {
         hash: tx.compute_wtxid(),
         size: tx.total_size(),
         vsize: tx.vsize(),
+        #[allow(clippy::cast_sign_loss)]
         version: tx.version.0 as u32,
         locktime: 0,
         vin: Vec::new(),
