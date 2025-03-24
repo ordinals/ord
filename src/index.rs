@@ -1611,17 +1611,17 @@ impl Index {
 
       return Ok(Some(GetTxOutResult {
         bestblock: self.block_hash(None)?.unwrap(),
+        coinbase: true,
         confirmations: self.block_count()?,
-        value: output.value,
         script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+          address: None,
+          addresses: Vec::new(),
           asm: output.script_pubkey.to_asm_string(),
           hex: output.script_pubkey.to_bytes(),
-          req_sigs: None,
-          type_: None,
-          addresses: Vec::new(),
-          address: None,
+          req_sigs: Some(1),
+          type_: Some(bitcoincore_rpc::json::ScriptPubkeyType::Pubkey),
         },
-        coinbase: true,
+        value: output.value,
       }));
     }
 
