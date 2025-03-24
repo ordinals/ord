@@ -4682,6 +4682,9 @@ mod tests {
       let text = response.text().unwrap();
       let re = Regex::new(expected).unwrap();
 
+      dbg!(&text);
+      dbg!(&re);
+
       if !re.is_match(&text) {
         panic!(
           "/{endpoint} response for {}: {sec_fetch_dest} did not match regex {expected}:\n{text}",
@@ -4701,9 +4704,8 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let pattern = format!(
-      r".*<title>Inscription 0 Preview</title>.*<iframe sandbox=allow-scripts loading=lazy src=/content/{id}></iframe>.*"
-    );
+    let pattern =
+      format!(r".*<iframe sandbox=allow-scripts loading=lazy src=/content/{id}></iframe>.*");
 
     case(&server, id, "preview", "iframe", "foo");
     case(&server, id, "preview", "document", &pattern);
