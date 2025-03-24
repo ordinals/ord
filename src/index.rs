@@ -1599,7 +1599,11 @@ impl Index {
     Ok(Some(result))
   }
 
-  pub fn get_utxo(&self, txid: &Txid, vout: u32) -> Result<Option<GetTxOutResult>> {
+  pub fn get_unspent_or_unconfirmed_output(
+    &self,
+    txid: &Txid,
+    vout: u32,
+  ) -> Result<Option<GetTxOutResult>> {
     if txid == &self.genesis_block_coinbase_txid {
       let Some(output) = &self
         .genesis_block_coinbase_transaction
@@ -2503,7 +2507,7 @@ impl Index {
     } else {
       indexed = self.contains_output(&outpoint)?;
 
-      if let Some(result) = self.get_utxo(&outpoint.txid, outpoint.vout)? {
+      if let Some(result) = self.get_unspent_or_unconfirmed_output(&outpoint.txid, outpoint.vout)? {
         confirmations = result.confirmations;
         spent = false;
         txout = TxOut {
