@@ -4422,7 +4422,10 @@ mod tests {
         format!("/preview/{}", inscription_id),
         StatusCode::OK,
         "default-src 'self'",
-        format!(".*<html lang=en data-inscription={}>.*", inscription_id),
+        format!(
+          ".*<html lang=en data-inscription={}>.*<title>Inscription 0 Preview</title>.*",
+          inscription_id
+        ),
       );
     }
 
@@ -4698,8 +4701,9 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let pattern =
-      format!(r".*<iframe sandbox=allow-scripts loading=lazy src=/content/{id}></iframe>.*");
+    let pattern = format!(
+      r".*<title>Inscription 0 Preview</title>.*<iframe sandbox=allow-scripts loading=lazy src=/content/{id}></iframe>.*"
+    );
 
     case(&server, id, "preview", "iframe", "foo");
     case(&server, id, "preview", "document", &pattern);
