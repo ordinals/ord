@@ -169,6 +169,7 @@ pub struct UtxoRecursive {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Output {
   pub address: Option<Address<NetworkUnchecked>>,
+  pub confirmations: u32,
   pub indexed: bool,
   pub inscriptions: Option<Vec<InscriptionId>>,
   pub outpoint: OutPoint,
@@ -183,6 +184,7 @@ pub struct Output {
 impl Output {
   pub fn new(
     chain: Chain,
+    confirmations: u32,
     inscriptions: Option<Vec<InscriptionId>>,
     outpoint: OutPoint,
     tx_out: TxOut,
@@ -196,6 +198,7 @@ impl Output {
         .address_from_script(&tx_out.script_pubkey)
         .ok()
         .map(|address| uncheck(&address)),
+      confirmations,
       indexed,
       inscriptions,
       outpoint,

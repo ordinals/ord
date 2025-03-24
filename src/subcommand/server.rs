@@ -769,6 +769,7 @@ impl Server {
       } else {
         OutputHtml {
           chain: server_config.chain,
+          confirmations: output_info.confirmations,
           inscriptions: output_info.inscriptions,
           outpoint,
           output: txout,
@@ -3432,6 +3433,7 @@ mod tests {
         value: 5000000000,
         script_pubkey: address.script_pubkey(),
         address: Some(uncheck(&address)),
+        confirmations: 1,
         transaction: txid,
         sat_ranges: None,
         indexed: true,
@@ -3720,6 +3722,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
+  <dt>confirmations</dt><dd>1</dd>
   <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
@@ -3742,6 +3745,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
+  <dt>confirmations</dt><dd>1</dd>
   <dt>spent</dt><dd>false</dd>
 </dl>.*"
       ),
@@ -3765,6 +3769,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace></dd>
   <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
+  <dt>confirmations</dt><dd>0</dd>
   <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
