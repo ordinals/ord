@@ -27,7 +27,7 @@ impl Display for Iframe {
       write!(
         f,
         "<a href=/inscription/{}>\
-          <iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/{}>\
+          <iframe sandbox=allow-scripts scrolling=no loading=lazy src=/thumbnail/{}>\
           </iframe>\
         </a>",
         self.inscription_id, self.inscription_id,

@@ -243,6 +243,7 @@ impl Server {
         .route("/search/{*query}", get(Self::search_by_path))
         .route("/static/{*path}", get(Self::static_asset))
         .route("/status", get(Self::status))
+        .route("/thumbnail/{inscription_id}", get(Self::thumbnail))
         .route("/tx/{txid}", get(Self::transaction))
         .route("/update", get(Self::update));
 
@@ -1448,13 +1449,30 @@ impl Server {
     Redirect::to("https://docs.ordinals.com/bounties")
   }
 
+  async fn thumbnail(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(settings): Extension<Arc<Settings>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult {
+    Self::preview_inner(&index, &settings, &server_config, inscription_id, true).await
+  }
+
   async fn preview(
     Extension(index): Extension<Arc<Index>>,
     Extension(settings): Extension<Arc<Settings>>,
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
-    accept_encoding: AcceptEncoding,
-    sec_fetch_dest: SecFetchDest,
+  ) -> ServerResult {
+    Self::preview_inner(&index, &settings, &server_config, inscription_id, false).await
+  }
+
+  async fn preview_inner(
+    index: &Index,
+    settings: &Settings,
+    server_config: &ServerConfig,
+    inscription_id: InscriptionId,
+    thumbnail: bool,
   ) -> ServerResult {
     task::block_in_place(|| {
       if settings.is_hidden(inscription_id) {
@@ -1477,21 +1495,6 @@ impl Server {
       }
 
       let media = inscription.media();
-
-      if let Media::Iframe = media {
-        return Ok(
-          r::content_response(
-            &server_config,
-            inscription_id,
-            inscription_number,
-            accept_encoding,
-            sec_fetch_dest,
-            inscription,
-          )?
-          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-          .into_response(),
-        );
-      }
 
       let content_security_policy = server_config.preview_content_security_policy(media)?;
 
@@ -1527,7 +1530,17 @@ impl Server {
           )
             .into_response(),
         ),
-        Media::Iframe => unreachable!(),
+        Media::Iframe => Ok(
+          (
+            content_security_policy,
+            PreviewIframeHtml {
+              inscription_id,
+              inscription_number,
+              thumbnail,
+            },
+          )
+            .into_response(),
+        ),
         Media::Image(image_rendering) => Ok(
           (
             content_security_policy,
