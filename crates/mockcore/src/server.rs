@@ -262,7 +262,7 @@ impl Api for Server {
       return Ok(None);
     };
 
-    let output = tx.output[vout as usize].clone();
+    let script_pubkey = &tx.output[usize::try_from(vout).unwrap()].script_pubkey;
 
     Ok(Some(GetTxOutResult {
       bestblock: BlockHash::all_zeros(),
@@ -270,11 +270,11 @@ impl Api for Server {
       confirmations: confirmations.unwrap().try_into().unwrap(),
       script_pub_key: GetRawTransactionResultVoutScriptPubKey {
         asm: String::new(),
-        hex: output.script_pubkey.to_bytes(),
+        hex: script_pubkey.to_bytes(),
         req_sigs: None,
         type_: None,
         addresses: Vec::new(),
-        address: Address::from_script(&output.script_pubkey.clone(), state.network)
+        address: Address::from_script(script_pubkey, state.network)
           .ok()
           .map(|addr| addr.into_unchecked()),
       },
