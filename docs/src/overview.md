@@ -100,42 +100,42 @@ for *A*, *B*, *C*, and *D*, respectively.
 Now for some examples. This satoshi is common:
 
 ```
-1°1′1″1‴
+0°0′0″1‴
 │ │ │ ╰─ Not first sat in block
-│ │ ╰─── Not first block in difficulty adjustment period
-│ ╰───── Not first block in halving epoch
-╰─────── Second cycle
+│ │ ╰─── Any block in difficulty adjustment period
+│ ╰───── Any block in halving epoch
+╰─────── Any cycle
 ```
 
 
 This satoshi is uncommon:
 
 ```
-1°1′1″0‴
+0°1′1″0‴
 │ │ │ ╰─ First sat in block
 │ │ ╰─── Not first block in difficulty adjustment period
 │ ╰───── Not first block in halving epoch
-╰─────── Second cycle
+╰─────── Any cycle
 ```
 
 This satoshi is rare:
 
 ```
-1°1′0″0‴
-│ │ │ ╰─ First sat in block
-│ │ ╰─── First block in difficulty adjustment period
-│ ╰───── Not the first block in halving epoch
-╰─────── Second cycle
+0°2016′0″0‴
+│    │ │ ╰─ First sat in block
+│    │ ╰─── First block in difficulty adjustment period
+│    ╰───── Not the first block in halving epoch
+╰────────── Any cycle
 ```
 
 This satoshi is epic:
 
 ```
-1°0′1″0‴
-│ │ │ ╰─ First sat in block
-│ │ ╰─── Not first block in difficulty adjustment period
-│ ╰───── First block in halving epoch
-╰─────── Second cycle
+0°0′336″0‴
+│ │   │ ╰─ First sat in block
+│ │   ╰─── Not first block in difficulty adjustment period
+│ ╰─────── First block in halving epoch
+╰───────── Any cycle
 ```
 
 This satoshi is legendary:
@@ -145,7 +145,7 @@ This satoshi is legendary:
 │ │ │ ╰─ First sat in block
 │ │ ╰─── First block in difficulty adjustment period
 │ ╰───── First block in halving epoch
-╰─────── Second cycle
+╰─────── Any cycle but first
 ```
 
 And this satoshi is mythic:

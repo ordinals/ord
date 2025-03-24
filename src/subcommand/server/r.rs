@@ -216,6 +216,7 @@ pub(super) async fn content(
   Extension(server_config): Extension<Arc<ServerConfig>>,
   Path(inscription_id): Path<InscriptionId>,
   accept_encoding: AcceptEncoding,
+  sec_fetch_dest: SecFetchDest,
 ) -> ServerResult {
   task::block_in_place(|| {
     if settings.is_hidden(inscription_id) {
@@ -235,81 +236,136 @@ pub(super) async fn content(
     }
 
     Ok(
-      content_response(inscription, accept_encoding, &server_config)?
-        .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-        .into_response(),
+      content_response(
+        &server_config,
+        inscription_id,
+        accept_encoding,
+        sec_fetch_dest,
+        inscription,
+      )?
+      .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+      .into_response(),
     )
   })
 }
 
-pub(super) fn content_response(
-  inscription: Inscription,
-  accept_encoding: AcceptEncoding,
-  server_config: &ServerConfig,
-) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
-  let mut headers = HeaderMap::new();
+#[derive(Debug)]
+pub(crate) struct ContentResponse {
+  pub(crate) body: Vec<u8>,
+  pub(crate) cache_control: Option<HeaderValue>,
+  pub(crate) content_encoding: Option<HeaderValue>,
+  pub(crate) content_security_policy: HeaderValue,
+  pub(crate) content_security_policy_additional: Option<HeaderValue>,
+  pub(crate) content_type: HeaderValue,
+}
 
-  match &server_config.csp_origin {
-    None => {
-      headers.insert(
-        header::CONTENT_SECURITY_POLICY,
-        HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
-      );
-      headers.append(
-          header::CONTENT_SECURITY_POLICY,
-          HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"),
-        );
+impl IntoResponse for ContentResponse {
+  fn into_response(self) -> Response {
+    let mut headers = HeaderMap::new();
+
+    if let Some(value) = self.cache_control {
+      headers.insert(header::CACHE_CONTROL, value);
     }
-    Some(origin) => {
-      let csp = format!("default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:");
-      headers.insert(
-        header::CONTENT_SECURITY_POLICY,
-        HeaderValue::from_str(&csp).map_err(|err| ServerError::Internal(Error::from(err)))?,
-      );
+
+    if let Some(value) = self.content_encoding {
+      headers.insert(header::CONTENT_ENCODING, value);
     }
+
+    headers.insert(
+      header::CONTENT_SECURITY_POLICY,
+      self.content_security_policy,
+    );
+
+    if let Some(value) = self.content_security_policy_additional {
+      headers.append(header::CONTENT_SECURITY_POLICY, value);
+    }
+
+    headers.insert(header::CONTENT_TYPE, self.content_type);
+
+    headers.insert(
+      header::VARY,
+      HeaderValue::from_name(SecFetchDest::HEADER_NAME),
+    );
+
+    (headers, self.body).into_response()
+  }
+}
+
+pub(crate) fn content_response(
+  server_config: &ServerConfig,
+  inscription_id: InscriptionId,
+  accept_encoding: AcceptEncoding,
+  sec_fetch_dest: SecFetchDest,
+  inscription: Inscription,
+) -> ServerResult<Option<ContentResponse>> {
+  if sec_fetch_dest == SecFetchDest::Document {
+    return Ok(Some(ContentResponse {
+      body: PreviewIframeHtml { inscription_id }.to_string().into(),
+      cache_control: None,
+      content_encoding: None,
+      content_security_policy: HeaderValue::from_static("default-src 'self'"),
+      content_security_policy_additional: None,
+      content_type: HeaderValue::from_static("text/html"),
+    }));
   }
 
-  headers.insert(
-    header::CACHE_CONTROL,
-    HeaderValue::from_static("public, max-age=1209600, immutable"),
-  );
+  let (content_security_policy, content_security_policy_additional) = match &server_config.csp_origin {
+    None => {
+      (
+        HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:"),
+        Some(HeaderValue::from_static("default-src *:*/content/ *:*/blockheight *:*/blockhash *:*/blockhash/ *:*/blocktime *:*/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"))
+      )
+    }
+    Some(origin) => {
+      (
+        HeaderValue::from_str(&format!("default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:")).map_err(|err| ServerError::Internal(Error::from(err)))?,
+        None,
+      )
+    }
+  };
 
-  headers.insert(
-    header::CONTENT_TYPE,
-    inscription
-      .content_type()
-      .and_then(|content_type| content_type.parse().ok())
-      .unwrap_or(HeaderValue::from_static("application/octet-stream")),
-  );
+  let content_type = inscription
+    .content_type()
+    .and_then(|content_type| content_type.parse().ok())
+    .unwrap_or(HeaderValue::from_static("application/octet-stream"));
 
-  if let Some(content_encoding) = inscription.content_encoding() {
+  let content_encoding = inscription.content_encoding();
+
+  let Some(body) = inscription.into_body() else {
+    return Ok(None);
+  };
+
+  let (content_encoding, body) = if let Some(content_encoding) = content_encoding {
     if accept_encoding.is_acceptable(&content_encoding) {
-      headers.insert(header::CONTENT_ENCODING, content_encoding);
+      (Some(content_encoding), body)
     } else if server_config.decompress && content_encoding == "br" {
-      let Some(body) = inscription.into_body() else {
-        return Ok(None);
-      };
-
       let mut decompressed = Vec::new();
 
       Decompressor::new(body.as_slice(), 4096)
         .read_to_end(&mut decompressed)
         .map_err(|err| ServerError::Internal(err.into()))?;
 
-      return Ok(Some((headers, decompressed)));
+      (None, decompressed)
     } else {
       return Err(ServerError::NotAcceptable {
         accept_encoding,
         content_encoding,
       });
     }
-  }
-
-  let Some(body) = inscription.into_body() else {
-    return Ok(None);
+  } else {
+    (None, body)
   };
 
-  Ok(Some((headers, body)))
+  Ok(Some(ContentResponse {
+    body,
+    cache_control: Some(HeaderValue::from_static(
+      "public, max-age=1209600, immutable",
+    )),
+    content_encoding,
+    content_security_policy,
+    content_security_policy_additional,
+    content_type,
+  }))
 }
 
 pub(super) async fn inscription(
@@ -511,6 +567,7 @@ pub(super) async fn sat_at_index_content(
   server_config: Extension<Arc<ServerConfig>>,
   Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
   accept_encoding: AcceptEncoding,
+  sec_fetch_dest_document: SecFetchDest,
 ) -> ServerResult {
   let inscription_id = task::block_in_place(|| {
     if !index.has_sat_index() {
@@ -528,6 +585,7 @@ pub(super) async fn sat_at_index_content(
     server_config,
     Path(inscription_id),
     accept_encoding,
+    sec_fetch_dest_document,
   )
   .await
 }
@@ -576,6 +634,7 @@ pub(super) async fn undelegated_content(
   Extension(server_config): Extension<Arc<ServerConfig>>,
   Path(inscription_id): Path<InscriptionId>,
   accept_encoding: AcceptEncoding,
+  sec_fetch_dest: SecFetchDest,
 ) -> ServerResult {
   task::block_in_place(|| {
     if settings.is_hidden(inscription_id) {
@@ -587,9 +646,31 @@ pub(super) async fn undelegated_content(
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
-      r::content_response(inscription, accept_encoding, &server_config)?
-        .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-        .into_response(),
+      r::content_response(
+        &server_config,
+        inscription_id,
+        accept_encoding,
+        sec_fetch_dest,
+        inscription,
+      )?
+      .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+      .into_response(),
+    )
+  })
+}
+
+pub(super) async fn utxo(
+  Extension(index): Extension<Arc<Index>>,
+  Path(outpoint): Path<OutPoint>,
+) -> ServerResult {
+  task::block_in_place(|| {
+    Ok(
+      Json(
+        index
+          .get_utxo_recursive(outpoint)?
+          .ok_or_not_found(|| format!("output {outpoint}"))?,
+      )
+      .into_response(),
     )
   })
 }
