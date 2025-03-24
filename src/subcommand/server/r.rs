@@ -229,6 +229,11 @@ pub(super) async fn content(
       )));
     };
 
+    let inscription_number = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?
+      .inscription_number;
+
     if let Some(delegate) = inscription.delegate() {
       inscription = index
         .get_inscription_by_id(delegate)?
@@ -239,6 +244,7 @@ pub(super) async fn content(
       content_response(
         &server_config,
         inscription_id,
+        inscription_number,
         accept_encoding,
         sec_fetch_dest,
         inscription,
@@ -294,13 +300,19 @@ impl IntoResponse for ContentResponse {
 pub(crate) fn content_response(
   server_config: &ServerConfig,
   inscription_id: InscriptionId,
+  inscription_number: i32,
   accept_encoding: AcceptEncoding,
   sec_fetch_dest: SecFetchDest,
   inscription: Inscription,
 ) -> ServerResult<Option<ContentResponse>> {
   if sec_fetch_dest == SecFetchDest::Document {
     return Ok(Some(ContentResponse {
-      body: PreviewIframeHtml { inscription_id }.to_string().into(),
+      body: PreviewIframeHtml {
+        inscription_id,
+        inscription_number,
+      }
+      .to_string()
+      .into(),
       cache_control: None,
       content_encoding: None,
       content_security_policy: HeaderValue::from_static("default-src 'self'"),
@@ -645,10 +657,16 @@ pub(super) async fn undelegated_content(
       .get_inscription_by_id(inscription_id)?
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
+    let inscription_number = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?
+      .inscription_number;
+
     Ok(
       r::content_response(
         &server_config,
         inscription_id,
+        inscription_number,
         accept_encoding,
         sec_fetch_dest,
         inscription,
