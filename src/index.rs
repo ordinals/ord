@@ -1634,18 +1634,22 @@ impl Index {
 
   pub fn get_transaction_info(&self, txid: &Txid) -> Result<Option<GetRawTransactionResult>> {
     if txid == &self.genesis_block_coinbase_txid {
-      let transaction = self.genesis_block_coinbase_transaction.clone();
+      let tx = &self.genesis_block_coinbase_transaction;
+
+      let block = bitcoin::blockdata::constants::genesis_block(self.settings.chain().network());
+      let time = block.header.time.into_usize();
+
       return Ok(Some(GetRawTransactionResult {
         in_active_chain: Some(true),
-        hex: Vec::new(),
-        txid: transaction.compute_txid(),
-        hash: transaction.compute_wtxid(),
-        size: 0,
-        vsize: 0,
-        version: 2,
+        hex: consensus::encode::serialize(tx),
+        txid: tx.compute_txid(),
+        hash: tx.compute_wtxid(),
+        size: tx.total_size(),
+        vsize: tx.vsize(),
+        version: tx.version.0 as u32,
         locktime: 0,
         vin: Vec::new(),
-        vout: transaction
+        vout: tx
           .output
           .iter()
           .enumerate()
@@ -1662,10 +1666,10 @@ impl Index {
             },
           })
           .collect(),
-        blockhash: self.block_hash(Some(0))?,
+        blockhash: Some(block.block_hash()),
         confirmations: Some(self.block_count()?),
-        time: None,
-        blocktime: None,
+        time: Some(time),
+        blocktime: Some(time),
       }));
     }
 
