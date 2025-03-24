@@ -2510,7 +2510,7 @@ impl Index {
           return Ok(None);
         };
 
-        let Some(output) = result.vout.into_iter().nth(outpoint.vout as usize) else {
+        let Some(output) = result.vout.into_iter().nth(outpoint.vout.into_usize()) else {
           return Ok(None);
         };
 
