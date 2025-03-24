@@ -18,7 +18,10 @@ use {
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{
-    json::{GetBlockHeaderResult, GetBlockStatsResult},
+    json::{
+      GetBlockHeaderResult, GetBlockStatsResult, GetRawTransactionResult,
+      GetRawTransactionResultVout, GetRawTransactionResultVoutScriptPubKey, GetTxOutResult,
+    },
     Client,
   },
   chrono::SubsecRound,
@@ -1595,8 +1598,74 @@ impl Index {
 
     Ok(Some(result))
   }
-  // TODO: make a new function for get_transaction_info that return confirmations and handles
-  // genesis block coinbase
+
+  pub fn get_tx_out(&self, txid: &Txid, vout: u32) -> Result<Option<GetTxOutResult>> {
+    if txid == &self.genesis_block_coinbase_txid {
+      let transaction = self.genesis_block_coinbase_transaction.clone();
+      let output = transaction.output[vout as usize].clone();
+
+      return Ok(Some(GetTxOutResult {
+        bestblock: self.block_hash(Some(0))?.unwrap(), // TODO
+        confirmations: self.block_count()?,
+        value: output.value,
+        script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+          asm: output.script_pubkey.to_asm_string(),
+          hex: output.script_pubkey.clone().into(),
+          req_sigs: None,
+          type_: None,
+          addresses: Vec::new(),
+          address: None,
+        },
+        coinbase: true,
+      }));
+    }
+
+    Ok(self.client.get_tx_out(&txid, vout, Some(true))?)
+  }
+
+  pub fn get_transaction_info(&self, txid: &Txid) -> Result<Option<GetRawTransactionResult>> {
+    if txid == &self.genesis_block_coinbase_txid {
+      let transaction = self.genesis_block_coinbase_transaction.clone();
+      return Ok(Some(GetRawTransactionResult {
+        in_active_chain: Some(true),
+        hex: Vec::new(),
+        txid: transaction.compute_txid(),
+        hash: transaction.compute_wtxid(),
+        size: 0,
+        vsize: 0,
+        version: 2,
+        locktime: 0,
+        vin: Vec::new(),
+        vout: transaction
+          .output
+          .iter()
+          .enumerate()
+          .map(|(n, output)| GetRawTransactionResultVout {
+            n: n.try_into().unwrap(),
+            value: output.value,
+            script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+              asm: output.script_pubkey.to_asm_string(),
+              hex: output.script_pubkey.clone().into(),
+              req_sigs: None,
+              type_: None,
+              addresses: Vec::new(),
+              address: None,
+            },
+          })
+          .collect(),
+        blockhash: self.block_hash(Some(0))?,
+        confirmations: Some(self.block_count()?),
+        time: None,
+        blocktime: None,
+      }));
+    }
+
+    self
+      .client
+      .get_raw_transaction_info(txid, None)
+      .into_option()
+  }
+
   pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
@@ -2429,10 +2498,8 @@ impl Index {
     } else {
       indexed = self.contains_output(&outpoint)?;
 
-      if let Some(result) = self
-        .client
-        .get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
-      {
+      if let Some(result) = self.get_tx_out(&outpoint.txid, outpoint.vout)? {
+        dbg!(&result);
         spent = false;
         confirmations = result.confirmations;
         txout = TxOut {
@@ -2442,11 +2509,7 @@ impl Index {
       } else {
         spent = true;
 
-        let Some(result) = self
-          .client
-          .get_raw_transaction_info(&outpoint.txid, None)
-          .ok()
-        else {
+        let Some(result) = self.get_transaction_info(&outpoint.txid)? else {
           return Ok(None);
         };
 
