@@ -1615,7 +1615,7 @@ impl Index {
         value: output.value,
         script_pub_key: GetRawTransactionResultVoutScriptPubKey {
           asm: output.script_pubkey.to_asm_string(),
-          hex: output.script_pubkey.clone().into(),
+          hex: output.script_pubkey.to_bytes(),
           req_sigs: None,
           type_: None,
           addresses: Vec::new(),
