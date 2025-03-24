@@ -25,28 +25,12 @@ impl State {
   pub(crate) fn new(network: Network, version: usize, fail_lock_unspent: bool) -> Self {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
-    let mut transactions = BTreeMap::new();
-    let mut utxos = BTreeMap::new();
 
     let genesis_block = bitcoin::blockdata::constants::genesis_block(network);
     let genesis_block_hash = genesis_block.block_hash();
-    let genesis_transaction = genesis_block.coinbase().unwrap().clone();
 
     hashes.push(genesis_block_hash);
     blocks.insert(genesis_block_hash, genesis_block);
-
-    transactions.insert(
-      genesis_transaction.compute_txid(),
-      genesis_transaction.clone(),
-    );
-
-    utxos.insert(
-      OutPoint {
-        txid: genesis_transaction.compute_txid(),
-        vout: 0,
-      },
-      Amount::from_sat(50 * COIN_VALUE),
-    );
 
     Self {
       blocks,
@@ -60,9 +44,9 @@ impl State {
       network,
       nonce: 0,
       receive_addresses: BTreeSet::new(),
-      transactions,
+      transactions: BTreeMap::new(),
       txid_to_block_height: BTreeMap::new(),
-      utxos,
+      utxos: BTreeMap::new(),
       version,
       wallet: Wallet::new(network),
       wallets: BTreeSet::new(),
