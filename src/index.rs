@@ -1601,11 +1601,16 @@ impl Index {
 
   pub fn get_utxo(&self, txid: &Txid, vout: u32) -> Result<Option<GetTxOutResult>> {
     if txid == &self.genesis_block_coinbase_txid {
-      let transaction = self.genesis_block_coinbase_transaction.clone();
-      let output = transaction.output[vout as usize].clone();
+      let Some(output) = &self
+        .genesis_block_coinbase_transaction
+        .output
+        .get(vout.into_usize())
+      else {
+        return Ok(None);
+      };
 
       return Ok(Some(GetTxOutResult {
-        bestblock: self.block_hash(Some(0))?.unwrap(), // TODO
+        bestblock: self.block_hash(None)?.unwrap(),
         confirmations: self.block_count()?,
         value: output.value,
         script_pub_key: GetRawTransactionResultVoutScriptPubKey {
