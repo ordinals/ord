@@ -4682,9 +4682,6 @@ mod tests {
       let text = response.text().unwrap();
       let re = Regex::new(expected).unwrap();
 
-      dbg!(&text);
-      dbg!(&re);
-
       if !re.is_match(&text) {
         panic!(
           "/{endpoint} response for {}: {sec_fetch_dest} did not match regex {expected}:\n{text}",
