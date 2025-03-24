@@ -2499,7 +2499,6 @@ impl Index {
       indexed = self.contains_output(&outpoint)?;
 
       if let Some(result) = self.get_tx_out(&outpoint.txid, outpoint.vout)? {
-        dbg!(&result);
         spent = false;
         confirmations = result.confirmations;
         txout = TxOut {
