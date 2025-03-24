@@ -1620,7 +1620,7 @@ impl Index {
       }));
     }
 
-    Ok(self.client.get_tx_out(&txid, vout, Some(true))?)
+    Ok(self.client.get_tx_out(txid, vout, Some(true))?)
   }
 
   pub fn get_transaction_info(&self, txid: &Txid) -> Result<Option<GetRawTransactionResult>> {
