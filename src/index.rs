@@ -2488,8 +2488,8 @@ impl Index {
         }
       }
 
-      indexed = true;
       confirmations = 0;
+      indexed = true;
       spent = false;
       txout = TxOut {
         value: Amount::from_sat(value),
@@ -2499,15 +2499,13 @@ impl Index {
       indexed = self.contains_output(&outpoint)?;
 
       if let Some(result) = self.get_tx_out(&outpoint.txid, outpoint.vout)? {
-        spent = false;
         confirmations = result.confirmations;
+        spent = false;
         txout = TxOut {
           value: result.value,
           script_pubkey: ScriptBuf::from_bytes(result.script_pub_key.hex),
         };
       } else {
-        spent = true;
-
         let Some(result) = self.get_transaction_info(&outpoint.txid)? else {
           return Ok(None);
         };
@@ -2517,7 +2515,7 @@ impl Index {
         };
 
         confirmations = result.confirmations.unwrap_or_default();
-
+        spent = true;
         txout = TxOut {
           value: output.value,
           script_pubkey: ScriptBuf::from_bytes(output.script_pub_key.hex),
