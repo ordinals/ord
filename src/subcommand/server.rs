@@ -4691,11 +4691,13 @@ mod tests {
 
       assert_eq!(response.status(), StatusCode::OK);
 
-      assert!(response
-        .headers()
-        .get_all(header::VARY)
-        .iter()
-        .any(|value| value == HeaderValue::from_name(SecFetchDest::HEADER_NAME)));
+      if endpoint == "content" {
+        assert!(response
+          .headers()
+          .get_all(header::VARY)
+          .iter()
+          .any(|value| value == HeaderValue::from_name(SecFetchDest::HEADER_NAME)));
+      }
 
       let text = response.text().unwrap();
       let re = Regex::new(expected).unwrap();
@@ -4719,10 +4721,9 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let pattern =
-      format!(r".*<iframe sandbox=allow-scripts loading=lazy src=/content/{id}></iframe>.*");
+    let pattern = format!(".*src=/content/{id}.*");
 
-    case(&server, id, "preview", "iframe", "foo");
+    case(&server, id, "preview", "iframe", &pattern);
     case(&server, id, "preview", "document", &pattern);
     case(&server, id, "content", "iframe", "foo");
     case(&server, id, "content", "document", &pattern);
@@ -5126,7 +5127,7 @@ prev
       ".*
 <h1>Collections</h1>
 <div class=thumbnails>
-  <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
+  <a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>
 </div>
 <div class=center>
 <a class=prev href=/collections/0>prev</a>
@@ -5224,7 +5225,7 @@ next
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription 1</title>.*<dt>parents</dt>.*<div class=thumbnails>.**<a href=/inscription/{parent_inscription_id}><iframe .* src=/preview/{parent_inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription 1</title>.*<dt>parents</dt>.*<div class=thumbnails>.**<a href=/inscription/{parent_inscription_id}><iframe .* src=/thumbnail/{parent_inscription_id}></iframe></a>.*"),
     );
     server.assert_response_regex(
       format!("/inscription/{parent_inscription_id}"),
@@ -6829,7 +6830,11 @@ next
 
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
-    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+    server.assert_response_regex(
+      format!("/preview/{id}"),
+      StatusCode::OK,
+      format!(".*src=/content/{id}.*"),
+    );
 
     assert_eq!(
       server
