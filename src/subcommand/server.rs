@@ -6216,7 +6216,7 @@ next
           (50 * COIN_VALUE, 2 * 50 * COIN_VALUE)
         ]),
         value: 150 * COIN_VALUE,
-        blockhash: Some(block.header.block_hash()),
+        blockhash: block.header.block_hash(),
       }
     );
   }
@@ -6246,7 +6246,7 @@ next
         runes: None,
         sat_ranges: None,
         value: 50 * COIN_VALUE,
-        blockhash: Some(block.header.block_hash()),
+        blockhash: block.header.block_hash(),
       }
     );
   }

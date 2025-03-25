@@ -2482,7 +2482,7 @@ impl Index {
       .get_raw_transaction_info(&outpoint.txid, None)
       .into_option()?
     else {
-      panic!("can't get transaction info: {}", &outpoint.txid);
+      return Ok(None);
     };
 
     Ok(Some(api::UtxoRecursive {
@@ -2490,7 +2490,7 @@ impl Index {
       runes: self.get_rune_balances_for_output(outpoint)?,
       sat_ranges: self.list(outpoint)?,
       value: utxo_entry.value().parse(self).total_value(),
-      blockhash: tx_info.blockhash,
+      blockhash: tx_info.blockhash.unwrap(),
     }))
   }
 
