@@ -14,7 +14,11 @@
         background-image: url(/content/{{self.inscription_id}});
         background-position: center;
         background-repeat: no-repeat;
+%% if self.thumbnail {
+        background-size: cover;
+%% } else {
         background-size: contain;
+%% }
         height: 100%;
         image-rendering: {{ self.image_rendering }};
         margin: 0;
