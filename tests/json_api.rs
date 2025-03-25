@@ -405,6 +405,7 @@ fn get_output() {
           .parse()
           .unwrap()
       ),
+      confirmations: 1,
       outpoint: OutPoint { txid, vout: 0 },
       inscriptions: Some(vec![
         InscriptionId { txid, index: 0 },
@@ -809,6 +810,7 @@ fn outputs_address() {
     cardinals_json,
     vec![api::Output {
       address: Some(address.parse().unwrap()),
+      confirmations: 6,
       inscriptions: Some(vec![]),
       outpoint: OutPoint {
         txid: cardinal_send.txid,
@@ -853,6 +855,7 @@ fn outputs_address() {
     runes_json,
     vec![api::Output {
       address: Some(address.parse().unwrap()),
+      confirmations: 6,
       inscriptions: Some(vec![]),
       outpoint: OutPoint {
         txid: rune_send.txid,
@@ -884,6 +887,7 @@ fn outputs_address() {
     inscriptions_json,
     vec![api::Output {
       address: Some(address.parse().unwrap()),
+      confirmations: 14,
       inscriptions: Some(vec![InscriptionId {
         txid: reveal,
         index: 0

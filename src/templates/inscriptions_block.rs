@@ -65,8 +65,8 @@ mod tests {
       "
         <h1>Inscriptions in <a href=/block/21>Block 21</a></h1>
         <div class=thumbnails>
-          <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
-          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+          <a href=/inscription/1{64}i1><iframe .* src=/thumbnail/1{64}i1></iframe></a>
+          <a href=/inscription/2{64}i2><iframe .* src=/thumbnail/2{64}i2></iframe></a>
         </div>
         .*
         prev
@@ -91,8 +91,8 @@ mod tests {
       "
         <h1>Inscriptions in <a href=/block/21>Block 21</a></h1>
         <div class=thumbnails>
-          <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
-          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+          <a href=/inscription/1{64}i1><iframe .* src=/thumbnail/1{64}i1></iframe></a>
+          <a href=/inscription/2{64}i2><iframe .* src=/thumbnail/2{64}i2></iframe></a>
         </div>
         .*
           <a class=prev href=/inscriptions/block/20>20</a>
