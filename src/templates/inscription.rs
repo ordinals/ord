@@ -71,8 +71,6 @@ mod tests {
           <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
-          <dt>content</dt>
-          <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
@@ -262,8 +260,6 @@ mod tests {
           <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
-          <dt>content</dt>
-          <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
@@ -333,8 +329,6 @@ mod tests {
           <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
-          <dt>content</dt>
-          <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
@@ -403,8 +397,6 @@ mod tests {
           <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
-          <dt>content</dt>
-          <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>

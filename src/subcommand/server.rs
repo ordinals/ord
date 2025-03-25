@@ -3842,7 +3842,7 @@ mod tests {
 <dl>
   <dt>inscriptions</dt>
   <dd class=thumbnails>
-    <a href=/inscription/.*><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/.*></iframe></a>
+    <a href=/inscription/.*><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/thumbnail/.*></iframe></a>
   </dd>.*",
     );
   }
@@ -5297,7 +5297,7 @@ next
     server.assert_response_regex(
       format!("/children/{parent_inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription 0 Children</title>.*<h1><a href=/inscription/{parent_inscription_id}>Inscription 0</a> Children</h1>.*<div class=thumbnails>.*<a href=/inscription/{inscription_id}><iframe .* src=/preview/{inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription 0 Children</title>.*<h1><a href=/inscription/{parent_inscription_id}>Inscription 0</a> Children</h1>.*<div class=thumbnails>.*<a href=/inscription/{inscription_id}><iframe .* src=/thumbnail/{inscription_id}></iframe></a>.*"),
     );
   }
 
@@ -5392,10 +5392,10 @@ next
       StatusCode::OK,
       format!(
         ".*<title>Inscription 0</title>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*
     <div class=center>
       <a href=/children/{parent_inscription_id}>all \\(5\\)</a>
     </div>.*"
@@ -5541,7 +5541,7 @@ next
     server.assert_response_regex(
       format!("/parents/{inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>.*<a href=/inscription/{parent_a_inscription_id}><iframe .* src=/preview/{parent_b_inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>.*<a href=/inscription/{parent_a_inscription_id}><iframe .* src=/thumbnail/{parent_b_inscription_id}></iframe></a>.*"),
     );
   }
 
@@ -5598,19 +5598,19 @@ next
     server.assert_response_regex(
       format!("/parents/{inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*){{100}}.*"),
+      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*){{100}}.*"),
     );
 
     server.assert_response_regex(
       format!("/parents/{inscription_id}/1"),
       StatusCode::OK,
-      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*){{1}}.*"),
+      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*){{1}}.*"),
     );
 
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      ".*<title>Inscription -1</title>.*<h1>Inscription -1</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*){4}.*",
+      ".*<title>Inscription -1</title>.*<h1>Inscription -1</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*){4}.*",
     );
   }
 
