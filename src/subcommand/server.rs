@@ -1548,6 +1548,7 @@ impl Server {
               image_rendering,
               inscription_id,
               inscription_number,
+              thumbnail,
             },
           )
             .into_response(),

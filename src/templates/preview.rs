@@ -31,6 +31,7 @@ pub(crate) struct PreviewImageHtml {
   pub(crate) image_rendering: ImageRendering,
   pub(crate) inscription_id: InscriptionId,
   pub(crate) inscription_number: i32,
+  pub(crate) thumbnail: bool,
 }
 
 #[derive(Boilerplate)]
