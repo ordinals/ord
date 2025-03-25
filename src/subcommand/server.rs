@@ -243,6 +243,7 @@ impl Server {
         .route("/search/{*query}", get(Self::search_by_path))
         .route("/static/{*path}", get(Self::static_asset))
         .route("/status", get(Self::status))
+        .route("/thumbnail/{inscription_id}", get(Self::thumbnail))
         .route("/tx/{txid}", get(Self::transaction))
         .route("/update", get(Self::update));
 
@@ -1448,13 +1449,30 @@ impl Server {
     Redirect::to("https://docs.ordinals.com/bounties")
   }
 
+  async fn thumbnail(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(settings): Extension<Arc<Settings>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult {
+    Self::preview_inner(&index, &settings, &server_config, inscription_id, true).await
+  }
+
   async fn preview(
     Extension(index): Extension<Arc<Index>>,
     Extension(settings): Extension<Arc<Settings>>,
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
-    accept_encoding: AcceptEncoding,
-    sec_fetch_dest: SecFetchDest,
+  ) -> ServerResult {
+    Self::preview_inner(&index, &settings, &server_config, inscription_id, false).await
+  }
+
+  async fn preview_inner(
+    index: &Index,
+    settings: &Settings,
+    server_config: &ServerConfig,
+    inscription_id: InscriptionId,
+    thumbnail: bool,
   ) -> ServerResult {
     task::block_in_place(|| {
       if settings.is_hidden(inscription_id) {
@@ -1477,21 +1495,6 @@ impl Server {
       }
 
       let media = inscription.media();
-
-      if let Media::Iframe = media {
-        return Ok(
-          r::content_response(
-            &server_config,
-            inscription_id,
-            inscription_number,
-            accept_encoding,
-            sec_fetch_dest,
-            inscription,
-          )?
-          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-          .into_response(),
-        );
-      }
 
       let content_security_policy = server_config.preview_content_security_policy(media)?;
 
@@ -1527,7 +1530,17 @@ impl Server {
           )
             .into_response(),
         ),
-        Media::Iframe => unreachable!(),
+        Media::Iframe => Ok(
+          (
+            content_security_policy,
+            PreviewIframeHtml {
+              inscription_id,
+              inscription_number,
+              thumbnail,
+            },
+          )
+            .into_response(),
+        ),
         Media::Image(image_rendering) => Ok(
           (
             content_security_policy,
@@ -3829,7 +3842,7 @@ mod tests {
 <dl>
   <dt>inscriptions</dt>
   <dd class=thumbnails>
-    <a href=/inscription/.*><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/.*></iframe></a>
+    <a href=/inscription/.*><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/thumbnail/.*></iframe></a>
   </dd>.*",
     );
   }
@@ -4678,11 +4691,13 @@ mod tests {
 
       assert_eq!(response.status(), StatusCode::OK);
 
-      assert!(response
-        .headers()
-        .get_all(header::VARY)
-        .iter()
-        .any(|value| value == HeaderValue::from_name(SecFetchDest::HEADER_NAME)));
+      if endpoint == "content" {
+        assert!(response
+          .headers()
+          .get_all(header::VARY)
+          .iter()
+          .any(|value| value == HeaderValue::from_name(SecFetchDest::HEADER_NAME)));
+      }
 
       let text = response.text().unwrap();
       let re = Regex::new(expected).unwrap();
@@ -4706,10 +4721,9 @@ mod tests {
 
     server.mine_blocks(1);
 
-    let pattern =
-      format!(r".*<iframe sandbox=allow-scripts loading=lazy src=/content/{id}></iframe>.*");
+    let pattern = format!(".*src=/content/{id}.*");
 
-    case(&server, id, "preview", "iframe", "foo");
+    case(&server, id, "preview", "iframe", &pattern);
     case(&server, id, "preview", "document", &pattern);
     case(&server, id, "content", "iframe", "foo");
     case(&server, id, "content", "document", &pattern);
@@ -5096,7 +5110,7 @@ mod tests {
       r".*
 <h1>Collections</h1>
 <div class=thumbnails>
-  <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
+  <a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>
   (<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>\s*){99}
 </div>
 <div class=center>
@@ -5113,7 +5127,7 @@ prev
       ".*
 <h1>Collections</h1>
 <div class=thumbnails>
-  <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
+  <a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>
 </div>
 <div class=center>
 <a class=prev href=/collections/0>prev</a>
@@ -5211,7 +5225,7 @@ next
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription 1</title>.*<dt>parents</dt>.*<div class=thumbnails>.**<a href=/inscription/{parent_inscription_id}><iframe .* src=/preview/{parent_inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription 1</title>.*<dt>parents</dt>.*<div class=thumbnails>.**<a href=/inscription/{parent_inscription_id}><iframe .* src=/thumbnail/{parent_inscription_id}></iframe></a>.*"),
     );
     server.assert_response_regex(
       format!("/inscription/{parent_inscription_id}"),
@@ -5283,7 +5297,7 @@ next
     server.assert_response_regex(
       format!("/children/{parent_inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription 0 Children</title>.*<h1><a href=/inscription/{parent_inscription_id}>Inscription 0</a> Children</h1>.*<div class=thumbnails>.*<a href=/inscription/{inscription_id}><iframe .* src=/preview/{inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription 0 Children</title>.*<h1><a href=/inscription/{parent_inscription_id}>Inscription 0</a> Children</h1>.*<div class=thumbnails>.*<a href=/inscription/{inscription_id}><iframe .* src=/thumbnail/{inscription_id}></iframe></a>.*"),
     );
   }
 
@@ -5378,10 +5392,10 @@ next
       StatusCode::OK,
       format!(
         ".*<title>Inscription 0</title>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*
     <div class=center>
       <a href=/children/{parent_inscription_id}>all \\(5\\)</a>
     </div>.*"
@@ -5527,7 +5541,7 @@ next
     server.assert_response_regex(
       format!("/parents/{inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>.*<a href=/inscription/{parent_a_inscription_id}><iframe .* src=/preview/{parent_b_inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>.*<a href=/inscription/{parent_a_inscription_id}><iframe .* src=/thumbnail/{parent_b_inscription_id}></iframe></a>.*"),
     );
   }
 
@@ -5584,19 +5598,19 @@ next
     server.assert_response_regex(
       format!("/parents/{inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*){{100}}.*"),
+      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*){{100}}.*"),
     );
 
     server.assert_response_regex(
       format!("/parents/{inscription_id}/1"),
       StatusCode::OK,
-      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*){{1}}.*"),
+      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*){{1}}.*"),
     );
 
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      ".*<title>Inscription -1</title>.*<h1>Inscription -1</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*){4}.*",
+      ".*<title>Inscription -1</title>.*<h1>Inscription -1</h1>.*<div class=thumbnails>(.*<a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>.*){4}.*",
     );
   }
 
@@ -6816,7 +6830,11 @@ next
 
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
 
-    server.assert_response(format!("/preview/{id}"), StatusCode::OK, "foo");
+    server.assert_response_regex(
+      format!("/preview/{id}"),
+      StatusCode::OK,
+      format!(".*src=/content/{id}.*"),
+    );
 
     assert_eq!(
       server

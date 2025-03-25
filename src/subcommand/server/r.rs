@@ -310,6 +310,7 @@ pub(crate) fn content_response(
       body: PreviewIframeHtml {
         inscription_id,
         inscription_number,
+        thumbnail: false,
       }
       .to_string()
       .into(),
