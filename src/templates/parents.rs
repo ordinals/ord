@@ -32,8 +32,8 @@ mod tests {
       "
         <h1><a href=/inscription/1{64}i1>Inscription 0</a> Parents</h1>
         <div class=thumbnails>
-          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
-          <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
+          <a href=/inscription/2{64}i2><iframe .* src=/thumbnail/2{64}i2></iframe></a>
+          <a href=/inscription/3{64}i3><iframe .* src=/thumbnail/3{64}i3></iframe></a>
         </div>
         .*
         prev
@@ -57,8 +57,8 @@ mod tests {
       "
         <h1><a href=/inscription/1{64}i1>Inscription 0</a> Parents</h1>
         <div class=thumbnails>
-          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
-          <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
+          <a href=/inscription/2{64}i2><iframe .* src=/thumbnail/2{64}i2></iframe></a>
+          <a href=/inscription/3{64}i3><iframe .* src=/thumbnail/3{64}i3></iframe></a>
         </div>
         .*
           <a class=prev href=/parents/1{64}i1/1>prev</a>

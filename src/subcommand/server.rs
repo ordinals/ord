@@ -5109,7 +5109,7 @@ mod tests {
       r".*
 <h1>Collections</h1>
 <div class=thumbnails>
-  <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
+  <a href=/inscription/.*><iframe .* src=/thumbnail/.*></iframe></a>
   (<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>\s*){99}
 </div>
 <div class=center>
