@@ -119,6 +119,7 @@ mod error;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
+mod search_index;
 mod into_usize;
 mod macros;
 mod object;
