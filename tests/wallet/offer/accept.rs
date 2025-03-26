@@ -1286,7 +1286,7 @@ fn error_must_include_either_inscription_or_rune() {
 
   create_wallet(&core, &ord);
 
-  CommandBuilder::new(format!("wallet offer accept --amount 1btc --psbt ="))
+  CommandBuilder::new("wallet offer accept --amount 1btc --psbt =")
     .core(&core)
     .ord(&ord)
     .stderr_regex(
