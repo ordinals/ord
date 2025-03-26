@@ -20,13 +20,17 @@ pub struct Config<'a> {
 
 #[derive(Clone)]
 struct Schema {
-  id: Field,
+  inscription_id: Field,
   sat_name: Field,
 }
 
 impl Schema {
+  fn search_fields(&self) -> Vec<Field> {
+    vec![self.inscription_id, self.sat_name]
+  }
+
   fn result(&self, document: &TantivyDocument) -> Option<SearchResult> {
-    let id_str = document.get_first(self.id).and_then(|value| {
+    let id_str = document.get_first(self.inscription_id).and_then(|value| {
       if let OwnedValue::Str(id_str) = value {
         Some(id_str)
       } else {
@@ -73,7 +77,7 @@ impl SearchIndex {
     let mut schema_builder = TantivySchema::builder();
 
     let document = Schema {
-      id: schema_builder.add_text_field("id", STORED | STRING),
+      inscription_id: schema_builder.add_text_field("id", STORED | STRING),
       sat_name: schema_builder.add_text_field("sat_name", STORED | STRING),
     };
 
@@ -121,7 +125,7 @@ impl SearchIndex {
   pub fn search(&self, query: &str) -> Result<Vec<SearchResult>> {
     let searcher = self.reader.searcher();
 
-    let mut query_parser = QueryParser::for_index(&self.search_index, vec![self.schema.sat_name]);
+    let mut query_parser = QueryParser::for_index(&self.search_index, self.schema.search_fields());
 
     query_parser.set_conjunction_by_default();
 
@@ -154,7 +158,7 @@ impl SearchIndex {
 
     let mut document = TantivyDocument::default();
 
-    document.add_text(self.schema.id, inscription.id.to_string());
+    document.add_text(self.schema.inscription_id, inscription.id.to_string());
 
     if let Some(sat) = inscription.sat {
       document.add_text(self.schema.sat_name, sat.name());
