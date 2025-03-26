@@ -1074,10 +1074,6 @@ impl Api for Server {
       }
 
       for output in tx.output {
-        if output.script_pubkey.is_op_return() {
-          continue;
-        }
-
         let address = Address::from_script(&output.script_pubkey, self.network).unwrap();
         if self.state().is_wallet_address(&address) {
           balance_change += i64::try_from(output.value.to_sat()).unwrap();

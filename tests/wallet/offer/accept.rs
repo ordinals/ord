@@ -324,7 +324,7 @@ fn psbt_may_not_contain_no_inputs_owned_by_wallet() {
 }
 
 #[test]
-fn psbt_may_not_contain_more_than_one_input_owned_by_wallet_if_inscription_offer() {
+fn psbt_may_not_contain_more_than_one_input_owned_by_wallet() {
   let core = mockcore::spawn();
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
@@ -338,30 +338,28 @@ fn psbt_may_not_contain_more_than_one_input_owned_by_wallet_if_inscription_offer
     .ord(&ord)
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
 
-  let tx = Transaction {
-    version: Version(2),
-    lock_time: LockTime::ZERO,
-    input: vec![
-      TxIn {
-        previous_output: outputs[0].output,
-        script_sig: ScriptBuf::new(),
-        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        witness: Witness::new(),
-      },
-      TxIn {
-        previous_output: outputs[1].output,
-        script_sig: ScriptBuf::new(),
-        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-        witness: Witness::new(),
-      },
-    ],
-    output: Vec::new(),
-  };
-
   error_case(
     &core,
     &ord,
-    tx.clone(),
+    Transaction {
+      version: Version(2),
+      lock_time: LockTime::ZERO,
+      input: vec![
+        TxIn {
+          previous_output: outputs[0].output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },
+        TxIn {
+          previous_output: outputs[1].output,
+          script_sig: ScriptBuf::new(),
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+          witness: Witness::new(),
+        },
+      ],
+      output: Vec::new(),
+    },
     true,
     "error: PSBT contains 2 inputs owned by wallet\n",
   );
@@ -1146,7 +1144,7 @@ fn outgoing_contains_inscription_in_rune_offer() {
 }
 
 #[test]
-fn error_contains_multiple_runes() {
+fn error_outgoing_contains_multiple_runes() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -1222,7 +1220,7 @@ fn error_contains_multiple_runes() {
 }
 
 #[test]
-fn error_unexpected_runestone() {
+fn error_outgoing_contains_unexpected_runestone() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -1288,39 +1286,7 @@ fn error_must_include_either_inscription_or_rune() {
 
   create_wallet(&core, &ord);
 
-  let postage = 9000;
-
-  let (inscription, txid) = inscribe_with_options(&core, &ord, Some(postage), 0);
-
-  let inscription_address = Address::from_script(
-    &core.tx_by_id(txid).output[0].script_pubkey,
-    Network::Bitcoin,
-  )
-  .unwrap();
-
-  core
-    .state()
-    .remove_wallet_address(inscription_address.clone());
-
-  let create = CommandBuilder::new(format!(
-    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 0"
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Create>();
-
-  let mut psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
-
-  psbt.inputs[0].final_script_witness = Some(default());
-
-  let mut buyer_addresses = core.state().clear_wallet_addresses();
-  buyer_addresses.remove(&inscription_address);
-
-  core.state().add_wallet_address(inscription_address.clone());
-
-  let base64 = base64_encode(&psbt.serialize());
-
-  CommandBuilder::new(format!("wallet offer accept --amount 1btc --psbt {base64}"))
+  CommandBuilder::new(format!("wallet offer accept --amount 1btc --psbt ="))
     .core(&core)
     .ord(&ord)
     .stderr_regex(
@@ -1339,40 +1305,10 @@ fn error_cannot_include_both_inscription_and_rune() {
 
   create_wallet(&core, &ord);
 
-  let postage = 9000;
-
-  let (inscription, txid) = inscribe_with_options(&core, &ord, Some(postage), 0);
-
-  let inscription_address = Address::from_script(
-    &core.tx_by_id(txid).output[0].script_pubkey,
-    Network::Bitcoin,
-  )
-  .unwrap();
-
-  core
-    .state()
-    .remove_wallet_address(inscription_address.clone());
-
-  let create = CommandBuilder::new(format!(
-    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 0"
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Create>();
-
-  let mut psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
-
-  psbt.inputs[0].final_script_witness = Some(default());
-
-  let mut buyer_addresses = core.state().clear_wallet_addresses();
-  buyer_addresses.remove(&inscription_address);
-
-  core.state().add_wallet_address(inscription_address.clone());
-
-  let base64 = base64_encode(&psbt.serialize());
+  let (inscription, _) = inscribe_with_options(&core, &ord, None, 0);
 
   CommandBuilder::new(format!(
-    "wallet offer accept --inscription {inscription} --rune 500:FOO --amount 1btc --psbt {base64}"
+    "wallet offer accept --inscription {inscription} --rune 500:FOO --amount 1btc --psbt ="
   ))
   .core(&core)
   .ord(&ord)
