@@ -7,12 +7,12 @@ use {
   },
   super::*,
   crate::templates::{
-    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
-    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewIframeHtml,
-    PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml,
-    SatscardHtml, TransactionHtml,
+    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, ExploreHtml,
+    HomeHtml, InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml,
+    PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
+    PreviewIframeHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
+    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml,
+    RunesHtml, SatHtml, SatscardHtml, TransactionHtml,
   },
   axum::{
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
@@ -70,6 +70,11 @@ pub(crate) enum OutputType {
   Cardinal,
   Inscribed,
   Runic,
+}
+
+#[derive(Deserialize)]
+struct Explore {
+  query: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -146,7 +151,13 @@ pub struct Server {
 }
 
 impl Server {
-  pub fn run(self, settings: Settings, index: Arc<Index>, handle: Handle) -> SubcommandResult {
+  pub fn run(
+    self,
+    settings: Settings,
+    index: Arc<Index>,
+    search_index: Arc<SearchIndex>,
+    handle: Handle,
+  ) -> SubcommandResult {
     Runtime::new()?.block_on(async {
       let index_clone = index.clone();
       let integration_test = settings.integration_test();
@@ -201,6 +212,7 @@ impl Server {
         .route("/collections", get(Self::collections))
         .route("/collections/{page}", get(Self::collections_paginated))
         .route("/decode/{txid}", get(Self::decode))
+        .route("/explore", get(Self::explore))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
@@ -309,6 +321,7 @@ impl Server {
       let router = router
         .fallback(Self::fallback)
         .layer(Extension(index))
+        .layer(Extension(search_index))
         .layer(Extension(server_config.clone()))
         .layer(Extension(settings.clone()))
         .layer(SetResponseHeaderLayer::if_not_present(
@@ -589,6 +602,23 @@ impl Server {
           .into_response(),
       )
     })
+  }
+
+  async fn explore(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(search_index): Extension<Arc<SearchIndex>>,
+    Query(explore): Query<Explore>,
+  ) -> ServerResult {
+    let search_results = match explore.query {
+      Some(query) => search_index.search(&query)?,
+      None => Vec::new(),
+    };
+
+    Ok(
+      ExploreHtml { search_results }
+        .page(server_config)
+        .into_response(),
+    )
   }
 
   async fn fallback(Extension(index): Extension<Arc<Index>>, uri: Uri) -> ServerResult<Response> {

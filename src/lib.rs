@@ -29,6 +29,7 @@ use {
     properties::Properties,
     representation::Representation,
     satscard::Satscard,
+    search_index::SearchIndex,
     settings::Settings,
     signer::Signer,
     subcommand::{OutputFormat, Subcommand, SubcommandResult},
@@ -119,7 +120,6 @@ mod error;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
-mod search_index;
 mod into_usize;
 mod macros;
 mod object;
@@ -131,6 +131,7 @@ mod re;
 mod representation;
 pub mod runes;
 mod satscard;
+mod search_index;
 pub mod settings;
 mod signer;
 pub mod subcommand;
