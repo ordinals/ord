@@ -10,8 +10,6 @@ pub struct Settings {
   bitcoin_rpc_username: Option<String>,
   chain: Option<Chain>,
   commit_interval: Option<usize>,
-  savepoint_interval: Option<usize>,
-  max_savepoints: Option<usize>,
   config: Option<PathBuf>,
   config_dir: Option<PathBuf>,
   cookie_file: Option<PathBuf>,
@@ -26,7 +24,10 @@ pub struct Settings {
   index_sats: bool,
   index_transactions: bool,
   integration_test: bool,
+  max_savepoints: Option<usize>,
   no_index_inscriptions: bool,
+  savepoint_interval: Option<usize>,
+  search_index: Option<PathBuf>,
   server_password: Option<String>,
   server_url: Option<String>,
   server_username: Option<String>,
@@ -118,6 +119,7 @@ impl Settings {
       chain: self.chain.or(source.chain),
       commit_interval: self.commit_interval.or(source.commit_interval),
       savepoint_interval: self.savepoint_interval.or(source.savepoint_interval),
+      search_index: self.search_index.or(source.search_index),
       max_savepoints: self.max_savepoints.or(source.max_savepoints),
       config: self.config.or(source.config),
       config_dir: self.config_dir.or(source.config_dir),
@@ -180,6 +182,7 @@ impl Settings {
       index_transactions: options.index_transactions,
       integration_test: options.integration_test,
       no_index_inscriptions: options.no_index_inscriptions,
+      search_index: options.search_index,
       server_password: options.server_password,
       server_url: None,
       server_username: options.server_username,
@@ -270,6 +273,7 @@ impl Settings {
       index_transactions: get_bool("INDEX_TRANSACTIONS"),
       integration_test: get_bool("INTEGRATION_TEST"),
       no_index_inscriptions: get_bool("NO_INDEX_INSCRIPTIONS"),
+      search_index: get_path("SEARCH_INDEX"),
       server_password: get_string("SERVER_PASSWORD"),
       server_url: get_string("SERVER_URL"),
       server_username: get_string("SERVER_USERNAME"),
@@ -302,6 +306,7 @@ impl Settings {
       index_transactions: false,
       integration_test: false,
       no_index_inscriptions: false,
+      search_index: None,
       server_password: None,
       server_url: Some(server_url.into()),
       server_username: None,
@@ -341,6 +346,11 @@ impl Settings {
       None => data_dir.join("index.redb"),
     };
 
+    let search_index = match &self.search_index {
+      Some(path) => path.clone(),
+      None => data_dir.join("ord-search-index"),
+    };
+
     Ok(Self {
       bitcoin_data_dir: Some(bitcoin_data_dir),
       bitcoin_rpc_limit: Some(self.bitcoin_rpc_limit.unwrap_or(12)),
@@ -378,6 +388,7 @@ impl Settings {
       index_transactions: self.index_transactions,
       integration_test: self.integration_test,
       no_index_inscriptions: self.no_index_inscriptions,
+      search_index: Some(search_index),
       server_password: self.server_password,
       server_url: self.server_url,
       server_username: self.server_username,
@@ -593,6 +604,10 @@ impl Settings {
 
   pub fn bitcoin_rpc_limit(&self) -> u32 {
     self.bitcoin_rpc_limit.unwrap()
+  }
+
+  pub fn search_index(&self) -> &Path {
+    self.search_index.as_ref().unwrap()
   }
 
   pub fn server_url(&self) -> Option<&str> {

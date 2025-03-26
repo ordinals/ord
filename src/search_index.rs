@@ -4,12 +4,19 @@ use {
   crate::subcommand::server::query,
   tantivy::{
     collector::TopDocs,
+    directory::MmapDirectory,
     query::QueryParser,
     schema::{document::OwnedValue, Field, Schema as TantivySchema, STORED, STRING},
     Index as TantivyIndex, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument,
   },
   tokio::sync::mpsc::Receiver,
 };
+
+pub struct Config<'a> {
+  pub(crate) event_receiver: Receiver<Event>,
+  pub(crate) index: Arc<Index>,
+  pub(crate) settings: &'a Settings,
+}
 
 #[derive(Clone)]
 struct Schema {
@@ -18,8 +25,8 @@ struct Schema {
 }
 
 impl Schema {
-  fn to_search_result(&self, result: &TantivyDocument) -> Option<SearchResult> {
-    let id_str = result.get_first(self.id).and_then(|value| {
+  fn result(&self, document: &TantivyDocument) -> Option<SearchResult> {
+    let id_str = document.get_first(self.id).and_then(|value| {
       if let OwnedValue::Str(id_str) = value {
         Some(id_str)
       } else {
@@ -29,7 +36,7 @@ impl Schema {
 
     let inscription_id = id_str.parse::<InscriptionId>().ok()?;
 
-    let sat_name = result.get_first(self.sat_name).and_then(|value| {
+    let sat_name = document.get_first(self.sat_name).and_then(|value| {
       if let OwnedValue::Str(name) = value {
         Some(name.clone())
       } else {
@@ -60,8 +67,8 @@ pub struct SearchResult {
 }
 
 impl SearchIndex {
-  pub fn open(index: Arc<Index>, event_receiver: Receiver<Event>) -> Result<Self> {
-    let mut event_receiver = event_receiver;
+  pub fn open(config: Config<'_>) -> Result<Self> {
+    let mut event_receiver = config.event_receiver;
 
     let mut schema_builder = TantivySchema::builder();
 
@@ -70,19 +77,12 @@ impl SearchIndex {
       sat_name: schema_builder.add_text_field("sat_name", STORED | STRING),
     };
 
-    let schema = schema_builder.build();
+    let path = config.settings.search_index().to_owned();
 
-    // TODO: don't hard code this
-    let path = PathBuf::from("ord_search_index");
+    fs::create_dir_all(&path).snafu_context(error::Io { path: path.clone() })?;
 
-    if !path.exists() {
-      fs::create_dir(&path)?;
-    }
-
-    let search_index = match TantivyIndex::open_in_dir(&path) {
-      Ok(index) => index,
-      Err(_) => TantivyIndex::create_in_dir(&path, schema)?,
-    };
+    let search_index =
+      TantivyIndex::open_or_create(MmapDirectory::open(path)?, schema_builder.build())?;
 
     let reader = search_index
       .reader_builder()
@@ -92,7 +92,7 @@ impl SearchIndex {
     let writer = search_index.writer(50_000_000)?;
 
     let search_index = Self {
-      ord_index: index,
+      ord_index: config.index,
       reader,
       schema: document,
       search_index,
@@ -134,7 +134,7 @@ impl SearchIndex {
         .filter_map(|(_score, doc_address)| {
           self
             .schema
-            .to_search_result(&searcher.doc::<TantivyDocument>(*doc_address).ok()?)
+            .result(&searcher.doc::<TantivyDocument>(*doc_address).ok()?)
         })
         .collect(),
     )

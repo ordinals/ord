@@ -73,6 +73,8 @@ pub struct Options {
     help = "Do not index inscriptions."
   )]
   pub(crate) no_index_inscriptions: bool,
+  #[arg(long, help = "Use search index at <SEARCH_INDEX>.")]
+  pub(crate) search_index: Option<PathBuf>,
   #[arg(
     long,
     help = "Require basic HTTP authentication with <SERVER_PASSWORD>. Credentials are sent in cleartext. Consider using authentication in conjunction with HTTPS."

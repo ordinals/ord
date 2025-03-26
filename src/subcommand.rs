@@ -79,7 +79,11 @@ impl Subcommand {
           Some(event_sender),
         )?);
 
-        let search_index = Arc::new(SearchIndex::open(index.clone(), event_receiver)?);
+        let search_index = Arc::new(SearchIndex::open(search_index::Config {
+          event_receiver,
+          index: index.clone(),
+          settings: &settings,
+        })?);
 
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
