@@ -19,32 +19,6 @@
       }
     },
     {
-      "name": "content",
-      "type": "text",
-      "options": {
-        "indexing": {
-          "record": "position",
-          "fieldnorms": true,
-          "tokenizer": "default"
-        },
-        "stored": true,
-        "fast": false
-      }
-    },
-    {
-      "name": "content_type",
-      "type": "text",
-      "options": {
-        "indexing": {
-          "record": "position",
-          "fieldnorms": true,
-          "tokenizer": "default"
-        },
-        "stored": true,
-        "fast": false
-      }
-    },
-    {
       "name": "sat_name",
       "type": "text",
       "options": {
