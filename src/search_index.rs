@@ -5,27 +5,55 @@ use {
   tantivy::{
     collector::TopDocs,
     query::QueryParser,
-    schema::{document::OwnedValue, Field, Schema, STORED, STRING},
+    schema::{document::OwnedValue, Field, Schema as TantivySchema, STORED, STRING},
     Index as TantivyIndex, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument,
   },
   tokio::sync::mpsc::Receiver,
 };
 
 #[derive(Clone)]
-pub struct SearchIndex {
-  fields: Fields,
-  ord_index: Arc<Index>,
-  reader: IndexReader,
-  search_index: TantivyIndex,
-  writer: Arc<Mutex<IndexWriter>>,
-}
-
-#[derive(Clone)]
-struct Fields {
+struct Schema {
   id: Field,
   sat_name: Field,
 }
 
+impl Schema {
+  fn to_search_result(&self, result: &TantivyDocument) -> Option<SearchResult> {
+    let id_str = result.get_first(self.id).and_then(|value| {
+      if let OwnedValue::Str(id_str) = value {
+        Some(id_str)
+      } else {
+        None
+      }
+    })?;
+
+    let inscription_id = id_str.parse::<InscriptionId>().ok()?;
+
+    let sat_name = result.get_first(self.sat_name).and_then(|value| {
+      if let OwnedValue::Str(name) = value {
+        Some(name.clone())
+      } else {
+        None
+      }
+    });
+
+    Some(SearchResult {
+      inscription_id,
+      sat_name,
+    })
+  }
+}
+
+#[derive(Clone)]
+pub struct SearchIndex {
+  ord_index: Arc<Index>,
+  reader: IndexReader,
+  schema: Schema,
+  search_index: TantivyIndex,
+  writer: Arc<Mutex<IndexWriter>>,
+}
+
+#[allow(unused)]
 pub struct SearchResult {
   pub(crate) inscription_id: InscriptionId,
   pub(crate) sat_name: Option<String>,
@@ -35,18 +63,25 @@ impl SearchIndex {
   pub fn open(index: Arc<Index>, event_receiver: Receiver<Event>) -> Result<Self> {
     let mut event_receiver = event_receiver;
 
-    let mut schema_builder = Schema::builder();
+    let mut schema_builder = TantivySchema::builder();
 
-    let fields = Fields {
+    let document = Schema {
       id: schema_builder.add_text_field("id", STORED | STRING),
       sat_name: schema_builder.add_text_field("sat_name", STORED | STRING),
     };
 
     let schema = schema_builder.build();
 
-    let search_index = match TantivyIndex::open_in_dir("ord_search_index") {
+    // TODO: don't hard code this
+    let path = PathBuf::from("ord_search_index");
+
+    if !path.exists() {
+      fs::create_dir(&path)?;
+    }
+
+    let search_index = match TantivyIndex::open_in_dir(&path) {
       Ok(index) => index,
-      Err(_) => TantivyIndex::create_in_dir("ord_search_index", schema)?,
+      Err(_) => TantivyIndex::create_in_dir(&path, schema)?,
     };
 
     let reader = search_index
@@ -57,9 +92,9 @@ impl SearchIndex {
     let writer = search_index.writer(50_000_000)?;
 
     let search_index = Self {
-      fields,
-      ord_index: index.clone(),
+      ord_index: index,
       reader,
+      schema: document,
       search_index,
       writer: Arc::new(Mutex::new(writer)),
     };
@@ -86,69 +121,48 @@ impl SearchIndex {
   pub fn search(&self, query: &str) -> Result<Vec<SearchResult>> {
     let searcher = self.reader.searcher();
 
-    let mut query_parser = QueryParser::for_index(&self.search_index, vec![self.fields.sat_name]);
+    let mut query_parser = QueryParser::for_index(&self.search_index, vec![self.schema.sat_name]);
 
     query_parser.set_conjunction_by_default();
 
     let query = query_parser.parse_query(query)?;
 
-    let top_documents = searcher.search(&query, &TopDocs::with_limit(100))?;
-
-    let results = top_documents
-      .iter()
-      .filter_map(|(_score, doc_address)| {
-        let retrieved_doc = searcher.doc::<TantivyDocument>(*doc_address).ok()?;
-
-        let id_str = retrieved_doc.get_first(self.fields.id).and_then(|value| {
-          if let OwnedValue::Str(id_str) = value {
-            Some(id_str)
-          } else {
-            None
-          }
-        })?;
-
-        let inscription_id = id_str.parse::<InscriptionId>().ok()?;
-
-        let sat_name = retrieved_doc
-          .get_first(self.fields.sat_name)
-          .and_then(|value| {
-            if let OwnedValue::Str(name) = value {
-              Some(name.clone())
-            } else {
-              None
-            }
-          });
-
-        Some(SearchResult {
-          inscription_id,
-          sat_name,
+    Ok(
+      searcher
+        .search(&query, &TopDocs::with_limit(100))?
+        .iter()
+        .filter_map(|(_score, doc_address)| {
+          self
+            .schema
+            .to_search_result(&searcher.doc::<TantivyDocument>(*doc_address).ok()?)
         })
-      })
-      .collect();
-
-    Ok(results)
+        .collect(),
+    )
   }
 
   fn add_inscription(&self, inscription_id: InscriptionId) -> Result {
     let inscription_info = self
       .ord_index
-      .inscription_info(query::Inscription::Id(inscription_id), None)?;
+      .inscription_info(query::Inscription::Id(inscription_id), None)?
+      .ok_or(anyhow!(format!(
+        "failed to get info for inscription with id `{inscription_id}`"
+      )))?;
 
-    if let Some((inscription, _, _)) = inscription_info {
-      let mut writer = self.writer.lock().unwrap();
+    let (inscription, _, _) = inscription_info;
 
-      let mut document = TantivyDocument::default();
+    let mut writer = self.writer.lock().unwrap();
 
-      document.add_field_value(self.fields.id, inscription.id.to_string());
+    let mut document = TantivyDocument::default();
 
-      if let Some(sat) = inscription.sat {
-        document.add_text(self.fields.sat_name, sat.name());
-      }
+    document.add_field_value(self.schema.id, inscription.id.to_string());
 
-      writer.add_document(document)?;
-
-      writer.commit()?;
+    if let Some(sat) = inscription.sat {
+      document.add_text(self.schema.sat_name, sat.name());
     }
+
+    writer.add_document(document)?;
+
+    writer.commit()?;
 
     Ok(())
   }

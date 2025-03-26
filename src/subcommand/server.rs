@@ -155,7 +155,7 @@ impl Server {
     self,
     settings: Settings,
     index: Arc<Index>,
-    search_index: Arc<SearchIndex>,
+    search_index: Option<Arc<SearchIndex>>,
     handle: Handle,
   ) -> SubcommandResult {
     Runtime::new()?.block_on(async {
@@ -196,7 +196,7 @@ impl Server {
       });
 
       // non-recursive endpoints
-      let router = Router::new()
+      let mut router = Router::new()
         .route("/", get(Self::home))
         .route("/address/{address}", get(Self::address))
         .route("/block/{query}", get(Self::block))
@@ -212,7 +212,6 @@ impl Server {
         .route("/collections", get(Self::collections))
         .route("/collections/{page}", get(Self::collections_paginated))
         .route("/decode/{txid}", get(Self::decode))
-        .route("/explore", get(Self::explore))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
@@ -258,6 +257,15 @@ impl Server {
         .route("/thumbnail/{inscription_id}", get(Self::thumbnail))
         .route("/tx/{txid}", get(Self::transaction))
         .route("/update", get(Self::update));
+
+      if let Some(search_index) = search_index {
+        router = router.nest(
+          "/explore",
+          Router::new()
+            .route("/", get(Self::explore))
+            .layer(Extension(search_index)),
+        );
+      }
 
       // recursive endpoints
       let router = router
@@ -321,7 +329,6 @@ impl Server {
       let router = router
         .fallback(Self::fallback)
         .layer(Extension(index))
-        .layer(Extension(search_index))
         .layer(Extension(server_config.clone()))
         .layer(Extension(settings.clone()))
         .layer(SetResponseHeaderLayer::if_not_present(
@@ -2151,7 +2158,11 @@ mod tests {
       {
         let index = index.clone();
         let ord_server_handle = ord_server_handle.clone();
-        thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
+        thread::spawn(|| {
+          server
+            .run(settings, index, None, ord_server_handle)
+            .unwrap()
+        });
       }
 
       while index.statistic(crate::index::Statistic::Commits) == 0 {

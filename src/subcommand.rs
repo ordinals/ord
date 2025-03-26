@@ -84,7 +84,7 @@ impl Subcommand {
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
 
-        server.run(settings, index, search_index, handle)
+        server.run(settings, index, Some(search_index), handle)
       }
       Self::Settings => settings::run(settings),
       Self::Subsidy(subsidy) => subsidy.run(),
