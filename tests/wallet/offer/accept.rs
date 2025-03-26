@@ -4,16 +4,16 @@ type Accept = ord::subcommand::wallet::offer::accept::Output;
 type Create = ord::subcommand::wallet::offer::create::Output;
 
 #[test]
-fn accepted_inscription_offer_works() {
+fn accepted_offer_works() {
   let core = mockcore::spawn();
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
 
   create_wallet(&core, &ord);
 
-  let seller_postage = 9000;
+  let postage = 9000;
 
-  let (inscription, txid) = inscribe_with_options(&core, &ord, Some(seller_postage), 0);
+  let (inscription, txid) = inscribe_with_options(&core, &ord, Some(postage), 0);
 
   let inscription_address = Address::from_script(
     &core.tx_by_id(txid).output[0].script_pubkey,
@@ -31,8 +31,6 @@ fn accepted_inscription_offer_works() {
   .core(&core)
   .ord(&ord)
   .run_and_deserialize_output::<Create>();
-
-  let buyer_postage = 10_000;
 
   let mut buyer_addresses = core.state().clear_wallet_addresses();
   buyer_addresses.remove(&inscription_address);
@@ -54,7 +52,7 @@ fn accepted_inscription_offer_works() {
     .ord(&ord)
     .run_and_deserialize_output::<Balance>();
 
-  assert_eq!(balance.ordinal, seller_postage);
+  assert_eq!(balance.ordinal, postage);
   assert_eq!(balance.cardinal, 50 * COIN_VALUE);
 
   CommandBuilder::new(format!(
@@ -73,10 +71,7 @@ fn accepted_inscription_offer_works() {
     .run_and_deserialize_output::<Balance>();
 
   assert_eq!(balance.ordinal, 0);
-  assert_eq!(
-    balance.cardinal,
-    2 * 50 * COIN_VALUE + COIN_VALUE + seller_postage
-  );
+  assert_eq!(balance.cardinal, 2 * 50 * COIN_VALUE + COIN_VALUE + postage);
 
   core
     .state()
@@ -100,10 +95,10 @@ fn accepted_inscription_offer_works() {
     .ord(&ord)
     .run_and_deserialize_output::<Balance>();
 
-  assert_eq!(balance.ordinal, buyer_postage);
+  assert_eq!(balance.ordinal, postage);
   assert_eq!(
     balance.cardinal,
-    4 * 50 * COIN_VALUE - buyer_postage - seller_postage - COIN_VALUE
+    4 * 50 * COIN_VALUE - postage * 2 - COIN_VALUE
   );
 }
 
@@ -251,535 +246,10 @@ fn accepted_rune_offer_works() {
     )
   );
 
-  let buyer_postage = 10_000;
-
-  assert_eq!(balance.runic, Some(buyer_postage));
+  assert_eq!(balance.runic, Some(seller_postage));
   assert_eq!(
     balance.cardinal,
-    pre_balance.cardinal + 2 * 50 * COIN_VALUE - buyer_postage - COIN_VALUE
-  );
-}
-
-#[test]
-fn accepted_rune_offer_works_when_multiple_runes_present() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&core, &ord);
-
-  let rune = Rune(RUNE);
-  let a = etch(&core, &ord, rune);
-  let b = etch(&core, &ord, Rune(RUNE + 1));
-
-  let (a_block, a_tx) = core.tx_index(a.output.reveal);
-  let (b_block, b_tx) = core.tx_index(b.output.reveal);
-
-  core.mine_blocks(1);
-
-  let seller_address = core.state().new_address(false);
-
-  let merge = core.broadcast_tx(TransactionTemplate {
-    inputs: &[(a_block, a_tx, 1, default()), (b_block, b_tx, 1, default())],
-    recipient: Some(seller_address.clone()),
-    ..default()
-  });
-
-  core.mine_blocks(1);
-
-  core.state().remove_wallet_address(seller_address.clone());
-
-  let outpoint = OutPoint {
-    txid: merge,
-    vout: 0,
-  };
-
-  let pre_balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  let create = CommandBuilder::new(format!(
-    "--regtest wallet offer create --rune {}:{} --amount 1btc --fee-rate 0 --utxo {}",
-    1000,
-    Rune(RUNE),
-    outpoint
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Create>();
-
-  assert_eq!(
-    create
-      .seller_address
-      .clone()
-      .require_network(Network::Regtest)
-      .unwrap(),
-    seller_address,
-  );
-
-  let mut buyer_addresses = core.state().clear_wallet_addresses();
-  buyer_addresses.remove(&seller_address);
-
-  core.state().add_wallet_address(seller_address.clone());
-
-  CommandBuilder::new(format!(
-    "--regtest wallet offer accept --rune {}:{} --amount 1btc --psbt {} --dry-run",
-    1000,
-    Rune(RUNE),
-    create.psbt
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Accept>();
-
-  core.mine_blocks(1);
-
-  let seller_postage = 20_000;
-
-  let balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  assert_eq!(balance.runic, Some(seller_postage));
-  assert_eq!(balance.cardinal, 50 * COIN_VALUE);
-
-  CommandBuilder::new(format!(
-    "--regtest wallet offer accept --rune {}:{} --amount 1btc --psbt {}",
-    1000,
-    Rune(RUNE),
-    create.psbt,
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Accept>();
-
-  core.mine_blocks(1);
-
-  let balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  assert_eq!(balance.runic, Some(seller_postage));
-  assert_eq!(balance.cardinal, 2 * 50 * COIN_VALUE + COIN_VALUE);
-
-  assert_eq!(
-    balance.runes,
-    Some(
-      vec![(
-        SpacedRune {
-          rune: Rune(RUNE + 1),
-          spacers: 0
-        },
-        Decimal {
-          value: 1000,
-          scale: 0,
-        }
-      )]
-      .into_iter()
-      .collect()
-    )
-  );
-
-  core.state().remove_wallet_address(seller_address.clone());
-
-  for address in buyer_addresses {
-    core.state().add_wallet_address(address);
-  }
-
-  let balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  assert_eq!(
-    balance.runes,
-    Some(
-      vec![(
-        SpacedRune {
-          rune: Rune(RUNE),
-          spacers: 0
-        },
-        Decimal {
-          value: 1000,
-          scale: 0,
-        }
-      )]
-      .into_iter()
-      .collect()
-    )
-  );
-
-  let buyer_postage = 10_000;
-
-  assert_eq!(balance.runic, Some(buyer_postage));
-  assert_eq!(
-    balance.cardinal,
-    pre_balance.cardinal + 2 * 50 * COIN_VALUE - buyer_postage - COIN_VALUE
-  );
-}
-
-#[test]
-fn accepted_rune_offer_works_when_multiple_utxos_present() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&core, &ord);
-
-  let rune = Rune(RUNE);
-  etch(&core, &ord, rune);
-
-  core.mine_blocks(1);
-
-  let seller_address2 = core.state().new_address(false);
-
-  let send = CommandBuilder::new(format!(
-    "
-      --regtest
-      wallet
-      send
-      --fee-rate 1
-      {} 500:{}
-    ",
-    seller_address2,
-    Rune(RUNE),
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Send>();
-
-  core.mine_blocks(1);
-
-  let seller_address = Address::from_script(
-    &core.tx_by_id(send.txid).output[1].script_pubkey,
-    Network::Regtest,
-  )
-  .unwrap();
-
-  core.state().remove_wallet_address(seller_address.clone());
-  core.state().remove_wallet_address(seller_address2.clone());
-
-  let utxo0 = OutPoint {
-    txid: send.txid,
-    vout: 1,
-  };
-
-  let utxo1 = OutPoint {
-    txid: send.txid,
-    vout: 2,
-  };
-
-  let buyer_postage = 8_000;
-  let seller_postage = 20_000;
-
-  let pre_balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  let create = CommandBuilder::new(format!(
-    "--regtest wallet offer create --rune {}:{} --amount 1btc --fee-rate 0 --utxo {} --utxo {} --postage {}sats",
-    1000,
-    Rune(RUNE),
-    utxo0,
-    utxo1,
-    buyer_postage
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Create>();
-
-  assert_eq!(
-    create
-      .seller_address
-      .clone()
-      .require_network(Network::Regtest)
-      .unwrap(),
-    seller_address,
-  );
-
-  let mut buyer_addresses = core.state().clear_wallet_addresses();
-  buyer_addresses.remove(&seller_address);
-
-  core.state().add_wallet_address(seller_address.clone());
-  core.state().add_wallet_address(seller_address2.clone());
-
-  CommandBuilder::new(format!(
-    "--regtest wallet offer accept --rune {}:{} --amount 1btc --psbt {} --dry-run",
-    1000,
-    Rune(RUNE),
-    create.psbt
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Accept>();
-
-  core.mine_blocks(1);
-
-  let balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  assert_eq!(balance.runic, Some(seller_postage));
-  assert_eq!(balance.cardinal, 50 * COIN_VALUE);
-
-  CommandBuilder::new(format!(
-    "--regtest wallet offer accept --rune {}:{} --amount 1btc --psbt {}",
-    1000,
-    Rune(RUNE),
-    create.psbt,
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Accept>();
-
-  core.mine_blocks(1);
-
-  let balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  assert_eq!(balance.runic, Some(0));
-  assert_eq!(
-    balance.cardinal,
-    2 * 50 * COIN_VALUE + COIN_VALUE + seller_postage
-  );
-
-  core.state().remove_wallet_address(seller_address.clone());
-
-  for address in buyer_addresses {
-    core.state().add_wallet_address(address);
-  }
-
-  let balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  assert_eq!(
-    balance.runes,
-    Some(
-      vec![(
-        SpacedRune {
-          rune: Rune(RUNE),
-          spacers: 0
-        },
-        Decimal {
-          value: 1000,
-          scale: 0,
-        }
-      )]
-      .into_iter()
-      .collect()
-    )
-  );
-
-  assert_eq!(balance.runic, Some(buyer_postage));
-  assert_eq!(
-    balance.cardinal,
-    pre_balance.cardinal + 2 * 50 * COIN_VALUE - buyer_postage - COIN_VALUE
-  );
-}
-
-#[test]
-fn accepted_rune_offer_works_when_multiple_runes_present_in_multiple_utxos() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&core, &ord);
-
-  let rune = Rune(RUNE);
-  etch(&core, &ord, rune);
-  let b = etch(&core, &ord, Rune(RUNE + 1));
-
-  core.mine_blocks(1);
-
-  let seller_address = core.state().new_address(false);
-
-  let send = CommandBuilder::new(format!(
-    "
-      --regtest
-      wallet
-      send
-      --fee-rate 1
-      {} 500:{}
-    ",
-    seller_address,
-    Rune(RUNE),
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Send>();
-
-  core.mine_blocks(1);
-
-  let (a_block, a_tx) = core.tx_index(send.txid);
-  let (b_block, b_tx) = core.tx_index(b.output.reveal);
-
-  let seller_address2 = CommandBuilder::new("--regtest wallet receive")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
-    .addresses
-    .into_iter()
-    .next()
-    .unwrap()
-    .require_network(Network::Regtest)
-    .unwrap();
-
-  let merge = core.broadcast_tx(TransactionTemplate {
-    inputs: &[(a_block, a_tx, 1, default()), (b_block, b_tx, 1, default())],
-    recipient: Some(seller_address2.clone()),
-    ..default()
-  });
-
-  core.mine_blocks(1);
-
-  core.state().remove_wallet_address(seller_address.clone());
-  core.state().remove_wallet_address(seller_address2.clone());
-
-  let utxo0 = OutPoint {
-    txid: send.txid,
-    vout: 2,
-  };
-
-  let utxo1 = OutPoint {
-    txid: merge,
-    vout: 0,
-  };
-
-  let pre_balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  let create = CommandBuilder::new(format!(
-    "--regtest wallet offer create --rune {}:{} --amount 1btc --fee-rate 0 --utxo {} --utxo {}",
-    1000,
-    Rune(RUNE),
-    utxo0,
-    utxo1,
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Create>();
-
-  assert_eq!(
-    create
-      .seller_address
-      .clone()
-      .require_network(Network::Regtest)
-      .unwrap(),
-    seller_address,
-  );
-
-  let mut buyer_addresses = core.state().clear_wallet_addresses();
-  buyer_addresses.remove(&seller_address);
-
-  core.state().add_wallet_address(seller_address.clone());
-  core.state().add_wallet_address(seller_address2.clone());
-
-  CommandBuilder::new(format!(
-    "--regtest wallet offer accept --rune {}:{} --amount 1btc --psbt {} --dry-run",
-    1000,
-    Rune(RUNE),
-    create.psbt
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Accept>();
-
-  core.mine_blocks(1);
-
-  let seller_postage = 30_000;
-
-  let balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  assert_eq!(balance.runic, Some(seller_postage));
-  assert_eq!(balance.cardinal, 50 * COIN_VALUE);
-
-  CommandBuilder::new(format!(
-    "--regtest wallet offer accept --rune {}:{} --amount 1btc --psbt {}",
-    1000,
-    Rune(RUNE),
-    create.psbt,
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Accept>();
-
-  core.mine_blocks(1);
-
-  let balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  assert_eq!(balance.runic, Some(seller_postage));
-  assert_eq!(balance.cardinal, 2 * 50 * COIN_VALUE + COIN_VALUE);
-
-  assert_eq!(
-    balance.runes,
-    Some(
-      vec![(
-        SpacedRune {
-          rune: Rune(RUNE + 1),
-          spacers: 0
-        },
-        Decimal {
-          value: 1000,
-          scale: 0,
-        }
-      )]
-      .into_iter()
-      .collect()
-    )
-  );
-
-  core.state().remove_wallet_address(seller_address.clone());
-
-  for address in buyer_addresses {
-    core.state().add_wallet_address(address);
-  }
-
-  let balance = CommandBuilder::new("--regtest wallet balance")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Balance>();
-
-  assert_eq!(
-    balance.runes,
-    Some(
-      vec![(
-        SpacedRune {
-          rune: Rune(RUNE),
-          spacers: 0
-        },
-        Decimal {
-          value: 1000,
-          scale: 0,
-        }
-      )]
-      .into_iter()
-      .collect()
-    )
-  );
-
-  let buyer_postage = 10_000;
-
-  assert_eq!(balance.runic, Some(buyer_postage));
-  assert_eq!(
-    balance.cardinal,
-    pre_balance.cardinal + 2 * 50 * COIN_VALUE - buyer_postage - COIN_VALUE
+    pre_balance.cardinal + 2 * 50 * COIN_VALUE - seller_postage - COIN_VALUE
   );
 }
 
@@ -1596,8 +1066,8 @@ fn outgoing_contains_unexpected_rune_balance_in_rune_offer() {
   .ord(&ord)
   .expected_exit_code(1)
   .expected_stderr(format!(
-    "error: unexpected rune {} balance at outgoing input(s) ({} vs. {})\n",
-    rune, 500, 250
+    "error: unexpected rune {} balance at outgoing input {} (expected {}, found {})\n",
+    rune, outpoint, 250, 500
   ))
   .run_and_extract_stdout();
 }
@@ -1676,7 +1146,7 @@ fn outgoing_contains_inscription_in_rune_offer() {
 }
 
 #[test]
-fn error_missing_runestone_when_utxo_contains_multiple_runes() {
+fn error_contains_multiple_runes() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -1745,12 +1215,14 @@ fn error_missing_runestone_when_utxo_contains_multiple_runes() {
   .core(&core)
   .ord(&ord)
   .expected_exit_code(1)
-  .expected_stderr("error: missing runestone in PSBT\n")
+  .expected_stderr(format!(
+    "error: outgoing input {outpoint} holds multiple runes\n"
+  ))
   .run_and_extract_stdout();
 }
 
 #[test]
-fn error_unexpected_runestone_when_utxo_contains_single_rune() {
+fn error_unexpected_runestone() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
@@ -1809,174 +1281,6 @@ fn error_unexpected_runestone_when_utxo_contains_single_rune() {
 }
 
 #[test]
-fn error_unexpected_runestone_when_utxo_contains_multiple_runes() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&core, &ord);
-
-  let rune0 = Rune(RUNE);
-  let rune1 = Rune(RUNE + 1);
-  let a = etch(&core, &ord, rune0);
-  let b = etch(&core, &ord, rune1);
-
-  let (block0, tx0) = core.tx_index(a.output.reveal);
-  let (block1, tx1) = core.tx_index(b.output.reveal);
-
-  core.mine_blocks(1);
-
-  let address = CommandBuilder::new("--regtest wallet receive")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<ord::subcommand::wallet::receive::Output>()
-    .addresses
-    .into_iter()
-    .next()
-    .unwrap();
-
-  let merge = core.broadcast_tx(TransactionTemplate {
-    inputs: &[(block0, tx0, 1, default()), (block1, tx1, 1, default())],
-    recipient: Some(address.require_network(Network::Regtest).unwrap()),
-    ..default()
-  });
-
-  let outpoint = OutPoint {
-    txid: merge,
-    vout: 0,
-  };
-
-  core.mine_blocks(1);
-
-  let runestone = Runestone::default();
-
-  let psbt = Psbt::from_unsigned_tx(Transaction {
-    version: Version(2),
-    lock_time: LockTime::ZERO,
-    input: vec![TxIn {
-      previous_output: outpoint,
-      script_sig: ScriptBuf::new(),
-      sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-      witness: Witness::new(),
-    }],
-    output: vec![TxOut {
-      value: Amount::ZERO,
-      script_pubkey: runestone.encipher(),
-    }],
-  })
-  .unwrap();
-
-  let base64 = base64_encode(&psbt.serialize());
-
-  CommandBuilder::new([
-    "--regtest",
-    "wallet",
-    "offer",
-    "accept",
-    "--rune",
-    &format!("1000:{}", rune0),
-    "--amount",
-    "1btc",
-    "--psbt",
-    &base64,
-  ])
-  .core(&core)
-  .ord(&ord)
-  .expected_exit_code(1)
-  .expected_stderr("error: unexpected runestone in PSBT\n")
-  .run_and_extract_stdout();
-}
-
-#[test]
-fn error_unexpected_seller_address_when_utxo_contains_multiple_runes() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&core, &ord);
-
-  let rune0 = Rune(RUNE);
-  let rune1 = Rune(RUNE + 1);
-  let a = etch(&core, &ord, rune0);
-  let b = etch(&core, &ord, rune1);
-
-  let (block0, tx0) = core.tx_index(a.output.reveal);
-  let (block1, tx1) = core.tx_index(b.output.reveal);
-
-  core.mine_blocks(1);
-
-  let address = core.state().new_address(false);
-
-  let merge = core.broadcast_tx(TransactionTemplate {
-    inputs: &[(block0, tx0, 1, default()), (block1, tx1, 1, default())],
-    recipient: Some(address.clone()),
-    ..default()
-  });
-
-  let outpoint = OutPoint {
-    txid: merge,
-    vout: 0,
-  };
-
-  core.mine_blocks(1);
-
-  let seller_address = core.state().new_address(false);
-
-  core.state().remove_wallet_address(seller_address.clone());
-
-  let runestone = Runestone {
-    edicts: vec![Edict {
-      amount: 0,
-      id: a.id,
-      output: 2,
-    }],
-    ..default()
-  };
-
-  let psbt = Psbt::from_unsigned_tx(Transaction {
-    version: Version(2),
-    lock_time: LockTime::ZERO,
-    input: vec![TxIn {
-      previous_output: outpoint,
-      script_sig: ScriptBuf::new(),
-      sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
-      witness: Witness::new(),
-    }],
-    output: vec![
-      TxOut {
-        value: Amount::ZERO,
-        script_pubkey: seller_address.into(),
-      },
-      TxOut {
-        value: Amount::ZERO,
-        script_pubkey: runestone.encipher(),
-      },
-    ],
-  })
-  .unwrap();
-
-  let base64 = base64_encode(&psbt.serialize());
-
-  CommandBuilder::new([
-    "--regtest",
-    "wallet",
-    "offer",
-    "accept",
-    "--rune",
-    &format!("1000:{}", rune0),
-    "--amount",
-    "1btc",
-    "--psbt",
-    &base64,
-  ])
-  .core(&core)
-  .ord(&ord)
-  .expected_exit_code(1)
-  .expected_stderr("error: unexpected seller address in PSBT\n")
-  .run_and_extract_stdout();
-}
-
-#[test]
 fn error_must_include_either_inscription_or_rune() {
   let core = mockcore::spawn();
 
@@ -2019,8 +1323,11 @@ fn error_must_include_either_inscription_or_rune() {
   CommandBuilder::new(format!("wallet offer accept --amount 1btc --psbt {base64}"))
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: must include either --inscription or --rune\n")
-    .expected_exit_code(1)
+    .stderr_regex(
+      ".*error: the following required arguments were not provided:
+  .*<--inscription <INSCRIPTION>|--rune <RUNE>>.*",
+    )
+    .expected_exit_code(2)
     .run_and_extract_stdout();
 }
 
@@ -2069,8 +1376,10 @@ fn error_cannot_include_both_inscription_and_rune() {
   ))
   .core(&core)
   .ord(&ord)
-  .expected_stderr("error: cannot include both --inscription and --rune\n")
-  .expected_exit_code(1)
+  .stderr_regex(
+    "error: the argument '--inscription <INSCRIPTION>' cannot be used with '--rune <RUNE>'.*",
+  )
+  .expected_exit_code(2)
   .run_and_extract_stdout();
 }
 
