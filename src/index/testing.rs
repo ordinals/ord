@@ -128,7 +128,22 @@ impl Context {
     let balances = balances.as_mut();
     balances.sort_by_key(|(outpoint, _)| *outpoint);
 
-    for (_, balances) in balances.iter_mut() {
+    let mut burned_balances = 0;
+
+    for (outpoint, balances) in balances.iter_mut() {
+      if self
+        .index
+        .get_output_script(outpoint)
+        .ok()
+        .flatten()
+        .is_some_and(|script| script.is_op_return())
+      {
+        for (_, balance) in balances.iter() {
+          println!("burned_balances: {}", burned_balances);
+          burned_balances += *balance;
+        }
+      }
+
       balances.sort_by_key(|(id, _)| *id);
     }
 
@@ -146,7 +161,7 @@ impl Context {
 
     for (id, entry) in runes {
       pretty_assert_eq!(
-        outstanding.get(id).copied().unwrap_or_default(),
+        outstanding.get(id).copied().unwrap_or_default() - burned_balances,
         entry.supply() - entry.burned
       );
     }

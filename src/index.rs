@@ -499,6 +499,23 @@ impl Index {
     )
   }
 
+  pub fn get_output_script(&self, output: &OutPoint) -> Result<Option<ScriptBuf>> {
+    let rtx = self.database.begin_read()?;
+    let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
+
+    let entry = outpoint_to_utxo_entry
+      .get(&output.store())?
+      .ok_or_else(|| anyhow!("UTXO entry not found for output: {:?}", output))?;
+
+    let parsed = entry.value().parse(self);
+
+    Ok(
+      parsed
+        .script_pubkey()
+        .map(|bytes| ScriptBuf::from_bytes(bytes.to_vec())),
+    )
+  }
+
   pub fn has_address_index(&self) -> bool {
     self.index_addresses
   }
@@ -744,6 +761,7 @@ impl Index {
                 .value()
                 .parse(self)
                 .script_pubkey()
+                .unwrap()
                 .to_vec(),
             )
           } else {
@@ -6621,7 +6639,7 @@ mod tests {
 
     let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
     let context = Context::builder()
-      .arg("--index-runes")
+      .args(["--index-runes", "--index-addresses"])
       .event_sender(event_sender)
       .build();
 
