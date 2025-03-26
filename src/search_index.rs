@@ -154,7 +154,7 @@ impl SearchIndex {
 
     let mut document = TantivyDocument::default();
 
-    document.add_field_value(self.schema.id, inscription.id.to_string());
+    document.add_text(self.schema.id, inscription.id.to_string());
 
     if let Some(sat) = inscription.sat {
       document.add_text(self.schema.sat_name, sat.name());
