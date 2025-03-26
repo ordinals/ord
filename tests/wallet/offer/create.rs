@@ -394,12 +394,16 @@ fn rune_must_exist() {
 
   create_wallet(&core, &ord);
 
-  CommandBuilder::new("--regtest wallet offer create --rune 1:FOO --amount 1btc --fee-rate 1")
-    .core(&core)
-    .ord(&ord)
-    .expected_stderr("error: rune `FOO` has not been etched\n")
-    .expected_exit_code(1)
-    .run_and_extract_stdout();
+  let utxo = OutPoint::null();
+
+  CommandBuilder::new(format!(
+    "--regtest wallet offer create --rune 1:FOO --amount 1btc --utxo {utxo} --fee-rate 1"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr("error: rune `FOO` has not been etched\n")
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
 }
 
 #[test]
@@ -418,8 +422,11 @@ fn utxo_must_be_set_in_rune_offer() {
   ))
   .core(&core)
   .ord(&ord)
-  .expected_stderr("error: --utxo must be set\n")
-  .expected_exit_code(1)
+  .stderr_regex(
+    ".*error: the following required arguments were not provided:
+.*--utxo <UTXO>.*",
+  )
+  .expected_exit_code(2)
   .run_and_extract_stdout();
 }
 
@@ -684,8 +691,10 @@ fn error_rune_not_properly_formatted() {
 
   core.mine_blocks(1);
 
+  let utxo = OutPoint::null();
+
   CommandBuilder::new(format!(
-    "wallet offer create --rune {inscription} --amount 1btc --fee-rate 1"
+    "wallet offer create --rune {inscription} --amount 1btc --utxo {utxo} --fee-rate 1"
   ))
   .core(&core)
   .ord(&ord)

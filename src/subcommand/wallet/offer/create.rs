@@ -16,7 +16,7 @@ pub struct Output {
 pub(crate) struct Create {
   #[arg(long, help = "<INSCRIPTION> to make offer for.")]
   inscription: Option<InscriptionId>,
-  #[arg(long, help = "<DECIMAL:RUNE> to make offer for.")]
+  #[arg(long, help = "<DECIMAL:RUNE> to make offer for.", requires = "utxo")]
   rune: Option<Outgoing>,
   #[arg(long, help = "<AMOUNT> to offer.")]
   amount: Amount,
@@ -86,9 +86,9 @@ impl Create {
           .get_rune(spaced_rune.rune)?
           .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
 
-        let Some(utxo) = self.utxo else {
-          bail!("--utxo must be set");
-        };
+        assert!(self.utxo.is_some());
+
+        let utxo = self.utxo.unwrap();
 
         ensure!(
           !wallet.utxos().contains_key(&utxo),
