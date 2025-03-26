@@ -348,7 +348,7 @@ impl Settings {
 
     let search_index = match &self.search_index {
       Some(path) => path.clone(),
-      None => data_dir.join("ord-search-index"),
+      None => data_dir.join("search-index"),
     };
 
     Ok(Self {
