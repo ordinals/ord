@@ -1941,6 +1941,24 @@ impl Index {
     Ok((inscriptions, more))
   }
 
+  pub fn get_all_inscriptions(&self) -> Result<Vec<InscriptionId>> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    let inscriptions = sequence_number_to_inscription_entry
+      .iter()?
+      .map(|result| {
+        result
+          .map(|(_number, entry)| InscriptionEntry::load(entry.value()).id)
+          .map_err(|err| anyhow!(err))
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    Ok(inscriptions)
+  }
+
   pub fn get_inscriptions_in_block(&self, block_height: u32) -> Result<Vec<InscriptionId>> {
     let rtx = self.database.begin_read()?;
 

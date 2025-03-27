@@ -105,16 +105,44 @@ impl SearchIndex {
 
     let search_index_clone = search_index.clone();
 
+    let inscription_ids = search_index.ord_index.get_all_inscriptions()?;
+
+    thread::spawn(move || {
+      for inscription_id in inscription_ids {
+        if let Err(error) = search_index_clone.add_inscription(inscription_id) {
+          log::error!(
+            "failed to add inscription with id `{}` to search index: {}",
+            inscription_id,
+            error
+          );
+        }
+      }
+    });
+
+    let search_index_clone = search_index.clone();
+
     thread::spawn(move || {
       while let Some(event) = event_receiver.blocking_recv() {
-        if let Event::InscriptionCreated { inscription_id, .. } = event {
-          if let Err(error) = search_index_clone.add_inscription(inscription_id) {
-            log::error!(
-              "failed to add inscription with id `{}` to search index: {}",
-              inscription_id,
-              error
-            );
+        match event {
+          Event::InscriptionCreated { inscription_id, .. } => {
+            if let Err(error) = search_index_clone.add_inscription(inscription_id) {
+              log::error!(
+                "failed to add inscription with id `{}` to search index: {}",
+                inscription_id,
+                error
+              );
+            }
           }
+          Event::InscriptionTransferred { inscription_id, .. } => {
+            if let Err(error) = search_index_clone.update_inscription(inscription_id) {
+              log::error!(
+                "failed to update inscription with id `{}` to search index: {}",
+                inscription_id,
+                error
+              );
+            }
+          }
+          _ => {}
         }
       }
     });
@@ -128,6 +156,8 @@ impl SearchIndex {
     let mut query_parser = QueryParser::for_index(&self.search_index, self.schema.search_fields());
 
     query_parser.set_conjunction_by_default();
+    query_parser.set_field_fuzzy(self.schema.inscription_id, true, 2, true);
+    query_parser.set_field_fuzzy(self.schema.sat_name, true, 2, true);
 
     let query = query_parser.parse_query(query)?;
 
@@ -145,6 +175,21 @@ impl SearchIndex {
   }
 
   fn add_inscription(&self, inscription_id: InscriptionId) -> Result {
+    let searcher = self.reader.searcher();
+
+    let query_parser = QueryParser::for_index(&self.search_index, vec![self.schema.inscription_id]);
+
+    let query = query_parser.parse_query(&format!("\"{}\"", inscription_id))?;
+
+    if !searcher.search(&query, &TopDocs::with_limit(1))?.is_empty() {
+      log::info!(
+        "Inscription with id `{}` already exists in search index, skipping",
+        inscription_id
+      );
+
+      return Ok(());
+    }
+
     let inscription_info = self
       .ord_index
       .inscription_info(query::Inscription::Id(inscription_id), None)?
@@ -167,6 +212,48 @@ impl SearchIndex {
     writer.add_document(document)?;
 
     writer.commit()?;
+
+    log::info!(
+      "Added inscription with id `{}` to search index",
+      inscription_id
+    );
+
+    Ok(())
+  }
+
+  fn update_inscription(&self, inscription_id: InscriptionId) -> Result {
+    let inscription_info = self
+      .ord_index
+      .inscription_info(query::Inscription::Id(inscription_id), None)?
+      .ok_or(anyhow!(format!(
+        "failed to get info for inscription with id `{inscription_id}`"
+      )))?;
+
+    let (inscription, _, _) = inscription_info;
+
+    let mut writer = self.writer.lock().unwrap();
+
+    writer.delete_term(tantivy::Term::from_field_text(
+      self.schema.inscription_id,
+      &inscription_id.to_string(),
+    ));
+
+    let mut document = TantivyDocument::default();
+
+    document.add_text(self.schema.inscription_id, inscription.id.to_string());
+
+    if let Some(sat) = inscription.sat {
+      document.add_text(self.schema.sat_name, sat.name());
+    }
+
+    writer.add_document(document)?;
+
+    writer.commit()?;
+
+    log::info!(
+      "Updated inscription with id `{}` in search index",
+      inscription_id
+    );
 
     Ok(())
   }

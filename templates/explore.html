@@ -6,7 +6,7 @@
 </form>
 
 %% if !self.search_results.is_empty() {
-<h2>Search Results</h2>
+<h2>Results ({{ self.search_results.len() }})</h2>
 <div class=thumbnails>
 %% for result in &self.search_results {
   {{ Iframe::thumbnail(result.inscription_id) }}
