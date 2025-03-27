@@ -18,6 +18,18 @@ pub struct Config<'a> {
   pub(crate) settings: &'a Settings,
 }
 
+#[derive(Debug, Clone, Copy)]
+enum PendingInscriptionAction {
+  Create,
+  Update,
+}
+
+#[derive(Debug, Clone)]
+struct PendingInscription {
+  inscription_id: InscriptionId,
+  action: PendingInscriptionAction,
+}
+
 #[derive(Clone)]
 struct Schema {
   inscription_id: Field,
@@ -77,7 +89,7 @@ impl SearchIndex {
     let mut schema_builder = TantivySchema::builder();
 
     let document = Schema {
-      inscription_id: schema_builder.add_text_field("id", STORED | STRING),
+      inscription_id: schema_builder.add_text_field("inscription_id", STORED | STRING),
       sat_name: schema_builder.add_text_field("sat_name", STORED | STRING),
     };
 
@@ -121,25 +133,52 @@ impl SearchIndex {
 
     let search_index_clone = search_index.clone();
 
+    let pending_inscriptions = Arc::new(Mutex::new(Vec::new()));
+    let pending_clone = pending_inscriptions.clone();
+
     thread::spawn(move || {
       while let Some(event) = event_receiver.blocking_recv() {
         match event {
           Event::InscriptionCreated { inscription_id, .. } => {
-            if let Err(error) = search_index_clone.add_inscription(inscription_id) {
-              log::error!(
-                "failed to add inscription with id `{}` to search index: {}",
-                inscription_id,
-                error
-              );
-            }
+            pending_clone.lock().unwrap().push(PendingInscription {
+              inscription_id,
+              action: PendingInscriptionAction::Create,
+            });
           }
           Event::InscriptionTransferred { inscription_id, .. } => {
-            if let Err(error) = search_index_clone.update_inscription(inscription_id) {
-              log::error!(
-                "failed to update inscription with id `{}` to search index: {}",
-                inscription_id,
-                error
-              );
+            pending_clone.lock().unwrap().push(PendingInscription {
+              inscription_id,
+              action: PendingInscriptionAction::Update,
+            });
+          }
+          Event::Commit => {
+            let mut pending = pending_clone.lock().unwrap();
+
+            for pending_inscription in pending.drain(..) {
+              match pending_inscription.action {
+                PendingInscriptionAction::Update => {
+                  if let Err(error) =
+                    search_index_clone.update_inscription(pending_inscription.inscription_id)
+                  {
+                    log::error!(
+                      "failed to update inscription with id `{}` to search index: {}",
+                      pending_inscription.inscription_id,
+                      error
+                    );
+                  }
+                }
+                PendingInscriptionAction::Create => {
+                  if let Err(error) =
+                    search_index_clone.add_inscription(pending_inscription.inscription_id)
+                  {
+                    log::error!(
+                      "failed to add inscription with id `{}` to search index: {}",
+                      pending_inscription.inscription_id,
+                      error
+                    );
+                  }
+                }
+              }
             }
           }
           _ => {}
