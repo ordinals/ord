@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Event {
+  Commit,
   InscriptionCreated {
     block_height: u32,
     charms: u16,

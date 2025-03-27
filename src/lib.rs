@@ -29,6 +29,7 @@ use {
     properties::Properties,
     representation::Representation,
     satscard::Satscard,
+    search_index::SearchIndex,
     settings::Settings,
     signer::Signer,
     subcommand::{OutputFormat, Subcommand, SubcommandResult},
@@ -130,6 +131,7 @@ mod re;
 mod representation;
 pub mod runes;
 mod satscard;
+mod search_index;
 pub mod settings;
 mod signer;
 pub mod subcommand;
