@@ -328,19 +328,19 @@ impl StreamEvent {
       });
 
     // Only enrich the inscription if it is a BRC20 transfer
-    if *IS_BRC20 {
-      match index
-        .get_inscription_by_id_unsafe(self.inscription_id)
-        .unwrap_or(None)
-      {
-        Some(inscription) => {
-          self.enrich_content(inscription);
-        }
-        None => {
-          warn!("could not find inscription for id {}", self.inscription_id);
-        }
+    // if *IS_BRC20 {
+    match index
+      .get_inscription_by_id_unsafe(self.inscription_id)
+      .unwrap_or(None)
+    {
+      Some(inscription) => {
+        self.enrich_content(inscription);
+      }
+      None => {
+        warn!("could not find inscription for id {}", self.inscription_id);
       }
     }
+    // }
     self
   }
 
