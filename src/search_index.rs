@@ -119,7 +119,7 @@ impl SearchIndex {
         }
 
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-          break;
+          return Ok(())
         }
       }
     }
