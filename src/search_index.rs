@@ -2,7 +2,7 @@ use {
   super::*,
   crate::subcommand::server::query,
   tantivy::{
-    collector::TopDocs,
+    collector::{Count, TopDocs},
     directory::MmapDirectory,
     query::QueryParser,
     schema::{document::OwnedValue, Field, Schema as TantivySchema, STORED, STRING},
@@ -22,7 +22,7 @@ impl Schema {
   }
 
   fn search_result(&self, document: &TantivyDocument) -> Option<SearchResult> {
-    let id_str = document.get_first(self.inscription_id).and_then(|value| {
+    let inscription_id = document.get_first(self.inscription_id).and_then(|value| {
       if let OwnedValue::Str(id_str) = value {
         Some(id_str)
       } else {
@@ -30,9 +30,9 @@ impl Schema {
       }
     })?;
 
-    let inscription_id = id_str.parse::<InscriptionId>().ok()?;
-
-    Some(SearchResult { inscription_id })
+    Some(SearchResult {
+      inscription_id: inscription_id.parse().ok()?,
+    })
   }
 
   fn query_parser(&self, search_index: &TantivyIndex) -> QueryParser {
@@ -109,13 +109,13 @@ impl SearchIndex {
   }
 
   pub(crate) fn update(&self) -> Result {
-    let mut added_inscriptions = Vec::new();
+    let mut indexed_inscriptions = Vec::new();
 
     loop {
       for inscription_id in self.ord_index.get_all_inscriptions()? {
-        if !added_inscriptions.contains(&inscription_id) {
-          self.add_inscription(inscription_id)?;
-          added_inscriptions.push(inscription_id);
+        if !indexed_inscriptions.contains(&inscription_id) {
+          self.index_inscription(inscription_id)?;
+          indexed_inscriptions.push(inscription_id);
         }
 
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
@@ -125,25 +125,24 @@ impl SearchIndex {
     }
   }
 
-  fn add_inscription(&self, inscription_id: InscriptionId) -> Result {
+  fn index_inscription(&self, inscription_id: InscriptionId) -> Result {
     let searcher = self.reader.searcher();
 
-    let query_parser = self.schema.query_parser(&self.search_index);
+    let query = self
+      .schema
+      .query_parser(&self.search_index)
+      .parse_query(&format!("inscription_id:{inscription_id}"))?;
 
-    let query = query_parser.parse_query(&format!("\"{}\"", inscription_id))?;
-
-    if !searcher.search(&query, &TopDocs::with_limit(1))?.is_empty() {
+    if searcher.search(&query, &Count)? > 0 {
       return Ok(());
     }
 
-    let inscription_info = self
+    let (inscription, _, _) = self
       .ord_index
       .inscription_info(query::Inscription::Id(inscription_id), None)?
       .ok_or(anyhow!(format!(
         "failed to get info for inscription with id `{inscription_id}`"
       )))?;
-
-    let (inscription, _, _) = inscription_info;
 
     let mut writer = self.writer.lock().unwrap();
 
