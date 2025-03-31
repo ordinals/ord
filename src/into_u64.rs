@@ -13,7 +13,7 @@ mod tests {
   use super::*;
 
   #[test]
-  fn into_usize() {
+  fn into_u64() {
     usize::MAX.into_u64();
   }
 }
