@@ -72,22 +72,10 @@ impl Subcommand {
       Self::Parse(parse) => parse.run(),
       Self::Runes => runes::run(settings),
       Self::Server(server) => {
-        let (event_sender, event_receiver) = tokio::sync::mpsc::channel(1024);
-
-        let index = Arc::new(Index::open_with_event_sender(
-          &settings,
-          Some(event_sender),
-        )?);
-
-        let search_index = Arc::new(SearchIndex::open(search_index::Config {
-          event_receiver,
-          index: index.clone(),
-          settings: &settings,
-        })?);
-
+        let index = Arc::new(Index::open_with_event_sender(&settings, None)?);
+        let search_index = Arc::new(SearchIndex::open(index.clone(), &settings)?);
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
-
         server.run(settings, index, Some(search_index), handle)
       }
       Self::Settings => settings::run(settings),

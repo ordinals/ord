@@ -182,6 +182,30 @@ impl Server {
 
       INDEXER.lock().unwrap().replace(index_thread);
 
+      if let Some(search_index) = &search_index {
+        let search_index_clone = search_index.clone();
+
+        let search_index_thread = thread::spawn(move || loop {
+          if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+            break;
+          }
+
+          if !self.no_sync {
+            if let Err(error) = search_index_clone.update() {
+              log::warn!("Updating search index: {error}");
+            }
+          }
+
+          thread::sleep(if integration_test {
+            Duration::from_millis(100)
+          } else {
+            self.polling_interval.into()
+          });
+        });
+
+        SEARCH_INDEXER.lock().unwrap().replace(search_index_thread);
+      }
+
       let settings = Arc::new(settings);
       let acme_domains = self.acme_domains()?;
 

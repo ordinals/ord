@@ -871,10 +871,6 @@ impl Updater<'_> {
 
     Reorg::update_savepoints(self.index, self.height)?;
 
-    if let Some(ref sender) = self.index.event_sender {
-      sender.blocking_send(Event::Commit)?;
-    }
-
     Ok(())
   }
 }

@@ -148,6 +148,7 @@ const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
+static SEARCH_INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
 
 #[doc(hidden)]
 #[derive(Deserialize, Serialize)]
@@ -277,6 +278,14 @@ fn gracefully_shut_down_indexer() {
     log::info!("Waiting for index thread to finish...");
     if indexer.join().is_err() {
       log::warn!("Index thread panicked; join failed");
+    }
+  }
+
+  if let Some(search_indexer) = SEARCH_INDEXER.lock().unwrap().take() {
+    shut_down();
+    log::info!("Waiting for search index thread to finish...");
+    if search_indexer.join().is_err() {
+      log::warn!("Search index thread panicked; join failed");
     }
   }
 }
