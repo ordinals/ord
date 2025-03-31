@@ -13,13 +13,12 @@ use {
 #[derive(Clone)]
 struct Schema {
   inscription_id: Field,
-  charm: Field,
   sat_name: Field,
 }
 
 impl Schema {
   fn default_search_fields(&self) -> Vec<Field> {
-    vec![self.inscription_id, self.charm, self.sat_name]
+    vec![self.inscription_id, self.sat_name]
   }
 
   fn search_result(&self, document: &TantivyDocument) -> Option<SearchResult> {
@@ -62,7 +61,6 @@ impl SearchIndex {
 
     let document = Schema {
       inscription_id: schema_builder.add_text_field("inscription_id", STRING | STORED),
-      charm: schema_builder.add_text_field("charm", STRING),
       sat_name: schema_builder.add_text_field("sat_name", STRING),
     };
 
