@@ -376,7 +376,7 @@ impl Api for Server {
       .output
       .iter()
       .map(|txout| txout.value.to_sat())
-      .sum();
+      .sum::<u64>();
 
     let mut utxos = state
       .utxos

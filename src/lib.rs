@@ -23,6 +23,7 @@ use {
       media::{self, ImageRendering, Media},
       teleburn,
     },
+    into_u64::IntoU64,
     into_usize::IntoUsize,
     option_ext::OptionExt,
     outgoing::Outgoing,
@@ -119,6 +120,7 @@ mod error;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
+mod into_u64;
 mod into_usize;
 mod macros;
 mod object;
