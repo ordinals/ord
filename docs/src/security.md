@@ -54,8 +54,8 @@ as another web service which is vulnerable to cross-site scripting.
 
 ### Spoofing
 
-If `ord server` is run run at a well known domain, for example, `ordinals.com`,
-an attacker could publish a malicious inscription that attempts to trick users
+If `ord server` is run at a well known domain, for example, `ordinals.com`, an
+attacker could publish a malicious inscription that attempts to trick users
 into thinking that it represents the owners of the domain. For example, by
 publishing a mint page to induce users to send bitcoin. Additionally, the
 [History API](https://developer.mozilla.org/en-US/docs/Web/API/History_API) can
