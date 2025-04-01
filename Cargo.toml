@@ -1,7 +1,7 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.22.2"
+version = "0.23.0"
 autotests = false
 autobins = false
 
@@ -73,7 +73,7 @@ lazy_static = "1.4.0"
 log = "0.4.14"
 mime = "0.3.16"
 mime_guess = "2.0.4"
-minicbor = { version = "0.25.1", features = ["alloc", "derive"] }
+minicbor = { version = "0.26.1", features = ["alloc", "derive"] }
 miniscript = "12.0.0"
 mp4 = "0.14.0"
 ordinals = { version = "0.0.15", path = "crates/ordinals" }
@@ -84,7 +84,7 @@ reqwest.workspace = true
 rss = "2.0.1"
 rust-embed = "8.0.0"
 rustls = { version  = "0.23.20", features = ["ring"] }
-rustls-acme = { version = "0.12.1", features = ["axum"] }
+rustls-acme = { version = "0.13.0", features = ["axum"] }
 secp256k1.workspace = true
 serde-hex = "0.1.0"
 serde.workspace = true
@@ -93,7 +93,7 @@ serde_with.workspace = true
 serde_yaml = "0.9.17"
 sha3 = "0.10.8"
 snafu = "0.8.3"
-sysinfo = "0.33.0"
+sysinfo = "0.34.0"
 tempfile.workspace = true
 tokio = { version = "1.43.0", features = ["rt-multi-thread"] }
 tokio-stream = "0.1.9"
