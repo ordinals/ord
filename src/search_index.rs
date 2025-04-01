@@ -5,20 +5,25 @@ use {
     collector::{Count, TopDocs},
     directory::MmapDirectory,
     query::QueryParser,
-    schema::{document::OwnedValue, Field, Schema as TantivySchema, STORED, STRING},
-    Index as TantivyIndex, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument,
+    schema::{
+      document::OwnedValue, DateOptions, DateTimePrecision, Field, Schema as TantivySchema,
+      INDEXED, STORED, STRING,
+    },
+    DateTime, Index as TantivyIndex, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument,
   },
 };
 
 #[derive(Clone)]
 struct Schema {
   inscription_id: Field,
+  charm: Field,
   sat_name: Field,
+  timestamp: Field,
 }
 
 impl Schema {
   fn default_search_fields(&self) -> Vec<Field> {
-    vec![self.inscription_id, self.sat_name]
+    vec![self.inscription_id, self.charm, self.sat_name, self.timestamp]
   }
 
   fn search_result(&self, document: &TantivyDocument) -> Option<SearchResult> {
@@ -51,6 +56,7 @@ pub struct SearchIndex {
   writer: Arc<Mutex<IndexWriter>>,
 }
 
+#[derive(Eq, Hash, PartialEq)]
 pub struct SearchResult {
   pub inscription_id: InscriptionId,
 }
@@ -61,7 +67,14 @@ impl SearchIndex {
 
     let document = Schema {
       inscription_id: schema_builder.add_text_field("inscription_id", STRING | STORED),
+      charm: schema_builder.add_text_field("charm", STRING),
       sat_name: schema_builder.add_text_field("sat_name", STRING),
+      timestamp: schema_builder.add_date_field(
+        "timestamp",
+        DateOptions::from(INDEXED)
+          .set_fast()
+          .set_precision(DateTimePrecision::Seconds),
+      ),
     };
 
     let path = settings.search_index().to_owned();
@@ -87,7 +100,7 @@ impl SearchIndex {
     })
   }
 
-  pub fn search(&self, query: &str) -> Result<Vec<SearchResult>> {
+  pub fn search(&self, query: &str) -> Result<HashSet<SearchResult>> {
     let searcher = self.reader.searcher();
 
     let query = self
@@ -119,7 +132,7 @@ impl SearchIndex {
         }
 
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-          return Ok(())
+          return Ok(());
         }
       }
     }
@@ -150,16 +163,25 @@ impl SearchIndex {
 
     document.add_text(self.schema.inscription_id, inscription.id.to_string());
 
+    for charm in inscription.charms {
+      document.add_text(self.schema.charm, charm);
+    }
+
     if let Some(sat) = inscription.sat {
       document.add_text(self.schema.sat_name, sat.name());
     }
+
+    document.add_date(
+      self.schema.timestamp,
+      DateTime::from_timestamp_secs(inscription.timestamp),
+    );
 
     writer.add_document(document)?;
 
     writer.commit()?;
 
     log::info!(
-      "Added inscription with id `{}` to search index",
+      "Indexed inscription with id `{}` to search index",
       inscription_id
     );
 
