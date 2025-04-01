@@ -151,6 +151,7 @@ impl SearchIndex {
           indexed_inscriptions.push(inscription_id);
         }
 
+
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
           return Ok(());
         }
