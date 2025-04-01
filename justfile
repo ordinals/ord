@@ -223,3 +223,9 @@ swap host:
 
 changed-files tag:
   git diff --name-only {{tag}}
+
+env:
+  cargo run env
+
+env-open:
+  open http://127.0.0.1:9001
