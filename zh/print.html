@@ -1989,26 +1989,52 @@ i               # separator
 <p>金额<code>amount</code> 为零且输出等于交易输出<code>output</code> 数量的法令将所有未分配的rune <code>id</code>单位平均分配给每个非<code>OP_RETURN</code>输出。如果未分配的符文数量不能被非<code>OP_RETURN</code>输出的数量整除，则前<code>R</code>个非<code>OP_RETURN</code>输出将分配1个额外的符文，其中<code>R</code>是将未分配的rune <code>id</code>单位余额除以非<code>OP_RETURN</code>输出数量后的余数。</p>
 <p>如果符石中的任何法令具有<code>区块</code>为零且<code>tx</code>大于零的符文ID，或<code>输出</code>大于交易输出数量，则符石是纪念碑。</p>
 <p>注意，纪念碑中的法令不会被处理，所有输入符文都将被销毁。</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="satscard"><a class="header" href="#satscard">Satscard</a></h1>
-<p><a href="https://satscard.com/">Satscards</a> are cards which can be used to store bitcoin, inscriptions, and runes.</p>
-<h2 id="slots"><a class="header" href="#slots">Slots</a></h2>
-<p>Each satscard has ten slots containing private keys with corresponding bitcoin addresses.</p>
-<p>Initially, all slots are sealed and the private keys are stored only the satscard.</p>
-<p>Slots can be unsealed, which allows the corresponding private key to be extracted.</p>
-<p>Unsealing is permanent. If a satscard is sealed, you can have some confidence that private key is not known to anyone. That taking physical ownership of a satscard makes you the sole owner of assets in any sealed slots.</p>
-<h2 id="lifespan"><a class="header" href="#lifespan">Lifespan</a></h2>
-<p>Satscards are expected to have a usable lifetime of ten years. Do not use satscards for long-term storage of valuable assets.</p>
-<h2 id="viewing"><a class="header" href="#viewing">Viewing</a></h2>
-<p>When placed on a smartphone, the satscard transmits a URL, beginning with <code>https://satscard.com/start</code> or <code>https://getsatscard.com/start</code>, depending on when it was manufactured.</p>
-<p>This URL contains a signature which can be used to recover the address of the current slot. This signature is made over a random nonce, so it changes every time the satscard is tapped, and provides some confidence that the satscard contains the private key.</p>
-<p><code>ord</code> supports viewing the contents of a satscard by entering the full URL into the <code>ord</code> explorer search bar, or the input field on the <code>/satscard</code> page.</p>
-<p>For <code>ordinals.com</code>, this is <a href="https://ordinals.com/satscard">ordinals.com/satscard</a>.</p>
-<h2 id="unsealing"><a class="header" href="#unsealing">Unsealing</a></h2>
-<p>Satscard slots can be unsealed and the private keys extracted using the <code>cktap</code> binary, available in the <a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a> repository.</p>
-<h2 id="sweeping"><a class="header" href="#sweeping">Sweeping</a></h2>
-<p>After a satscard slot is unsealed, all assets should be swept from that slot to another wallet, as the private key can now be read via NFC.</p>
-<p><code>ord</code> does not yet support sweeping assets from other wallets, so assets will need to be transferred manually.</p>
-<p>Be careful, and good luck!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="security"><a class="header" href="#security">Security</a></h1>
+<p>Anyone can publish inscriptions, including arbitrary HTML, which <code>ord server</code> will serve at <code>/content/&lt;INSCRIPTION_ID&gt;</code>, <code>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</code>, and <code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</code>.</p>
+<p>This creates potential security vulnerabilities, including cross-site scripting and spoofing attacks.</p>
+<p>Without mitigations, a domain hosting an <code>ord server</code> explorer instance should be considered to be completely untrusted.</p>
+<h3 id="cross-site-scripting"><a class="header" href="#cross-site-scripting">Cross-site Scripting</a></h3>
+<p>An attacker performs a cross-site scripting attack by injecting JavaScript into a vulnerable website such that it is later served to a victim, causing the malicious script to run in the victim's own browser with the same permissions as any other script from that website.</p>
+<p>Such a script could access private site resources or perform privileged actions on the user's behalf, since it would be making requests on behalf of the user.</p>
+<p>Cross-site scripting is <em>not</em> a concern for a vanilla <code>ord server</code> instance. <code>ord server</code> does not serve any private resources or allow privileged actions to be taken via the web interface, so although JavaScript can be injected using an inscription, it does not run with any meaningful permissions.</p>
+<p>However, if you serve requests to <code>ord server</code> from a domain which <em>also</em> serves private resources or allow privileged actions, you may be vulnerable to cross-site scripting attacks.</p>
+<h4 id="示例-25"><a class="header" href="#示例-25">示例</a></h4>
+<ul>
+<li>
+<p><code>ord server</code> is run under <code>https://example.com/ord</code>.</p>
+</li>
+<li>
+<p>A bitcoin exchange is run under <code>https://example.com/exchange</code>.</p>
+</li>
+<li>
+<p>Users can send bitcoin at <code>https://example.com/exchange/send</code>, with access controlled by a user's session cookie.</p>
+</li>
+<li>
+<p>An attacker publishes a malicious HTML inscription with ID <code>XYZ</code> which contains JavaScript that accesses <code>https://example.com/exchange/send</code> and sends them to an attacker-controlled address.</p>
+</li>
+<li>
+<p>When a user visits <code>https://example.com/ord/XYZ</code>, the malicious JavaScript requests <code>https://example.com/exchange/send</code>. Because the script executes on the user's behalf with the request including the user's session cookie, the server sends the user's bitcoin to the attacker.</p>
+</li>
+</ul>
+<p>To prevent this, do not make <code>ord server</code> available on the same domain and port as another web service which is vulnerable to cross-site scripting.</p>
+<h3 id="spoofing"><a class="header" href="#spoofing">Spoofing</a></h3>
+<p>If <code>ord server</code> is run at a well known domain, for example, <code>ordinals.com</code>, an attacker could publish a malicious inscription that attempts to trick users into thinking that it represents the owners of the domain. For example, by publishing a mint page to induce users to send bitcoin. Additionally, the <a href="https://developer.mozilla.org/en-US/docs/Web/API/History_API">History API</a> can be used to change the path without triggering a page reload, so inscription content can appear to the user under URL that suggests it was published by the site owners.</p>
+<h4 id="示例-26"><a class="header" href="#示例-26">示例</a></h4>
+<ul>
+<li>
+<p><code>ord server</code> is run at <code>https://example.com</code>, by popular and well-respected Example Corporation.</p>
+</li>
+<li>
+<p>An attacker publishes a malicious HTML inscription with ID <code>XYZ</code> which displays a mint page, and changes the URL path using the History API to <code>/mint</code>.</p>
+</li>
+<li>
+<p>A user clicks a link to <code>https://example.com/inscription/XYZ</code> which displays the attacker's mint page, with the apparent URL of <code>https://example.com/mint</code>.</p>
+</li>
+<li>
+<p>The user thinks that this is a potentially lucrative mint run by popular and well-respected Example Corporation and sends bitcoin to the mint address.</p>
+</li>
+</ul>
+<p>To prevent this, avoid giving users the impression that a domain hosting an <code>ord</code> explorer can be trusted for anything other than the content of the <code>ord</code> explorer itself.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="序数理论常见问题"><a class="header" href="#序数理论常见问题">序数理论常见问题</a></h1>
 <h2 id="什么是序数理论"><a class="header" href="#什么是序数理论">什么是序数理论</a></h2>
 <p>序数理论是一种为聪（satoshi，以下写作“聪”，比特币的最小单位）分配序列号的协议，并在交易中跟踪这些聪。</p>
@@ -2158,7 +2184,7 @@ i               # separator
   </summary>
 <h3 id="description-23"><a class="header" href="#description-23">Description</a></h3>
 <p>List all assets of an address. Requires index with <code>--index-addresses</code> flag.</p>
-<h3 id="示例-25"><a class="header" href="#示例-25">示例</a></h3>
+<h3 id="示例-27"><a class="header" href="#示例-27">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
 </code></pre>
@@ -2231,7 +2257,7 @@ i               # separator
   </summary>
 <h3 id="description-24"><a class="header" href="#description-24">Description</a></h3>
 <p>Returns info about the specified block.</p>
-<h3 id="示例-26"><a class="header" href="#示例-26">示例</a></h3>
+<h3 id="示例-28"><a class="header" href="#示例-28">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
 </code></pre>
@@ -2272,7 +2298,7 @@ i               # separator
   </summary>
 <h3 id="description-25"><a class="header" href="#description-25">Description</a></h3>
 <p>Returns info about the specified block.</p>
-<h3 id="示例-27"><a class="header" href="#示例-27">示例</a></h3>
+<h3 id="示例-29"><a class="header" href="#示例-29">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/block/0
 </code></pre>
@@ -2313,7 +2339,7 @@ i               # separator
   </summary>
 <h3 id="description-26"><a class="header" href="#description-26">Description</a></h3>
 <p>Returns the height of the latest block.</p>
-<h3 id="示例-28"><a class="header" href="#示例-28">示例</a></h3>
+<h3 id="示例-30"><a class="header" href="#示例-30">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockcount
 </code></pre>
@@ -2327,7 +2353,7 @@ i               # separator
   </summary>
 <h3 id="description-27"><a class="header" href="#description-27">Description</a></h3>
 <p>Returns blockhash for the latest block.</p>
-<h3 id="示例-29"><a class="header" href="#示例-29">示例</a></h3>
+<h3 id="示例-31"><a class="header" href="#示例-31">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockhash
 </code></pre>
@@ -2342,7 +2368,7 @@ i               # separator
   </summary>
 <h3 id="description-28"><a class="header" href="#description-28">Description</a></h3>
 <p>Returns blockhash of specified block.</p>
-<h3 id="示例-30"><a class="header" href="#示例-30">示例</a></h3>
+<h3 id="示例-32"><a class="header" href="#示例-32">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockhash/840000
 </code></pre>
@@ -2356,7 +2382,7 @@ i               # separator
   </summary>
 <h3 id="description-29"><a class="header" href="#description-29">Description</a></h3>
 <p>Returns the height of the latest block.</p>
-<h3 id="示例-31"><a class="header" href="#示例-31">示例</a></h3>
+<h3 id="示例-33"><a class="header" href="#示例-33">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockheight
 </code></pre>
@@ -2370,7 +2396,7 @@ i               # separator
   </summary>
 <h3 id="description-30"><a class="header" href="#description-30">Description</a></h3>
 <p>Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.</p>
-<h3 id="示例-32"><a class="header" href="#示例-32">示例</a></h3>
+<h3 id="示例-34"><a class="header" href="#示例-34">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blocks
 </code></pre>
@@ -2540,7 +2566,7 @@ i               # separator
   </summary>
 <h3 id="description-31"><a class="header" href="#description-31">Description</a></h3>
 <p>Returns the UNIX timestamp of when the latest block was mined.</p>
-<h3 id="示例-33"><a class="header" href="#示例-33">示例</a></h3>
+<h3 id="示例-35"><a class="header" href="#示例-35">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blocktime
 </code></pre>
@@ -2554,7 +2580,7 @@ i               # separator
   </summary>
 <h3 id="description-32"><a class="header" href="#description-32">Description</a></h3>
 <p>Decode a transaction, congruent to the <code>ord decode</code> command</p>
-<h3 id="示例-34"><a class="header" href="#示例-34">示例</a></h3>
+<h3 id="示例-36"><a class="header" href="#示例-36">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799
 </code></pre>
@@ -3396,7 +3422,7 @@ i               # separator
   </summary>
 <h3 id="description-33"><a class="header" href="#description-33">Description</a></h3>
 <p>Fetch details about a specific inscription by its ID.</p>
-<h3 id="示例-35"><a class="header" href="#示例-35">示例</a></h3>
+<h3 id="示例-37"><a class="header" href="#示例-37">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" /
   http://0.0.0.0:80/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 </code></pre>
@@ -3433,7 +3459,7 @@ i               # separator
   </summary>
 <h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
 <p>Returns the inscription information for the specified child.</p>
-<h3 id="示例-36"><a class="header" href="#示例-36">示例</a></h3>
+<h3 id="示例-38"><a class="header" href="#示例-38">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
 </code></pre>
@@ -3470,7 +3496,7 @@ i               # separator
   </summary>
 <h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
 <p>Fetch details for a list of inscription IDs.</p>
-<h3 id="示例-37"><a class="header" href="#示例-37">示例</a></h3>
+<h3 id="示例-39"><a class="header" href="#示例-39">示例</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -3536,7 +3562,7 @@ i               # separator
   </summary>
 <h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
 <p>Get a list of the latest 100 inscriptions.</p>
-<h3 id="示例-38"><a class="header" href="#示例-38">示例</a></h3>
+<h3 id="示例-40"><a class="header" href="#示例-40">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions
 </code></pre>
@@ -3655,7 +3681,7 @@ i               # separator
   </summary>
 <h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
 <p>Pagination allows you to choose which page of 100 inscriptions to return.</p>
-<h3 id="示例-39"><a class="header" href="#示例-39">示例</a></h3>
+<h3 id="示例-41"><a class="header" href="#示例-41">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions/9
 </code></pre>
@@ -3774,7 +3800,7 @@ i               # separator
   </summary>
 <h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
 <p>Get inscriptions for a specific block.</p>
-<h3 id="示例-40"><a class="header" href="#示例-40">示例</a></h3>
+<h3 id="示例-42"><a class="header" href="#示例-42">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions/block/767430
 </code></pre>
@@ -3794,7 +3820,7 @@ i               # separator
   </summary>
 <h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
 <p>Installs the latest pre-built binary of <code>ord</code></p>
-<h3 id="示例-41"><a class="header" href="#示例-41">示例</a></h3>
+<h3 id="示例-43"><a class="header" href="#示例-43">示例</a></h3>
 <p>See <a href="guides/wallet.html#installing-ord">wallet.md</a></p>
 </details>
 <details>
@@ -3804,7 +3830,7 @@ i               # separator
  </summary>
 <h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
 <p>Returns information about a UTXO, including inscriptions within it.</p>
-<h3 id="示例-42"><a class="header" href="#示例-42">示例</a></h3>
+<h3 id="示例-44"><a class="header" href="#示例-44">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
 </code></pre>
@@ -3830,7 +3856,7 @@ i               # separator
  </summary>
 <h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
 <p>List information from a list of outputs.</p>
-<h3 id="示例-43"><a class="header" href="#示例-43">示例</a></h3>
+<h3 id="示例-45"><a class="header" href="#示例-45">示例</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -3881,7 +3907,7 @@ i               # separator
 <tr><td><code>runic</code></td><td>return UTXOs containing runes</td></tr>
 </tbody></table>
 </div>
-<h3 id="示例-44"><a class="header" href="#示例-44">示例</a></h3>
+<h3 id="示例-46"><a class="header" href="#示例-46">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   "http://0.0.0.0:80/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
 </code></pre>
@@ -3946,7 +3972,7 @@ i               # separator
   </summary>
 <h3 id="description-43"><a class="header" href="#description-43">Description</a></h3>
 <p>Returns details about the specified rune. Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="示例-45"><a class="header" href="#示例-45">示例</a></h3>
+<h3 id="示例-47"><a class="header" href="#示例-47">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://localhost/rune/UNCOMMONGOODS
 </code></pre>
@@ -3989,7 +4015,7 @@ i               # separator
   </summary>
 <h3 id="description-44"><a class="header" href="#description-44">Description</a></h3>
 <p>Returns details for last 100 inscribed runes.  Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="示例-46"><a class="header" href="#示例-46">示例</a></h3>
+<h3 id="示例-48"><a class="header" href="#示例-48">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/runes
 </code></pre>
@@ -5477,7 +5503,7 @@ i               # separator
   </summary>
 <h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
 <p>Pagination allows you to specify which page of 100 runes you'd like to return.</p>
-<h3 id="示例-47"><a class="header" href="#示例-47">示例</a></h3>
+<h3 id="示例-49"><a class="header" href="#示例-49">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/runes/0
 </code></pre>
@@ -6965,7 +6991,7 @@ i               # separator
   </summary>
 <h3 id="description-46"><a class="header" href="#description-46">Description</a></h3>
 <p>Returns details about a specific satoshi. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="示例-48"><a class="header" href="#示例-48">示例</a></h3>
+<h3 id="示例-50"><a class="header" href="#示例-50">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/sat/2099994106992659
 </code></pre>
@@ -6995,7 +7021,7 @@ i               # separator
   </summary>
 <h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
 <p>Returns details about the server installation and index.</p>
-<h3 id="示例-49"><a class="header" href="#示例-49">示例</a></h3>
+<h3 id="示例-51"><a class="header" href="#示例-51">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/status
 </code></pre>
@@ -7032,7 +7058,7 @@ i               # separator
   </summary>
 <h3 id="description-48"><a class="header" href="#description-48">Description</a></h3>
 <p>Returns details about the specified transaction.</p>
-<h3 id="示例-50"><a class="header" href="#示例-50">示例</a></h3>
+<h3 id="示例-52"><a class="header" href="#示例-52">示例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
 </code></pre>
@@ -7068,244 +7094,6 @@ i               # separator
 </details>
 <h2 id="recursive-endpoints"><a class="header" href="#recursive-endpoints">Recursive Endpoints</a></h2>
 <p>See <a href="guides/../inscriptions/recursion.html">Recursion</a>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="序数浏览器"><a class="header" href="#序数浏览器">序数浏览器</a></h1>
-<p><code>ord</code> 文件包含一个区块浏览器。我们的主网区块链器部署在 <a href="https://ordinals.com">ordinals.com</a>, signet部署在<a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
-<h3 id="运行浏览器"><a class="header" href="#运行浏览器">运行浏览器</a></h3>
-<p>服务器可以使用本地运行：</p>
-<p><code>ord server</code></p>
-<p>指定端口使用<code>--http-port</code>标记</p>
-<p><code>ord server --http-port 8080</code></p>
-<p>The JSON-API endpoints are enabled by default, to disable them add the <code>--disable-json-api</code> flag (see <a href="guides/api.html">here</a> for more info):</p>
-<p><code>ord server --disable-json-api</code></p>
-<h2 id="搜索"><a class="header" href="#搜索">搜索</a></h2>
-<p>搜索框可以使用各种对象：</p>
-<h3 id="区块"><a class="header" href="#区块">区块</a></h3>
-<p>区块可以通过哈希来查找，例如创世区块：</p>
-<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
-<h3 id="交易"><a class="header" href="#交易">交易</a></h3>
-<p>可以通过哈希查找交易，例如创世区块的coinbase交易：</p>
-<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
-<h3 id="输出"><a class="header" href="#输出">输出</a></h3>
-<p>可以通过outpoint搜索交易输出，例如创世块coinbase交易的唯一输出：</p>
-<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
-<h3 id="聪"><a class="header" href="#聪">聪</a></h3>
-<p>聪 可以按整数搜索，它们在整个比特币供应中的位置：</p>
-<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
-<p>按十进制，它们的块和该块内的偏移量：</p>
-<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
-<p>按度数，他们的周期，自上次减半以来的区块，自上次难度调整以来的区块，以及区块内的偏移量：</p>
-<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
-<p>按照名称，它们使用字母"a"到"z"的 26个字母组合表示：</p>
-<p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
-<p>或者按百分位数，在开采时已经或将要发行的比特币供应量的百分比：</p>
-<p><a href="https://ordinals.com/search/100%">100%</a></p>
-<pre><code></code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="钱包"><a class="header" href="#钱包">钱包</a></h1>
-<p>单个 聪 可以刻有任意内容，创建可以保存在比特币钱包中并使用比特币交易传输的比特币原生数字人工制品。铭文与比特币本身一样持久、不变、安全和去中心化。</p>
-<p>使用铭文需要一个比特币完整节点，让您了解比特币区块链的当前状态，以及一个可以创建铭文并在构建交易以将铭文发送到另一个钱包时执行 聪 控制的钱包。</p>
-<p>Bitcoin Core 提供比特币全节点和钱包。 但是，Bitcoin Core 钱包不能创建铭文，不执行 聪 控制。</p>
-<p>这需要<a href="https://github.com/ordinals/ord"><code>ord</code></a>，序数实用程序。 <code>ord</code> 没有自己的钱包，因此  <code>ord wallet</code>子命令与 Bitcoin Core 钱包交互。</p>
-<p>本指南涵盖：</p>
-<ol>
-<li>安装 Bitcoin Core</li>
-<li>同步比特币区块链</li>
-<li>创建 Bitcoin Core 钱包</li>
-<li>使用 <code>ord wallet receive</code>收取聪</li>
-<li>使用<code>ord wallet inscribe</code>创建铭文</li>
-<li>使用 <code>ord wallet send</code>发送铭文</li>
-<li>使用<code>ord wallet receive</code>收取铭文</li>
-<li>使用<code>ord wallet inscribe</code>创建铭文</li>
-</ol>
-<h2 id="寻求帮助-1"><a class="header" href="#寻求帮助-1">寻求帮助</a></h2>
-<p>如果你遇到困难，可以在<a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord Server</a>,或者检查Github上的相关内容<a href="https://github.com/ordinals/ord/issues">问题</a> 和<a href="https://github.com/ordinals/ord/discussions">讨论</a>.</p>
-<h2 id="安装-bitcoin-core"><a class="header" href="#安装-bitcoin-core">安装 Bitcoin Core</a></h2>
-<p>Bitcoin Core 可以在 <a href="https://bitcoincore.org/">bitcoincore.org</a> 上的<a href="https://bitcoincore.org/en/download/">下载页面</a>.</p>
-<p>Making inscriptions requires Bitcoin Core 28 or newer.</p>
-<p>本指南不包括如何详细安装 Bitcoin Core；当你成功安装Bitcoin Core以后，你应该可以在命令行使用 <code>bitcoind -version</code>命令。</p>
-<h2 id="配置-bitcoin-core"><a class="header" href="#配置-bitcoin-core">配置 Bitcoin Core</a></h2>
-<p><code>ord</code> 需要Bitcoin Core 的交易索引</p>
-<p>配置你的Bitcoin Core阶段去维护一个交易索引，需要在<code>bitcoin.conf</code>里面添加:</p>
-<pre><code>txindex=1
-</code></pre>
-<p>或者, 运行 <code>bitcoind</code> 和 <code>-txindex</code>:</p>
-<pre><code>bitcoind -txindex
-</code></pre>
-<p>关于创建或者修改你的 <code>bitcoin.conf</code>文件，可以参考 <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">这里</a>.</p>
-<h2 id="比特币区块同步"><a class="header" href="#比特币区块同步">比特币区块同步</a></h2>
-<p>区块同步，运行：</p>
-<pre><code>bitcoind -txindex
-</code></pre>
-<p>…直到运行 <code>getblockcount</code>:</p>
-<pre><code>bitcoin-cli getblockcount
-</code></pre>
-<p>像区块链浏览器<a href="https://mempool.space/">the mempool.space block explorer</a>一样对区块进行记述. <code>ord</code>同<code>bitcoind</code>进行交互, 所以你在使用<code>ord</code>时候需要让<code>bitcoind</code> 在后台运行。</p>
-<p>区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选项<code>blocksdir=&lt;external_drive_path&gt;</code>. 这比使用<code>datadir</code> 选项更简单， <code>bitcoin-cli</code> 和 <code>ord</code> 可以在默认的位置找到cookie文件</p>
-<h2 id="故障排除"><a class="header" href="#故障排除">故障排除</a></h2>
-<p>确保你可以通过 <code>bitcoin-cli -getinfo</code> 来访问<code>bitcoind</code> ，并且它已经完全同步</p>
-<p>假如 <code>bitcoin-cli -getinfo</code> 返回的是 <code>Could not connect to the server</code>, 这可能是<code>bitcoind</code> 没有运行</p>
-<p>确保 <code>rpcuser</code>, <code>rpcpassword</code>, 或者 <code>rpcauth</code> <em>没有</em> 在你的 <code>bitcoin.conf</code> 文件里进行设置。 <code>ord</code> 需要使用 cookie 认证。因此需要确保 你的bitcoin data的文件夹里有 <code>.cookie</code>文件。</p>
-<p>如果 <code>bitcoin-cli -getinfo</code> 返回<code>Could not locate RPC credentials</code>, 那么 你必须指定 cookie 文件的位置。如果你正在使用自定义的数据目录 (指定 <code>datadir</code> 的选项),那么你必须指定cookie文件的位置. <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/ cookie -getinfo</code>.当你运行 <code>ord</code> 命令时，你必须指定 cookie 文件的位置 <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
-<p>确保你在<code>bitcoin.conf</code> 文件中 <em>没有</em> 配置 <code>disablewallet=1</code> 如果 <code>bitcoin-cli listwallets</code> 返回 <code>Method not found</code> 那么钱包就会被禁用你将要无法使用 <code>ord</code>.</p>
-<p>确保设置 <code>txindex=1</code> 。运行 <code>bitcoin-cli getindexinfo</code> 将会返回一些这样的结果</p>
-<pre><code class="language-json">{
-  "txindex": {
-    "synced": true,
-    "best_block_height": 776546
-  }
-}
-</code></pre>
-<p>假如仅仅返回 <code>{}</code>, <code>txindex</code> 没有被设置。如果返回 <code>"synced": false</code>, <code>bitcoind</code> 仍然在创建 <code>txindex</code>。那就需要等到<code>"synced": true</code> ，<code>ord</code>命令方可以使用.</p>
-<p>如果你设置了<code>maxuploadtarget</code> ，他将干扰 <code>ord</code> 的索引获取区块， 你可以选择移除或者设置<code>whitebind=127.0.0.1:8333</code>.</p>
-<h2 id="安装-ord"><a class="header" href="#安装-ord">安装 <code>ord</code></a></h2>
-<p><code>ord</code> 程序使用Rust语言写成，可以从<a href="https://github.com/ordinals/ord">源码</a>安装. 预制文件可以从<a href="https://github.com/ordinals/ord/releases">版本发布页</a>下载。</p>
-<p>你也可以在命令行中使用下面命令来安装最新的文件：</p>
-<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
-</code></pre>
-<p>当 <code>ord</code> 成功安装以后,你可以运行 :</p>
-<pre><code>ord --version
-</code></pre>
-<p>这会返回 <code>ord</code>的版本信息.</p>
-<h2 id="创建一个bitcoin-core钱包"><a class="header" href="#创建一个bitcoin-core钱包">创建一个Bitcoin Core钱包</a></h2>
-<p><code>ord</code> 使用Bitcoin Core来管理私钥，签署交易以及向比特币网络广播交易。此外，<code>ord</code> 钱包需要在后台运行<a href="guides/explorer.html"><code>ord server</code></a>，请确保这些程序运行</p>
-<pre><code>bitcoind -txindex
-</code></pre>
-<pre><code>ord server
-</code></pre>
-<p>创建一个名为<code>ord</code> 的Bitcoin Core 钱包，运行:</p>
-<pre><code>ord wallet create
-</code></pre>
-<p>这将打印出您的助记词，并将其存储在安全的地方。</p>
-<pre><code>{
-  "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal",
-  "passphrase": ""
-}
-</code></pre>
-<p>如果你想指定不同的名称或者在非默认的URL上运行 <code>ord server</code>你可以设置以下选项:</p>
-<pre><code>ord wallet --name foo --server-url http://127.0.0.1:8080 create
-</code></pre>
-<p>查看所有可用的钱包选项，你可以运行</p>
-<pre><code>ord wallet help
-</code></pre>
-<h2 id="恢复和转存钱包"><a class="header" href="#恢复和转存钱包">恢复和转存钱包</a></h2>
-<p><code>ord</code>钱包使用描述符descriptors,你可以导出输出描述符并将它们导入另外一个基于描述符的钱包导出钱包描述符，其中包含你的私钥:</p>
-<pre><code>$ ord wallet dump
-==========================================
-= 这个字节包含你的私钥信息 =
-=   不要和任何人分享 =
-==========================================
-{
-  "wallet_name": "ord",
-  "descriptors": [
-    {
-      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/*)#uxn94yt5",
-      "timestamp": 1296688602,
-      "active": true,
-      "internal": false,
-      "range": [
-        0,
-        999
-      ],
-      "next": 0
-    },
-    {
-      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/*)#djkyg3mv",
-      "timestamp": 1296688602,
-      "active": true,
-      "internal": true,
-      "range": [
-        0,
-        999
-      ],
-      "next": 0
-    }
-  ]
-}
-</code></pre>
-<p><code>ord</code> 钱包可以从助记词恢复:</p>
-<pre><code>ord wallet restore --from mnemonic
-</code></pre>
-<p>输入你的助记词并按回车</p>
-<p>从<code>descriptor.json</code>恢复描述符:</p>
-<pre><code>cat descriptor.json | ord wallet restore --from descriptor
-</code></pre>
-<p>要从剪贴板中的描述符恢复：</p>
-<pre><code>ord wallet restore --from descriptor
-</code></pre>
-<p>将描述符粘贴到终端中，UNIX里按CTRL-D 或 Windows里按 CTRL-Z</p>
-<h2 id="接收聪"><a class="header" href="#接收聪">接收聪</a></h2>
-<p>铭文是在单个聪上制作的，使用聪来支付费用的普通比特币交易，因此你的钱包将需要一些 聪（比特币）。</p>
-<p>为你的 <code>ord</code> 钱包创建一个新地址，运行:</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>向上面地址发送一些资金。</p>
-<p>你可以使用以下命令看到交易情况：</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>一旦交易确认，你应该可以使用 <code>ord wallet outputs</code>看到交易的输出；</p>
-<h2 id="创建铭文内容"><a class="header" href="#创建铭文内容">创建铭文内容</a></h2>
-<p>聪上可以刻录任何类型的内容，但<code>ord</code>钱包只支持<code>ord</code>区块浏览器可以显示的内容类型。</p>
-<p>另外，铭文是包含在交易中的，所以内容越大，铭文交易需要支付的费用就越高。</p>
-<p>铭文内容包含在交易见证中，获得见证折扣。要计算写入交易将支付的大概费用，请将内容大小除以四，然后乘以费率。</p>
-<p>铭文交易必须少于 400,000 个权重计量单位，否则不会被 Bitcoin Core 中继。一个字节的铭文内容需要一个权重计量单位。 由于铭文交易不只是铭文内容，铭文内容限制在400,000权重计量单位以内。390,000 个权重计量单位应该是安全的。</p>
-<h2 id="创建铭文"><a class="header" href="#创建铭文">创建铭文</a></h2>
-<p>以<code>FILE</code>的内容创建一个铭文，需要运行:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
-</code></pre>
-<p>Ord会输出两个交易ID，一个是commit交易，一个是reveal交易，还有铭文ID。铭文 ID 的格式为<code>TXIDiN</code>，其中<code>TXID</code> 是揭示交易的交易 ID，<code>N</code> 是揭示交易中铭文的索引。</p>
-<p>Commit交易提交到包含铭文内容的 tapscript，reveal交易则从该 tapscript 中花费，显示链上的内容并将它们铭刻在reveal交易的第一个输出的第一个 sat 上。</p>
-<p>在等待reveal交易被记录的同时，你可以使用<a href="https://mempool.space/">the mempool.space block explorer</a>来检查交易的状态。</p>
-<p>一旦reveal交易完成记账，你可以使用以下命令查询铭文ID：</p>
-<pre><code>ord wallet inscriptions
-</code></pre>
-<h2 id="父-子铭文"><a class="header" href="#父-子铭文">父-子铭文</a></h2>
-<p>父子铭文使得人们通常所说的收藏成为可能，有关更多信息，请参见<a href="guides/../inscriptions/provenance.html">provenance</a>。</p>
-<p>要使一个铭文成为另一个铭文的子项，父铭文必须已经被铭刻并且存在于钱包中。要选择一个父铭文，请运行<code>ord wallet inscriptions</code>并复制铭文ID（<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>）。</p>
-<p>为父系铭文P创建一个子铭文C:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
-</code></pre>
-<p>这种父子关系不能事后添加，父铭文必须在子铭文创建之初就存在。</p>
-<h2 id="发送铭文"><a class="header" href="#发送铭文">发送铭文</a></h2>
-<p>铭文接收方使用一下命令生成地址</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>使用命令格式发送铭文：</p>
-<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
-</code></pre>
-<p>检查未完成交易情况：</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>一旦交易确认，接收方可以使用一下命令查看接收到的铭文</p>
-<pre><code>ord wallet inscriptions
-</code></pre>
-<h2 id="发送铭文-1"><a class="header" href="#发送铭文-1">发送铭文</a></h2>
-<p>铭文接收方使用一下命令生成地址</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>使用命令格式发送铭文：</p>
-<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
-</code></pre>
-<p>在 <code>RUNES_AMOUNT</code> 是要发送的符文数量，一个 <code>:</code> 字符，和符文的名字。例如，如果你想发送1000个EXAMPLE符文，你应该使用<code>1000:EXAMPLE</code>。</p>
-<pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
-</code></pre>
-<p>检查未完成交易情况：</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>一旦交易确认，接收方可以使用一下命令查看接收到的铭文</p>
-<pre><code>ord wallet balance
-</code></pre>
-<h2 id="接收铭文"><a class="header" href="#接收铭文">接收铭文</a></h2>
-<p>使用以下命令生成一个新的接收地址</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>发送方使用命令发送铭文到你的地址</p>
-<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; ADDRESS INSCRIPTION_ID
-</code></pre>
-<p>检查未完成交易情况：</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>一旦交易确认，你可以使用以下命令确认收到</p>
-<pre><code>ord wallet inscriptions
-</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="批量铸造"><a class="header" href="#批量铸造">批量铸造</a></h1>
 <p>可以使用<a href="guides/./../inscriptions/pointer.html">指针字段</a>来批量创建多个铭文. 这在创建需要共享同一父系的合集或者其他情况下就特别有用，因为父犀铭文可以传递到创建多个子铭文的揭示交易中。</p>
 <p>创建批量铭文，使用批处理文件<code>batch.yaml</code>, 运行</p>
@@ -7400,30 +7188,6 @@ inscriptions:
   gallery:
   - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0
   - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3
-</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="splitting"><a class="header" href="#splitting">Splitting</a></h1>
-<p>Complex transactions can be created using the <code>ord wallet split</code> command.</p>
-<p>The <code>split</code> command takes a YAML configuration file, which specifies any number of outputs to be created, their bitcoin value, and their value of any number of runes. It does not currently allow assigning inscriptions to outputs.</p>
-<p>The <code>split</code> command can be used to split cardinal, bitcoin-only outputs for transacting, distribute runes to large numbers of recipients in a single transaction.</p>
-<p>To send a split transaction using the configuration in <code>splits.yaml</code>, run the following command:</p>
-<pre><code class="language-bash">ord wallet split --fee-rate 21 --splits split.yaml
-</code></pre>
-<p>Example <code>splits.yaml</code> --------------------`</p>
-<pre><code class="language-yaml"># example split file
-
-# output fields:
-#   address: output recipient bitcoin address
-#   value: output bitcoin value (optional, defaults to minimal-non dust value for `address`)
-#   runes: output rune value map (values respect rune divisibility)
-outputs:
-- address: bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297
-  value: 10 sat
-  runes:
-    UNCOMMON•GOODS: 1234
-    GRIEF•WAGE: 5000000
-- address: 3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy
-  runes:
-    HELLO•WORLD: 22.5
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="收藏"><a class="header" href="#收藏">收藏</a></h1>
 <p>目前，<a href="https://github.com/ordinals/ord/">ord</a> 是唯一支持 sat-control 和 sat-selection 的钱包，这是安全存储和发送稀有 sats 和铭文（以下简称序数）所必需的。</p>
@@ -7525,12 +7289,44 @@ outputs:
 <p><img src="guides/collecting/images/sending_06.png" alt="" /></p>
 <p>如果你想跟踪你的交易状态，你可以复制<code>Transaction Id (Txid)</code>并粘贴到<a href="https://mempool.space">mempool.space</a></p>
 <p>一旦交易确认，你可以在<a href="https://ordinals.com">ordinals.com</a> 的铭文页面上验证它是否已移动到新的输出位置和地址。</p>
-<h2 id="故障排除-1"><a class="header" href="#故障排除-1">故障排除</a></h2>
+<h2 id="故障排除"><a class="header" href="#故障排除">故障排除</a></h2>
 <h4 id="sparrow钱包没有显示交易utxo但我在mempoolspace上看到了"><a class="header" href="#sparrow钱包没有显示交易utxo但我在mempoolspace上看到了">Sparrow钱包没有显示交易/UTXO，但我在mempool.space上看到了</a></h4>
 <p>确保你的钱包连接到一个比特币节点。要验证这一点，转到<code>Preferences</code>-&gt; <code>Server</code> 设置，并点击 <code>Edit Existing Connection</code>。</p>
 <p><img src="guides/collecting/images/troubleshooting_01.png" alt="" /></p>
 <p>从那里你可以选择一个节点并点击 <code>Test Connection</code> 来验证Sparrow是否能够成功连接。</p>
 <p><img src="guides/collecting/images/troubleshooting_02.png" alt="" /></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="序数浏览器"><a class="header" href="#序数浏览器">序数浏览器</a></h1>
+<p><code>ord</code> 文件包含一个区块浏览器。我们的主网区块链器部署在 <a href="https://ordinals.com">ordinals.com</a>, signet部署在<a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<h3 id="运行浏览器"><a class="header" href="#运行浏览器">运行浏览器</a></h3>
+<p>服务器可以使用本地运行：</p>
+<p><code>ord server</code></p>
+<p>指定端口使用<code>--http-port</code>标记</p>
+<p><code>ord server --http-port 8080</code></p>
+<p>The JSON-API endpoints are enabled by default, to disable them add the <code>--disable-json-api</code> flag (see <a href="guides/api.html">here</a> for more info):</p>
+<p><code>ord server --disable-json-api</code></p>
+<h2 id="搜索"><a class="header" href="#搜索">搜索</a></h2>
+<p>搜索框可以使用各种对象：</p>
+<h3 id="区块"><a class="header" href="#区块">区块</a></h3>
+<p>区块可以通过哈希来查找，例如创世区块：</p>
+<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
+<h3 id="交易"><a class="header" href="#交易">交易</a></h3>
+<p>可以通过哈希查找交易，例如创世区块的coinbase交易：</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
+<h3 id="输出"><a class="header" href="#输出">输出</a></h3>
+<p>可以通过outpoint搜索交易输出，例如创世块coinbase交易的唯一输出：</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
+<h3 id="聪"><a class="header" href="#聪">聪</a></h3>
+<p>聪 可以按整数搜索，它们在整个比特币供应中的位置：</p>
+<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
+<p>按十进制，它们的块和该块内的偏移量：</p>
+<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
+<p>按度数，他们的周期，自上次减半以来的区块，自上次难度调整以来的区块，以及区块内的偏移量：</p>
+<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
+<p>按照名称，它们使用字母"a"到"z"的 26个字母组合表示：</p>
+<p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
+<p>或者按百分位数，在开采时已经或将要发行的比特币供应量的百分比：</p>
+<p><a href="https://ordinals.com/search/100%">100%</a></p>
+<pre><code></code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="调节"><a class="header" href="#调节">调节</a></h1>
 <p><code>ord</code> 包含了一个区块浏览器，你可以在本地运行<code>ord server</code>.</p>
 <p>区块浏览器允许查看铭文。铭文是用户生成的内容，因此可能令人反感或非法的。</p>
@@ -7747,6 +7543,26 @@ ord index update
 <pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
 </code></pre>
 <p>你也可以使用 <code>bitcoin-cli</code> 命令<code> createrawtransaction</code>、<code>signrawtransactionwithwallet</code> 和 <code>sendrawtransaction</code>，但这种方法可能比较复杂，超出了本指南的范围。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="satscard"><a class="header" href="#satscard">Satscard</a></h1>
+<p><a href="https://satscard.com/">Satscards</a> are cards which can be used to store bitcoin, inscriptions, and runes.</p>
+<h2 id="slots"><a class="header" href="#slots">Slots</a></h2>
+<p>Each satscard has ten slots containing private keys with corresponding bitcoin addresses.</p>
+<p>Initially, all slots are sealed and the private keys are stored only the satscard.</p>
+<p>Slots can be unsealed, which allows the corresponding private key to be extracted.</p>
+<p>Unsealing is permanent. If a satscard is sealed, you can have some confidence that private key is not known to anyone. That taking physical ownership of a satscard makes you the sole owner of assets in any sealed slots.</p>
+<h2 id="lifespan"><a class="header" href="#lifespan">Lifespan</a></h2>
+<p>Satscards are expected to have a usable lifetime of ten years. Do not use satscards for long-term storage of valuable assets.</p>
+<h2 id="viewing"><a class="header" href="#viewing">Viewing</a></h2>
+<p>When placed on a smartphone, the satscard transmits a URL, beginning with <code>https://satscard.com/start</code> or <code>https://getsatscard.com/start</code>, depending on when it was manufactured.</p>
+<p>This URL contains a signature which can be used to recover the address of the current slot. This signature is made over a random nonce, so it changes every time the satscard is tapped, and provides some confidence that the satscard contains the private key.</p>
+<p><code>ord</code> supports viewing the contents of a satscard by entering the full URL into the <code>ord</code> explorer search bar, or the input field on the <code>/satscard</code> page.</p>
+<p>For <code>ordinals.com</code>, this is <a href="https://ordinals.com/satscard">ordinals.com/satscard</a>.</p>
+<h2 id="unsealing"><a class="header" href="#unsealing">Unsealing</a></h2>
+<p>Satscard slots can be unsealed and the private keys extracted using the <code>cktap</code> binary, available in the <a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a> repository.</p>
+<h2 id="sweeping"><a class="header" href="#sweeping">Sweeping</a></h2>
+<p>After a satscard slot is unsealed, all assets should be swept from that slot to another wallet, as the private key can now be read via NFC.</p>
+<p><code>ord</code> does not yet support sweeping assets from other wallets, so assets will need to be transferred manually.</p>
+<p>Be careful, and good luck!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="设置"><a class="header" href="#设置">设置</a></h1>
 <p><code>ord</code>可以通过命令行、环境变量、配置文件以及默认值进行配置。</p>
 <p>命令行的优先级高于环境变量，环境变量的优先级又高于配置文件，配置文件的优先级高于默认值。</p>
@@ -7798,13 +7614,37 @@ server_username: foo
 - 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 - 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="splitting"><a class="header" href="#splitting">Splitting</a></h1>
+<p>Complex transactions can be created using the <code>ord wallet split</code> command.</p>
+<p>The <code>split</code> command takes a YAML configuration file, which specifies any number of outputs to be created, their bitcoin value, and their value of any number of runes. It does not currently allow assigning inscriptions to outputs.</p>
+<p>The <code>split</code> command can be used to split cardinal, bitcoin-only outputs for transacting, distribute runes to large numbers of recipients in a single transaction.</p>
+<p>To send a split transaction using the configuration in <code>splits.yaml</code>, run the following command:</p>
+<pre><code class="language-bash">ord wallet split --fee-rate 21 --splits split.yaml
+</code></pre>
+<p>Example <code>splits.yaml</code> --------------------`</p>
+<pre><code class="language-yaml"># example split file
+
+# output fields:
+#   address: output recipient bitcoin address
+#   value: output bitcoin value (optional, defaults to minimal-non dust value for `address`)
+#   runes: output rune value map (values respect rune divisibility)
+outputs:
+- address: bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297
+  value: 10 sat
+  runes:
+    UNCOMMON•GOODS: 1234
+    GRIEF•WAGE: 5000000
+- address: 3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy
+  runes:
+    HELLO•WORLD: 22.5
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="燃烧传送"><a class="header" href="#燃烧传送">燃烧传送</a></h1>
 <p>燃烧传送Teleburn地址可以用于燃烧其他区块链上的资产， 留下一个转发地址指向一个比特币上的铭文这些地址就像是烟熏弹火后的废墟。</p>
 <p>燃烧传送一个资产似乎意味着 "我走了，在比特币链上找我。"</p>
 <p>Teleburn 地址源自铭文的ID，他们没有私钥，因此发往燃烧传送地址的资产将被烧毁 当前只支持以太坊的燃烧地址，欢迎提交关于其他链上的燃烧传送地址的拉取请求</p>
 <h2 id="以太坊"><a class="header" href="#以太坊">以太坊</a></h2>
 <p>以太坊的燃烧传送teleburn地址是根据取铭文ID的SHA-256哈希的前20字节来生成的 这个哈希被序列化为36字节，其中前32字节包含交易ID， 最后四个字节包含大端序的铭文索引，并将其解释为一个Ethereum地址。</p>
-<h2 id="示例-51"><a class="header" href="#示例-51">示例</a></h2>
+<h2 id="示例-53"><a class="header" href="#示例-53">示例</a></h2>
 <p>ENS 域名 <a href="https://app.ens.domains/rodarmor.eth">rodarmor.eth</a>, 被燃烧传输teleburned 到 <a href="https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0">inscription zero</a>.</p>
 <p>零号铭文的铭文ID是<code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
 <p>使用teleburn命令 <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code></p>
@@ -7845,7 +7685,7 @@ $ord outputs
 </tbody></table>
 </div>
 <p>Regtest不需要下载区块链或者建立ord索引</p>
-<h2 id="示例-52"><a class="header" href="#示例-52">示例</a></h2>
+<h2 id="示例-54"><a class="header" href="#示例-54">示例</a></h2>
 <p>在regtest里运行bitcoind，使用：</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
@@ -7885,6 +7725,212 @@ $ord outputs
 <h3 id="主网依赖"><a class="header" href="#主网依赖">主网依赖</a></h3>
 <p>为了避免在测试时必须将依赖铭文ID更改为主网铭文ID，你可以在测试时使用内容代理。<code>ord server</code>接受一个<code>--proxy</code>选项，它需要另一个<code>ord server</code>实例的URL。当设置了内容代理并且铭文未找到时，向<code>/content/&lt;INSCRIPTION_ID&gt;</code>发出请求，<code>ord server</code>将会将请求转发给内容代理。这允许你运行一个带有主网内容代理的测试<code>ord server</code>实例。然后你可以在测试铭文中使用主网铭文ID，这将返回主网铭文的内容。</p>
 <pre><code>ord --regtest server --proxy https://ordinals.com
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="钱包"><a class="header" href="#钱包">钱包</a></h1>
+<p>单个 聪 可以刻有任意内容，创建可以保存在比特币钱包中并使用比特币交易传输的比特币原生数字人工制品。铭文与比特币本身一样持久、不变、安全和去中心化。</p>
+<p>使用铭文需要一个比特币完整节点，让您了解比特币区块链的当前状态，以及一个可以创建铭文并在构建交易以将铭文发送到另一个钱包时执行 聪 控制的钱包。</p>
+<p>Bitcoin Core 提供比特币全节点和钱包。 但是，Bitcoin Core 钱包不能创建铭文，不执行 聪 控制。</p>
+<p>这需要<a href="https://github.com/ordinals/ord"><code>ord</code></a>，序数实用程序。 <code>ord</code> 没有自己的钱包，因此  <code>ord wallet</code>子命令与 Bitcoin Core 钱包交互。</p>
+<p>本指南涵盖：</p>
+<ol>
+<li>安装 Bitcoin Core</li>
+<li>同步比特币区块链</li>
+<li>创建 Bitcoin Core 钱包</li>
+<li>使用 <code>ord wallet receive</code>收取聪</li>
+<li>使用<code>ord wallet inscribe</code>创建铭文</li>
+<li>使用 <code>ord wallet send</code>发送铭文</li>
+<li>使用<code>ord wallet receive</code>收取铭文</li>
+<li>使用<code>ord wallet inscribe</code>创建铭文</li>
+</ol>
+<h2 id="寻求帮助-1"><a class="header" href="#寻求帮助-1">寻求帮助</a></h2>
+<p>如果你遇到困难，可以在<a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord Server</a>,或者检查Github上的相关内容<a href="https://github.com/ordinals/ord/issues">问题</a> 和<a href="https://github.com/ordinals/ord/discussions">讨论</a>.</p>
+<h2 id="安装-bitcoin-core"><a class="header" href="#安装-bitcoin-core">安装 Bitcoin Core</a></h2>
+<p>Bitcoin Core 可以在 <a href="https://bitcoincore.org/">bitcoincore.org</a> 上的<a href="https://bitcoincore.org/en/download/">下载页面</a>.</p>
+<p>Making inscriptions requires Bitcoin Core 28 or newer.</p>
+<p>本指南不包括如何详细安装 Bitcoin Core；当你成功安装Bitcoin Core以后，你应该可以在命令行使用 <code>bitcoind -version</code>命令。</p>
+<h2 id="配置-bitcoin-core"><a class="header" href="#配置-bitcoin-core">配置 Bitcoin Core</a></h2>
+<p><code>ord</code> 需要Bitcoin Core 的交易索引</p>
+<p>配置你的Bitcoin Core阶段去维护一个交易索引，需要在<code>bitcoin.conf</code>里面添加:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>或者, 运行 <code>bitcoind</code> 和 <code>-txindex</code>:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>关于创建或者修改你的 <code>bitcoin.conf</code>文件，可以参考 <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">这里</a>.</p>
+<h2 id="比特币区块同步"><a class="header" href="#比特币区块同步">比特币区块同步</a></h2>
+<p>区块同步，运行：</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>…直到运行 <code>getblockcount</code>:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>像区块链浏览器<a href="https://mempool.space/">the mempool.space block explorer</a>一样对区块进行记述. <code>ord</code>同<code>bitcoind</code>进行交互, 所以你在使用<code>ord</code>时候需要让<code>bitcoind</code> 在后台运行。</p>
+<p>区块链占用约600GB的磁盘空间。如果你有一个外接硬盘来存储区块，可以使用配置选项<code>blocksdir=&lt;external_drive_path&gt;</code>. 这比使用<code>datadir</code> 选项更简单， <code>bitcoin-cli</code> 和 <code>ord</code> 可以在默认的位置找到cookie文件</p>
+<h2 id="故障排除-1"><a class="header" href="#故障排除-1">故障排除</a></h2>
+<p>确保你可以通过 <code>bitcoin-cli -getinfo</code> 来访问<code>bitcoind</code> ，并且它已经完全同步</p>
+<p>假如 <code>bitcoin-cli -getinfo</code> 返回的是 <code>Could not connect to the server</code>, 这可能是<code>bitcoind</code> 没有运行</p>
+<p>确保 <code>rpcuser</code>, <code>rpcpassword</code>, 或者 <code>rpcauth</code> <em>没有</em> 在你的 <code>bitcoin.conf</code> 文件里进行设置。 <code>ord</code> 需要使用 cookie 认证。因此需要确保 你的bitcoin data的文件夹里有 <code>.cookie</code>文件。</p>
+<p>如果 <code>bitcoin-cli -getinfo</code> 返回<code>Could not locate RPC credentials</code>, 那么 你必须指定 cookie 文件的位置。如果你正在使用自定义的数据目录 (指定 <code>datadir</code> 的选项),那么你必须指定cookie文件的位置. <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/ cookie -getinfo</code>.当你运行 <code>ord</code> 命令时，你必须指定 cookie 文件的位置 <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
+<p>确保你在<code>bitcoin.conf</code> 文件中 <em>没有</em> 配置 <code>disablewallet=1</code> 如果 <code>bitcoin-cli listwallets</code> 返回 <code>Method not found</code> 那么钱包就会被禁用你将要无法使用 <code>ord</code>.</p>
+<p>确保设置 <code>txindex=1</code> 。运行 <code>bitcoin-cli getindexinfo</code> 将会返回一些这样的结果</p>
+<pre><code class="language-json">{
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
+  }
+}
+</code></pre>
+<p>假如仅仅返回 <code>{}</code>, <code>txindex</code> 没有被设置。如果返回 <code>"synced": false</code>, <code>bitcoind</code> 仍然在创建 <code>txindex</code>。那就需要等到<code>"synced": true</code> ，<code>ord</code>命令方可以使用.</p>
+<p>如果你设置了<code>maxuploadtarget</code> ，他将干扰 <code>ord</code> 的索引获取区块， 你可以选择移除或者设置<code>whitebind=127.0.0.1:8333</code>.</p>
+<h2 id="安装-ord"><a class="header" href="#安装-ord">安装 <code>ord</code></a></h2>
+<p><code>ord</code> 程序使用Rust语言写成，可以从<a href="https://github.com/ordinals/ord">源码</a>安装. 预制文件可以从<a href="https://github.com/ordinals/ord/releases">版本发布页</a>下载。</p>
+<p>你也可以在命令行中使用下面命令来安装最新的文件：</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>当 <code>ord</code> 成功安装以后,你可以运行 :</p>
+<pre><code>ord --version
+</code></pre>
+<p>这会返回 <code>ord</code>的版本信息.</p>
+<h2 id="创建一个bitcoin-core钱包"><a class="header" href="#创建一个bitcoin-core钱包">创建一个Bitcoin Core钱包</a></h2>
+<p><code>ord</code> 使用Bitcoin Core来管理私钥，签署交易以及向比特币网络广播交易。此外，<code>ord</code> 钱包需要在后台运行<a href="guides/explorer.html"><code>ord server</code></a>，请确保这些程序运行</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<pre><code>ord server
+</code></pre>
+<p>创建一个名为<code>ord</code> 的Bitcoin Core 钱包，运行:</p>
+<pre><code>ord wallet create
+</code></pre>
+<p>这将打印出您的助记词，并将其存储在安全的地方。</p>
+<pre><code>{
+  "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal",
+  "passphrase": ""
+}
+</code></pre>
+<p>如果你想指定不同的名称或者在非默认的URL上运行 <code>ord server</code>你可以设置以下选项:</p>
+<pre><code>ord wallet --name foo --server-url http://127.0.0.1:8080 create
+</code></pre>
+<p>查看所有可用的钱包选项，你可以运行</p>
+<pre><code>ord wallet help
+</code></pre>
+<h2 id="恢复和转存钱包"><a class="header" href="#恢复和转存钱包">恢复和转存钱包</a></h2>
+<p><code>ord</code>钱包使用描述符descriptors,你可以导出输出描述符并将它们导入另外一个基于描述符的钱包导出钱包描述符，其中包含你的私钥:</p>
+<pre><code>$ ord wallet dump
+==========================================
+= 这个字节包含你的私钥信息 =
+=   不要和任何人分享 =
+==========================================
+{
+  "wallet_name": "ord",
+  "descriptors": [
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/*)#uxn94yt5",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": false,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    },
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/*)#djkyg3mv",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": true,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    }
+  ]
+}
+</code></pre>
+<p><code>ord</code> 钱包可以从助记词恢复:</p>
+<pre><code>ord wallet restore --from mnemonic
+</code></pre>
+<p>输入你的助记词并按回车</p>
+<p>从<code>descriptor.json</code>恢复描述符:</p>
+<pre><code>cat descriptor.json | ord wallet restore --from descriptor
+</code></pre>
+<p>要从剪贴板中的描述符恢复：</p>
+<pre><code>ord wallet restore --from descriptor
+</code></pre>
+<p>将描述符粘贴到终端中，UNIX里按CTRL-D 或 Windows里按 CTRL-Z</p>
+<h2 id="接收聪"><a class="header" href="#接收聪">接收聪</a></h2>
+<p>铭文是在单个聪上制作的，使用聪来支付费用的普通比特币交易，因此你的钱包将需要一些 聪（比特币）。</p>
+<p>为你的 <code>ord</code> 钱包创建一个新地址，运行:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>向上面地址发送一些资金。</p>
+<p>你可以使用以下命令看到交易情况：</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>一旦交易确认，你应该可以使用 <code>ord wallet outputs</code>看到交易的输出；</p>
+<h2 id="创建铭文内容"><a class="header" href="#创建铭文内容">创建铭文内容</a></h2>
+<p>聪上可以刻录任何类型的内容，但<code>ord</code>钱包只支持<code>ord</code>区块浏览器可以显示的内容类型。</p>
+<p>另外，铭文是包含在交易中的，所以内容越大，铭文交易需要支付的费用就越高。</p>
+<p>铭文内容包含在交易见证中，获得见证折扣。要计算写入交易将支付的大概费用，请将内容大小除以四，然后乘以费率。</p>
+<p>铭文交易必须少于 400,000 个权重计量单位，否则不会被 Bitcoin Core 中继。一个字节的铭文内容需要一个权重计量单位。 由于铭文交易不只是铭文内容，铭文内容限制在400,000权重计量单位以内。390,000 个权重计量单位应该是安全的。</p>
+<h2 id="创建铭文"><a class="header" href="#创建铭文">创建铭文</a></h2>
+<p>以<code>FILE</code>的内容创建一个铭文，需要运行:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
+</code></pre>
+<p>Ord会输出两个交易ID，一个是commit交易，一个是reveal交易，还有铭文ID。铭文 ID 的格式为<code>TXIDiN</code>，其中<code>TXID</code> 是揭示交易的交易 ID，<code>N</code> 是揭示交易中铭文的索引。</p>
+<p>Commit交易提交到包含铭文内容的 tapscript，reveal交易则从该 tapscript 中花费，显示链上的内容并将它们铭刻在reveal交易的第一个输出的第一个 sat 上。</p>
+<p>在等待reveal交易被记录的同时，你可以使用<a href="https://mempool.space/">the mempool.space block explorer</a>来检查交易的状态。</p>
+<p>一旦reveal交易完成记账，你可以使用以下命令查询铭文ID：</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="父-子铭文"><a class="header" href="#父-子铭文">父-子铭文</a></h2>
+<p>父子铭文使得人们通常所说的收藏成为可能，有关更多信息，请参见<a href="guides/../inscriptions/provenance.html">provenance</a>。</p>
+<p>要使一个铭文成为另一个铭文的子项，父铭文必须已经被铭刻并且存在于钱包中。要选择一个父铭文，请运行<code>ord wallet inscriptions</code>并复制铭文ID（<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>）。</p>
+<p>为父系铭文P创建一个子铭文C:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
+</code></pre>
+<p>这种父子关系不能事后添加，父铭文必须在子铭文创建之初就存在。</p>
+<h2 id="发送铭文"><a class="header" href="#发送铭文">发送铭文</a></h2>
+<p>铭文接收方使用一下命令生成地址</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>使用命令格式发送铭文：</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>检查未完成交易情况：</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>一旦交易确认，接收方可以使用一下命令查看接收到的铭文</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="发送铭文-1"><a class="header" href="#发送铭文-1">发送铭文</a></h2>
+<p>铭文接收方使用一下命令生成地址</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>使用命令格式发送铭文：</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
+</code></pre>
+<p>在 <code>RUNES_AMOUNT</code> 是要发送的符文数量，一个 <code>:</code> 字符，和符文的名字。例如，如果你想发送1000个EXAMPLE符文，你应该使用<code>1000:EXAMPLE</code>。</p>
+<pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
+</code></pre>
+<p>检查未完成交易情况：</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>一旦交易确认，接收方可以使用一下命令查看接收到的铭文</p>
+<pre><code>ord wallet balance
+</code></pre>
+<h2 id="接收铭文"><a class="header" href="#接收铭文">接收铭文</a></h2>
+<p>使用以下命令生成一个新的接收地址</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>发送方使用命令发送铭文到你的地址</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>检查未完成交易情况：</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>一旦交易确认，你可以使用以下命令确认收到</p>
+<pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinals赏金计划提示"><a class="header" href="#ordinals赏金计划提示">Ordinals赏金计划提示</a></h1>
 <ul>

@@ -1989,26 +1989,52 @@ i               # separator
 <p>Un edicto con el valor de <code>amount</code> igual a cero y <code>output</code> igual al número de salidas de la transacción distribuye todas las unidades no asignadas de la runa <code>id</code> entre cada salida que no sea <code>OP_RETURN</code>. Si la cantidad de runas no asignadas no se puede dividir equitativamente entre las salidas que no son <code>OP_RETURN</code>, se asigna una runa adicional a las primeras <code>R</code> salidas que no son <code>OP_RETURN</code>, donde <code>R</code> es el residuo que queda después de dividir el balance de unidades no asignadas de la runa <code>id</code> por el número de salidas que no son <code>OP_RETURN</code>.</p>
 <p>La piedra rúnica se convierte en un cenotafio si algún edicto en una piedra rúnica tiene un ID de runa con <code>block</code> igual a cero y <code>tx</code> mayor que cero, o <code>output</code> mayor que el número de salidas de la transacción.</p>
 <p>Se debe tener en cuenta que los edictos en los cenotafios no se procesan, y todas las runas de entrada se queman.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="satscard"><a class="header" href="#satscard">Satscard</a></h1>
-<p><a href="https://satscard.com/">Satscards</a> are cards which can be used to store bitcoin, inscriptions, and runes.</p>
-<h2 id="slots"><a class="header" href="#slots">Slots</a></h2>
-<p>Each satscard has ten slots containing private keys with corresponding bitcoin addresses.</p>
-<p>Initially, all slots are sealed and the private keys are stored only the satscard.</p>
-<p>Slots can be unsealed, which allows the corresponding private key to be extracted.</p>
-<p>Unsealing is permanent. If a satscard is sealed, you can have some confidence that private key is not known to anyone. That taking physical ownership of a satscard makes you the sole owner of assets in any sealed slots.</p>
-<h2 id="lifespan"><a class="header" href="#lifespan">Lifespan</a></h2>
-<p>Satscards are expected to have a usable lifetime of ten years. Do not use satscards for long-term storage of valuable assets.</p>
-<h2 id="viewing"><a class="header" href="#viewing">Viewing</a></h2>
-<p>When placed on a smartphone, the satscard transmits a URL, beginning with <code>https://satscard.com/start</code> or <code>https://getsatscard.com/start</code>, depending on when it was manufactured.</p>
-<p>This URL contains a signature which can be used to recover the address of the current slot. This signature is made over a random nonce, so it changes every time the satscard is tapped, and provides some confidence that the satscard contains the private key.</p>
-<p><code>ord</code> supports viewing the contents of a satscard by entering the full URL into the <code>ord</code> explorer search bar, or the input field on the <code>/satscard</code> page.</p>
-<p>For <code>ordinals.com</code>, this is <a href="https://ordinals.com/satscard">ordinals.com/satscard</a>.</p>
-<h2 id="unsealing"><a class="header" href="#unsealing">Unsealing</a></h2>
-<p>Satscard slots can be unsealed and the private keys extracted using the <code>cktap</code> binary, available in the <a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a> repository.</p>
-<h2 id="sweeping"><a class="header" href="#sweeping">Sweeping</a></h2>
-<p>After a satscard slot is unsealed, all assets should be swept from that slot to another wallet, as the private key can now be read via NFC.</p>
-<p><code>ord</code> does not yet support sweeping assets from other wallets, so assets will need to be transferred manually.</p>
-<p>Be careful, and good luck!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="security"><a class="header" href="#security">Security</a></h1>
+<p>Anyone can publish inscriptions, including arbitrary HTML, which <code>ord server</code> will serve at <code>/content/&lt;INSCRIPTION_ID&gt;</code>, <code>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</code>, and <code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</code>.</p>
+<p>This creates potential security vulnerabilities, including cross-site scripting and spoofing attacks.</p>
+<p>Without mitigations, a domain hosting an <code>ord server</code> explorer instance should be considered to be completely untrusted.</p>
+<h3 id="cross-site-scripting"><a class="header" href="#cross-site-scripting">Cross-site Scripting</a></h3>
+<p>An attacker performs a cross-site scripting attack by injecting JavaScript into a vulnerable website such that it is later served to a victim, causing the malicious script to run in the victim's own browser with the same permissions as any other script from that website.</p>
+<p>Such a script could access private site resources or perform privileged actions on the user's behalf, since it would be making requests on behalf of the user.</p>
+<p>Cross-site scripting is <em>not</em> a concern for a vanilla <code>ord server</code> instance. <code>ord server</code> does not serve any private resources or allow privileged actions to be taken via the web interface, so although JavaScript can be injected using an inscription, it does not run with any meaningful permissions.</p>
+<p>However, if you serve requests to <code>ord server</code> from a domain which <em>also</em> serves private resources or allow privileged actions, you may be vulnerable to cross-site scripting attacks.</p>
+<h4 id="ejemplo-23"><a class="header" href="#ejemplo-23">Ejemplo</a></h4>
+<ul>
+<li>
+<p><code>ord server</code> is run under <code>https://example.com/ord</code>.</p>
+</li>
+<li>
+<p>A bitcoin exchange is run under <code>https://example.com/exchange</code>.</p>
+</li>
+<li>
+<p>Users can send bitcoin at <code>https://example.com/exchange/send</code>, with access controlled by a user's session cookie.</p>
+</li>
+<li>
+<p>An attacker publishes a malicious HTML inscription with ID <code>XYZ</code> which contains JavaScript that accesses <code>https://example.com/exchange/send</code> and sends them to an attacker-controlled address.</p>
+</li>
+<li>
+<p>When a user visits <code>https://example.com/ord/XYZ</code>, the malicious JavaScript requests <code>https://example.com/exchange/send</code>. Because the script executes on the user's behalf with the request including the user's session cookie, the server sends the user's bitcoin to the attacker.</p>
+</li>
+</ul>
+<p>To prevent this, do not make <code>ord server</code> available on the same domain and port as another web service which is vulnerable to cross-site scripting.</p>
+<h3 id="spoofing"><a class="header" href="#spoofing">Spoofing</a></h3>
+<p>If <code>ord server</code> is run at a well known domain, for example, <code>ordinals.com</code>, an attacker could publish a malicious inscription that attempts to trick users into thinking that it represents the owners of the domain. For example, by publishing a mint page to induce users to send bitcoin. Additionally, the <a href="https://developer.mozilla.org/en-US/docs/Web/API/History_API">History API</a> can be used to change the path without triggering a page reload, so inscription content can appear to the user under URL that suggests it was published by the site owners.</p>
+<h4 id="ejemplo-24"><a class="header" href="#ejemplo-24">Ejemplo</a></h4>
+<ul>
+<li>
+<p><code>ord server</code> is run at <code>https://example.com</code>, by popular and well-respected Example Corporation.</p>
+</li>
+<li>
+<p>An attacker publishes a malicious HTML inscription with ID <code>XYZ</code> which displays a mint page, and changes the URL path using the History API to <code>/mint</code>.</p>
+</li>
+<li>
+<p>A user clicks a link to <code>https://example.com/inscription/XYZ</code> which displays the attacker's mint page, with the apparent URL of <code>https://example.com/mint</code>.</p>
+</li>
+<li>
+<p>The user thinks that this is a potentially lucrative mint run by popular and well-respected Example Corporation and sends bitcoin to the mint address.</p>
+</li>
+</ul>
+<p>To prevent this, avoid giving users the impression that a domain hosting an <code>ord</code> explorer can be trusted for anything other than the content of the <code>ord</code> explorer itself.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="preguntas-frecuentes-sobre-la-teoría-ordinal"><a class="header" href="#preguntas-frecuentes-sobre-la-teoría-ordinal">Preguntas frecuentes sobre la teoría Ordinal</a></h1>
 <h2 id="qué-es-la-teoría-ordinal"><a class="header" href="#qué-es-la-teoría-ordinal">¿Qué es la teoría ordinal?</a></h2>
 <p>La teoría ordinal es un protocolo para asignar números de serie a los satoshis, la denominación más pequeña de un bitcoin, y rastrear esos satoshis a medida que son gastados en transacciones.</p>
@@ -2158,7 +2184,7 @@ i               # separator
   </summary>
 <h3 id="description-23"><a class="header" href="#description-23">Description</a></h3>
 <p>List all assets of an address. Requires index with <code>--index-addresses</code> flag.</p>
-<h3 id="ejemplo-23"><a class="header" href="#ejemplo-23">Ejemplo</a></h3>
+<h3 id="ejemplo-25"><a class="header" href="#ejemplo-25">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
 </code></pre>
@@ -2231,7 +2257,7 @@ i               # separator
   </summary>
 <h3 id="description-24"><a class="header" href="#description-24">Description</a></h3>
 <p>Returns info about the specified block.</p>
-<h3 id="ejemplo-24"><a class="header" href="#ejemplo-24">Ejemplo</a></h3>
+<h3 id="ejemplo-26"><a class="header" href="#ejemplo-26">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
 </code></pre>
@@ -2272,7 +2298,7 @@ i               # separator
   </summary>
 <h3 id="description-25"><a class="header" href="#description-25">Description</a></h3>
 <p>Returns info about the specified block.</p>
-<h3 id="ejemplo-25"><a class="header" href="#ejemplo-25">Ejemplo</a></h3>
+<h3 id="ejemplo-27"><a class="header" href="#ejemplo-27">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/block/0
 </code></pre>
@@ -2313,7 +2339,7 @@ i               # separator
   </summary>
 <h3 id="description-26"><a class="header" href="#description-26">Description</a></h3>
 <p>Returns the height of the latest block.</p>
-<h3 id="ejemplo-26"><a class="header" href="#ejemplo-26">Ejemplo</a></h3>
+<h3 id="ejemplo-28"><a class="header" href="#ejemplo-28">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockcount
 </code></pre>
@@ -2327,7 +2353,7 @@ i               # separator
   </summary>
 <h3 id="description-27"><a class="header" href="#description-27">Description</a></h3>
 <p>Returns blockhash for the latest block.</p>
-<h3 id="ejemplo-27"><a class="header" href="#ejemplo-27">Ejemplo</a></h3>
+<h3 id="ejemplo-29"><a class="header" href="#ejemplo-29">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockhash
 </code></pre>
@@ -2342,7 +2368,7 @@ i               # separator
   </summary>
 <h3 id="description-28"><a class="header" href="#description-28">Description</a></h3>
 <p>Returns blockhash of specified block.</p>
-<h3 id="ejemplo-28"><a class="header" href="#ejemplo-28">Ejemplo</a></h3>
+<h3 id="ejemplo-30"><a class="header" href="#ejemplo-30">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockhash/840000
 </code></pre>
@@ -2356,7 +2382,7 @@ i               # separator
   </summary>
 <h3 id="description-29"><a class="header" href="#description-29">Description</a></h3>
 <p>Returns the height of the latest block.</p>
-<h3 id="ejemplo-29"><a class="header" href="#ejemplo-29">Ejemplo</a></h3>
+<h3 id="ejemplo-31"><a class="header" href="#ejemplo-31">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockheight
 </code></pre>
@@ -2370,7 +2396,7 @@ i               # separator
   </summary>
 <h3 id="description-30"><a class="header" href="#description-30">Description</a></h3>
 <p>Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.</p>
-<h3 id="ejemplo-30"><a class="header" href="#ejemplo-30">Ejemplo</a></h3>
+<h3 id="ejemplo-32"><a class="header" href="#ejemplo-32">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blocks
 </code></pre>
@@ -2540,7 +2566,7 @@ i               # separator
   </summary>
 <h3 id="description-31"><a class="header" href="#description-31">Description</a></h3>
 <p>Returns the UNIX timestamp of when the latest block was mined.</p>
-<h3 id="ejemplo-31"><a class="header" href="#ejemplo-31">Ejemplo</a></h3>
+<h3 id="ejemplo-33"><a class="header" href="#ejemplo-33">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blocktime
 </code></pre>
@@ -2554,7 +2580,7 @@ i               # separator
   </summary>
 <h3 id="description-32"><a class="header" href="#description-32">Description</a></h3>
 <p>Decode a transaction, congruent to the <code>ord decode</code> command</p>
-<h3 id="ejemplo-32"><a class="header" href="#ejemplo-32">Ejemplo</a></h3>
+<h3 id="ejemplo-34"><a class="header" href="#ejemplo-34">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799
 </code></pre>
@@ -3396,7 +3422,7 @@ i               # separator
   </summary>
 <h3 id="description-33"><a class="header" href="#description-33">Description</a></h3>
 <p>Fetch details about a specific inscription by its ID.</p>
-<h3 id="ejemplo-33"><a class="header" href="#ejemplo-33">Ejemplo</a></h3>
+<h3 id="ejemplo-35"><a class="header" href="#ejemplo-35">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" /
   http://0.0.0.0:80/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 </code></pre>
@@ -3433,7 +3459,7 @@ i               # separator
   </summary>
 <h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
 <p>Returns the inscription information for the specified child.</p>
-<h3 id="ejemplo-34"><a class="header" href="#ejemplo-34">Ejemplo</a></h3>
+<h3 id="ejemplo-36"><a class="header" href="#ejemplo-36">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
 </code></pre>
@@ -3470,7 +3496,7 @@ i               # separator
   </summary>
 <h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
 <p>Fetch details for a list of inscription IDs.</p>
-<h3 id="ejemplo-35"><a class="header" href="#ejemplo-35">Ejemplo</a></h3>
+<h3 id="ejemplo-37"><a class="header" href="#ejemplo-37">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -3536,7 +3562,7 @@ i               # separator
   </summary>
 <h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
 <p>Get a list of the latest 100 inscriptions.</p>
-<h3 id="ejemplo-36"><a class="header" href="#ejemplo-36">Ejemplo</a></h3>
+<h3 id="ejemplo-38"><a class="header" href="#ejemplo-38">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions
 </code></pre>
@@ -3655,7 +3681,7 @@ i               # separator
   </summary>
 <h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
 <p>Pagination allows you to choose which page of 100 inscriptions to return.</p>
-<h3 id="ejemplo-37"><a class="header" href="#ejemplo-37">Ejemplo</a></h3>
+<h3 id="ejemplo-39"><a class="header" href="#ejemplo-39">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions/9
 </code></pre>
@@ -3774,7 +3800,7 @@ i               # separator
   </summary>
 <h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
 <p>Get inscriptions for a specific block.</p>
-<h3 id="ejemplo-38"><a class="header" href="#ejemplo-38">Ejemplo</a></h3>
+<h3 id="ejemplo-40"><a class="header" href="#ejemplo-40">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions/block/767430
 </code></pre>
@@ -3794,7 +3820,7 @@ i               # separator
   </summary>
 <h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
 <p>Installs the latest pre-built binary of <code>ord</code></p>
-<h3 id="ejemplo-39"><a class="header" href="#ejemplo-39">Ejemplo</a></h3>
+<h3 id="ejemplo-41"><a class="header" href="#ejemplo-41">Ejemplo</a></h3>
 <p>See <a href="guides/wallet.html#installing-ord">wallet.md</a></p>
 </details>
 <details>
@@ -3804,7 +3830,7 @@ i               # separator
  </summary>
 <h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
 <p>Returns information about a UTXO, including inscriptions within it.</p>
-<h3 id="ejemplo-40"><a class="header" href="#ejemplo-40">Ejemplo</a></h3>
+<h3 id="ejemplo-42"><a class="header" href="#ejemplo-42">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
 </code></pre>
@@ -3830,7 +3856,7 @@ i               # separator
  </summary>
 <h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
 <p>List information from a list of outputs.</p>
-<h3 id="ejemplo-41"><a class="header" href="#ejemplo-41">Ejemplo</a></h3>
+<h3 id="ejemplo-43"><a class="header" href="#ejemplo-43">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -3881,7 +3907,7 @@ i               # separator
 <tr><td><code>runic</code></td><td>return UTXOs containing runes</td></tr>
 </tbody></table>
 </div>
-<h3 id="ejemplo-42"><a class="header" href="#ejemplo-42">Ejemplo</a></h3>
+<h3 id="ejemplo-44"><a class="header" href="#ejemplo-44">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   "http://0.0.0.0:80/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
 </code></pre>
@@ -3946,7 +3972,7 @@ i               # separator
   </summary>
 <h3 id="description-43"><a class="header" href="#description-43">Description</a></h3>
 <p>Returns details about the specified rune. Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="ejemplo-43"><a class="header" href="#ejemplo-43">Ejemplo</a></h3>
+<h3 id="ejemplo-45"><a class="header" href="#ejemplo-45">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://localhost/rune/UNCOMMONGOODS
 </code></pre>
@@ -3989,7 +4015,7 @@ i               # separator
   </summary>
 <h3 id="description-44"><a class="header" href="#description-44">Description</a></h3>
 <p>Returns details for last 100 inscribed runes.  Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="ejemplo-44"><a class="header" href="#ejemplo-44">Ejemplo</a></h3>
+<h3 id="ejemplo-46"><a class="header" href="#ejemplo-46">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/runes
 </code></pre>
@@ -5477,7 +5503,7 @@ i               # separator
   </summary>
 <h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
 <p>Pagination allows you to specify which page of 100 runes you'd like to return.</p>
-<h3 id="ejemplo-45"><a class="header" href="#ejemplo-45">Ejemplo</a></h3>
+<h3 id="ejemplo-47"><a class="header" href="#ejemplo-47">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/runes/0
 </code></pre>
@@ -6965,7 +6991,7 @@ i               # separator
   </summary>
 <h3 id="description-46"><a class="header" href="#description-46">Description</a></h3>
 <p>Returns details about a specific satoshi. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="ejemplo-46"><a class="header" href="#ejemplo-46">Ejemplo</a></h3>
+<h3 id="ejemplo-48"><a class="header" href="#ejemplo-48">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/sat/2099994106992659
 </code></pre>
@@ -6995,7 +7021,7 @@ i               # separator
   </summary>
 <h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
 <p>Returns details about the server installation and index.</p>
-<h3 id="ejemplo-47"><a class="header" href="#ejemplo-47">Ejemplo</a></h3>
+<h3 id="ejemplo-49"><a class="header" href="#ejemplo-49">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/status
 </code></pre>
@@ -7032,7 +7058,7 @@ i               # separator
   </summary>
 <h3 id="description-48"><a class="header" href="#description-48">Description</a></h3>
 <p>Returns details about the specified transaction.</p>
-<h3 id="ejemplo-48"><a class="header" href="#ejemplo-48">Ejemplo</a></h3>
+<h3 id="ejemplo-50"><a class="header" href="#ejemplo-50">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
 </code></pre>
@@ -7068,241 +7094,6 @@ i               # separator
 </details>
 <h2 id="recursive-endpoints"><a class="header" href="#recursive-endpoints">Recursive Endpoints</a></h2>
 <p>See <a href="guides/../inscriptions/recursion.html">Recursion</a>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="explorador-ordinal"><a class="header" href="#explorador-ordinal">Explorador Ordinal</a></h1>
-<p>El ejecutable de <code>ord</code> incluye un explorador de bloques. Alojamos una instancia del explorador de bloques en mainnet en <a href="https://ordinals.com">ordinals.com</a>, en signet en <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
-<h3 id="ejecutando-el-explorador"><a class="header" href="#ejecutando-el-explorador">Ejecutando El Explorador</a></h3>
-<p>El servidor puede ser ejecutado localmente utilizando:</p>
-<p><code>ord server</code></p>
-<p>Para especificar un puerto agrega la bandera (flag) <code>--http-port</code>:</p>
-<p><code> ord server --http-port 8080</code></p>
-<p>The JSON-API endpoints are enabled by default, to disable them add the <code>--disable-json-api</code> flag (see <a href="guides/api.html">here</a> for more info):</p>
-<p><code>ord server --disable-json-api</code></p>
-<h2 id="búsqueda"><a class="header" href="#búsqueda">Búsqueda</a></h2>
-<p>El cuadro de búsqueda acepta una variedad de representaciones de objetos.</p>
-<h3 id="bloques"><a class="header" href="#bloques">Bloques</a></h3>
-<p>Los bloques pueden buscarse por hash, por ejemplo, este es el bloque génesis:</p>
-<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
-<h3 id="transacciones"><a class="header" href="#transacciones">Transacciones</a></h3>
-<p>Las transacciones se pueden buscar por hash, por ejemplo esta es la transacción coinbase del bloque génesis:</p>
-<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
-<h3 id="salidas"><a class="header" href="#salidas">Salidas</a></h3>
-<p>Las salidas de transacciones se pueden buscar por outpoint, por ejemplo, la única salida de la transacción coinbase del bloque génesis:</p>
-<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
-<h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
-<p>Los sats se pueden buscar por número entero, según su posición dentro de todo el suministro de bitcoin:</p>
-<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
-<p>Por decimal, según su bloque y el desplazamiento dentro de ese bloque:</p>
-<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
-<p>Por grado sexagesimal, según su ciclo, bloques desde el último halving, bloques desde el último ajuste de dificultad y desplazamiento dentro de su bloque:</p>
-<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
-<p>Por nombre, su representación en base 26 utilizando las letras de la "a" a la "z":</p>
-<p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
-<p>O por percentil, el cual representa el porcentaje del suministro total de bitcoin que ha sido o será emitido una vez sean minados:</p>
-<p><a href="https://ordinals.com/search/100%">100%</a></p>
-<pre><code></code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="monedero"><a class="header" href="#monedero">Monedero</a></h1>
-<p>Cada sat puede ser inscrito con contenido arbitrario, permitiendo la creación de artefactos digitales únicos nativos en Bitcoin. Estos artefactos digitales pueden almacenarse en monederos de Bitcoin y transferirse mediante transacciones de Bitcoin. Las inscripciones son tan duraderas, inmutables, seguras y descentralizadas como el propio Bitcoin.</p>
-<p>Trabajar con inscripciones requiere de un nodo de Bitcoin para darte una visión del estado actual de la blockchain de Bitcoin, además de un monedero capaz de crear inscripciones y realizar control de sats a la hora de construir transacciones para enviar inscripciones a otro monedero.</p>
-<p>Bitcoin Core proporciona un nodo completo de Bitcoin y un monedero. Sin embargo, el monedero de Bitcoin Core no puede crear inscripciones y no realiza control de sats.</p>
-<p>Para esto se requiere de <a href="https://github.com/ordinals/ord"><code>ord</code></a>, la utilidad de ordinals. <code>ord</code> no implementa su propio monedero, por lo que los subcomandos del monedero ord interactúan con los monederos de Bitcoin Core.</p>
-<p>Esta guía cubre:</p>
-<ol>
-<li>La instalación de Bitcoin Core</li>
-<li>Sincronización de la blockchain de Bitcoin Core</li>
-<li>Creación de un monedero de Bitcoin Core</li>
-<li>Utilizando <code>ord wallet receive</code> para recibir sats</li>
-<li>Creación de inscripciones usando <code>ord wallet inscribe</code></li>
-<li>Enviar inscripciones usando <code>ord wallet send</code></li>
-<li>Recibir inscripciones con <code>ord wallet receive</code></li>
-<li>Inscripción por lotes con <code>ord wallet inscribe --batch</code></li>
-</ol>
-<h2 id="obtener-ayuda"><a class="header" href="#obtener-ayuda">Obtener Ayuda</a></h2>
-<p>Si te atascas, intenta pedir ayuda en el Servidor de <a href="https://discord.com/invite/87cjuz4FYg">Discord de Ordinals</a>, o consulta el GitHub para ver <a href="https://github.com/ordinals/ord/issues">problemas</a> y <a href="https://github.com/ordinals/ord/discussions">discusiones relevantes</a>.</p>
-<h2 id="la-instalación-de-bitcoin-core"><a class="header" href="#la-instalación-de-bitcoin-core">La instalación de Bitcoin Core</a></h2>
-<p>Bitcoin Core está disponible en la <a href="https://bitcoincore.org/en/download/">página de descargas</a> de <a href="https://bitcoincore.org/">bitcoincore.org</a>.</p>
-<p>Making inscriptions requires Bitcoin Core 28 or newer.</p>
-<p>Esta guía no cubre en detalle la instalación de Bitcoin Core. Una vez que hayas instalado Bitcoin Core, deberías poder ejecutar <code>bitcoind -version</code> exitosamente desde la línea de comandos. <em>NO</em> utilices <code>bitcoin-qt</code>.</p>
-<h2 id="configuración-de-bitcoin-core"><a class="header" href="#configuración-de-bitcoin-core">Configuración de Bitcoin Core</a></h2>
-<p><code>ord</code> requiere el índice de transacciones y la interfaz REST de Bitcoin Core.</p>
-<p>Debes configurar tu nodo de Bitcoin Core para que mantenga un índice de transacciones. Añade lo siguiente a tu archivo <code>bitcoin.conf</code>:</p>
-<pre><code>txindex=1
-</code></pre>
-<p>O ejecuta <code>bitcoind</code> con <code>-txindex</code>:</p>
-<pre><code>bitcoind -txindex
-</code></pre>
-<p>Los detalles sobre cómo crear o modificar tu archivo <code>bitcoin.conf</code> se pueden encontrar <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">aquí</a>.</p>
-<h2 id="sincronizando-la-blockchain-de-bitcoin"><a class="header" href="#sincronizando-la-blockchain-de-bitcoin">Sincronizando la Blockchain de Bitcoin</a></h2>
-<p>Para sincronizar la blockchain o cadena de bloques de bitcoin, ejecuta:</p>
-<pre><code>bitcoind -txindex
-</code></pre>
-<p>…y déjalo ejecutar hasta que <code>getblockcount</code>:</p>
-<pre><code>bitcoin-cli getblockcount
-</code></pre>
-<p>coincida con el recuento de bloques en un explorador de bloques como el <a href="https://mempool.space/">explorador de bloques mempool.space</a>. <code>ord</code> interactúa con <code>bitcoind</code>, así que debes dejar <code>bitcoind</code> ejecutándose en segundo plano mientras estés usando <code>ord</code>.</p>
-<p>La cadena de bloques ocupa aproximadamente 600GB de espacio en disco. Si tienes un disco externo en el que deseas almacenar los bloques, utiliza la opción de configuración <code>blocksdir=&lt;ruta_del_disco_externo&gt;</code>. Esto es mucho más sencillo que usar <code>datadir</code>, ya que el archivo de cookies permanecerá en la ubicación predeterminada, facilitando su acceso para <code>bitcoin-cli</code> y <code>ord</code>.</p>
-<h2 id="solución-de-problemas"><a class="header" href="#solución-de-problemas">Solución de problemas</a></h2>
-<p>Asegúrate de poder acceder a <code>bitcoind</code> utilizando <code>bitcoin-cli -getinfo</code> y que esté completamente sincronizado.</p>
-<p>Si <code>bitcoin-cli -getinfo</code> devuelve <code>"Could not connect to the server"</code>, <code>bitcoind</code> no se está ejecutando.</p>
-<p>Verifica que <code>rpcuser</code>, <code>rpcpassword</code> o <code>rpcauth</code> <em>NO</em> estén configurados en tu archivo <code>bitcoin.conf</code>. <code>ord</code> requiere el uso de autenticación con cookies. Asegúrate de que exista un archivo <code>.cookie</code> en tu directorio de datos de Bitcoin.</p>
-<p>Si <code>bitcoin-cli -getinfo</code> muestra <code>"Could not locate RPC credentials"</code>, necesitas especificar la ubicación del archivo de cookies. Si utilizas un directorio de datos personalizado (especificando la opción <code>datadir</code>), entonces debes indicar la ubicación del archivo de cookies de la siguiente manera: <code>bitcoin-cli -rpccookiefile=&lt;tu_directorio_de_datos_de_bitcoin&gt;/.cookie -getinfo</code>. Al ejecutar <code>ord</code>, debes especificar la ubicación del archivo de cookies con <code>--cookie-file=&lt;tu_directorio_de_datos_de_bitcoin&gt;/.cookie</code>.</p>
-<p>Asegúrate de no tener <code>disablewallet=1</code> en tu archivo <code>bitcoin.conf</code>. Si <code>bitcoin-cli listwallets</code> devuelve <code>"Method not found"</code>, entonces la billetera está deshabilitada y no podrás usar <code>ord</code>.</p>
-<p>Asegúrate de que <code>txindex=1</code> esté configurado. Ejecuta <code>bitcoin-cli getindexinfo</code> y debería devolver algo similar a esto</p>
-<pre><code class="language-json">{
-  "txindex": {
-    "sincronizado": true,
-    "mejor_altura_de_bloque": 776546
-  }
-}
-</code></pre>
-<p>Si solo sale <code>{}</code>, significa que <code>txindex</code> no está configurado. Si sale <code>"synced": false</code>, bitcoind todavía está creando el <code>txindex</code>. Espera hasta que <code>"synced": true</code> antes de usar <code>ord</code>.</p>
-<p>Si tienes configurado <code>maxuploadtarget</code>, esto puede interferir con la obtención de bloques para el índice de <code>ord</code>. Para solucionarlo, elimínalo o configura <code>whitebind=127.0.0.1:8333</code>.</p>
-<h2 id="instalación-de-ord"><a class="header" href="#instalación-de-ord">Instalación de <code>ord</code></a></h2>
-<p>La herramienta <code>ord</code> está desarrollada en Rust y puede compilarse desde el <a href="https://github.com/ordinals/ord">código fuente</a>. Los binarios preconstruidos están disponibles en la página de <a href="https://github.com/ordinals/ord/releases">lanzamientos</a>.</p>
-<p>Puedes instalar el último binario precompilado desde la línea de comandos usando:</p>
-<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
-</code></pre>
-<p>Una vez que ord esté instalado, deberías poder de ejecutar:</p>
-<pre><code>ord --version
-</code></pre>
-<p>Esto mostrará el número de versión de <code>ord</code>.</p>
-<h2 id="creando-un-monedero"><a class="header" href="#creando-un-monedero">Creando un Monedero</a></h2>
-<p><code>ord</code> utiliza <code>bitcoind</code> para manejar claves privadas, firmar transacciones y transmitir transacciones a la red de Bitcoin. Además, el <code>monedero ord</code> requiere que <a href="guides/explorer.html"><code>ord server</code></a> esté ejecutándose en segundo plano. Asegúrate de que estos programas estén en funcionamiento:</p>
-<pre><code>bitcoind -txindex
-</code></pre>
-<pre><code>ord server
-</code></pre>
-<p>Para crear un monedero llamado <code>ord</code>, que es el predeterminado, para utilizar con <code>ord wallet</code>, ejecuta:</p>
-<pre><code>ord wallet create
-</code></pre>
-<p>Esto mostrará tu frase semilla mnemotécnica. Guárdala en un lugar seguro.</p>
-<p>`` { "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal", "passphrase": "" }</p>
-<pre><code></code></pre>
-<p>Si deseas especificar un nombre diferente o utilizar un <code>servidor de ord</code> que se esté ejecutando en una URL no predeterminada, puedes configurar estas opciones:</p>
-<pre><code>ord wallet --name foo --server-url http://127.0.0.1:8080 create
-</code></pre>
-<p>Para ver todas las opciones disponibles del Monedero, puedes usar el siguiente comando:</p>
-<pre><code>ord wallet help
-</code></pre>
-<h2 id="restauración-y-dump-del-monedero"><a class="header" href="#restauración-y-dump-del-monedero">Restauración y Dump del Monedero</a></h2>
-<p>El monedero <code>ord</code> utiliza descriptores, lo que te permite exportar los descriptores de salida e importarlos en otro monedero que también use descriptores. Para exportar los descriptores del monedero, que incluyen tus claves privadas:</p>
-<pre><code>$ ord wallet dump
-============================================
-= ESTE STRING CONTIENE TUS LLAVES PRIVADAS =
-=        NO LAS COMPARTAS CON NADIE        =
-============================================
-{
-  "wallet_name": "ord",
-  "descriptors": [
-    {
-      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/*)#uxn94yt5",
-      "timestamp": 1296688602,
-      "active": true,
-      "internal": false,
-      "range": [
-        0,
-        999
-      ],
-      "next": 0
-    },
-    {
-      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/*)#djkyg3mv",
-      "timestamp": 1296688602,
-      "active": true,
-      "internal": true,
-      "range": [
-        0,
-        999
-      ],
-      "next": 0
-    }
-  ]
-}
-</code></pre>
-<p>Una billetera ord puede ser restaurada a partir de una frase mnemotécnica:</p>
-<pre><code>ord wallet restore --from mnemonic
-</code></pre>
-<p>Escribe tu frase mnemotécnica y presiona enter.</p>
-<p>Para restaurar desde un descriptor en <code>descriptor.json</code>:</p>
-<pre><code>cat descriptor.json | ord wallet restore --from descriptor
-</code></pre>
-<p>Para restaurar desde un descriptor en el portapapeles:</p>
-<pre><code>ord wallet restore --from descriptor
-</code></pre>
-<p>Pega el descriptor en la terminal y presiona CTRL-D en unix y CTRL-Z en Windows.</p>
-<h2 id="recibir-sats"><a class="header" href="#recibir-sats">Recibir Sats</a></h2>
-<p>Las inscripciones se crean en sats individuales, mediante transacciones estándar de Bitcoin que pagan comisiones en sats, por lo que tu monedero necesitará tener algunos sats disponibles.</p>
-<p>Obtén una nueva dirección de tu monedero <code>ord</code>ejecutando:</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>Y envíale algunos fondos.</p>
-<p>Puedes ver las transacciones pendientes con:</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>Una vez que la transacción se confirme, podrás ver las salidas de la transacción con <code>ord wallet outputs</code>.</p>
-<h2 id="creación-de-contenido-para-las-inscripciones"><a class="header" href="#creación-de-contenido-para-las-inscripciones">Creación de Contenido para las Inscripciones</a></h2>
-<p>Los sats pueden ser inscritos con cualquier tipo de contenido, pero el monedero <code>ord</code> solo admite tipos de contenido que pueden ser mostrados por el explorador de bloques de <code>ord</code>.</p>
-<p>Además, las inscripciones se incluyen en las transacciones, debido a esto, en cuanto más grande sea el contenido, mayor será la comisión que debe pagar por la transacción de la inscripción.</p>
-<p>El contenido de inscripción se incluye en el testigo de la transacción, los cuales reciben el descuento de testigo. Para calcular un aproximado de la comisión que se trendrá que pagar por la transacción de una inscripción, divide el tamaño del contenido por cuatro y multiplica por la tasa de comisión.</p>
-<p>Las transacciones de inscripción deben tener un peso inferior a 400,000 unidades, de lo contrario, no serán retransmitidas por Bitcoin Core. Un byte del contenido de inscripción equivale a una unidad de peso. Considerando que una transacción de inscripción abarca más que solo el contenido de la inscripción se debe restringir el contenido de cada inscripción a menos de 400,000 unidades de peso. Para mantener un margen de seguridad, se recomienda no exceder las 390,000 unidades de peso.</p>
-<h2 id="creando-una-inscripción"><a class="header" href="#creando-una-inscripción">Creando una Inscripción</a></h2>
-<p>Para crear una inscripción con el contenido de <code>ARCHIVO</code>, ejecuta:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
-</code></pre>
-<p>Ord mostrará dos IDs de transacciones, uno para la transacción de compromiso, uno para la transacción de revelación, y el ID de inscripción. Los IDs de inscripción tienen el formato <code>TXIDiN</code>, donde <code>TXID</code> es el ID de la transacción de revelación, y <code>N</code> es el índice de la inscripción en la transacción de revelación.</p>
-<p>La transacción de compromiso se compromete a un tapscript que aloja el contenido de la inscripción, mientras que la transacción de revelación consume ese tapscript, revelando el contenido en la cadena e inscribiéndolo en el primer sat del input que contiene el tapscript correspondiente.</p>
-<p>Espera a que la transacción de revelación sea minada. Puedes verificar el estado de las transacciones de compromiso y revelación usando el <a href="https://mempool.space/">explorador de bloques mempool.space</a>.</p>
-<p>Después de que la transacción de revelación sea minada, el ID de inscripción debería salir al ejecutar:</p>
-<pre><code>ord wallet inscriptions
-</code></pre>
-<h2 id="inscripciones-padre-hijo-parent-child"><a class="header" href="#inscripciones-padre-hijo-parent-child">Inscripciones Padre-Hijo (Parent-Child)</a></h2>
-<p>Las inscripciones de tipo padre-hijo permiten crear lo que coloquialmente se conoce como colecciones. Para más información, consulta <a href="guides/../inscriptions/provenance.html">proveniencia</a>.</p>
-<p>Para designar una inscripción como hijo de otra inscripción, la inscripción padre debe estar inscrita y disponible en el monedero. Para seleccionar una inscripción padre, ejecuta <code>ord wallet inscriptions</code> y copia el ID de la inscripción (<code>&lt;ID_DE_INSCRIPCIÓN_PADRE&gt;</code>).</p>
-<p>Luego, inscribe la inscripción hijo y especifica el padre de esta manera:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
-</code></pre>
-<p>Esta relación no puede añadirse retroactivamente, el padre debe estar presente en el momento de la creación del hijo.</p>
-<h2 id="envíar-inscripciones"><a class="header" href="#envíar-inscripciones">Envíar Inscripciones</a></h2>
-<p>Pide al destinatario que genere una dirección nueva ejecutando:</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>Envía la inscripción ejecutando:</p>
-<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
-</code></pre>
-<p>Consulta la transacción con:</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>Una vez que la transacción de envío haya sido confirmada, el destinatario podrá verificarlo ejecutando:</p>
-<pre><code>ord wallet inscriptions
-</code></pre>
-<h2 id="envíar-runas"><a class="header" href="#envíar-runas">Envíar Runas</a></h2>
-<p>Pide al destinatario que genere una dirección nueva ejecutando:</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>Para envíar las runas ejecuta:</p>
-<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
-</code></pre>
-<p>En donde <code>RUNES_AMOUNT</code> es la cantidad de runas a enviar, seguida por dos puntos <code>:</code> y el nombre de la runa. Por ejemplo, si deseas enviar 1000 runas EXAMPLE, usarías <code>1000:EXAMPLE</code>.</p>
-<pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
-</code></pre>
-<p>Consulta la transacción con:</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>Una vez que la transacción de envío se confirme, el destinatario puede verificar la recepción con:</p>
-<pre><code>ord wallet balance
-</code></pre>
-<h2 id="recibir-inscripciones"><a class="header" href="#recibir-inscripciones">Recibir Inscripciones</a></h2>
-<p>Genera una nueva dirección de recepción usando:</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>El remitente puede transferir la inscripción a tu dirección usando:</p>
-<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; ADDRESS INSCRIPTION_ID
-</code></pre>
-<p>Consulta la transacción con:</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>Una vez que la transacción se confirme, puedes verificar si lo recibiste ejecutando con:</p>
-<pre><code>ord wallet inscriptions
-</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="inscribiendo-por-lotes"><a class="header" href="#inscribiendo-por-lotes">Inscribiendo por Lotes</a></h1>
 <p>Se pueden crear múltiples inscripciones al mismo tiempo usando el <a href="guides/./../inscriptions/pointer.html">campo pointer</a>. Esto es especialmente útil para colecciones u otros casos en los que varias inscripciones deben compartir el mismo padre, ya que el padre se puede incluir en una transacción de revelación que crea múltiples hijos.</p>
 <p>Para crear una inscripción por lotes utilizando un batchfile en <code>batch.yaml</code>, ejecuta el siguiente comando:</p>
@@ -7401,30 +7192,6 @@ inscripciones:
   gallery:
   - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0
   - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3
-</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="splitting"><a class="header" href="#splitting">Splitting</a></h1>
-<p>Complex transactions can be created using the <code>ord wallet split</code> command.</p>
-<p>The <code>split</code> command takes a YAML configuration file, which specifies any number of outputs to be created, their bitcoin value, and their value of any number of runes. It does not currently allow assigning inscriptions to outputs.</p>
-<p>The <code>split</code> command can be used to split cardinal, bitcoin-only outputs for transacting, distribute runes to large numbers of recipients in a single transaction.</p>
-<p>To send a split transaction using the configuration in <code>splits.yaml</code>, run the following command:</p>
-<pre><code class="language-bash">ord wallet split --fee-rate 21 --splits split.yaml
-</code></pre>
-<p>Example <code>splits.yaml</code> --------------------`</p>
-<pre><code class="language-yaml"># example split file
-
-# output fields:
-#   address: output recipient bitcoin address
-#   value: output bitcoin value (optional, defaults to minimal-non dust value for `address`)
-#   runes: output rune value map (values respect rune divisibility)
-outputs:
-- address: bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297
-  value: 10 sat
-  runes:
-    UNCOMMON•GOODS: 1234
-    GRIEF•WAGE: 5000000
-- address: 3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy
-  runes:
-    HELLO•WORLD: 22.5
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="coleccionar"><a class="header" href="#coleccionar">Coleccionar</a></h1>
 <p>Actualmente, ord es el único monedero que tiene la funcionalidad de control de sat (sat-control) y selección de sat (sat-selection), funciones indispensables para almacenar y enviar de forma segura sats raros e inscripciones, ahora conocidos como ordinals.</p>
@@ -7526,12 +7293,44 @@ outputs:
 <p><img src="guides/collecting/images/sending_06.png" alt="" /></p>
 <p>Si deseas rastrear el estado de tu transacción, puedes copiar el <code>Transaction (txid)</code> (Identificador de la Transacción (Txid)) y pegarlo en <a href="https://mempool.space">mempool.space</a></p>
 <p>Cuando la transacción haya sido confirmada, puedes revisar la página de inscripciones en <a href="https://ordinals.com">ordinals.com</a> para confirmar que ha sido movida a la nueva ubicación de salida y dirección.</p>
-<h2 id="solución-de-problemas-1"><a class="header" href="#solución-de-problemas-1">Solución de problemas</a></h2>
+<h2 id="solución-de-problemas"><a class="header" href="#solución-de-problemas">Solución de problemas</a></h2>
 <h4 id="el-monedero-sparrow-no-está-mostrando-una-transacciónutxo-pero-puedo-verla-en-mempoolspace"><a class="header" href="#el-monedero-sparrow-no-está-mostrando-una-transacciónutxo-pero-puedo-verla-en-mempoolspace">¡El monedero Sparrow no está mostrando una transacción/UTXO, pero puedo verla en mempool.space!</a></h4>
 <p>Asegúrate de que tu monedero esté conectado a un nodo de bitcoin. Para validar esto, dirígete a <code>Preferences</code>-&gt; <code>Server settings</code> y haz clic en <code>Edit Existing Connection</code> (Editar conexión existente).</p>
 <p><img src="guides/collecting/images/troubleshooting_01.png" alt="" /></p>
 <p>Desde allí puedes seleccionar un nodo y hacer clic en <code>Test Connection</code> (Probar conexión) para validar que Sparrow pueda conectarse exitosamente.</p>
 <p><img src="guides/collecting/images/troubleshooting_02.png" alt="" /></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="explorador-ordinal"><a class="header" href="#explorador-ordinal">Explorador Ordinal</a></h1>
+<p>El ejecutable de <code>ord</code> incluye un explorador de bloques. Alojamos una instancia del explorador de bloques en mainnet en <a href="https://ordinals.com">ordinals.com</a>, en signet en <a href="https://signet.ordinals.com">signet.ordinals.com</a>.</p>
+<h3 id="ejecutando-el-explorador"><a class="header" href="#ejecutando-el-explorador">Ejecutando El Explorador</a></h3>
+<p>El servidor puede ser ejecutado localmente utilizando:</p>
+<p><code>ord server</code></p>
+<p>Para especificar un puerto agrega la bandera (flag) <code>--http-port</code>:</p>
+<p><code> ord server --http-port 8080</code></p>
+<p>The JSON-API endpoints are enabled by default, to disable them add the <code>--disable-json-api</code> flag (see <a href="guides/api.html">here</a> for more info):</p>
+<p><code>ord server --disable-json-api</code></p>
+<h2 id="búsqueda"><a class="header" href="#búsqueda">Búsqueda</a></h2>
+<p>El cuadro de búsqueda acepta una variedad de representaciones de objetos.</p>
+<h3 id="bloques"><a class="header" href="#bloques">Bloques</a></h3>
+<p>Los bloques pueden buscarse por hash, por ejemplo, este es el bloque génesis:</p>
+<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
+<h3 id="transacciones"><a class="header" href="#transacciones">Transacciones</a></h3>
+<p>Las transacciones se pueden buscar por hash, por ejemplo esta es la transacción coinbase del bloque génesis:</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
+<h3 id="salidas"><a class="header" href="#salidas">Salidas</a></h3>
+<p>Las salidas de transacciones se pueden buscar por outpoint, por ejemplo, la única salida de la transacción coinbase del bloque génesis:</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
+<h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
+<p>Los sats se pueden buscar por número entero, según su posición dentro de todo el suministro de bitcoin:</p>
+<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
+<p>Por decimal, según su bloque y el desplazamiento dentro de ese bloque:</p>
+<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
+<p>Por grado sexagesimal, según su ciclo, bloques desde el último halving, bloques desde el último ajuste de dificultad y desplazamiento dentro de su bloque:</p>
+<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
+<p>Por nombre, su representación en base 26 utilizando las letras de la "a" a la "z":</p>
+<p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
+<p>O por percentil, el cual representa el porcentaje del suministro total de bitcoin que ha sido o será emitido una vez sean minados:</p>
+<p><a href="https://ordinals.com/search/100%">100%</a></p>
+<pre><code></code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="moderación"><a class="header" href="#moderación">Moderación</a></h1>
 <p>ord incluye un explorador de bloques, el cual puedes ejecutar localmente utilizando <code>ord server</code>.</p>
 <p>El explorador de bloques ofrece la visualización de inscripciones, las cuales son contenidos generados por usuarios y podrían ser inapropiados o ilicitos.</p>
@@ -7748,6 +7547,26 @@ ord index update
 <pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
 </code></pre>
 <p>También puedes utilizar los comandos de <code>bitcoin-cli</code> como <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code> y <code>sendrawtransaction</code>, pero este método puede ser complejo y está fuera del alcance de esta guía.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="satscard"><a class="header" href="#satscard">Satscard</a></h1>
+<p><a href="https://satscard.com/">Satscards</a> are cards which can be used to store bitcoin, inscriptions, and runes.</p>
+<h2 id="slots"><a class="header" href="#slots">Slots</a></h2>
+<p>Each satscard has ten slots containing private keys with corresponding bitcoin addresses.</p>
+<p>Initially, all slots are sealed and the private keys are stored only the satscard.</p>
+<p>Slots can be unsealed, which allows the corresponding private key to be extracted.</p>
+<p>Unsealing is permanent. If a satscard is sealed, you can have some confidence that private key is not known to anyone. That taking physical ownership of a satscard makes you the sole owner of assets in any sealed slots.</p>
+<h2 id="lifespan"><a class="header" href="#lifespan">Lifespan</a></h2>
+<p>Satscards are expected to have a usable lifetime of ten years. Do not use satscards for long-term storage of valuable assets.</p>
+<h2 id="viewing"><a class="header" href="#viewing">Viewing</a></h2>
+<p>When placed on a smartphone, the satscard transmits a URL, beginning with <code>https://satscard.com/start</code> or <code>https://getsatscard.com/start</code>, depending on when it was manufactured.</p>
+<p>This URL contains a signature which can be used to recover the address of the current slot. This signature is made over a random nonce, so it changes every time the satscard is tapped, and provides some confidence that the satscard contains the private key.</p>
+<p><code>ord</code> supports viewing the contents of a satscard by entering the full URL into the <code>ord</code> explorer search bar, or the input field on the <code>/satscard</code> page.</p>
+<p>For <code>ordinals.com</code>, this is <a href="https://ordinals.com/satscard">ordinals.com/satscard</a>.</p>
+<h2 id="unsealing"><a class="header" href="#unsealing">Unsealing</a></h2>
+<p>Satscard slots can be unsealed and the private keys extracted using the <code>cktap</code> binary, available in the <a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a> repository.</p>
+<h2 id="sweeping"><a class="header" href="#sweeping">Sweeping</a></h2>
+<p>After a satscard slot is unsealed, all assets should be swept from that slot to another wallet, as the private key can now be read via NFC.</p>
+<p><code>ord</code> does not yet support sweeping assets from other wallets, so assets will need to be transferred manually.</p>
+<p>Be careful, and good luck!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="configuración"><a class="header" href="#configuración">Configuración</a></h1>
 <p><code>ord</code> puede configurarse mediante la línea de comandos, variables de entorno, un archivo de configuración y valores predeterminados.</p>
 <p>La línea de comandos tiene prioridad sobre las variables de entorno, las cuales tienen prioridad sobre el archivo de configuración, que a su vez tiene prioridad sobre los valores predeterminados.</p>
@@ -7799,13 +7618,37 @@ usuario_del_servidor: foo
 - 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 - 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="splitting"><a class="header" href="#splitting">Splitting</a></h1>
+<p>Complex transactions can be created using the <code>ord wallet split</code> command.</p>
+<p>The <code>split</code> command takes a YAML configuration file, which specifies any number of outputs to be created, their bitcoin value, and their value of any number of runes. It does not currently allow assigning inscriptions to outputs.</p>
+<p>The <code>split</code> command can be used to split cardinal, bitcoin-only outputs for transacting, distribute runes to large numbers of recipients in a single transaction.</p>
+<p>To send a split transaction using the configuration in <code>splits.yaml</code>, run the following command:</p>
+<pre><code class="language-bash">ord wallet split --fee-rate 21 --splits split.yaml
+</code></pre>
+<p>Example <code>splits.yaml</code> --------------------`</p>
+<pre><code class="language-yaml"># example split file
+
+# output fields:
+#   address: output recipient bitcoin address
+#   value: output bitcoin value (optional, defaults to minimal-non dust value for `address`)
+#   runes: output rune value map (values respect rune divisibility)
+outputs:
+- address: bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297
+  value: 10 sat
+  runes:
+    UNCOMMON•GOODS: 1234
+    GRIEF•WAGE: 5000000
+- address: 3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy
+  runes:
+    HELLO•WORLD: 22.5
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="telequemado"><a class="header" href="#telequemado">Telequemado</a></h1>
 <p>Las direcciones de teleburn permiten quemar activos en otras blockchains, dejando atrás en los escombros una especie de dirección de reenvío que apunta a una inscripción en Bitcoin.</p>
 <p>Telequemar un activo significa algo así como: "Me voy. Encuéntrame en Bitcoin."</p>
 <p>Las direcciones de teleburn se derivan de los IDs de inscripción. No tienen una clave privada correspondiente, por lo que los activos enviados a una dirección de teleburn se queman. Actualmente, solo se admiten direcciones de teleburn de Ethereum. Se agradecen las solicitudes de incorporación (pull requests) que añadan direcciones de teleburn para otras cadenas.</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>Las direcciones de teleburn en Ethereum se derivan tomando los primeros 20 bytes del hash SHA-256 del ID de inscripción. Este ID de inscripción se serializa en 36 bytes, donde los primeros 32 bytes contienen el ID de la transacción y los últimos cuatro bytes contienen el índice de inscripción en formato big-endian. Este resultado se interpreta como una dirección de Ethereum.</p>
-<h2 id="ejemplo-49"><a class="header" href="#ejemplo-49">Ejemplo</a></h2>
+<h2 id="ejemplo-51"><a class="header" href="#ejemplo-51">Ejemplo</a></h2>
 <p>El dominio ENS <a href="https://app.ens.domains/rodarmor.eth">rodarmor.eth</a> fue telequemado a la <a href="https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0">inscripción cero</a>.</p>
 <p>El ID de la inscripción cero es:</p>
 <p><code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
@@ -7847,7 +7690,7 @@ $ord outputs
 </tbody></table>
 </div>
 <p>Regtest no requiere que se descargue la cadena de bloques ya que puedes crear tu propia cadena de bloques privada, por lo que la indexación de <code>ord</code> es casi instantánea.</p>
-<h2 id="ejemplo-50"><a class="header" href="#ejemplo-50">Ejemplo</a></h2>
+<h2 id="ejemplo-52"><a class="header" href="#ejemplo-52">Ejemplo</a></h2>
 <p>Ejecuta <code>bitcoind</code> en regtest con:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
@@ -7887,6 +7730,209 @@ $ord outputs
 <h3 id="dependencias-en-mainnet"><a class="header" href="#dependencias-en-mainnet">Dependencias en Mainnet</a></h3>
 <p>Para evitar tener que cambiar los IDs de inscripción de dependencias a los IDs de inscripción de mainnet, puedes utilizar un proxy de contenido. <code>ord server</code> acepta una opción <code>--proxy</code>, que toma la URL de otra instancia de <code>ord server</code>. Al hacer una solicitud a <code>/content/&lt;ID_DE_INSCRIPCIÓN&gt;</code> cuando se establece un proxy de contenido y no se encuentra la inscripción, <code>ord server</code> reenviará la solicitud al proxy de contenido. Esto te permite ejecutar una instancia de prueba de <code>ord server</code> con un proxy de contenido de mainnet. Luego puedes usar ID de inscripciónes de mainnet en tu inscripción de prueba, lo cual retornará el contenido de las inscripciones en mainnet.</p>
 <pre><code>ord --regtest server --proxy https://ordinals.com
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="monedero"><a class="header" href="#monedero">Monedero</a></h1>
+<p>Cada sat puede ser inscrito con contenido arbitrario, permitiendo la creación de artefactos digitales únicos nativos en Bitcoin. Estos artefactos digitales pueden almacenarse en monederos de Bitcoin y transferirse mediante transacciones de Bitcoin. Las inscripciones son tan duraderas, inmutables, seguras y descentralizadas como el propio Bitcoin.</p>
+<p>Trabajar con inscripciones requiere de un nodo de Bitcoin para darte una visión del estado actual de la blockchain de Bitcoin, además de un monedero capaz de crear inscripciones y realizar control de sats a la hora de construir transacciones para enviar inscripciones a otro monedero.</p>
+<p>Bitcoin Core proporciona un nodo completo de Bitcoin y un monedero. Sin embargo, el monedero de Bitcoin Core no puede crear inscripciones y no realiza control de sats.</p>
+<p>Para esto se requiere de <a href="https://github.com/ordinals/ord"><code>ord</code></a>, la utilidad de ordinals. <code>ord</code> no implementa su propio monedero, por lo que los subcomandos del monedero ord interactúan con los monederos de Bitcoin Core.</p>
+<p>Esta guía cubre:</p>
+<ol>
+<li>La instalación de Bitcoin Core</li>
+<li>Sincronización de la blockchain de Bitcoin Core</li>
+<li>Creación de un monedero de Bitcoin Core</li>
+<li>Utilizando <code>ord wallet receive</code> para recibir sats</li>
+<li>Creación de inscripciones usando <code>ord wallet inscribe</code></li>
+<li>Enviar inscripciones usando <code>ord wallet send</code></li>
+<li>Recibir inscripciones con <code>ord wallet receive</code></li>
+<li>Inscripción por lotes con <code>ord wallet inscribe --batch</code></li>
+</ol>
+<h2 id="obtener-ayuda"><a class="header" href="#obtener-ayuda">Obtener Ayuda</a></h2>
+<p>Si te atascas, intenta pedir ayuda en el Servidor de <a href="https://discord.com/invite/87cjuz4FYg">Discord de Ordinals</a>, o consulta el GitHub para ver <a href="https://github.com/ordinals/ord/issues">problemas</a> y <a href="https://github.com/ordinals/ord/discussions">discusiones relevantes</a>.</p>
+<h2 id="la-instalación-de-bitcoin-core"><a class="header" href="#la-instalación-de-bitcoin-core">La instalación de Bitcoin Core</a></h2>
+<p>Bitcoin Core está disponible en la <a href="https://bitcoincore.org/en/download/">página de descargas</a> de <a href="https://bitcoincore.org/">bitcoincore.org</a>.</p>
+<p>Making inscriptions requires Bitcoin Core 28 or newer.</p>
+<p>Esta guía no cubre en detalle la instalación de Bitcoin Core. Una vez que hayas instalado Bitcoin Core, deberías poder ejecutar <code>bitcoind -version</code> exitosamente desde la línea de comandos. <em>NO</em> utilices <code>bitcoin-qt</code>.</p>
+<h2 id="configuración-de-bitcoin-core"><a class="header" href="#configuración-de-bitcoin-core">Configuración de Bitcoin Core</a></h2>
+<p><code>ord</code> requiere el índice de transacciones y la interfaz REST de Bitcoin Core.</p>
+<p>Debes configurar tu nodo de Bitcoin Core para que mantenga un índice de transacciones. Añade lo siguiente a tu archivo <code>bitcoin.conf</code>:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>O ejecuta <code>bitcoind</code> con <code>-txindex</code>:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>Los detalles sobre cómo crear o modificar tu archivo <code>bitcoin.conf</code> se pueden encontrar <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">aquí</a>.</p>
+<h2 id="sincronizando-la-blockchain-de-bitcoin"><a class="header" href="#sincronizando-la-blockchain-de-bitcoin">Sincronizando la Blockchain de Bitcoin</a></h2>
+<p>Para sincronizar la blockchain o cadena de bloques de bitcoin, ejecuta:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>…y déjalo ejecutar hasta que <code>getblockcount</code>:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>coincida con el recuento de bloques en un explorador de bloques como el <a href="https://mempool.space/">explorador de bloques mempool.space</a>. <code>ord</code> interactúa con <code>bitcoind</code>, así que debes dejar <code>bitcoind</code> ejecutándose en segundo plano mientras estés usando <code>ord</code>.</p>
+<p>La cadena de bloques ocupa aproximadamente 600GB de espacio en disco. Si tienes un disco externo en el que deseas almacenar los bloques, utiliza la opción de configuración <code>blocksdir=&lt;ruta_del_disco_externo&gt;</code>. Esto es mucho más sencillo que usar <code>datadir</code>, ya que el archivo de cookies permanecerá en la ubicación predeterminada, facilitando su acceso para <code>bitcoin-cli</code> y <code>ord</code>.</p>
+<h2 id="solución-de-problemas-1"><a class="header" href="#solución-de-problemas-1">Solución de problemas</a></h2>
+<p>Asegúrate de poder acceder a <code>bitcoind</code> utilizando <code>bitcoin-cli -getinfo</code> y que esté completamente sincronizado.</p>
+<p>Si <code>bitcoin-cli -getinfo</code> devuelve <code>"Could not connect to the server"</code>, <code>bitcoind</code> no se está ejecutando.</p>
+<p>Verifica que <code>rpcuser</code>, <code>rpcpassword</code> o <code>rpcauth</code> <em>NO</em> estén configurados en tu archivo <code>bitcoin.conf</code>. <code>ord</code> requiere el uso de autenticación con cookies. Asegúrate de que exista un archivo <code>.cookie</code> en tu directorio de datos de Bitcoin.</p>
+<p>Si <code>bitcoin-cli -getinfo</code> muestra <code>"Could not locate RPC credentials"</code>, necesitas especificar la ubicación del archivo de cookies. Si utilizas un directorio de datos personalizado (especificando la opción <code>datadir</code>), entonces debes indicar la ubicación del archivo de cookies de la siguiente manera: <code>bitcoin-cli -rpccookiefile=&lt;tu_directorio_de_datos_de_bitcoin&gt;/.cookie -getinfo</code>. Al ejecutar <code>ord</code>, debes especificar la ubicación del archivo de cookies con <code>--cookie-file=&lt;tu_directorio_de_datos_de_bitcoin&gt;/.cookie</code>.</p>
+<p>Asegúrate de no tener <code>disablewallet=1</code> en tu archivo <code>bitcoin.conf</code>. Si <code>bitcoin-cli listwallets</code> devuelve <code>"Method not found"</code>, entonces la billetera está deshabilitada y no podrás usar <code>ord</code>.</p>
+<p>Asegúrate de que <code>txindex=1</code> esté configurado. Ejecuta <code>bitcoin-cli getindexinfo</code> y debería devolver algo similar a esto</p>
+<pre><code class="language-json">{
+  "txindex": {
+    "sincronizado": true,
+    "mejor_altura_de_bloque": 776546
+  }
+}
+</code></pre>
+<p>Si solo sale <code>{}</code>, significa que <code>txindex</code> no está configurado. Si sale <code>"synced": false</code>, bitcoind todavía está creando el <code>txindex</code>. Espera hasta que <code>"synced": true</code> antes de usar <code>ord</code>.</p>
+<p>Si tienes configurado <code>maxuploadtarget</code>, esto puede interferir con la obtención de bloques para el índice de <code>ord</code>. Para solucionarlo, elimínalo o configura <code>whitebind=127.0.0.1:8333</code>.</p>
+<h2 id="instalación-de-ord"><a class="header" href="#instalación-de-ord">Instalación de <code>ord</code></a></h2>
+<p>La herramienta <code>ord</code> está desarrollada en Rust y puede compilarse desde el <a href="https://github.com/ordinals/ord">código fuente</a>. Los binarios preconstruidos están disponibles en la página de <a href="https://github.com/ordinals/ord/releases">lanzamientos</a>.</p>
+<p>Puedes instalar el último binario precompilado desde la línea de comandos usando:</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>Una vez que ord esté instalado, deberías poder de ejecutar:</p>
+<pre><code>ord --version
+</code></pre>
+<p>Esto mostrará el número de versión de <code>ord</code>.</p>
+<h2 id="creando-un-monedero"><a class="header" href="#creando-un-monedero">Creando un Monedero</a></h2>
+<p><code>ord</code> utiliza <code>bitcoind</code> para manejar claves privadas, firmar transacciones y transmitir transacciones a la red de Bitcoin. Además, el <code>monedero ord</code> requiere que <a href="guides/explorer.html"><code>ord server</code></a> esté ejecutándose en segundo plano. Asegúrate de que estos programas estén en funcionamiento:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<pre><code>ord server
+</code></pre>
+<p>Para crear un monedero llamado <code>ord</code>, que es el predeterminado, para utilizar con <code>ord wallet</code>, ejecuta:</p>
+<pre><code>ord wallet create
+</code></pre>
+<p>Esto mostrará tu frase semilla mnemotécnica. Guárdala en un lugar seguro.</p>
+<p>`` { "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal", "passphrase": "" }</p>
+<pre><code></code></pre>
+<p>Si deseas especificar un nombre diferente o utilizar un <code>servidor de ord</code> que se esté ejecutando en una URL no predeterminada, puedes configurar estas opciones:</p>
+<pre><code>ord wallet --name foo --server-url http://127.0.0.1:8080 create
+</code></pre>
+<p>Para ver todas las opciones disponibles del Monedero, puedes usar el siguiente comando:</p>
+<pre><code>ord wallet help
+</code></pre>
+<h2 id="restauración-y-dump-del-monedero"><a class="header" href="#restauración-y-dump-del-monedero">Restauración y Dump del Monedero</a></h2>
+<p>El monedero <code>ord</code> utiliza descriptores, lo que te permite exportar los descriptores de salida e importarlos en otro monedero que también use descriptores. Para exportar los descriptores del monedero, que incluyen tus claves privadas:</p>
+<pre><code>$ ord wallet dump
+============================================
+= ESTE STRING CONTIENE TUS LLAVES PRIVADAS =
+=        NO LAS COMPARTAS CON NADIE        =
+============================================
+{
+  "wallet_name": "ord",
+  "descriptors": [
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/*)#uxn94yt5",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": false,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    },
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/*)#djkyg3mv",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": true,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    }
+  ]
+}
+</code></pre>
+<p>Una billetera ord puede ser restaurada a partir de una frase mnemotécnica:</p>
+<pre><code>ord wallet restore --from mnemonic
+</code></pre>
+<p>Escribe tu frase mnemotécnica y presiona enter.</p>
+<p>Para restaurar desde un descriptor en <code>descriptor.json</code>:</p>
+<pre><code>cat descriptor.json | ord wallet restore --from descriptor
+</code></pre>
+<p>Para restaurar desde un descriptor en el portapapeles:</p>
+<pre><code>ord wallet restore --from descriptor
+</code></pre>
+<p>Pega el descriptor en la terminal y presiona CTRL-D en unix y CTRL-Z en Windows.</p>
+<h2 id="recibir-sats"><a class="header" href="#recibir-sats">Recibir Sats</a></h2>
+<p>Las inscripciones se crean en sats individuales, mediante transacciones estándar de Bitcoin que pagan comisiones en sats, por lo que tu monedero necesitará tener algunos sats disponibles.</p>
+<p>Obtén una nueva dirección de tu monedero <code>ord</code>ejecutando:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Y envíale algunos fondos.</p>
+<p>Puedes ver las transacciones pendientes con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Una vez que la transacción se confirme, podrás ver las salidas de la transacción con <code>ord wallet outputs</code>.</p>
+<h2 id="creación-de-contenido-para-las-inscripciones"><a class="header" href="#creación-de-contenido-para-las-inscripciones">Creación de Contenido para las Inscripciones</a></h2>
+<p>Los sats pueden ser inscritos con cualquier tipo de contenido, pero el monedero <code>ord</code> solo admite tipos de contenido que pueden ser mostrados por el explorador de bloques de <code>ord</code>.</p>
+<p>Además, las inscripciones se incluyen en las transacciones, debido a esto, en cuanto más grande sea el contenido, mayor será la comisión que debe pagar por la transacción de la inscripción.</p>
+<p>El contenido de inscripción se incluye en el testigo de la transacción, los cuales reciben el descuento de testigo. Para calcular un aproximado de la comisión que se trendrá que pagar por la transacción de una inscripción, divide el tamaño del contenido por cuatro y multiplica por la tasa de comisión.</p>
+<p>Las transacciones de inscripción deben tener un peso inferior a 400,000 unidades, de lo contrario, no serán retransmitidas por Bitcoin Core. Un byte del contenido de inscripción equivale a una unidad de peso. Considerando que una transacción de inscripción abarca más que solo el contenido de la inscripción se debe restringir el contenido de cada inscripción a menos de 400,000 unidades de peso. Para mantener un margen de seguridad, se recomienda no exceder las 390,000 unidades de peso.</p>
+<h2 id="creando-una-inscripción"><a class="header" href="#creando-una-inscripción">Creando una Inscripción</a></h2>
+<p>Para crear una inscripción con el contenido de <code>ARCHIVO</code>, ejecuta:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
+</code></pre>
+<p>Ord mostrará dos IDs de transacciones, uno para la transacción de compromiso, uno para la transacción de revelación, y el ID de inscripción. Los IDs de inscripción tienen el formato <code>TXIDiN</code>, donde <code>TXID</code> es el ID de la transacción de revelación, y <code>N</code> es el índice de la inscripción en la transacción de revelación.</p>
+<p>La transacción de compromiso se compromete a un tapscript que aloja el contenido de la inscripción, mientras que la transacción de revelación consume ese tapscript, revelando el contenido en la cadena e inscribiéndolo en el primer sat del input que contiene el tapscript correspondiente.</p>
+<p>Espera a que la transacción de revelación sea minada. Puedes verificar el estado de las transacciones de compromiso y revelación usando el <a href="https://mempool.space/">explorador de bloques mempool.space</a>.</p>
+<p>Después de que la transacción de revelación sea minada, el ID de inscripción debería salir al ejecutar:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="inscripciones-padre-hijo-parent-child"><a class="header" href="#inscripciones-padre-hijo-parent-child">Inscripciones Padre-Hijo (Parent-Child)</a></h2>
+<p>Las inscripciones de tipo padre-hijo permiten crear lo que coloquialmente se conoce como colecciones. Para más información, consulta <a href="guides/../inscriptions/provenance.html">proveniencia</a>.</p>
+<p>Para designar una inscripción como hijo de otra inscripción, la inscripción padre debe estar inscrita y disponible en el monedero. Para seleccionar una inscripción padre, ejecuta <code>ord wallet inscriptions</code> y copia el ID de la inscripción (<code>&lt;ID_DE_INSCRIPCIÓN_PADRE&gt;</code>).</p>
+<p>Luego, inscribe la inscripción hijo y especifica el padre de esta manera:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
+</code></pre>
+<p>Esta relación no puede añadirse retroactivamente, el padre debe estar presente en el momento de la creación del hijo.</p>
+<h2 id="envíar-inscripciones"><a class="header" href="#envíar-inscripciones">Envíar Inscripciones</a></h2>
+<p>Pide al destinatario que genere una dirección nueva ejecutando:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Envía la inscripción ejecutando:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>Consulta la transacción con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Una vez que la transacción de envío haya sido confirmada, el destinatario podrá verificarlo ejecutando:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="envíar-runas"><a class="header" href="#envíar-runas">Envíar Runas</a></h2>
+<p>Pide al destinatario que genere una dirección nueva ejecutando:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Para envíar las runas ejecuta:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
+</code></pre>
+<p>En donde <code>RUNES_AMOUNT</code> es la cantidad de runas a enviar, seguida por dos puntos <code>:</code> y el nombre de la runa. Por ejemplo, si deseas enviar 1000 runas EXAMPLE, usarías <code>1000:EXAMPLE</code>.</p>
+<pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
+</code></pre>
+<p>Consulta la transacción con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Una vez que la transacción de envío se confirme, el destinatario puede verificar la recepción con:</p>
+<pre><code>ord wallet balance
+</code></pre>
+<h2 id="recibir-inscripciones"><a class="header" href="#recibir-inscripciones">Recibir Inscripciones</a></h2>
+<p>Genera una nueva dirección de recepción usando:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>El remitente puede transferir la inscripción a tu dirección usando:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>Consulta la transacción con:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Una vez que la transacción se confirme, puedes verificar si lo recibiste ejecutando con:</p>
+<pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="pistas-para-la-caza-de-recompensas-de-ordinals"><a class="header" href="#pistas-para-la-caza-de-recompensas-de-ordinals">Pistas para la Caza de Recompensas de Ordinals</a></h1>
 <ul>

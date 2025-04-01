@@ -1989,26 +1989,52 @@ i               # separator
 <p>Een edict met <code>amount</code> nul en <code>output</code> gelijk aan het aantal transactie-uitgangen verdeelt alle niet-toegewezen eenheden van rune <code>id</code> over elke niet-<code>OP_RETURN</code> uitgang. Als het aantal niet-toegewezen runes niet deelbaar is door het aantal niet-<code>OP_RETURN</code> uitgangen, wordt 1 extra rune toegewezen aan de eerste <code>R</code> niet-<code>OP_RETURN</code> uitgangen, waarbij <code>R</code> de rest is na deling van het saldo van niet-toegewezen eenheden van rune <code>id</code> door het aantal niet-<code>OP_RETURN</code> uitgangen.</p>
 <p>Als een edict in een runestone een rune-ID heeft met <code>block</code> nul en <code>tx</code> groter dan nul, of <code>output</code> groter dan het aantal transactie-uitgangen, is de runestone een cenotaph.</p>
 <p>Let op dat edicts in cenotaphs niet worden verwerkt en alle invoerrunes worden verbrand.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="satscard"><a class="header" href="#satscard">Satscard</a></h1>
-<p><a href="https://satscard.com/">Satscards</a> are cards which can be used to store bitcoin, inscriptions, and runes.</p>
-<h2 id="slots"><a class="header" href="#slots">Slots</a></h2>
-<p>Each satscard has ten slots containing private keys with corresponding bitcoin addresses.</p>
-<p>Initially, all slots are sealed and the private keys are stored only the satscard.</p>
-<p>Slots can be unsealed, which allows the corresponding private key to be extracted.</p>
-<p>Unsealing is permanent. If a satscard is sealed, you can have some confidence that private key is not known to anyone. That taking physical ownership of a satscard makes you the sole owner of assets in any sealed slots.</p>
-<h2 id="lifespan"><a class="header" href="#lifespan">Lifespan</a></h2>
-<p>Satscards are expected to have a usable lifetime of ten years. Do not use satscards for long-term storage of valuable assets.</p>
-<h2 id="viewing"><a class="header" href="#viewing">Viewing</a></h2>
-<p>When placed on a smartphone, the satscard transmits a URL, beginning with <code>https://satscard.com/start</code> or <code>https://getsatscard.com/start</code>, depending on when it was manufactured.</p>
-<p>This URL contains a signature which can be used to recover the address of the current slot. This signature is made over a random nonce, so it changes every time the satscard is tapped, and provides some confidence that the satscard contains the private key.</p>
-<p><code>ord</code> supports viewing the contents of a satscard by entering the full URL into the <code>ord</code> explorer search bar, or the input field on the <code>/satscard</code> page.</p>
-<p>For <code>ordinals.com</code>, this is <a href="https://ordinals.com/satscard">ordinals.com/satscard</a>.</p>
-<h2 id="unsealing"><a class="header" href="#unsealing">Unsealing</a></h2>
-<p>Satscard slots can be unsealed and the private keys extracted using the <code>cktap</code> binary, available in the <a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a> repository.</p>
-<h2 id="sweeping"><a class="header" href="#sweeping">Sweeping</a></h2>
-<p>After a satscard slot is unsealed, all assets should be swept from that slot to another wallet, as the private key can now be read via NFC.</p>
-<p><code>ord</code> does not yet support sweeping assets from other wallets, so assets will need to be transferred manually.</p>
-<p>Be careful, and good luck!</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="security"><a class="header" href="#security">Security</a></h1>
+<p>Anyone can publish inscriptions, including arbitrary HTML, which <code>ord server</code> will serve at <code>/content/&lt;INSCRIPTION_ID&gt;</code>, <code>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</code>, and <code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</code>.</p>
+<p>This creates potential security vulnerabilities, including cross-site scripting and spoofing attacks.</p>
+<p>Without mitigations, a domain hosting an <code>ord server</code> explorer instance should be considered to be completely untrusted.</p>
+<h3 id="cross-site-scripting"><a class="header" href="#cross-site-scripting">Cross-site Scripting</a></h3>
+<p>An attacker performs a cross-site scripting attack by injecting JavaScript into a vulnerable website such that it is later served to a victim, causing the malicious script to run in the victim's own browser with the same permissions as any other script from that website.</p>
+<p>Such a script could access private site resources or perform privileged actions on the user's behalf, since it would be making requests on behalf of the user.</p>
+<p>Cross-site scripting is <em>not</em> a concern for a vanilla <code>ord server</code> instance. <code>ord server</code> does not serve any private resources or allow privileged actions to be taken via the web interface, so although JavaScript can be injected using an inscription, it does not run with any meaningful permissions.</p>
+<p>However, if you serve requests to <code>ord server</code> from a domain which <em>also</em> serves private resources or allow privileged actions, you may be vulnerable to cross-site scripting attacks.</p>
+<h4 id="voorbeeld-23"><a class="header" href="#voorbeeld-23">Voorbeeld</a></h4>
+<ul>
+<li>
+<p><code>ord server</code> is run under <code>https://example.com/ord</code>.</p>
+</li>
+<li>
+<p>A bitcoin exchange is run under <code>https://example.com/exchange</code>.</p>
+</li>
+<li>
+<p>Users can send bitcoin at <code>https://example.com/exchange/send</code>, with access controlled by a user's session cookie.</p>
+</li>
+<li>
+<p>An attacker publishes a malicious HTML inscription with ID <code>XYZ</code> which contains JavaScript that accesses <code>https://example.com/exchange/send</code> and sends them to an attacker-controlled address.</p>
+</li>
+<li>
+<p>When a user visits <code>https://example.com/ord/XYZ</code>, the malicious JavaScript requests <code>https://example.com/exchange/send</code>. Because the script executes on the user's behalf with the request including the user's session cookie, the server sends the user's bitcoin to the attacker.</p>
+</li>
+</ul>
+<p>To prevent this, do not make <code>ord server</code> available on the same domain and port as another web service which is vulnerable to cross-site scripting.</p>
+<h3 id="spoofing"><a class="header" href="#spoofing">Spoofing</a></h3>
+<p>If <code>ord server</code> is run at a well known domain, for example, <code>ordinals.com</code>, an attacker could publish a malicious inscription that attempts to trick users into thinking that it represents the owners of the domain. For example, by publishing a mint page to induce users to send bitcoin. Additionally, the <a href="https://developer.mozilla.org/en-US/docs/Web/API/History_API">History API</a> can be used to change the path without triggering a page reload, so inscription content can appear to the user under URL that suggests it was published by the site owners.</p>
+<h4 id="voorbeeld-24"><a class="header" href="#voorbeeld-24">Voorbeeld</a></h4>
+<ul>
+<li>
+<p><code>ord server</code> is run at <code>https://example.com</code>, by popular and well-respected Example Corporation.</p>
+</li>
+<li>
+<p>An attacker publishes a malicious HTML inscription with ID <code>XYZ</code> which displays a mint page, and changes the URL path using the History API to <code>/mint</code>.</p>
+</li>
+<li>
+<p>A user clicks a link to <code>https://example.com/inscription/XYZ</code> which displays the attacker's mint page, with the apparent URL of <code>https://example.com/mint</code>.</p>
+</li>
+<li>
+<p>The user thinks that this is a potentially lucrative mint run by popular and well-respected Example Corporation and sends bitcoin to the mint address.</p>
+</li>
+</ul>
+<p>To prevent this, avoid giving users the impression that a domain hosting an <code>ord</code> explorer can be trusted for anything other than the content of the <code>ord</code> explorer itself.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-theory-faq"><a class="header" href="#ordinal-theory-faq">Ordinal Theory FAQ</a></h1>
 <h2 id="wat-is-ordinal-theory"><a class="header" href="#wat-is-ordinal-theory">Wat is Ordinal Theory?</a></h2>
 <p>Ordinal Theory is een protocol voor het toewijzen van serienummers aan satoshi's, de kleinste onderverdeling van een bitcoin, en het volgen van die satoshi's naarmate ze worden uitgegeven door transacties.</p>
@@ -2158,7 +2184,7 @@ i               # separator
   </summary>
 <h3 id="description-23"><a class="header" href="#description-23">Description</a></h3>
 <p>List all assets of an address. Requires index with <code>--index-addresses</code> flag.</p>
-<h3 id="voorbeeld-23"><a class="header" href="#voorbeeld-23">Voorbeeld</a></h3>
+<h3 id="voorbeeld-25"><a class="header" href="#voorbeeld-25">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
 </code></pre>
@@ -2231,7 +2257,7 @@ i               # separator
   </summary>
 <h3 id="description-24"><a class="header" href="#description-24">Description</a></h3>
 <p>Returns info about the specified block.</p>
-<h3 id="voorbeeld-24"><a class="header" href="#voorbeeld-24">Voorbeeld</a></h3>
+<h3 id="voorbeeld-26"><a class="header" href="#voorbeeld-26">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
 </code></pre>
@@ -2272,7 +2298,7 @@ i               # separator
   </summary>
 <h3 id="description-25"><a class="header" href="#description-25">Description</a></h3>
 <p>Returns info about the specified block.</p>
-<h3 id="voorbeeld-25"><a class="header" href="#voorbeeld-25">Voorbeeld</a></h3>
+<h3 id="voorbeeld-27"><a class="header" href="#voorbeeld-27">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/block/0
 </code></pre>
@@ -2313,7 +2339,7 @@ i               # separator
   </summary>
 <h3 id="description-26"><a class="header" href="#description-26">Description</a></h3>
 <p>Returns the height of the latest block.</p>
-<h3 id="voorbeeld-26"><a class="header" href="#voorbeeld-26">Voorbeeld</a></h3>
+<h3 id="voorbeeld-28"><a class="header" href="#voorbeeld-28">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockcount
 </code></pre>
@@ -2327,7 +2353,7 @@ i               # separator
   </summary>
 <h3 id="description-27"><a class="header" href="#description-27">Description</a></h3>
 <p>Returns blockhash for the latest block.</p>
-<h3 id="voorbeeld-27"><a class="header" href="#voorbeeld-27">Voorbeeld</a></h3>
+<h3 id="voorbeeld-29"><a class="header" href="#voorbeeld-29">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockhash
 </code></pre>
@@ -2342,7 +2368,7 @@ i               # separator
   </summary>
 <h3 id="description-28"><a class="header" href="#description-28">Description</a></h3>
 <p>Returns blockhash of specified block.</p>
-<h3 id="voorbeeld-28"><a class="header" href="#voorbeeld-28">Voorbeeld</a></h3>
+<h3 id="voorbeeld-30"><a class="header" href="#voorbeeld-30">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockhash/840000
 </code></pre>
@@ -2356,7 +2382,7 @@ i               # separator
   </summary>
 <h3 id="description-29"><a class="header" href="#description-29">Description</a></h3>
 <p>Returns the height of the latest block.</p>
-<h3 id="voorbeeld-29"><a class="header" href="#voorbeeld-29">Voorbeeld</a></h3>
+<h3 id="voorbeeld-31"><a class="header" href="#voorbeeld-31">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blockheight
 </code></pre>
@@ -2370,7 +2396,7 @@ i               # separator
   </summary>
 <h3 id="description-30"><a class="header" href="#description-30">Description</a></h3>
 <p>Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.</p>
-<h3 id="voorbeeld-30"><a class="header" href="#voorbeeld-30">Voorbeeld</a></h3>
+<h3 id="voorbeeld-32"><a class="header" href="#voorbeeld-32">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blocks
 </code></pre>
@@ -2540,7 +2566,7 @@ i               # separator
   </summary>
 <h3 id="description-31"><a class="header" href="#description-31">Description</a></h3>
 <p>Returns the UNIX timestamp of when the latest block was mined.</p>
-<h3 id="voorbeeld-31"><a class="header" href="#voorbeeld-31">Voorbeeld</a></h3>
+<h3 id="voorbeeld-33"><a class="header" href="#voorbeeld-33">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/blocktime
 </code></pre>
@@ -2554,7 +2580,7 @@ i               # separator
   </summary>
 <h3 id="description-32"><a class="header" href="#description-32">Description</a></h3>
 <p>Decode a transaction, congruent to the <code>ord decode</code> command</p>
-<h3 id="voorbeeld-32"><a class="header" href="#voorbeeld-32">Voorbeeld</a></h3>
+<h3 id="voorbeeld-34"><a class="header" href="#voorbeeld-34">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799
 </code></pre>
@@ -3396,7 +3422,7 @@ i               # separator
   </summary>
 <h3 id="description-33"><a class="header" href="#description-33">Description</a></h3>
 <p>Fetch details about a specific inscription by its ID.</p>
-<h3 id="voorbeeld-33"><a class="header" href="#voorbeeld-33">Voorbeeld</a></h3>
+<h3 id="voorbeeld-35"><a class="header" href="#voorbeeld-35">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" /
   http://0.0.0.0:80/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 </code></pre>
@@ -3433,7 +3459,7 @@ i               # separator
   </summary>
 <h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
 <p>Returns the inscription information for the specified child.</p>
-<h3 id="voorbeeld-34"><a class="header" href="#voorbeeld-34">Voorbeeld</a></h3>
+<h3 id="voorbeeld-36"><a class="header" href="#voorbeeld-36">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
 </code></pre>
@@ -3470,7 +3496,7 @@ i               # separator
   </summary>
 <h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
 <p>Fetch details for a list of inscription IDs.</p>
-<h3 id="voorbeeld-35"><a class="header" href="#voorbeeld-35">Voorbeeld</a></h3>
+<h3 id="voorbeeld-37"><a class="header" href="#voorbeeld-37">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -3536,7 +3562,7 @@ i               # separator
   </summary>
 <h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
 <p>Get a list of the latest 100 inscriptions.</p>
-<h3 id="voorbeeld-36"><a class="header" href="#voorbeeld-36">Voorbeeld</a></h3>
+<h3 id="voorbeeld-38"><a class="header" href="#voorbeeld-38">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions
 </code></pre>
@@ -3655,7 +3681,7 @@ i               # separator
   </summary>
 <h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
 <p>Pagination allows you to choose which page of 100 inscriptions to return.</p>
-<h3 id="voorbeeld-37"><a class="header" href="#voorbeeld-37">Voorbeeld</a></h3>
+<h3 id="voorbeeld-39"><a class="header" href="#voorbeeld-39">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions/9
 </code></pre>
@@ -3774,7 +3800,7 @@ i               # separator
   </summary>
 <h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
 <p>Get inscriptions for a specific block.</p>
-<h3 id="voorbeeld-38"><a class="header" href="#voorbeeld-38">Voorbeeld</a></h3>
+<h3 id="voorbeeld-40"><a class="header" href="#voorbeeld-40">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/inscriptions/block/767430
 </code></pre>
@@ -3794,7 +3820,7 @@ i               # separator
   </summary>
 <h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
 <p>Installs the latest pre-built binary of <code>ord</code></p>
-<h3 id="voorbeeld-39"><a class="header" href="#voorbeeld-39">Voorbeeld</a></h3>
+<h3 id="voorbeeld-41"><a class="header" href="#voorbeeld-41">Voorbeeld</a></h3>
 <p>See <a href="guides/wallet.html#installing-ord">wallet.md</a></p>
 </details>
 <details>
@@ -3804,7 +3830,7 @@ i               # separator
  </summary>
 <h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
 <p>Returns information about a UTXO, including inscriptions within it.</p>
-<h3 id="voorbeeld-40"><a class="header" href="#voorbeeld-40">Voorbeeld</a></h3>
+<h3 id="voorbeeld-42"><a class="header" href="#voorbeeld-42">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
 </code></pre>
@@ -3830,7 +3856,7 @@ i               # separator
  </summary>
 <h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
 <p>List information from a list of outputs.</p>
-<h3 id="voorbeeld-41"><a class="header" href="#voorbeeld-41">Voorbeeld</a></h3>
+<h3 id="voorbeeld-43"><a class="header" href="#voorbeeld-43">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -3881,7 +3907,7 @@ i               # separator
 <tr><td><code>runic</code></td><td>return UTXOs containing runes</td></tr>
 </tbody></table>
 </div>
-<h3 id="voorbeeld-42"><a class="header" href="#voorbeeld-42">Voorbeeld</a></h3>
+<h3 id="voorbeeld-44"><a class="header" href="#voorbeeld-44">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   "http://0.0.0.0:80/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
 </code></pre>
@@ -3946,7 +3972,7 @@ i               # separator
   </summary>
 <h3 id="description-43"><a class="header" href="#description-43">Description</a></h3>
 <p>Returns details about the specified rune. Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="voorbeeld-43"><a class="header" href="#voorbeeld-43">Voorbeeld</a></h3>
+<h3 id="voorbeeld-45"><a class="header" href="#voorbeeld-45">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://localhost/rune/UNCOMMONGOODS
 </code></pre>
@@ -3989,7 +4015,7 @@ i               # separator
   </summary>
 <h3 id="description-44"><a class="header" href="#description-44">Description</a></h3>
 <p>Returns details for last 100 inscribed runes.  Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="voorbeeld-44"><a class="header" href="#voorbeeld-44">Voorbeeld</a></h3>
+<h3 id="voorbeeld-46"><a class="header" href="#voorbeeld-46">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/runes
 </code></pre>
@@ -5477,7 +5503,7 @@ i               # separator
   </summary>
 <h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
 <p>Pagination allows you to specify which page of 100 runes you'd like to return.</p>
-<h3 id="voorbeeld-45"><a class="header" href="#voorbeeld-45">Voorbeeld</a></h3>
+<h3 id="voorbeeld-47"><a class="header" href="#voorbeeld-47">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/runes/0
 </code></pre>
@@ -6965,7 +6991,7 @@ i               # separator
   </summary>
 <h3 id="description-46"><a class="header" href="#description-46">Description</a></h3>
 <p>Returns details about a specific satoshi. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="voorbeeld-46"><a class="header" href="#voorbeeld-46">Voorbeeld</a></h3>
+<h3 id="voorbeeld-48"><a class="header" href="#voorbeeld-48">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/sat/2099994106992659
 </code></pre>
@@ -6995,7 +7021,7 @@ i               # separator
   </summary>
 <h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
 <p>Returns details about the server installation and index.</p>
-<h3 id="voorbeeld-47"><a class="header" href="#voorbeeld-47">Voorbeeld</a></h3>
+<h3 id="voorbeeld-49"><a class="header" href="#voorbeeld-49">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/status
 </code></pre>
@@ -7032,7 +7058,7 @@ i               # separator
   </summary>
 <h3 id="description-48"><a class="header" href="#description-48">Description</a></h3>
 <p>Returns details about the specified transaction.</p>
-<h3 id="voorbeeld-48"><a class="header" href="#voorbeeld-48">Voorbeeld</a></h3>
+<h3 id="voorbeeld-50"><a class="header" href="#voorbeeld-50">Voorbeeld</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
 </code></pre>
@@ -7068,241 +7094,6 @@ i               # separator
 </details>
 <h2 id="recursive-endpoints"><a class="header" href="#recursive-endpoints">Recursive Endpoints</a></h2>
 <p>See <a href="guides/../inscriptions/recursion.html">Recursion</a>.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-explorer"><a class="header" href="#ordinal-explorer">Ordinal Explorer</a></h1>
-<p>De <code>ord</code>-binaire bevat een block explorer. We hosten een instantie van de block explorer op mainnet op <a href="https://ordinals.com">ordinals.com</a>, op signet op <a href="https://signet.ordinals.com">signet.ordinals.com</a>, en op testnet op <a href="https://testnet.ordinals.com">testnet.ordinals.com</a>. Sinds versie 0.16.0 moet de wallet <code>ord server</code> op de achtergrond draaien. Dit is vergelijkbaar met hoe <code>bitcoin-cli</code> <code>bitcoind</code> op de achtergrond nodig heeft.]</p>
-<h3 id="de-explorer-draaien"><a class="header" href="#de-explorer-draaien">De Explorer draaien</a></h3>
-<p>De server kan lokaal worden uitgevoerd met:</p>
-<p><code>ord server</code></p>
-<p>Om een poort op te geven, voeg je de <code>--http-port</code> vlag toe:</p>
-<p><code> ord server --http-port 8080</code></p>
-<p>The JSON-API endpoints are enabled by default, to disable them add the <code>--disable-json-api</code> flag (see <a href="guides/api.html">here</a> for more info):</p>
-<p><code>ord server --disable-json-api</code></p>
-<h2 id="zoeken"><a class="header" href="#zoeken">Zoeken</a></h2>
-<p>Het zoekvak accepteert een verscheidenheid aan objectrepresentaties.</p>
-<h3 id="blocks"><a class="header" href="#blocks">Blocks</a></h3>
-<p>Blokken kunnen worden gezocht op hash, bijvoorbeeld, het genesisblok:</p>
-<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
-<h3 id="transacties"><a class="header" href="#transacties">Transacties</a></h3>
-<p>Transacties kunnen worden gezocht op hash, bijvoorbeeld, de coinbase-transactie van het genesisblok:</p>
-<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
-<h3 id="outputs"><a class="header" href="#outputs">Outputs</a></h3>
-<p>Transactie-uitgangen kunnen worden gezocht op outpoint, bijvoorbeeld, de enige uitgang van de coinbase-transactie van het genesisblok:</p>
-<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
-<h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
-<p>Sats kunnen worden gezocht op integer, hun positie binnen de gehele bitcoin-aanvoer:</p>
-<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
-<p>Op decimale waarde, hun block en offset binnen dat block:</p>
-<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
-<p>Op graad, hun cyclus, blocks sinds de laatste halvering, blocks sinds de laatste moeilijkheidsaanpassing, en offset binnen hun block:</p>
-<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
-<p>Op naam, hun basis 26 weergave met de letters "a" tot "z":</p>
-<p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
-<p>Of door percentiel, het percentage van de bitcoinvoorraad dat is of zal zijn uitgegeven wanneer ze worden gemijnd:</p>
-<p><a href="https://ordinals.com/search/100%">100%</a></p>
-<pre><code></code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="wallet"><a class="header" href="#wallet">Wallet</a></h1>
-<p>Individuele sats kunnen worden ingeschreven met willekeurige inhoud, waardoor Bitcoin-native digitale artefacten ontstaan die kunnen worden bewaard in een Bitcoin-portemonnee en overgedragen kunnen worden met Bitcoin-transacties. Inschrijvingen zijn net zo duurzaam, onveranderlijk, veilig en gedecentraliseerd als Bitcoin zelf.</p>
-<p>Werken met inschrijvingen vereist een Bitcoin full node, die je een overzicht geeft van de huidige staat van de Bitcoin-blockchain, en een portemonnee die inschrijvingen kan maken en satoshis kan beheren bij het opstellen van transacties om inschrijvingen naar een andere portemonnee te verzenden.</p>
-<p>Bitcoin Core biedt zowel een Bitcoin full node als een portemonnee. De Bitcoin Core-portemonnee kan echter geen inschrijvingen maken en voert geen sat-beheer uit.</p>
-<p>Dit vereist <a href="https://github.com/ordinals/ord"><code>ord</code></a>, de ordinal utility. <code>ord</code> implementeert geen eigen portemonnee, dus <code>ord wallet</code> subcommando's communiceren met Bitcoin Core-portemonnees.</p>
-<p>Deze gids behandelt:</p>
-<ol>
-<li>Bitcoin Core installeren</li>
-<li>De Bitcoin-blockchain synchroniseren</li>
-<li>Het Creëren van een Bitcoin Core Wallet</li>
-<li>Gebruik <code>ord wallet receive</code> om sats te ontvangen</li>
-<li>Inschrijvingen maken met <code>ord wallet inscribe</code></li>
-<li>Inschrijvingen verzenden met <code>ord wallet send</code></li>
-<li>Inschrijvingen ontvangen met <code>ord wallet receive</code></li>
-<li>Batch-inschrijven met <code>ord wallet inscribe --batch</code></li>
-</ol>
-<h2 id="hulp-krijgen"><a class="header" href="#hulp-krijgen">Hulp Krijgen</a></h2>
-<p>Als je vastloopt, probeer dan hulp te vragen op de <a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord Server</a>, of kijk op GitHub voor relevante <a href="https://github.com/ordinals/ord/issues">issues</a> en <a href="https://github.com/ordinals/ord/discussions">discussies</a>.</p>
-<h2 id="bitcoin-core-installeren"><a class="header" href="#bitcoin-core-installeren">Bitcoin Core installeren</a></h2>
-<p>Bitcoin Core is beschikbaar op <a href="https://bitcoincore.org/">bitcoincore.org</a> op de <a href="https://bitcoincore.org/en/download/">downloadpagina</a>.</p>
-<p>Making inscriptions requires Bitcoin Core 28 or newer.</p>
-<p>Deze gids behandelt de installatie van Bitcoin Core niet in detail. Zodra Bitcoin Core is geïnstalleerd, zou je in staat moeten zijn om <code>bitcoind -version</code> succesvol uit te voeren vanaf de opdrachtregel. Gebruik <em>NIET</em> <code>bitcoin-qt</code>.</p>
-<h2 id="bitcoin-core-configureren"><a class="header" href="#bitcoin-core-configureren">Bitcoin Core Configureren</a></h2>
-<p><code>ord</code> vereist de transactie-index en de REST-interface van Bitcoin Core.</p>
-<p>Om je Bitcoin Core-node te configureren voor het bijhouden van een transactie-index, voeg je het volgende toe aan je <code>bitcoin.conf</code>:</p>
-<pre><code>txindex=1
-</code></pre>
-<p>Of, start bitcoind met -txindex:</p>
-<pre><code>bitcoind -txindex
-</code></pre>
-<p>Informatie over het aanmaken of aanpassen van je <code>bitcoin.conf</code>-bestand kun je <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">hier</a> vinden.</p>
-<h2 id="het-synchroniseren-van-de-bitcoin-blockchain"><a class="header" href="#het-synchroniseren-van-de-bitcoin-blockchain">Het synchroniseren van de Bitcoin-blockchain</a></h2>
-<p>Om de keten te synchroniseren, voer je uit:</p>
-<pre><code>bitcoind -txindex
-</code></pre>
-<p>... en laat het draaien totdat <code>getblockcount</code> aangeeft:</p>
-<pre><code>bitcoin-cli getblockcount
-</code></pre>
-<p>... en overeenkomt met de blokteller op een block explorer zoals <a href="https://mempool.space/">de mempool.space block explorer</a>. <code>ord</code> interacteert met <code>bitcoind</code>, dus je moet <code>bitcoind</code> op de achtergrond laten draaien wanneer je <code>ord</code> gebruikt.</p>
-<p>De blockchain neemt ongeveer 600 GB aan schijfruimte in beslag. Als je een externe schijf hebt waarop je de blokken wilt opslaan, gebruik dan de configuratieoptie <code>blocksdir=&lt;external_drive_path&gt;</code>. Dit is veel eenvoudiger dan de <code>datadir</code>-optie omdat het cookiebestand nog steeds op de standaardlocatie staat, zodat <code>bitcoin-cli</code> en <code>ord</code> het kunnen vinden.</p>
-<h2 id="probleemoplossing"><a class="header" href="#probleemoplossing">Probleemoplossing</a></h2>
-<p>Zorg ervoor dat je toegang hebt tot <code>bitcoind</code> met <code>bitcoin-cli -getinfo</code> en dat het volledig gesynchroniseerd is.</p>
-<p>Als <code>bitcoin-cli -getinfo</code> de melding <code>Could not connect to the server</code> retourneert, draait <code>bitcoind</code> niet.</p>
-<p>Zorg ervoor dat <code>rpcuser</code>, <code>rpcpassword</code> of <code>rpcauth</code> <strong>NIET</strong> zijn ingesteld in je <code>bitcoin.conf</code>-bestand. <code>ord</code> vereist het gebruik van cookie-authenticatie. Controleer of er een <code>.cookie</code>-bestand in je bitcoin-datamap aanwezig is.</p>
-<p>Als <code>bitcoin-cli -getinfo</code> de melding <code>Could not locate RPC credentials</code> retourneert, moet je de locatie van het cookiebestand specificeren. Als je een aangepaste datamap gebruikt (door de <code>datadir</code>-optie op te geven), moet je de locatie van het cookiebestand aangeven zoals <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. Wanneer je <code>ord</code> uitvoert, moet je de locatie van het cookiebestand opgeven met <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
-<p>Zorg ervoor dat je <strong>NIET</strong> <code>disablewallet=1</code> in je <code>bitcoin.conf</code>-bestand hebt staan. Als <code>bitcoin-cli listwallets</code> de melding <code>Method not found</code> retourneert, is de wallet uitgeschakeld en kun je <code>ord</code> niet gebruiken.</p>
-<p>Zorg ervoor dat <code>txindex=1</code> is ingesteld. Voer <code>bitcoin-cli getindexinfo</code> uit en het zou iets moeten teruggeven zoals</p>
-<pre><code class="language-json">{
-  "txindex": {
-    "synced": true,
-    "best_block_height": 776546
-  }
-}
-</code></pre>
-<p>Als het alleen <code>{}</code> retourneert, is <code>txindex</code> niet ingesteld. Als het <code>"synced": false</code> retourneert, is <code>bitcoind</code> nog bezig met het aanmaken van de <code>txindex</code>. Wacht tot <code>"synced": true</code> voordat je <code>ord</code> gebruikt.</p>
-<p>Als je <code>maxuploadtarget</code> hebt ingesteld, kan dit het ophalen van blokken voor de <code>ord</code>-index verstoren. Verwijder het of stel <code>whitebind=127.0.0.1:8333</code> in.</p>
-<h2 id="installatie-van-ord"><a class="header" href="#installatie-van-ord">Installatie van <code>ord</code></a></h2>
-<p>De <code>ord</code>-tool is geschreven in Rust en kan worden gebouwd vanaf <a href="https://github.com/ordinals/ord">de bron</a>. Kant-en-klare binaire bestanden zijn beschikbaar op de <a href="https://github.com/ordinals/ord/releases">releases-pagina</a>.</p>
-<p>Je kunt de nieuwste kant-en-klare binaire versie vanaf de opdrachtregel installeren met:</p>
-<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
-</code></pre>
-<p>Zodra <code>ord</code> is geïnstalleerd, zou je in staat moeten zijn om uit te voeren:</p>
-<pre><code>ord --version
-</code></pre>
-<p>Wat de versie van <code>ord</code> afdrukt.</p>
-<h2 id="een-wallet-aanmaken"><a class="header" href="#een-wallet-aanmaken">Een wallet aanmaken</a></h2>
-<p><code>ord</code> gebruikt <code>bitcoind</code> om privé-sleutels te beheren, transacties te ondertekenen en transacties naar het Bitcoin-netwerk uit te zenden. Bovendien vereist de <code>ord wallet</code> dat <a href="guides/explorer.html"><code>ord server</code></a> op de achtergrond draait. Zorg ervoor dat deze programma's actief zijn:</p>
-<pre><code>bitcoind -txindex
-</code></pre>
-<pre><code>ord server
-</code></pre>
-<p>Om een wallet met de naam <code>ord</code>, de standaardnaam, aan te maken voor gebruik met <code>ord wallet</code>, voer je uit:</p>
-<pre><code>ord wallet create
-</code></pre>
-<p>Dit zal je seed phrase mnemonic afdrukken; sla deze op een veilige plaats op.</p>
-<p>`` { "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal", "passphrase": "" }</p>
-<pre><code></code></pre>
-<p>Als je een andere naam wilt opgeven of een <code>ord server</code> wilt gebruiken die draait op een niet-standaard URL, kun je deze opties instellen:</p>
-<pre><code>ord wallet --name foo --server-url http://127.0.0.1:8080 create
-</code></pre>
-<p>Om alle beschikbare portemonnee-opties te zien, kun je uitvoeren:</p>
-<pre><code>ord wallet help
-</code></pre>
-<h2 id="herstellen-en-exporteren-van-een-wallet"><a class="header" href="#herstellen-en-exporteren-van-een-wallet">Herstellen en Exporteren van een Wallet</a></h2>
-<p>De <code>ord</code>-wallet gebruikt descriptors, zodat je de uitvoerdescriptors kunt exporteren en deze kunt importeren in een andere op descriptors gebaseerde wallet. Om de wallet-descriptors, die je privésleutels bevatten, te exporteren:</p>
-<pre><code>$ ord wallet dump
-==========================================
-= THIS STRING CONTAINS YOUR PRIVATE KEYS =
-=        DO NOT SHARE WITH ANYONE        =
-==========================================
-{
-  "wallet_name": "ord",
-  "descriptors": [
-    {
-      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/*)#uxn94yt5",
-      "timestamp": 1296688602,
-      "active": true,
-      "internal": false,
-      "range": [
-        0,
-        999
-      ],
-      "next": 0
-    },
-    {
-      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/*)#djkyg3mv",
-      "timestamp": 1296688602,
-      "active": true,
-      "internal": true,
-      "range": [
-        0,
-        999
-      ],
-      "next": 0
-    }
-  ]
-}
-</code></pre>
-<p>Een <code>ord</code> wallet kan worden hersteld vanaf een mnemonic:</p>
-<pre><code>ord wallet restore --from mnemonic
-</code></pre>
-<p>Typ je mnemonic en druk op enter.</p>
-<p>Om te herstellen vanuit een descriptor in <code>descriptor.json</code>:</p>
-<pre><code>cat descriptor.json | ord wallet restore --from descriptor
-</code></pre>
-<p>Om te herstellen vanuit een descriptor in het klembord:</p>
-<pre><code>ord wallet restore --from descriptor
-</code></pre>
-<p>Plak de descriptor in de terminal en druk op CTRL-D op Unix of CTRL-Z op Windows.</p>
-<h2 id="ontvangen-van-sats"><a class="header" href="#ontvangen-van-sats">Ontvangen van Sats</a></h2>
-<p>Inscripties worden gemaakt op afzonderlijke sats, met behulp van gewone Bitcoin-transacties die vergoedingen in sats betalen, dus je wallet heeft enige sats nodig.</p>
-<p>Haal een nieuw adres op uit je <code>ord</code> wallet door uit te voeren:</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>En stuur er wat fondsen naartoe.</p>
-<p>Je kunt uitstaande transacties bekijken met:</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>Zodra de transactie is bevestigd, zou je de transactie-uitgangen moeten kunnen zien met <code>ord wallet outputs</code>.</p>
-<h2 id="inscriptie-inhoud-aanmaken"><a class="header" href="#inscriptie-inhoud-aanmaken">Inscriptie-inhoud aanmaken</a></h2>
-<p>Sats kunnen worden ingeschreven met elk type inhoud, maar de <code>ord</code> wallet ondersteunt alleen inhoudstypen die kunnen worden weergegeven door de <code>ord</code> block explorer.</p>
-<p>Daarnaast worden inscripties opgenomen in transacties, dus hoe groter de inhoud, hoe hoger de vergoeding die de inscriptie-transactie moet betalen.</p>
-<p>Inscriptie-inhoud wordt opgenomen in transaction witnesses, die profiteren van de witness-korting. Om de geschatte vergoeding te berekenen die een inscriptie-transactie zal betalen, deel je de inhoudsgrootte door vier en vermenigvuldig je dit met het vergoedingstarief.</p>
-<p>Inscriptie-transacties mogen niet meer dan 400.000 gewichtseenheden bevatten, anders worden ze niet door Bitcoin Core doorgegeven. Eén byte inscriptie-inhoud kost één gewichtseenheid. Aangezien een inscriptie-transactie niet alleen de inscriptie-inhoud omvat, moet je de inscriptie-inhoud beperken tot minder dan 400.000 gewichtseenheden. 390.000 gewichtseenheden zouden veilig moeten zijn.</p>
-<h2 id="inscripties-aanmaken"><a class="header" href="#inscripties-aanmaken">Inscripties aanmaken</a></h2>
-<p>Om een inscriptie aan te maken met de inhoud van <code>FILE</code>, voer je uit:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
-</code></pre>
-<p><code>ord</code> zal twee transacties-ID's en de inscriptie-ID weergeven: één voor de commit-transactie en één voor de reveal-transactie. Inscriptie-ID's hebben de vorm <code>TXIDiN</code>, waarbij <code>TXID</code> de transacties-ID van de reveal-transactie is en <code>N</code> de index van de inscriptie in de reveal-transactie.</p>
-<p>De commit-transactie commit zich aan een tapscript dat de inhoud van de inscriptie bevat, en de reveal-transactie besteedt aan dat tapscript, waardoor de inhoud op de blockchain wordt onthuld en ingeschreven op de eerste sat van de invoer die het bijbehorende tapscript bevat.</p>
-<p>Wacht totdat de reveal-transactie is gemined. Je kunt de status van de commit- en reveal-transacties controleren met behulp van <a href="https://mempool.space/">de mempool.space block explorer</a>.</p>
-<p>Zodra de reveal-transactie is gemined, zou de inscriptie-ID moeten worden afgedrukt wanneer je uitvoert:</p>
-<pre><code>ord wallet inscriptions
-</code></pre>
-<h2 id="ouder-kind-inscripties"><a class="header" href="#ouder-kind-inscripties">Ouder-Kind Inscripties</a></h2>
-<p>Ouder-kind inscripties maken wat in de volksmond bekend staat als collecties mogelijk. Zie <a href="guides/../inscriptions/provenance.html">provenance</a> voor meer informatie.</p>
-<p>Om een inscriptie een kind te maken van een andere, moet de ouderinscriptie ingeschreven en aanwezig zijn in de wallet. Om een ouder te kiezen, voer je <code>ord wallet inscriptions</code> uit en kopieer je de inscriptie-ID (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
-<p>Nu schrijf je de kindinscriptie in en specificeer je de ouder als volgt:</p>
-<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
-</code></pre>
-<p>Deze relatie kan niet achteraf worden toegevoegd; de ouder moet aanwezig zijn bij de aanmaak van het kind.</p>
-<h2 id="inscripties-verzenden"><a class="header" href="#inscripties-verzenden">Inscripties verzenden</a></h2>
-<p>Vraag de ontvanger om een nieuw adres te genereren door uit te voeren:</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>Stuur de inscriptie door uit te voeren:</p>
-<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
-</code></pre>
-<p>Bekijk de uitstaande transactie met:</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>Zodra de verzendtransactie is bevestigd, kan de ontvanger de ontvangst bevestigen door uit te voeren:</p>
-<pre><code>ord wallet inscriptions
-</code></pre>
-<h2 id="runes-verzenden"><a class="header" href="#runes-verzenden">Runes verzenden</a></h2>
-<p>Vraag de ontvanger om een nieuw adres te genereren door uit te voeren:</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>Stuur de runes door uit te voeren:</p>
-<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
-</code></pre>
-<p>Waarbij <code>RUNES_AMOUNT</code> het aantal runes is dat je wilt verzenden, gevolgd door een <code>:</code> karakter en de naam van de rune. Bijvoorbeeld, als je 1000 van de EXAMPLE rune wilt verzenden, gebruik je <code>1000:EXAMPLE</code>.</p>
-<pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
-</code></pre>
-<p>Bekijk de uitstaande transactie met:</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>Zodra de verzendtransactie is bevestigd, kan de ontvanger de ontvangst bevestigen met:</p>
-<pre><code>ord wallet balance
-</code></pre>
-<h2 id="inscripties-ontvangen"><a class="header" href="#inscripties-ontvangen">Inscripties ontvangen</a></h2>
-<p>Genereer een nieuw ontvangstadres met:</p>
-<pre><code>ord wallet receive
-</code></pre>
-<p>De afzender kan de inscriptie naar je adres overdragen met:</p>
-<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; ADDRESS INSCRIPTION_ID
-</code></pre>
-<p>Bekijk de uitstaande transactie met:</p>
-<pre><code>ord wallet transactions
-</code></pre>
-<p>Zodra de verzendtransactie is bevestigd, kun je de ontvangst bevestigen door uit te voeren:</p>
-<pre><code>ord wallet inscriptions
-</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="batch-inscriptie"><a class="header" href="#batch-inscriptie">Batch Inscriptie</a></h1>
 <p>Meerdere inscripties kunnen tegelijkertijd worden aangemaakt met behulp van het <a href="guides/./../inscriptions/pointer.html">pointer-veld</a>. Dit is vooral handig voor collecties of andere gevallen waarin meerdere inscripties dezelfde ouder moeten delen, aangezien de ouder kan worden doorgegeven in een reveal-transactie die meerdere kinderen aanmaakt.</p>
 <p>Om een batchinscriptie aan te maken met een batchbestand in <code>batch.yaml</code>, voer je de volgende opdracht uit:</p>
@@ -7398,30 +7189,6 @@ inscriptions:
   gallery:
   - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0
   - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3
-</code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="splitting"><a class="header" href="#splitting">Splitting</a></h1>
-<p>Complex transactions can be created using the <code>ord wallet split</code> command.</p>
-<p>The <code>split</code> command takes a YAML configuration file, which specifies any number of outputs to be created, their bitcoin value, and their value of any number of runes. It does not currently allow assigning inscriptions to outputs.</p>
-<p>The <code>split</code> command can be used to split cardinal, bitcoin-only outputs for transacting, distribute runes to large numbers of recipients in a single transaction.</p>
-<p>To send a split transaction using the configuration in <code>splits.yaml</code>, run the following command:</p>
-<pre><code class="language-bash">ord wallet split --fee-rate 21 --splits split.yaml
-</code></pre>
-<p>Example <code>splits.yaml</code> --------------------`</p>
-<pre><code class="language-yaml"># example split file
-
-# output fields:
-#   address: output recipient bitcoin address
-#   value: output bitcoin value (optional, defaults to minimal-non dust value for `address`)
-#   runes: output rune value map (values respect rune divisibility)
-outputs:
-- address: bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297
-  value: 10 sat
-  runes:
-    UNCOMMON•GOODS: 1234
-    GRIEF•WAGE: 5000000
-- address: 3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy
-  runes:
-    HELLO•WORLD: 22.5
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="verzamelen"><a class="header" href="#verzamelen">Verzamelen</a></h1>
 <p>Momenteel is <a href="https://github.com/ordinals/ord/">ord</a> de enige wallet die sat-control en sat-selection ondersteunt, wat nodig is om zeldzame sats en inscripties veilig op te slaan en te verzenden, hierna ordinals genoemd.</p>
@@ -7523,12 +7290,44 @@ outputs:
 <p><img src="guides/collecting/images/sending_06.png" alt="" /></p>
 <p>Als je de status van je transactie wilt volgen, kun je de <code>Transaction Id (Txid)</code> kopiëren en deze in <a href="https://mempool.space">mempool.space</a> plakken.</p>
 <p>Zodra de transactie is bevestigd, kun je de inscriptiepagina op <a href="https://ordinals.com">ordinals.com</a> controleren om te bevestigen dat deze naar de nieuwe outputlocatie en het nieuwe adres is verplaatst.</p>
-<h2 id="probleemoplossing-1"><a class="header" href="#probleemoplossing-1">Probleemoplossing</a></h2>
+<h2 id="probleemoplossing"><a class="header" href="#probleemoplossing">Probleemoplossing</a></h2>
 <h4 id="sparrow-wallet-toont-geen-transactieutxo-maar-ik-kan-het-zien-op-mempoolspace"><a class="header" href="#sparrow-wallet-toont-geen-transactieutxo-maar-ik-kan-het-zien-op-mempoolspace">Sparrow Wallet toont geen transactie/UTXO, maar ik kan het zien op mempool.space!</a></h4>
 <p>Zorg ervoor dat je wallet verbonden is met een bitcoin-node. Om dit te controleren, ga naar de <code>Voorkeuren</code> -&gt; <code>Server</code>-instellingen en klik op <code>Bestaande Verbinding Bewerken</code>.</p>
 <p><img src="guides/collecting/images/troubleshooting_01.png" alt="" /></p>
 <p>Van daaruit kun je een node selecteren en op <code>Test Verbinding</code> klikken om te controleren of Sparrow succesvol verbinding kan maken.</p>
 <p><img src="guides/collecting/images/troubleshooting_02.png" alt="" /></p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ordinal-explorer"><a class="header" href="#ordinal-explorer">Ordinal Explorer</a></h1>
+<p>De <code>ord</code>-binaire bevat een block explorer. We hosten een instantie van de block explorer op mainnet op <a href="https://ordinals.com">ordinals.com</a>, op signet op <a href="https://signet.ordinals.com">signet.ordinals.com</a>, en op testnet op <a href="https://testnet.ordinals.com">testnet.ordinals.com</a>. Sinds versie 0.16.0 moet de wallet <code>ord server</code> op de achtergrond draaien. Dit is vergelijkbaar met hoe <code>bitcoin-cli</code> <code>bitcoind</code> op de achtergrond nodig heeft.]</p>
+<h3 id="de-explorer-draaien"><a class="header" href="#de-explorer-draaien">De Explorer draaien</a></h3>
+<p>De server kan lokaal worden uitgevoerd met:</p>
+<p><code>ord server</code></p>
+<p>Om een poort op te geven, voeg je de <code>--http-port</code> vlag toe:</p>
+<p><code> ord server --http-port 8080</code></p>
+<p>The JSON-API endpoints are enabled by default, to disable them add the <code>--disable-json-api</code> flag (see <a href="guides/api.html">here</a> for more info):</p>
+<p><code>ord server --disable-json-api</code></p>
+<h2 id="zoeken"><a class="header" href="#zoeken">Zoeken</a></h2>
+<p>Het zoekvak accepteert een verscheidenheid aan objectrepresentaties.</p>
+<h3 id="blocks"><a class="header" href="#blocks">Blocks</a></h3>
+<p>Blokken kunnen worden gezocht op hash, bijvoorbeeld, het genesisblok:</p>
+<p><a href="https://ordinals.com/search/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f">000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f</a></p>
+<h3 id="transacties"><a class="header" href="#transacties">Transacties</a></h3>
+<p>Transacties kunnen worden gezocht op hash, bijvoorbeeld, de coinbase-transactie van het genesisblok:</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b</a></p>
+<h3 id="outputs"><a class="header" href="#outputs">Outputs</a></h3>
+<p>Transactie-uitgangen kunnen worden gezocht op outpoint, bijvoorbeeld, de enige uitgang van de coinbase-transactie van het genesisblok:</p>
+<p><a href="https://ordinals.com/search/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0">4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0</a></p>
+<h3 id="sats"><a class="header" href="#sats">Sats</a></h3>
+<p>Sats kunnen worden gezocht op integer, hun positie binnen de gehele bitcoin-aanvoer:</p>
+<p><a href="https://ordinals.com/search/2099994106992659">2099994106992659</a></p>
+<p>Op decimale waarde, hun block en offset binnen dat block:</p>
+<p><a href="https://ordinals.com/search/481824.0">481824.0</a></p>
+<p>Op graad, hun cyclus, blocks sinds de laatste halvering, blocks sinds de laatste moeilijkheidsaanpassing, en offset binnen hun block:</p>
+<p><a href="https://ordinals.com/search/1%C2%B00%E2%80%B20%E2%80%B30%E2%80%B4">1°0′0″0‴</a></p>
+<p>Op naam, hun basis 26 weergave met de letters "a" tot "z":</p>
+<p><a href="https://ordinals.com/search/ahistorical">ahistorical</a></p>
+<p>Of door percentiel, het percentage van de bitcoinvoorraad dat is of zal zijn uitgegeven wanneer ze worden gemijnd:</p>
+<p><a href="https://ordinals.com/search/100%">100%</a></p>
+<pre><code></code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="beheer"><a class="header" href="#beheer">Beheer</a></h1>
 <p><code>ord</code> bevat een blokverkenner die je lokaal kunt uitvoeren met <code>ord server</code>.</p>
 <p>De blokverkenner maakt het mogelijk om inscripties te bekijken. Inscripties zijn door gebruikers gegenereerde inhoud, die mogelijk aanstootgevend of onwettig kan zijn.</p>
@@ -7745,6 +7544,26 @@ ord index update
 <pre><code>ord wallet send &lt;RECEIVING_ADDRESS&gt; zonefruits --fee-rate 21
 </code></pre>
 <p>Je kunt ook de <code>bitcoin-cli</code>-commando's <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code> en <code>sendrawtransaction</code> gebruiken, maar deze methode kan complex zijn en valt buiten het bereik van deze gids.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="satscard"><a class="header" href="#satscard">Satscard</a></h1>
+<p><a href="https://satscard.com/">Satscards</a> are cards which can be used to store bitcoin, inscriptions, and runes.</p>
+<h2 id="slots"><a class="header" href="#slots">Slots</a></h2>
+<p>Each satscard has ten slots containing private keys with corresponding bitcoin addresses.</p>
+<p>Initially, all slots are sealed and the private keys are stored only the satscard.</p>
+<p>Slots can be unsealed, which allows the corresponding private key to be extracted.</p>
+<p>Unsealing is permanent. If a satscard is sealed, you can have some confidence that private key is not known to anyone. That taking physical ownership of a satscard makes you the sole owner of assets in any sealed slots.</p>
+<h2 id="lifespan"><a class="header" href="#lifespan">Lifespan</a></h2>
+<p>Satscards are expected to have a usable lifetime of ten years. Do not use satscards for long-term storage of valuable assets.</p>
+<h2 id="viewing"><a class="header" href="#viewing">Viewing</a></h2>
+<p>When placed on a smartphone, the satscard transmits a URL, beginning with <code>https://satscard.com/start</code> or <code>https://getsatscard.com/start</code>, depending on when it was manufactured.</p>
+<p>This URL contains a signature which can be used to recover the address of the current slot. This signature is made over a random nonce, so it changes every time the satscard is tapped, and provides some confidence that the satscard contains the private key.</p>
+<p><code>ord</code> supports viewing the contents of a satscard by entering the full URL into the <code>ord</code> explorer search bar, or the input field on the <code>/satscard</code> page.</p>
+<p>For <code>ordinals.com</code>, this is <a href="https://ordinals.com/satscard">ordinals.com/satscard</a>.</p>
+<h2 id="unsealing"><a class="header" href="#unsealing">Unsealing</a></h2>
+<p>Satscard slots can be unsealed and the private keys extracted using the <code>cktap</code> binary, available in the <a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a> repository.</p>
+<h2 id="sweeping"><a class="header" href="#sweeping">Sweeping</a></h2>
+<p>After a satscard slot is unsealed, all assets should be swept from that slot to another wallet, as the private key can now be read via NFC.</p>
+<p><code>ord</code> does not yet support sweeping assets from other wallets, so assets will need to be transferred manually.</p>
+<p>Be careful, and good luck!</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="instellingen"><a class="header" href="#instellingen">Instellingen</a></h1>
 <p><code>ord</code> kan worden geconfigureerd met de opdrachtregel, omgevingsvariabelen, een configuratiebestand en standaardwaarden.</p>
 <p>De opdrachtregel heeft voorrang boven omgevingsvariabelen, die weer voorrang hebben boven het configuratiebestand, dat voorrang heeft boven de standaardwaarden.</p>
@@ -7796,13 +7615,37 @@ server_username: foo
 - 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 - 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0
 </code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="splitting"><a class="header" href="#splitting">Splitting</a></h1>
+<p>Complex transactions can be created using the <code>ord wallet split</code> command.</p>
+<p>The <code>split</code> command takes a YAML configuration file, which specifies any number of outputs to be created, their bitcoin value, and their value of any number of runes. It does not currently allow assigning inscriptions to outputs.</p>
+<p>The <code>split</code> command can be used to split cardinal, bitcoin-only outputs for transacting, distribute runes to large numbers of recipients in a single transaction.</p>
+<p>To send a split transaction using the configuration in <code>splits.yaml</code>, run the following command:</p>
+<pre><code class="language-bash">ord wallet split --fee-rate 21 --splits split.yaml
+</code></pre>
+<p>Example <code>splits.yaml</code> --------------------`</p>
+<pre><code class="language-yaml"># example split file
+
+# output fields:
+#   address: output recipient bitcoin address
+#   value: output bitcoin value (optional, defaults to minimal-non dust value for `address`)
+#   runes: output rune value map (values respect rune divisibility)
+outputs:
+- address: bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297
+  value: 10 sat
+  runes:
+    UNCOMMON•GOODS: 1234
+    GRIEF•WAGE: 5000000
+- address: 3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy
+  runes:
+    HELLO•WORLD: 22.5
+</code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="teleburnen"><a class="header" href="#teleburnen">Teleburnen</a></h1>
 <p>Teleburn-adressen kunnen worden gebruikt om activa op andere blockchains te verbranden, waarbij in de rook een soort doorverwijsadres achterblijft dat wijst naar een inscriptie op Bitcoin.</p>
 <p>Teleburning van een activum betekent iets als: "Ik ben weg. Zoek me op Bitcoin."</p>
 <p>Teleburn-adressen zijn afgeleid van inscriptie-ID's. Ze hebben geen bijbehorende privésleutel, dus activa die naar een teleburn-adres worden gestuurd, worden verbrand. Momenteel worden alleen Ethereum-teleburn-adressen ondersteund. Pull requests die teleburn-adressen voor andere chains toevoegen zijn welkom.</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>Ethereum-teleburn-adressen worden afgeleid door de eerste 20 bytes van de SHA-256-hash van de inscriptie-ID te nemen, geserialiseerd als 36 bytes, waarbij de eerste 32 bytes de transactie-ID bevatten en de laatste vier bytes de big-endian inscriptie-index, en dit te interpreteren als een Ethereum-adres.</p>
-<h2 id="voorbeeld-49"><a class="header" href="#voorbeeld-49">Voorbeeld</a></h2>
+<h2 id="voorbeeld-51"><a class="header" href="#voorbeeld-51">Voorbeeld</a></h2>
 <p>De ENS-domeinnaam <a href="https://app.ens.domains/rodarmor.eth">rodarmor.eth</a> werd teleburned naar <a href="https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0">inscriptie nul</a>.</p>
 <p>De inscriptie-ID van inscriptie nul is <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
 <p>Het doorgeven van <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code> aan het teleburn-commando:</p>
@@ -7843,7 +7686,7 @@ $ord outputs
 </tbody></table>
 </div>
 <p>Regtest vereist niet het downloaden van de blockchain, omdat je je eigen privé-blockchain creëert, waardoor het indexeren van <code>ord</code> bijna onmiddellijk is.</p>
-<h2 id="voorbeeld-50"><a class="header" href="#voorbeeld-50">Voorbeeld</a></h2>
+<h2 id="voorbeeld-52"><a class="header" href="#voorbeeld-52">Voorbeeld</a></h2>
 <p>Voer <code>bitcoind</code> uit in regtest met:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
@@ -7883,6 +7726,209 @@ $ord outputs
 <h3 id="mainnet-afhankelijkheden"><a class="header" href="#mainnet-afhankelijkheden">Mainnet Afhankelijkheden</a></h3>
 <p>Om te voorkomen dat je afhankelijkheidsinscriptie-ID's naar mainnet-inscriptie-ID's moet wijzigen, kun je een contentproxy gebruiken tijdens het testen. <code>ord server</code> accepteert een <code>--proxy</code> optie, die de URL van een andere <code>ord server</code>-instantie vereist. Wanneer je een verzoek indient bij <code>/content/&lt;INSCRIPTION_ID&gt;</code> met een ingestelde contentproxy en de inscriptie niet wordt gevonden, zal <code>ord server</code> het verzoek doorsturen naar de contentproxy. Dit stelt je in staat om een test-<code>ord server</code>-instantie te draaien met een mainnet contentproxy. Je kunt dan mainnet-inscriptie-ID's gebruiken in je testinscriptie, wat de inhoud van de mainnet-inscripties zal retourneren.</p>
 <pre><code>ord --regtest server --proxy https://ordinals.com
+</code></pre>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="wallet"><a class="header" href="#wallet">Wallet</a></h1>
+<p>Individuele sats kunnen worden ingeschreven met willekeurige inhoud, waardoor Bitcoin-native digitale artefacten ontstaan die kunnen worden bewaard in een Bitcoin-portemonnee en overgedragen kunnen worden met Bitcoin-transacties. Inschrijvingen zijn net zo duurzaam, onveranderlijk, veilig en gedecentraliseerd als Bitcoin zelf.</p>
+<p>Werken met inschrijvingen vereist een Bitcoin full node, die je een overzicht geeft van de huidige staat van de Bitcoin-blockchain, en een portemonnee die inschrijvingen kan maken en satoshis kan beheren bij het opstellen van transacties om inschrijvingen naar een andere portemonnee te verzenden.</p>
+<p>Bitcoin Core biedt zowel een Bitcoin full node als een portemonnee. De Bitcoin Core-portemonnee kan echter geen inschrijvingen maken en voert geen sat-beheer uit.</p>
+<p>Dit vereist <a href="https://github.com/ordinals/ord"><code>ord</code></a>, de ordinal utility. <code>ord</code> implementeert geen eigen portemonnee, dus <code>ord wallet</code> subcommando's communiceren met Bitcoin Core-portemonnees.</p>
+<p>Deze gids behandelt:</p>
+<ol>
+<li>Bitcoin Core installeren</li>
+<li>De Bitcoin-blockchain synchroniseren</li>
+<li>Het Creëren van een Bitcoin Core Wallet</li>
+<li>Gebruik <code>ord wallet receive</code> om sats te ontvangen</li>
+<li>Inschrijvingen maken met <code>ord wallet inscribe</code></li>
+<li>Inschrijvingen verzenden met <code>ord wallet send</code></li>
+<li>Inschrijvingen ontvangen met <code>ord wallet receive</code></li>
+<li>Batch-inschrijven met <code>ord wallet inscribe --batch</code></li>
+</ol>
+<h2 id="hulp-krijgen"><a class="header" href="#hulp-krijgen">Hulp Krijgen</a></h2>
+<p>Als je vastloopt, probeer dan hulp te vragen op de <a href="https://discord.com/invite/87cjuz4FYg">Ordinals Discord Server</a>, of kijk op GitHub voor relevante <a href="https://github.com/ordinals/ord/issues">issues</a> en <a href="https://github.com/ordinals/ord/discussions">discussies</a>.</p>
+<h2 id="bitcoin-core-installeren"><a class="header" href="#bitcoin-core-installeren">Bitcoin Core installeren</a></h2>
+<p>Bitcoin Core is beschikbaar op <a href="https://bitcoincore.org/">bitcoincore.org</a> op de <a href="https://bitcoincore.org/en/download/">downloadpagina</a>.</p>
+<p>Making inscriptions requires Bitcoin Core 28 or newer.</p>
+<p>Deze gids behandelt de installatie van Bitcoin Core niet in detail. Zodra Bitcoin Core is geïnstalleerd, zou je in staat moeten zijn om <code>bitcoind -version</code> succesvol uit te voeren vanaf de opdrachtregel. Gebruik <em>NIET</em> <code>bitcoin-qt</code>.</p>
+<h2 id="bitcoin-core-configureren"><a class="header" href="#bitcoin-core-configureren">Bitcoin Core Configureren</a></h2>
+<p><code>ord</code> vereist de transactie-index en de REST-interface van Bitcoin Core.</p>
+<p>Om je Bitcoin Core-node te configureren voor het bijhouden van een transactie-index, voeg je het volgende toe aan je <code>bitcoin.conf</code>:</p>
+<pre><code>txindex=1
+</code></pre>
+<p>Of, start bitcoind met -txindex:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>Informatie over het aanmaken of aanpassen van je <code>bitcoin.conf</code>-bestand kun je <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">hier</a> vinden.</p>
+<h2 id="het-synchroniseren-van-de-bitcoin-blockchain"><a class="header" href="#het-synchroniseren-van-de-bitcoin-blockchain">Het synchroniseren van de Bitcoin-blockchain</a></h2>
+<p>Om de keten te synchroniseren, voer je uit:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<p>... en laat het draaien totdat <code>getblockcount</code> aangeeft:</p>
+<pre><code>bitcoin-cli getblockcount
+</code></pre>
+<p>... en overeenkomt met de blokteller op een block explorer zoals <a href="https://mempool.space/">de mempool.space block explorer</a>. <code>ord</code> interacteert met <code>bitcoind</code>, dus je moet <code>bitcoind</code> op de achtergrond laten draaien wanneer je <code>ord</code> gebruikt.</p>
+<p>De blockchain neemt ongeveer 600 GB aan schijfruimte in beslag. Als je een externe schijf hebt waarop je de blokken wilt opslaan, gebruik dan de configuratieoptie <code>blocksdir=&lt;external_drive_path&gt;</code>. Dit is veel eenvoudiger dan de <code>datadir</code>-optie omdat het cookiebestand nog steeds op de standaardlocatie staat, zodat <code>bitcoin-cli</code> en <code>ord</code> het kunnen vinden.</p>
+<h2 id="probleemoplossing-1"><a class="header" href="#probleemoplossing-1">Probleemoplossing</a></h2>
+<p>Zorg ervoor dat je toegang hebt tot <code>bitcoind</code> met <code>bitcoin-cli -getinfo</code> en dat het volledig gesynchroniseerd is.</p>
+<p>Als <code>bitcoin-cli -getinfo</code> de melding <code>Could not connect to the server</code> retourneert, draait <code>bitcoind</code> niet.</p>
+<p>Zorg ervoor dat <code>rpcuser</code>, <code>rpcpassword</code> of <code>rpcauth</code> <strong>NIET</strong> zijn ingesteld in je <code>bitcoin.conf</code>-bestand. <code>ord</code> vereist het gebruik van cookie-authenticatie. Controleer of er een <code>.cookie</code>-bestand in je bitcoin-datamap aanwezig is.</p>
+<p>Als <code>bitcoin-cli -getinfo</code> de melding <code>Could not locate RPC credentials</code> retourneert, moet je de locatie van het cookiebestand specificeren. Als je een aangepaste datamap gebruikt (door de <code>datadir</code>-optie op te geven), moet je de locatie van het cookiebestand aangeven zoals <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. Wanneer je <code>ord</code> uitvoert, moet je de locatie van het cookiebestand opgeven met <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
+<p>Zorg ervoor dat je <strong>NIET</strong> <code>disablewallet=1</code> in je <code>bitcoin.conf</code>-bestand hebt staan. Als <code>bitcoin-cli listwallets</code> de melding <code>Method not found</code> retourneert, is de wallet uitgeschakeld en kun je <code>ord</code> niet gebruiken.</p>
+<p>Zorg ervoor dat <code>txindex=1</code> is ingesteld. Voer <code>bitcoin-cli getindexinfo</code> uit en het zou iets moeten teruggeven zoals</p>
+<pre><code class="language-json">{
+  "txindex": {
+    "synced": true,
+    "best_block_height": 776546
+  }
+}
+</code></pre>
+<p>Als het alleen <code>{}</code> retourneert, is <code>txindex</code> niet ingesteld. Als het <code>"synced": false</code> retourneert, is <code>bitcoind</code> nog bezig met het aanmaken van de <code>txindex</code>. Wacht tot <code>"synced": true</code> voordat je <code>ord</code> gebruikt.</p>
+<p>Als je <code>maxuploadtarget</code> hebt ingesteld, kan dit het ophalen van blokken voor de <code>ord</code>-index verstoren. Verwijder het of stel <code>whitebind=127.0.0.1:8333</code> in.</p>
+<h2 id="installatie-van-ord"><a class="header" href="#installatie-van-ord">Installatie van <code>ord</code></a></h2>
+<p>De <code>ord</code>-tool is geschreven in Rust en kan worden gebouwd vanaf <a href="https://github.com/ordinals/ord">de bron</a>. Kant-en-klare binaire bestanden zijn beschikbaar op de <a href="https://github.com/ordinals/ord/releases">releases-pagina</a>.</p>
+<p>Je kunt de nieuwste kant-en-klare binaire versie vanaf de opdrachtregel installeren met:</p>
+<pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
+</code></pre>
+<p>Zodra <code>ord</code> is geïnstalleerd, zou je in staat moeten zijn om uit te voeren:</p>
+<pre><code>ord --version
+</code></pre>
+<p>Wat de versie van <code>ord</code> afdrukt.</p>
+<h2 id="een-wallet-aanmaken"><a class="header" href="#een-wallet-aanmaken">Een wallet aanmaken</a></h2>
+<p><code>ord</code> gebruikt <code>bitcoind</code> om privé-sleutels te beheren, transacties te ondertekenen en transacties naar het Bitcoin-netwerk uit te zenden. Bovendien vereist de <code>ord wallet</code> dat <a href="guides/explorer.html"><code>ord server</code></a> op de achtergrond draait. Zorg ervoor dat deze programma's actief zijn:</p>
+<pre><code>bitcoind -txindex
+</code></pre>
+<pre><code>ord server
+</code></pre>
+<p>Om een wallet met de naam <code>ord</code>, de standaardnaam, aan te maken voor gebruik met <code>ord wallet</code>, voer je uit:</p>
+<pre><code>ord wallet create
+</code></pre>
+<p>Dit zal je seed phrase mnemonic afdrukken; sla deze op een veilige plaats op.</p>
+<p>`` { "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal", "passphrase": "" }</p>
+<pre><code></code></pre>
+<p>Als je een andere naam wilt opgeven of een <code>ord server</code> wilt gebruiken die draait op een niet-standaard URL, kun je deze opties instellen:</p>
+<pre><code>ord wallet --name foo --server-url http://127.0.0.1:8080 create
+</code></pre>
+<p>Om alle beschikbare portemonnee-opties te zien, kun je uitvoeren:</p>
+<pre><code>ord wallet help
+</code></pre>
+<h2 id="herstellen-en-exporteren-van-een-wallet"><a class="header" href="#herstellen-en-exporteren-van-een-wallet">Herstellen en Exporteren van een Wallet</a></h2>
+<p>De <code>ord</code>-wallet gebruikt descriptors, zodat je de uitvoerdescriptors kunt exporteren en deze kunt importeren in een andere op descriptors gebaseerde wallet. Om de wallet-descriptors, die je privésleutels bevatten, te exporteren:</p>
+<pre><code>$ ord wallet dump
+==========================================
+= THIS STRING CONTAINS YOUR PRIVATE KEYS =
+=        DO NOT SHARE WITH ANYONE        =
+==========================================
+{
+  "wallet_name": "ord",
+  "descriptors": [
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/0/*)#uxn94yt5",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": false,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    },
+    {
+      "desc": "tr([551ac972/86'/1'/0']tprv8h4xBhrfZwX9o1XtUMmz92yNiGRYjF9B1vkvQ858aN1UQcACZNqN9nFzj3vrYPa4jdPMfw4ooMuNBfR4gcYm7LmhKZNTaF4etbN29Tj7UcH/1/*)#djkyg3mv",
+      "timestamp": 1296688602,
+      "active": true,
+      "internal": true,
+      "range": [
+        0,
+        999
+      ],
+      "next": 0
+    }
+  ]
+}
+</code></pre>
+<p>Een <code>ord</code> wallet kan worden hersteld vanaf een mnemonic:</p>
+<pre><code>ord wallet restore --from mnemonic
+</code></pre>
+<p>Typ je mnemonic en druk op enter.</p>
+<p>Om te herstellen vanuit een descriptor in <code>descriptor.json</code>:</p>
+<pre><code>cat descriptor.json | ord wallet restore --from descriptor
+</code></pre>
+<p>Om te herstellen vanuit een descriptor in het klembord:</p>
+<pre><code>ord wallet restore --from descriptor
+</code></pre>
+<p>Plak de descriptor in de terminal en druk op CTRL-D op Unix of CTRL-Z op Windows.</p>
+<h2 id="ontvangen-van-sats"><a class="header" href="#ontvangen-van-sats">Ontvangen van Sats</a></h2>
+<p>Inscripties worden gemaakt op afzonderlijke sats, met behulp van gewone Bitcoin-transacties die vergoedingen in sats betalen, dus je wallet heeft enige sats nodig.</p>
+<p>Haal een nieuw adres op uit je <code>ord</code> wallet door uit te voeren:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>En stuur er wat fondsen naartoe.</p>
+<p>Je kunt uitstaande transacties bekijken met:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Zodra de transactie is bevestigd, zou je de transactie-uitgangen moeten kunnen zien met <code>ord wallet outputs</code>.</p>
+<h2 id="inscriptie-inhoud-aanmaken"><a class="header" href="#inscriptie-inhoud-aanmaken">Inscriptie-inhoud aanmaken</a></h2>
+<p>Sats kunnen worden ingeschreven met elk type inhoud, maar de <code>ord</code> wallet ondersteunt alleen inhoudstypen die kunnen worden weergegeven door de <code>ord</code> block explorer.</p>
+<p>Daarnaast worden inscripties opgenomen in transacties, dus hoe groter de inhoud, hoe hoger de vergoeding die de inscriptie-transactie moet betalen.</p>
+<p>Inscriptie-inhoud wordt opgenomen in transaction witnesses, die profiteren van de witness-korting. Om de geschatte vergoeding te berekenen die een inscriptie-transactie zal betalen, deel je de inhoudsgrootte door vier en vermenigvuldig je dit met het vergoedingstarief.</p>
+<p>Inscriptie-transacties mogen niet meer dan 400.000 gewichtseenheden bevatten, anders worden ze niet door Bitcoin Core doorgegeven. Eén byte inscriptie-inhoud kost één gewichtseenheid. Aangezien een inscriptie-transactie niet alleen de inscriptie-inhoud omvat, moet je de inscriptie-inhoud beperken tot minder dan 400.000 gewichtseenheden. 390.000 gewichtseenheden zouden veilig moeten zijn.</p>
+<h2 id="inscripties-aanmaken"><a class="header" href="#inscripties-aanmaken">Inscripties aanmaken</a></h2>
+<p>Om een inscriptie aan te maken met de inhoud van <code>FILE</code>, voer je uit:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --file FILE
+</code></pre>
+<p><code>ord</code> zal twee transacties-ID's en de inscriptie-ID weergeven: één voor de commit-transactie en één voor de reveal-transactie. Inscriptie-ID's hebben de vorm <code>TXIDiN</code>, waarbij <code>TXID</code> de transacties-ID van de reveal-transactie is en <code>N</code> de index van de inscriptie in de reveal-transactie.</p>
+<p>De commit-transactie commit zich aan een tapscript dat de inhoud van de inscriptie bevat, en de reveal-transactie besteedt aan dat tapscript, waardoor de inhoud op de blockchain wordt onthuld en ingeschreven op de eerste sat van de invoer die het bijbehorende tapscript bevat.</p>
+<p>Wacht totdat de reveal-transactie is gemined. Je kunt de status van de commit- en reveal-transacties controleren met behulp van <a href="https://mempool.space/">de mempool.space block explorer</a>.</p>
+<p>Zodra de reveal-transactie is gemined, zou de inscriptie-ID moeten worden afgedrukt wanneer je uitvoert:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="ouder-kind-inscripties"><a class="header" href="#ouder-kind-inscripties">Ouder-Kind Inscripties</a></h2>
+<p>Ouder-kind inscripties maken wat in de volksmond bekend staat als collecties mogelijk. Zie <a href="guides/../inscriptions/provenance.html">provenance</a> voor meer informatie.</p>
+<p>Om een inscriptie een kind te maken van een andere, moet de ouderinscriptie ingeschreven en aanwezig zijn in de wallet. Om een ouder te kiezen, voer je <code>ord wallet inscriptions</code> uit en kopieer je de inscriptie-ID (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
+<p>Nu schrijf je de kindinscriptie in en specificeer je de ouder als volgt:</p>
+<pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
+</code></pre>
+<p>Deze relatie kan niet achteraf worden toegevoegd; de ouder moet aanwezig zijn bij de aanmaak van het kind.</p>
+<h2 id="inscripties-verzenden"><a class="header" href="#inscripties-verzenden">Inscripties verzenden</a></h2>
+<p>Vraag de ontvanger om een nieuw adres te genereren door uit te voeren:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Stuur de inscriptie door uit te voeren:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;INSCRIPTION_ID&gt;
+</code></pre>
+<p>Bekijk de uitstaande transactie met:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Zodra de verzendtransactie is bevestigd, kan de ontvanger de ontvangst bevestigen door uit te voeren:</p>
+<pre><code>ord wallet inscriptions
+</code></pre>
+<h2 id="runes-verzenden"><a class="header" href="#runes-verzenden">Runes verzenden</a></h2>
+<p>Vraag de ontvanger om een nieuw adres te genereren door uit te voeren:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>Stuur de runes door uit te voeren:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
+</code></pre>
+<p>Waarbij <code>RUNES_AMOUNT</code> het aantal runes is dat je wilt verzenden, gevolgd door een <code>:</code> karakter en de naam van de rune. Bijvoorbeeld, als je 1000 van de EXAMPLE rune wilt verzenden, gebruik je <code>1000:EXAMPLE</code>.</p>
+<pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
+</code></pre>
+<p>Bekijk de uitstaande transactie met:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Zodra de verzendtransactie is bevestigd, kan de ontvanger de ontvangst bevestigen met:</p>
+<pre><code>ord wallet balance
+</code></pre>
+<h2 id="inscripties-ontvangen"><a class="header" href="#inscripties-ontvangen">Inscripties ontvangen</a></h2>
+<p>Genereer een nieuw ontvangstadres met:</p>
+<pre><code>ord wallet receive
+</code></pre>
+<p>De afzender kan de inscriptie naar je adres overdragen met:</p>
+<pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; ADDRESS INSCRIPTION_ID
+</code></pre>
+<p>Bekijk de uitstaande transactie met:</p>
+<pre><code>ord wallet transactions
+</code></pre>
+<p>Zodra de verzendtransactie is bevestigd, kun je de ontvangst bevestigen door uit te voeren:</p>
+<pre><code>ord wallet inscriptions
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="hints-voor-het-jagen-op-ordinals-bounty"><a class="header" href="#hints-voor-het-jagen-op-ordinals-bounty">Hints voor het jagen op ordinals-bounty</a></h1>
 <ul>
