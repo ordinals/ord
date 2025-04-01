@@ -7,12 +7,12 @@ use {
   },
   super::*,
   crate::templates::{
-    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
-    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewIframeHtml,
-    PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml,
-    SatscardHtml, TransactionHtml,
+    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, ExploreHtml,
+    HomeHtml, InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml,
+    PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
+    PreviewIframeHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
+    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml,
+    RunesHtml, SatHtml, SatscardHtml, TransactionHtml,
   },
   axum::{
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
@@ -70,6 +70,11 @@ pub(crate) enum OutputType {
   Cardinal,
   Inscribed,
   Runic,
+}
+
+#[derive(Deserialize)]
+struct Explore {
+  query: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -146,7 +151,13 @@ pub struct Server {
 }
 
 impl Server {
-  pub fn run(self, settings: Settings, index: Arc<Index>, handle: Handle) -> SubcommandResult {
+  pub fn run(
+    self,
+    settings: Settings,
+    index: Arc<Index>,
+    search_index: Option<Arc<SearchIndex>>,
+    handle: Handle,
+  ) -> SubcommandResult {
     Runtime::new()?.block_on(async {
       let index_clone = index.clone();
       let integration_test = settings.integration_test();
@@ -171,6 +182,30 @@ impl Server {
 
       INDEXER.lock().unwrap().replace(index_thread);
 
+      if let Some(search_index) = &search_index {
+        let search_index_clone = search_index.clone();
+
+        let search_index_thread = thread::spawn(move || loop {
+          if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+            break;
+          }
+
+          if !self.no_sync {
+            if let Err(error) = search_index_clone.update() {
+              log::warn!("Updating search index: {error}");
+            }
+          }
+
+          thread::sleep(if integration_test {
+            Duration::from_millis(100)
+          } else {
+            self.polling_interval.into()
+          });
+        });
+
+        SEARCH_INDEXER.lock().unwrap().replace(search_index_thread);
+      }
+
       let settings = Arc::new(settings);
       let acme_domains = self.acme_domains()?;
 
@@ -185,7 +220,7 @@ impl Server {
       });
 
       // non-recursive endpoints
-      let router = Router::new()
+      let mut router = Router::new()
         .route("/", get(Self::home))
         .route("/address/{address}", get(Self::address))
         .route("/block/{query}", get(Self::block))
@@ -246,6 +281,15 @@ impl Server {
         .route("/thumbnail/{inscription_id}", get(Self::thumbnail))
         .route("/tx/{txid}", get(Self::transaction))
         .route("/update", get(Self::update));
+
+      if let Some(search_index) = search_index {
+        router = router.nest(
+          "/explore",
+          Router::new()
+            .route("/", get(Self::explore))
+            .layer(Extension(search_index)),
+        );
+      }
 
       // recursive endpoints
       let router = router
@@ -589,6 +633,23 @@ impl Server {
           .into_response(),
       )
     })
+  }
+
+  async fn explore(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(search_index): Extension<Arc<SearchIndex>>,
+    Query(explore): Query<Explore>,
+  ) -> ServerResult {
+    let search_results = match explore.query {
+      Some(query) => search_index.search(&query)?,
+      None => Vec::new(),
+    };
+
+    Ok(
+      ExploreHtml { search_results }
+        .page(server_config)
+        .into_response(),
+    )
   }
 
   async fn fallback(Extension(index): Extension<Arc<Index>>, uri: Uri) -> ServerResult<Response> {
@@ -2121,7 +2182,11 @@ mod tests {
       {
         let index = index.clone();
         let ord_server_handle = ord_server_handle.clone();
-        thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
+        thread::spawn(|| {
+          server
+            .run(settings, index, None, ord_server_handle)
+            .unwrap()
+        });
       }
 
       while index.statistic(crate::index::Statistic::Commits) == 0 {

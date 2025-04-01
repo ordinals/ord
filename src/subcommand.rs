@@ -72,10 +72,11 @@ impl Subcommand {
       Self::Parse(parse) => parse.run(),
       Self::Runes => runes::run(settings),
       Self::Server(server) => {
-        let index = Arc::new(Index::open(&settings)?);
+        let index = Arc::new(Index::open_with_event_sender(&settings, None)?);
+        let search_index = Arc::new(SearchIndex::open(index.clone(), &settings)?);
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
-        server.run(settings, index, handle)
+        server.run(settings, index, Some(search_index), handle)
       }
       Self::Settings => settings::run(settings),
       Self::Subsidy(subsidy) => subsidy.run(),
