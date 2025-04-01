@@ -80,7 +80,7 @@ impl SearchIndex {
   pub fn open(index: Arc<Index>, settings: &Settings) -> Result<Self> {
     let mut schema_builder = TantivySchema::builder();
 
-    let document = Schema {
+    let schema = Schema {
       inscription_id: schema_builder.add_text_field("inscription_id", STRING | STORED),
       charm: schema_builder.add_text_field("charm", STRING),
       sat_name: schema_builder.add_text_field("sat_name", STRING),
@@ -110,7 +110,7 @@ impl SearchIndex {
     Ok(Self {
       ord_index: index,
       reader,
-      schema: document,
+      schema,
       search_index,
       writer: Arc::new(Mutex::new(writer)),
     })
