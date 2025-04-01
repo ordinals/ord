@@ -18,7 +18,10 @@ use {
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{
-    json::{GetBlockHeaderResult, GetBlockStatsResult},
+    json::{
+      GetBlockHeaderResult, GetBlockStatsResult, GetRawTransactionResult,
+      GetRawTransactionResultVout, GetRawTransactionResultVoutScriptPubKey, GetTxOutResult,
+    },
     Client,
   },
   chrono::SubsecRound,
@@ -671,7 +674,7 @@ impl Index {
       match updater.update_index(wtx) {
         Ok(ok) => return Ok(ok),
         Err(err) => {
-          log::info!("{}", err.to_string());
+          log::info!("{err}");
 
           match err.downcast_ref() {
             Some(&reorg::Error::Recoverable { height, depth }) => {
@@ -1405,7 +1408,7 @@ impl Index {
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
 
-    let more = ids.len() > page_size.try_into().unwrap();
+    let more = ids.len().into_u64() > page_size;
 
     if more {
       ids.pop();
@@ -1594,6 +1597,87 @@ impl Index {
     }
 
     Ok(Some(result))
+  }
+
+  pub fn get_unspent_or_unconfirmed_output(
+    &self,
+    txid: &Txid,
+    vout: u32,
+  ) -> Result<Option<GetTxOutResult>> {
+    if txid == &self.genesis_block_coinbase_txid {
+      let Some(output) = &self
+        .genesis_block_coinbase_transaction
+        .output
+        .get(vout.into_usize())
+      else {
+        return Ok(None);
+      };
+
+      return Ok(Some(GetTxOutResult {
+        bestblock: self.block_hash(None)?.unwrap(),
+        coinbase: true,
+        confirmations: self.block_count()?,
+        script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+          address: None,
+          addresses: Vec::new(),
+          asm: output.script_pubkey.to_asm_string(),
+          hex: output.script_pubkey.to_bytes(),
+          req_sigs: Some(1),
+          type_: Some(bitcoincore_rpc::json::ScriptPubkeyType::Pubkey),
+        },
+        value: output.value,
+      }));
+    }
+
+    Ok(self.client.get_tx_out(txid, vout, Some(true))?)
+  }
+
+  pub fn get_transaction_info(&self, txid: &Txid) -> Result<Option<GetRawTransactionResult>> {
+    if txid == &self.genesis_block_coinbase_txid {
+      let tx = &self.genesis_block_coinbase_transaction;
+
+      let block = bitcoin::blockdata::constants::genesis_block(self.settings.chain().network());
+      let time = block.header.time.into_usize();
+
+      return Ok(Some(GetRawTransactionResult {
+        in_active_chain: Some(true),
+        hex: consensus::encode::serialize(tx),
+        txid: tx.compute_txid(),
+        hash: tx.compute_wtxid(),
+        size: tx.total_size(),
+        vsize: tx.vsize(),
+        #[allow(clippy::cast_sign_loss)]
+        version: tx.version.0 as u32,
+        locktime: 0,
+        vin: Vec::new(),
+        vout: tx
+          .output
+          .iter()
+          .enumerate()
+          .map(|(n, output)| GetRawTransactionResultVout {
+            n: n.try_into().unwrap(),
+            value: output.value,
+            script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+              asm: output.script_pubkey.to_asm_string(),
+              hex: output.script_pubkey.clone().into(),
+              req_sigs: None,
+              type_: None,
+              addresses: Vec::new(),
+              address: None,
+            },
+          })
+          .collect(),
+        blockhash: Some(block.block_hash()),
+        confirmations: Some(self.block_count()?),
+        time: Some(time),
+        blocktime: Some(time),
+      }));
+    }
+
+    self
+      .client
+      .get_raw_transaction_info(txid, None)
+      .into_option()
   }
 
   pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
@@ -2404,9 +2488,12 @@ impl Index {
   pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
     let sat_ranges = self.list(outpoint)?;
 
+    let confirmations;
     let indexed;
+    let spent;
+    let txout;
 
-    let txout = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+    if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
 
       if let Some(ranges) = &sat_ranges {
@@ -2415,35 +2502,49 @@ impl Index {
         }
       }
 
+      confirmations = 0;
       indexed = true;
-
-      TxOut {
+      spent = false;
+      txout = TxOut {
         value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
-      }
+      };
     } else {
       indexed = self.contains_output(&outpoint)?;
 
-      let Some(tx) = self.get_transaction(outpoint.txid)? else {
-        return Ok(None);
-      };
+      if let Some(result) = self.get_unspent_or_unconfirmed_output(&outpoint.txid, outpoint.vout)? {
+        confirmations = result.confirmations;
+        spent = false;
+        txout = TxOut {
+          value: result.value,
+          script_pubkey: ScriptBuf::from_bytes(result.script_pub_key.hex),
+        };
+      } else {
+        let Some(result) = self.get_transaction_info(&outpoint.txid)? else {
+          return Ok(None);
+        };
 
-      let Some(txout) = tx.output.into_iter().nth(outpoint.vout as usize) else {
-        return Ok(None);
-      };
+        let Some(output) = result.vout.into_iter().nth(outpoint.vout.into_usize()) else {
+          return Ok(None);
+        };
 
-      txout
+        confirmations = result.confirmations.unwrap_or_default();
+        spent = true;
+        txout = TxOut {
+          value: output.value,
+          script_pubkey: ScriptBuf::from_bytes(output.script_pub_key.hex),
+        };
+      }
     };
 
     let inscriptions = self.get_inscriptions_for_output(outpoint)?;
 
     let runes = self.get_rune_balances_for_output(outpoint)?;
 
-    let spent = self.is_output_spent(outpoint)?;
-
     Ok(Some((
       api::Output::new(
         self.settings.chain(),
+        confirmations,
         inscriptions,
         outpoint,
         txout.clone(),

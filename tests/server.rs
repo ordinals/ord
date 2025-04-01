@@ -218,8 +218,8 @@ fn address_page_shows_aggregated_inscriptions() {
 <dl>.*
   <dt>inscriptions</dt>
   <dd class=thumbnails>
-    <a href=/inscription/[[:xdigit:]]{64}i\d><iframe .* src=/preview/[[:xdigit:]]{64}i\d></iframe></a>
-    <a href=/inscription/[[:xdigit:]]{64}i\d><iframe .* src=/preview/[[:xdigit:]]{64}i\d></iframe></a>
+    <a href=/inscription/[[:xdigit:]]{64}i\d><iframe .* src=/thumbnail/[[:xdigit:]]{64}i\d></iframe></a>
+    <a href=/inscription/[[:xdigit:]]{64}i\d><iframe .* src=/thumbnail/[[:xdigit:]]{64}i\d></iframe></a>
   </dd>.*"
     ,
   );

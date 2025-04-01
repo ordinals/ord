@@ -382,7 +382,7 @@ impl Wallet {
           Maturity::CommitSpent(commit_tx.info.txid)
         } else if !self.is_above_minimum_at_height(rune)? {
           Maturity::BelowMinimumHeight(self.bitcoin_client().get_block_count()? + 1)
-        } else if current_confirmations + 1 < Runestone::COMMIT_CONFIRMATIONS.into() {
+        } else if current_confirmations + 1 < u32::from(Runestone::COMMIT_CONFIRMATIONS) {
           Maturity::ConfirmationsPending(
             u32::from(Runestone::COMMIT_CONFIRMATIONS) - current_confirmations - 1,
           )

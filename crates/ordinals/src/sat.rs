@@ -833,4 +833,19 @@ mod tests {
     assert!(!Charm::Palindrome.is_set(Sat(10).charms()));
     assert!(Charm::Palindrome.is_set(Sat(11).charms()));
   }
+
+  #[test]
+  fn degree_examples() {
+    #[track_caller]
+    fn case(s: &str, rarity: Rarity) {
+      assert_eq!(s.parse::<Sat>().unwrap().rarity(), rarity);
+    }
+
+    case("0°0′0″1‴", Rarity::Common);
+    case("0°1′1″0‴", Rarity::Uncommon);
+    case("0°2016′0″0‴", Rarity::Rare);
+    case("0°0′336″0‴", Rarity::Epic);
+    case("1°0′0″0‴", Rarity::Legendary);
+    case("0°0′0″0‴", Rarity::Mythic);
+  }
 }

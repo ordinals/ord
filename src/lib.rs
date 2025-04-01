@@ -21,8 +21,9 @@ use {
     inscriptions::{
       inscription_id,
       media::{self, ImageRendering, Media},
-      teleburn, ParsedEnvelope,
+      teleburn,
     },
+    into_u64::IntoU64,
     into_usize::IntoUsize,
     option_ext::OptionExt,
     outgoing::Outgoing,
@@ -96,7 +97,7 @@ pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
   index::{Index, RuneEntry},
-  inscriptions::{Envelope, Inscription, InscriptionId},
+  inscriptions::{Envelope, Inscription, InscriptionId, ParsedEnvelope, RawEnvelope},
   object::Object,
   options::Options,
   wallet::transaction_builder::{Target, TransactionBuilder},
@@ -119,6 +120,7 @@ mod error;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
+mod into_u64;
 mod into_usize;
 mod macros;
 mod object;
