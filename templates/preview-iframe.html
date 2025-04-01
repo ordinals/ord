@@ -6,13 +6,6 @@
     <link rel=stylesheet href=/static/preview-iframe.css>
   </head>
   <body>
-    <iframe
-      loading=lazy
-      sandbox=allow-scripts
-      src=/content/{{self.inscription_id}}
-%% if self.thumbnail {
-      scrolling=no
-%% }
-    ></iframe>
+    <iframe sandbox=allow-scripts loading=lazy src=/content/{{self.inscription_id}}></iframe>
   </body>
 </html>

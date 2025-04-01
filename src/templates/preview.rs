@@ -23,7 +23,6 @@ pub(crate) struct PreviewFontHtml {
 pub struct PreviewIframeHtml {
   pub inscription_id: InscriptionId,
   pub inscription_number: i32,
-  pub thumbnail: bool,
 }
 
 #[derive(Boilerplate)]
