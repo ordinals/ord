@@ -42,7 +42,7 @@ cross-site scripting attacks.
 
 - An attacker publishes a malicious HTML inscription with ID `XYZ` which
   contains JavaScript that accesses `https://example.com/exchange/send` and
-  sends them to an attacker-controlled address>
+  sends them to an attacker-controlled address.
 
 - When a user visits `https://example.com/ord/XYZ`, the malicious JavaScript
   requests `https://example.com/exchange/send`. Because the script executes on
