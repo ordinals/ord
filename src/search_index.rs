@@ -23,7 +23,12 @@ struct Schema {
 
 impl Schema {
   fn default_search_fields(&self) -> Vec<Field> {
-    vec![self.inscription_id, self.charm, self.sat_name, self.timestamp]
+    vec![
+      self.inscription_id,
+      self.charm,
+      self.sat_name,
+      self.timestamp,
+    ]
   }
 
   fn search_result(&self, document: &TantivyDocument) -> Option<SearchResult> {
@@ -35,8 +40,17 @@ impl Schema {
       }
     })?;
 
+    let timestamp = document.get_first(self.timestamp).and_then(|value| {
+      if let OwnedValue::Date(date) = value {
+        Some(date)
+      } else {
+        None
+      }
+    })?;
+
     Some(SearchResult {
       inscription_id: inscription_id.parse().ok()?,
+      timestamp: *timestamp
     })
   }
 
@@ -59,6 +73,7 @@ pub struct SearchIndex {
 #[derive(Eq, Hash, PartialEq)]
 pub struct SearchResult {
   pub inscription_id: InscriptionId,
+  pub timestamp: DateTime
 }
 
 impl SearchIndex {
@@ -72,6 +87,7 @@ impl SearchIndex {
       timestamp: schema_builder.add_date_field(
         "timestamp",
         DateOptions::from(INDEXED)
+          .set_stored()
           .set_fast()
           .set_precision(DateTimePrecision::Seconds),
       ),
@@ -100,7 +116,7 @@ impl SearchIndex {
     })
   }
 
-  pub fn search(&self, query: &str) -> Result<HashSet<SearchResult>> {
+  pub fn search(&self, query: &str) -> Result<Vec<SearchResult>> {
     let searcher = self.reader.searcher();
 
     let query = self
@@ -108,17 +124,21 @@ impl SearchIndex {
       .query_parser(&self.search_index)
       .parse_query(query)?;
 
-    Ok(
-      searcher
-        .search(&query, &TopDocs::with_limit(100))?
-        .iter()
-        .filter_map(|(_score, doc_address)| {
-          self
-            .schema
-            .search_result(&searcher.doc::<TantivyDocument>(*doc_address).ok()?)
-        })
-        .collect(),
-    )
+    let unique_results = searcher
+      .search(&query, &TopDocs::with_limit(100))?
+      .iter()
+      .filter_map(|(_score, doc_address)| {
+        self
+          .schema
+          .search_result(&searcher.doc::<TantivyDocument>(*doc_address).ok()?)
+      })
+      .collect::<HashSet<SearchResult>>();
+
+    let mut results = unique_results.into_iter().collect::<Vec<SearchResult>>();
+
+    results.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
+
+    Ok(results)
   }
 
   pub(crate) fn update(&self) -> Result {

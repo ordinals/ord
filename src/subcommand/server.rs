@@ -642,7 +642,7 @@ impl Server {
   ) -> ServerResult {
     let search_results = match explore.query {
       Some(query) => search_index.search(&query)?,
-      None => HashSet::new(),
+      None => Vec::new(),
     };
 
     Ok(
