@@ -1941,7 +1941,7 @@ impl Index {
     Ok((inscriptions, more))
   }
 
-  pub fn get_all_inscriptions(&self) -> Result<Vec<InscriptionId>> {
+  pub fn get_inscriptions(&self) -> Result<Vec<InscriptionId>> {
     let rtx = self.database.begin_read()?;
 
     let sequence_number_to_inscription_entry =

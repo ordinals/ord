@@ -50,7 +50,7 @@ impl Schema {
 
     Some(SearchResult {
       inscription_id: inscription_id.parse().ok()?,
-      timestamp: *timestamp
+      timestamp: *timestamp,
     })
   }
 
@@ -73,7 +73,7 @@ pub struct SearchIndex {
 #[derive(Eq, Hash, PartialEq)]
 pub struct SearchResult {
   pub inscription_id: InscriptionId,
-  pub timestamp: DateTime
+  pub timestamp: DateTime,
 }
 
 impl SearchIndex {
@@ -145,7 +145,7 @@ impl SearchIndex {
     let mut indexed_inscriptions = Vec::new();
 
     loop {
-      for inscription_id in self.ord_index.get_all_inscriptions()? {
+      for inscription_id in self.ord_index.get_inscriptions()? {
         if !indexed_inscriptions.contains(&inscription_id) {
           self.index_inscription(inscription_id)?;
           indexed_inscriptions.push(inscription_id);
