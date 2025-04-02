@@ -75,7 +75,7 @@ mod tests {
   #[test]
   fn test_inscriptions_rendering() {
     let address_html = setup();
-    let expected_pattern = r#".*<dt>inscriptions</dt>\n\s*<dd class=thumbnails>.*<a href=/inscription/1{64}i1><iframe .* src=/thumbnail/1{64}i1></iframe></a>.*</dd>.*"#;
+    let expected_pattern = r#".*<dt>inscriptions</dt>\n\s*<dd class=thumbnails>.*<a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>.*</dd>.*"#;
     assert_regex_match!(address_html, expected_pattern);
   }
 
