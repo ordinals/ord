@@ -53,12 +53,6 @@ impl Schema {
       timestamp: *timestamp,
     })
   }
-
-  fn query_parser(&self, search_index: &TantivyIndex) -> QueryParser {
-    let mut query_parser = QueryParser::for_index(search_index, self.default_search_fields());
-    query_parser.set_conjunction_by_default();
-    query_parser
-  }
 }
 
 #[derive(Clone)]
@@ -119,10 +113,7 @@ impl SearchIndex {
   pub fn search(&self, query: &str) -> Result<Vec<SearchResult>> {
     let searcher = self.reader.searcher();
 
-    let query = self
-      .schema
-      .query_parser(&self.search_index)
-      .parse_query(query)?;
+    let query = self.query_parser().parse_query(query)?;
 
     let unique_results = searcher
       .search(&query, &TopDocs::with_limit(100))?
@@ -141,7 +132,7 @@ impl SearchIndex {
     Ok(results)
   }
 
-  pub(crate) fn update(&self) -> Result {
+  pub fn update(&self) -> Result {
     let mut indexed_inscriptions = Vec::new();
 
     loop {
@@ -162,8 +153,7 @@ impl SearchIndex {
     let searcher = self.reader.searcher();
 
     let query = self
-      .schema
-      .query_parser(&self.search_index)
+      .query_parser()
       .parse_query(&format!("inscription_id:{inscription_id}"))?;
 
     if searcher.search(&query, &Count)? > 0 {
@@ -206,5 +196,14 @@ impl SearchIndex {
     );
 
     Ok(())
+  }
+
+  fn query_parser(&self) -> QueryParser {
+    let mut query_parser =
+      QueryParser::for_index(&self.search_index, self.schema.default_search_fields());
+
+    query_parser.set_conjunction_by_default();
+
+    query_parser
   }
 }
