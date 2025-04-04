@@ -1,6 +1,15 @@
 Changelog
 =========
 
+[0.23.1](https://github.com/ordinals/ord/releases/tag/0.23.1) - 2025-04-01
+--------------------------------------------------------------------------
+
+### Fixed
+- Don't wrap iframe media types in preview page ([#4315](https://github.com/ordinals/ord/pull/4315) by [casey](https://github.com/casey))
+
+### Misc
+- Add security section to handbook ([#4314](https://github.com/ordinals/ord/pull/4314) by [casey](https://github.com/casey))
+
 [0.23.0](https://github.com/ordinals/ord/releases/tag/0.23.0) - 2025-03-31
 --------------------------------------------------------------------------
 
