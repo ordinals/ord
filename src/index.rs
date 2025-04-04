@@ -691,7 +691,7 @@ impl Index {
       match updater.update_index(wtx) {
         Ok(ok) => return Ok(ok),
         Err(err) => {
-          log::info!("{}", err.to_string());
+          log::info!("{err}");
 
           match err.downcast_ref() {
             Some(&reorg::Error::Recoverable { height, depth }) => {
@@ -1426,7 +1426,7 @@ impl Index {
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
 
-    let more = ids.len() > page_size.try_into().unwrap();
+    let more = ids.len().into_u64() > page_size;
 
     if more {
       ids.pop();

@@ -458,7 +458,7 @@ impl RuneUpdater<'_, '_, '_> {
           .unwrap()
           + 1;
 
-        if confirmations >= Runestone::COMMIT_CONFIRMATIONS.into() {
+        if confirmations >= u32::from(Runestone::COMMIT_CONFIRMATIONS) {
           return Ok(true);
         }
       }
