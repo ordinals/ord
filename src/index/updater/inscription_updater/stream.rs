@@ -384,7 +384,13 @@ impl StreamEvent {
     }
 
     // DO NOT send brc20 transfer events
-    if self.old_owner.is_some() && self.brc20.is_some() {
+    if self.old_owner.is_some()
+      && self
+        .brc20
+        .as_ref()
+        .map(|brc| brc.p == "brc-20")
+        .unwrap_or(false)
+    {
       return Ok(());
     }
 
