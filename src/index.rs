@@ -499,6 +499,7 @@ impl Index {
     )
   }
 
+  #[cfg(test)]
   pub fn get_output_script(&self, output: &OutPoint) -> Result<Option<ScriptBuf>> {
     let rtx = self.database.begin_read()?;
     let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
