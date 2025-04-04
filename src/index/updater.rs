@@ -556,7 +556,7 @@ impl Updater<'_> {
               entry
             } else if let Some(entry) = outpoint_to_utxo_entry.remove(&outpoint)? {
               if self.index.index_addresses {
-                let script_pubkey = entry.value().parse(self.index).script_pubkey();
+                let script_pubkey = entry.value().parse(self.index).script_pubkey().unwrap();
                 if !script_pubkey_to_outpoint.remove(script_pubkey, outpoint)? {
                   panic!("script pubkey entry ({script_pubkey:?}, {outpoint:?}) not found");
                 }
@@ -845,7 +845,7 @@ impl Updater<'_> {
 
         let utxo_entry = utxo_entry.parse(self.index);
         if self.index.index_addresses {
-          let script_pubkey = utxo_entry.script_pubkey();
+          let script_pubkey = utxo_entry.script_pubkey().unwrap();
           script_pubkey_to_outpoint.insert(script_pubkey, &outpoint.store())?;
         }
 
