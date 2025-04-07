@@ -1,6 +1,6 @@
 use super::*;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize)]
 pub enum Blocktime {
   Confirmed(DateTime<Utc>),
   Expected(DateTime<Utc>),
