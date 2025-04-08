@@ -153,8 +153,8 @@ impl<'a> ParsedUtxoEntry<'a> {
     ranges
   }
 
-  pub fn script_pubkey(&self) -> &'a [u8] {
-    self.script_pubkey.unwrap()
+  pub fn script_pubkey(&self) -> Option<&'a [u8]> {
+    self.script_pubkey
   }
 
   pub fn inscriptions(&self) -> &'a [u8] {
@@ -279,8 +279,8 @@ impl UtxoEntryBuf {
     }
 
     if index.index_addresses {
-      assert!(a_parsed.script_pubkey().is_empty());
-      assert!(b_parsed.script_pubkey().is_empty());
+      assert!(a_parsed.script_pubkey().unwrap().is_empty());
+      assert!(b_parsed.script_pubkey().unwrap().is_empty());
       merged.push_script_pubkey(&[], index);
     }
 

@@ -603,7 +603,11 @@ fn burn_rune_with_many_assets_in_wallet() {
 fn burning_rune_creates_change_output_for_non_burnt_runes() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(
+    &core,
+    &["--index-runes", "--index-addresses", "--regtest"],
+    &[],
+  );
 
   create_wallet(&core, &ord);
 
@@ -632,7 +636,7 @@ fn burning_rune_creates_change_output_for_non_burnt_runes() {
 
   core.mine_blocks(1);
 
-  let balances = CommandBuilder::new("--regtest --index-runes balances")
+  let balances = CommandBuilder::new("--regtest --index-runes --index-addresses balances")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<ord::subcommand::balances::Output>();
@@ -677,7 +681,7 @@ fn burning_rune_creates_change_output_for_non_burnt_runes() {
   );
 
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet burn --fee-rate 1 500:{}",
+    "--chain regtest --index-runes --index-addresses wallet burn --fee-rate 1 500:{}",
     Rune(RUNE)
   ))
   .core(&core)
@@ -686,7 +690,7 @@ fn burning_rune_creates_change_output_for_non_burnt_runes() {
 
   core.mine_blocks(1);
 
-  let balances = CommandBuilder::new("--regtest --index-runes balances")
+  let balances = CommandBuilder::new("--regtest --index-runes --index-addresses balances")
     .core(&core)
     .ord(&ord)
     .run_and_deserialize_output::<ord::subcommand::balances::Output>();
@@ -697,17 +701,30 @@ fn burning_rune_creates_change_output_for_non_burnt_runes() {
       runes: [
         (
           SpacedRune::new(Rune(RUNE), 0),
-          [(
-            OutPoint {
-              txid: output.txid,
-              vout: 1
-            },
-            Pile {
-              amount: 500,
-              divisibility: 0,
-              symbol: Some('¢')
-            },
-          )]
+          [
+            (
+              OutPoint {
+                txid: output.txid,
+                vout: 0
+              },
+              Pile {
+                amount: 500,
+                divisibility: 0,
+                symbol: Some('¢')
+              },
+            ),
+            (
+              OutPoint {
+                txid: output.txid,
+                vout: 1
+              },
+              Pile {
+                amount: 500,
+                divisibility: 0,
+                symbol: Some('¢')
+              },
+            )
+          ]
           .into()
         ),
         (
@@ -731,7 +748,7 @@ fn burning_rune_creates_change_output_for_non_burnt_runes() {
   );
 
   pretty_assert_eq!(
-    CommandBuilder::new("--regtest --index-runes wallet balance")
+    CommandBuilder::new("--regtest --index-runes --index-addresses wallet balance")
       .core(&core)
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
