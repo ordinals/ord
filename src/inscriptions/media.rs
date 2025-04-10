@@ -91,7 +91,7 @@ impl Media {
     ("image/avif",                  GENERIC, Image(Auto),      &["avif"]),
     ("image/gif",                   GENERIC, Image(Pixelated), &["gif"]),
     ("image/jpeg",                  GENERIC, Image(Pixelated), &["jpg", "jpeg"]),
-    ("image/jxl",                   GENERIC, Image(Auto),      &[]),
+    ("image/jxl",                   GENERIC, Image(Auto),      &["jxl"]),
     ("image/png",                   GENERIC, Image(Pixelated), &["png"]),
     ("image/svg+xml",               TEXT,    Iframe,           &["svg"]),
     ("image/webp",                  GENERIC, Image(Pixelated), &["webp"]),
