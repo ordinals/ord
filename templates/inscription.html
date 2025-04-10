@@ -132,14 +132,6 @@
   <dd><a class=collapse href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
-  <dt>details</dt>
-  <dd>
-    <details>
-      <summary>...</summary>
-      <dl>
-        <dt>ethereum teleburn address</dt>
-        <dd class=collapse>{{ teleburn::Ethereum::from(self.id) }}</dd>
-      </dl>
-    </details>
-  </dd>
+  <dt>ethereum teleburn address</dt>
+  <dd class=collapse>{{ teleburn::Ethereum::from(self.id) }}</dd>
 </dl>
