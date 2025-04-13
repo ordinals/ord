@@ -7258,7 +7258,7 @@ inscriptions:
 <p>Pour ce faire, vous pouvez suivre la procédure de <a href="guides/collecting/./sparrow-wallet.html#validating--viewing-received-inscriptions">validation / visualisation des inscriptions reçues</a> décrite ci-dessus pour trouver la page d’inscription de votre inscription sur ordinals.com</p>
 <p>Vous y trouverez des métadonnées sur votre inscription qui ressemblent à ce qui suit :</p>
 <p><img src="guides/collecting/images/sending_01.png" alt="" /></p>
-<p>Il y a plusieurs points importants à vérifier à ce stade :</p>
+<p>There are a few of important things to check here:</p>
 <ul>
 <li>L’identifiant <code>output</code> correspond à l’identifiant de l’UTXO que vous allez envoyer.</li>
 <li>Le <code>offset</code> (déplacement) de l’inscription correspond à <code>0</code> (cela signifie que l’inscription est située sur le premier sat de l’UTXO)</li>
@@ -7268,10 +7268,10 @@ inscriptions:
 <p>⚠️⚠️ Soyez très prudent lorsque vous envoyez votre inscription, en particulier si la valeur <code>offset</code> est différente de 0. Il n’est pas recommandé d’utiliser cette méthode si c’est le cas, car vous pourriez accidentellement envoyer votre inscription à un mineur de bitcoins, à moins que vous ne sachiez ce que vous faites.</p>
 <h4 id="envoyer-votre-inscription"><a class="header" href="#envoyer-votre-inscription">Envoyer votre inscription</a></h4>
 <p>Pour envoyer une inscription, allez dans l’onglet <code>UTXOs</code> et recherchez l’UTXO que vous avez validé précédemment comme contenant votre inscription.</p>
-<p>Si vous avez précédemment gelé cet UTXO, vous devrez faire un clic droit dessus et le dégeler.</p>
+<p>If you previously froze the UTXO you will need to right-click on it and unfreeze it.</p>
 <p>Sélectionnez l’UTXO que vous souhaitez envoyer et assurez-vous que c’est le <em>seul</em> UTXO sélectionné. Vous devriez voir <code>UTXOs 1/1</code> dans l’interface. Une fois que vous êtes absolument sûr d’avoir sélectionné le bon UTXO, vous pouvez cliquer sur <code>Send Selected</code> (envoyer la sélection).</p>
 <p><img src="guides/collecting/images/sending_02.png" alt="" /></p>
-<p>Vous verrez alors apparaître l’interface de construction de transactions. Il y a quelques points que vous devez vérifier ici pour vous assurer que cet envoi est sûr :</p>
+<p>You will then be presented with the transaction construction interface. There are a few things you need to check here to make sure that this is a safe send:</p>
 <ul>
 <li>La transaction ne doit avoir que 1 input (entrée), et celle-ci doit être l’UTXO avec l’étiquette que vous voulez envoyer.</li>
 <li>La transaction ne doit avoir que 1 output (sortie), qui est l’adresse/l’étiquette où vous voulez envoyer l’inscription</li>

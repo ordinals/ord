@@ -7258,7 +7258,7 @@ inscriptions:
 <p>そのためには、上記のように[受け取った銘文を検証/見る]することができます(./sparrow-wallet.md#validating--viewing-received-inscriptions)ordinals.comのあなたの銘文の銘文ページを見つけるために来ます。</p>
 <p>そこで、あなたの銘文に関するメタデータを見つけます。以下のようになります：</p>
 <p><img src="guides/collecting/images/sending_01.png" alt="" /></p>
-<p>以下は、チェックすべき重要事項です：</p>
+<p>There are a few of important things to check here:</p>
 <ul>
 <li><code>output</code> 識別子が送信しようとしているUTXOの識別子と一致します</li>
 <li>銘文の'off set'は'0'であり、(これは銘文がUTXOの最初のsatにあることを意味する)</li>
@@ -7268,10 +7268,10 @@ inscriptions:
 <p>⚠️⚠️ 銘文を送るときは、特に'off set'値が'0'でない場合は細心の注意を払ってください。この場合は、この方法をお勧めしません。そうしないと、自分が何をしているのか分からない限り、あなたの銘文をビットコイン鉱山労働者に送ることになるかもしれません。</p>
 <h4 id="あなたの銘文を発送します"><a class="header" href="#あなたの銘文を発送します">あなたの銘文を発送します。</a></h4>
 <p>要銘文を送信するには、'UTXOs'タブに移動し、以前にあなたの彫刻が含まれていることを確認したUTXOを見つけてください。</p>
-<p>以前にUXTOを凍結した場合、右クリックして解凍する必要があります。</p>
+<p>If you previously froze the UTXO you will need to right-click on it and unfreeze it.</p>
 <p>送信するUTXOを選択します。これが唯一選択されたUTXOであることを確認します。インターフェイスでは、'UTXOs 1/1'が表示されるはずです。これを確認した後、'Send Selected'をクリックすることができます。</p>
 <p><img src="guides/collecting/images/sending_02.png" alt="" /></p>
-<p>次に、トランザクション構築インターフェイスが表示されます。ここでは、これが安全な送信であることを確認するためにいくつかのことを確認する必要があります：</p>
+<p>You will then be presented with the transaction construction interface. There are a few things you need to check here to make sure that this is a safe send:</p>
 <ul>
 <li>取引には1つの入力しかないはずです。これはラベル付きのUTXOを送りたいはずです</li>
 <li>取引には1つの出力しかないはずです。これは銘文を送りたい住所/ラベルです</li>

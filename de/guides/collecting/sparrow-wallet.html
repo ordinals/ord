@@ -296,7 +296,7 @@
 <p>Um dies zu tun, können Sie dem oben beschriebenen <a href="./sparrow-wallet.html#validating--viewing-received-inscriptions">Validating / Viewing Received Inscriptions</a> folgen, um die inscription seite für Ihre inscription auf ordinals.com zu finden</p>
 <p>Dort finden Sie einige Metadaten zu Ihrer Inschrift, die wie folgt aussehen:</p>
 <p><img src="images/sending_01.png" alt="" /></p>
-<p>Hier gibt es einige wichtige Dinge zu überprüfen:</p>
+<p>There are a few of important things to check here:</p>
 <ul>
 <li>Die <code>output</code> Kennung entspricht der Kennung des UTXO, das Sie senden möchten</li>
 <li>Der <code>offset</code> der Inschrift ist <code>0</code> (das bedeutet, dass sich die inscription auf dem ersten Platz im UTXO befindet)</li>
@@ -306,10 +306,10 @@
 <p>⚠️⚠️ Seien Sie äußerst vorsichtig, wenn Sie Ihre inscription senden, insbesondere wenn der Wert von <code>offset</code> nicht <code>0</code> ist. Es wird nicht empfohlen, diese Methode zu verwenden, wenn dies der Fall ist, da Sie andernfalls Ihre inscription versehentlich an einen Bitcoin-Miner senden könnten, es sei denn, Sie wissen genau, was Sie tun.</p>
 <h4 id="senden-ihrer-inscription"><a class="header" href="#senden-ihrer-inscription">Senden Ihrer inscription</a></h4>
 <p>Um eine inscription zu senden, wechseln Sie zum Tab <code>UTXOs</code> und suchen Sie die UTXO, bei der Sie zuvor überprüft haben, dass sie Ihre inscription enthält.</p>
-<p>Wenn Sie das UXTO zuvor eingefroren haben, müssen Sie mit der rechten Maustaste darauf klicken und es entsperren.</p>
+<p>If you previously froze the UTXO you will need to right-click on it and unfreeze it.</p>
 <p>Wählen Sie die UTXO aus, die Sie senden möchten, und stellen Sie sicher, dass dies die <em>einzige</em> ausgewählte UTXO ist. Sie sollten in der Benutzeroberfläche <code>UTXOs 1/1</code> sehen. Sobald Sie sicher sind, dass dies der Fall ist, können Sie auf <code>Send Selected</code> klicken.</p>
 <p><img src="images/sending_02.png" alt="" /></p>
-<p>Anschließend wird Ihnen die Schnittstelle zur Transaktionskonstruktion angezeigt. Hier müssen Sie einige Dinge überprüfen, um sicherzustellen, dass es sich um einen sicheren Versand handelt:</p>
+<p>You will then be presented with the transaction construction interface. There are a few things you need to check here to make sure that this is a safe send:</p>
 <ul>
 <li>Die Transaktion sollte nur eine Eingabe haben, und dies sollte das UTXO mit der Bezeichnung sein, die Sie senden möchten</li>
 <li>Die Transaktion sollte nur eine Ausgabe haben, nämlich die Adresse/Etikett, an die Sie die Inschrift senden möchten</li>

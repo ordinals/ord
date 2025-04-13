@@ -7258,7 +7258,7 @@ inscriptions:
 <p>Per farlo, si può seguire la procedura di <a href="guides/collecting/./sparrow-wallet.html#validating--viewing-received-inscriptions">Convalida/Visualizzazione delle Iscrizioni Ricevute</a> descritta sopra per trovare la pagina dell'iscrizione su ordinals.com</p>
 <p>Lì si trovano alcuni metadata relativi all'iscrizione, come quelli che seguono:</p>
 <p><img src="guides/collecting/images/sending_01.png" alt="" /></p>
-<p>Ci sono alcune cose importanti da vedere in questo caso:</p>
+<p>There are a few of important things to check here:</p>
 <ul>
 <li>L'<code>output</code> identificatore corrisponde all'identificatore dell'UTXO che si intende inviare</li>
 <li>L'<code>offset</code> dell'iscrizione è 0 (ciò significa che l'iscrizione si trova sul primo sat dell'UTXO)</li>
@@ -7268,10 +7268,10 @@ inscriptions:
 <p>⚠️⚠️ Fate molta attenzione all'invio dell'iscrizione, soprattutto se il valore dell' <code>offset</code> non è <code>0</code>. Si sconsiglia di utilizzare questo metodo in tal caso, in quanto si potrebbe inviare accidentalmente l'iscrizione a un miner di bitcoin, a meno che non si sappia cosa si sta facendo.</p>
 <h4 id="invio-delliscrizione"><a class="header" href="#invio-delliscrizione">Invio dell'iscrizione</a></h4>
 <p>Per inviare un'iscrizione, andate nella scheda <code>UTXOs</code> e cercate l'UTXO che avete precedentemente convalidato e che contiene la vostra iscrizione.</p>
-<p>Se l'UTXO è stato precedentemente congelato, è necessario fare click con il tasto destro del mouse su di esso e sbloccarlo.</p>
+<p>If you previously froze the UTXO you will need to right-click on it and unfreeze it.</p>
 <p>Selezionare l'UTXO che si desidera inviare e assicurarsi che sia l'<em>unico</em> UTXO selezionato. Nell'interfaccia dovrebbero essere visualizzati gli <code>UTXOs 1/1</code>. Una volta accertato che sia così, si può premere <code>Send Selected</code>.</p>
 <p><img src="guides/collecting/images/sending_02.png" alt="" /></p>
-<p>Verrà quindi presentata l'interfaccia di costruzione della transazione. È necessario verificare alcune cose per assicurarsi che l'invio sia sicuro:</p>
+<p>You will then be presented with the transaction construction interface. There are a few things you need to check here to make sure that this is a safe send:</p>
 <ul>
 <li>La transazione deve avere un solo ingresso, che deve essere l'UTXO con l'etichetta che si vuole inviare</li>
 <li>La transazione deve avere solo un'uscita, che è l'indirizzo/etichetta a cui si vuole inviare l'iscrizione</li>

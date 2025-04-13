@@ -7258,7 +7258,7 @@ inscriptions:
 <p>Upang gawin ito, maaari mong sundin ang <a href="guides/collecting/./sparrow-wallet.html#validating--viewing-received-inscriptions">Validating / Viewing Received Inscriptions</a> inilarawan sa itaas upang mahanap ang pahina ng inskripsyon para sa iyong inskripsyon sa ordinals.com</p>
 <p>Doon makikita mo ang ilang metadata tungkol sa iyong inskripsiyon na mukhang ang mga sumusunod:</p>
 <p><img src="guides/collecting/images/sending_01.png" alt="" /></p>
-<p>Mayroong ilang mahahalagang bagay na dapat suriin dito:</p>
+<p>There are a few of important things to check here:</p>
 <ul>
 <li>Ang <code>output</code> identifier ay tumutugma sa identifier ng UTXO na ipapadala</li>
 <li>Ang <code>offset</code> ng inskripsiyon ay <code>0</code> (ito ay nangangahulugan na ang inskripsiyon ay matatagpuan sa unang sat sa UTXO)</li>
@@ -7268,10 +7268,10 @@ inscriptions:
 <p>⚠️⚠️ Maging maingat sa pagpapadala ng iyong inskripsiyon lalo na kung ang <code>offset</code> value ay hindi <code>0</code>. Hindi inirerekomenda na gamitin ang paraang ito kung iyon ang kaso, sa paggawa nito maaari mong hindi sinasadyang ipadala ang iyong inskripsiyon sa isang bitcoin miner maliban kung alam mo ang iyong ginagawa.</p>
 <h4 id="pag-padala-ng-iyong-inscription"><a class="header" href="#pag-padala-ng-iyong-inscription">Pag-padala ng iyong inscription</a></h4>
 <p>Upang magpadala ng inskripsiyon, mag-navigate sa tab na <code>UTXOs</code>, at hanapin ang UTXO na dati mong na-validate ay naglalaman ng iyong inskripsiyon.</p>
-<p>Kung dati mong na-freeze ang UXTO kakailanganin mong i-right-click ito at i-unfreeze ito.</p>
+<p>If you previously froze the UTXO you will need to right-click on it and unfreeze it.</p>
 <p>Piliin ang UTXO na gusto mong ipadala, at tiyaking iyon ang <em>only</em> UTXO na napili. Dapat mong makita ang <code>UTXOs 1/1</code> sa interface. Kapag sigurado ka na ito ang case na maaari mong pindutin ang <code>Send Selected</code>.</p>
 <p><img src="guides/collecting/images/sending_02.png" alt="" /></p>
-<p>Pagkatapos ay ipapakita sa iyo ang interface ng pagbuo ng transaksyon.May ilang bagay na kailangan mong suriin dito upang matiyak na ito ay isang ligtas na ipadala:</p>
+<p>You will then be presented with the transaction construction interface. There are a few things you need to check here to make sure that this is a safe send:</p>
 <ul>
 <li>Ang transaksyon ay dapat magkaroon lamang ng 1 input, at ito ay dapat na ang UTXO na may label na gusto mong ipadala</li>
 <li>Ang transaksyon ay dapat magkaroon lamang ng 1 output, na kung saan ay ang address/label kung saan gusto mong ipadala ang inskripsiyon</li>

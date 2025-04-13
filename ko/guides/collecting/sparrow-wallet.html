@@ -296,7 +296,7 @@
 <p>이것을 하려면 위에서 설명한 <a href="./sparrow-wallet.html#validating--viewing-received-inscriptions">수신된 인스크립션 확인하기/보기</a>를 따라 ordinals.com에서 해당 인스크립션에 대한 인스크립션 페이지를 찾을 수 있다</p>
 <p>여기에서 다음과 같은 해당 인스크립션에 대한 메타데이터를 찾을 수 있다:</p>
 <p><img src="images/sending_01.png" alt="" /></p>
-<p>여기서 확인해야 할 몇 가지 중요한 사항이 있다:</p>
+<p>There are a few of important things to check here:</p>
 <ul>
 <li><code>output</code> 식별자가 전송하려는 UTXO의 식별자와 일치한</li>
 <li>인스크립션의 <code>offset</code>은 <code>0</code>이다 (이는 인스크립션이 UTXO의 첫 번째 SAT에 위치한다는 의미)</li>
@@ -306,10 +306,10 @@
 <p>⚠️⚠️ 특히 <code>offset</code> 값이 <code>0</code>이 아닌 경우 인스크립션을 보낼 때 매우 주의하라. 이 경우 이 방법을 권장하지 않는다. 자신이 무엇을 하고 있는지 모르는 상태에서 이 방법을 사용하면 실수로 비트코인 채굴자에게 인스크립션을 전송할 수 있기 때문이다.</p>
 <h4 id="인스크립션-보내기"><a class="header" href="#인스크립션-보내기">인스크립션 보내기</a></h4>
 <p>인스크립션을 보내려면 <code>UTXOs</code> 탭으로 이동하여 이전에 유효성을 확인한 인스크립션이 포함된 UTXO를 찾는다.</p>
-<p>이전에 UXTO를 동결했다면 마우스 오른쪽 버튼으로 클릭한 후 동결 해제해야 한다.</p>
+<p>If you previously froze the UTXO you will need to right-click on it and unfreeze it.</p>
 <p>전송하려는 UTXO를 선택하고, 이 UTXO <em>만</em> 이 선택되어 있는지 확인한다. 인터페이스에 <code>UTXO 1/1</code>이 표시될 것이다. 이 것이 확인되면 <code>Send Selected</code>를 누르면 된다.</p>
 <p><img src="images/sending_02.png" alt="" /></p>
-<p>그러면 트랜잭션 생성(create transaction) 인터페이스가 표시된다. 안전한 송금인지 확인하기 위해 여기서 확인해야 할 몇 가지 사항이 있다:</p>
+<p>You will then be presented with the transaction construction interface. There are a few things you need to check here to make sure that this is a safe send:</p>
 <ul>
 <li>트랜잭션에는 입력(input)이 1개만 있어야 하며, 이 입력은 전송하려는 레이블이 있는 UTXO여야 한다</li>
 <li>트랜잭션에는 출력(output)이 1개만 있어야 하며 이는 인스크립션을 보낼 주소/레이블이다</li>
