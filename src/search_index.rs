@@ -40,17 +40,8 @@ impl Schema {
       }
     })?;
 
-    let timestamp = document.get_first(self.timestamp).and_then(|value| {
-      if let OwnedValue::Date(date) = value {
-        Some(date)
-      } else {
-        None
-      }
-    })?;
-
     Some(SearchResult {
       inscription_id: inscription_id.parse().ok()?,
-      timestamp: *timestamp,
     })
   }
 }
@@ -67,7 +58,6 @@ pub struct SearchIndex {
 #[derive(Eq, Hash, PartialEq)]
 pub struct SearchResult {
   pub inscription_id: InscriptionId,
-  pub timestamp: DateTime,
 }
 
 impl SearchIndex {
@@ -81,7 +71,6 @@ impl SearchIndex {
       timestamp: schema_builder.add_date_field(
         "timestamp",
         DateOptions::from(INDEXED)
-          .set_stored()
           .set_fast()
           .set_precision(DateTimePrecision::Seconds),
       ),
@@ -115,7 +104,7 @@ impl SearchIndex {
 
     let query = self.query_parser().parse_query(query)?;
 
-    let unique_results = searcher
+    Ok(searcher
       .search(&query, &TopDocs::with_limit(100))?
       .iter()
       .filter_map(|(_score, doc_address)| {
@@ -123,13 +112,7 @@ impl SearchIndex {
           .schema
           .search_result(&searcher.doc::<TantivyDocument>(*doc_address).ok()?)
       })
-      .collect::<HashSet<SearchResult>>();
-
-    let mut results = unique_results.into_iter().collect::<Vec<SearchResult>>();
-
-    results.sort_by(|a, b| b.timestamp.cmp(&a.timestamp));
-
-    Ok(results)
+      .collect())
   }
 
   pub fn update(&self) -> Result {
