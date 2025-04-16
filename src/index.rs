@@ -1941,20 +1941,20 @@ impl Index {
     Ok((inscriptions, more))
   }
 
-  pub fn get_inscriptions(&self) -> Result<Vec<InscriptionId>> {
+  pub fn get_inscriptions_by_sequence_range(
+    &self,
+    start_sequence: u32,
+    end_sequence: u32,
+  ) -> Result<Vec<InscriptionId>> {
     let rtx = self.database.begin_read()?;
 
     let sequence_number_to_inscription_entry =
       rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
     let inscriptions = sequence_number_to_inscription_entry
-      .iter()?
-      .map(|result| {
-        result
-          .map(|(_number, entry)| InscriptionEntry::load(entry.value()).id)
-          .map_err(|err| anyhow!(err))
-      })
-      .collect::<Result<Vec<InscriptionId>>>()?;
+      .range(start_sequence..=end_sequence)?
+      .map(|result| result.map(|(_number, entry)| InscriptionEntry::load(entry.value()).id))
+      .collect::<Result<Vec<InscriptionId>, StorageError>>()?;
 
     Ok(inscriptions)
   }

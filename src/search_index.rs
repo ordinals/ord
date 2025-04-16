@@ -102,37 +102,55 @@ impl SearchIndex {
   pub fn search(&self, query: &str) -> Result<Vec<SearchResult>> {
     let searcher = self.reader.searcher();
 
-    let query = self.query_parser().parse_query(query)?;
-
-    Ok(searcher
-      .search(&query, &TopDocs::with_limit(100))?
-      .iter()
-      .filter_map(|(_score, doc_address)| {
-        self
-          .schema
-          .search_result(&searcher.doc::<TantivyDocument>(*doc_address).ok()?)
-      })
-      .collect())
+    Ok(
+      searcher
+        .search(
+          &self.query_parser().parse_query(query)?,
+          &TopDocs::with_limit(100),
+        )?
+        .iter()
+        .filter_map(|(_score, doc_address)| {
+          self
+            .schema
+            .search_result(&searcher.doc::<TantivyDocument>(*doc_address).ok()?)
+        })
+        .collect(),
+    )
   }
 
   pub fn update(&self) -> Result {
-    let mut indexed_inscriptions = Vec::new();
+    let batch_size = 100;
+
+    let mut starting_sequence_number = 0;
+
+    let mut writer = self.writer.lock().unwrap();
 
     loop {
-      for inscription_id in self.ord_index.get_inscriptions()? {
-        if !indexed_inscriptions.contains(&inscription_id) {
-          self.index_inscription(inscription_id)?;
-          indexed_inscriptions.push(inscription_id);
-        }
+      let batch = self.ord_index.get_inscriptions_by_sequence_range(
+        starting_sequence_number,
+        starting_sequence_number + batch_size,
+      )?;
+
+      if batch.is_empty() {
+        return Ok(());
+      }
+
+      for inscription_id in batch {
+        self.add_inscription(inscription_id, &mut writer)?;
 
         if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+          writer.commit()?;
           return Ok(());
         }
       }
+
+      writer.commit()?;
+
+      starting_sequence_number += batch_size;
     }
   }
 
-  fn index_inscription(&self, inscription_id: InscriptionId) -> Result {
+  fn add_inscription(&self, inscription_id: InscriptionId, writer: &mut IndexWriter) -> Result {
     let searcher = self.reader.searcher();
 
     let query = self
@@ -149,8 +167,6 @@ impl SearchIndex {
       .ok_or(anyhow!(format!(
         "failed to get info for inscription with id `{inscription_id}`"
       )))?;
-
-    let mut writer = self.writer.lock().unwrap();
 
     let mut document = TantivyDocument::default();
 
@@ -171,10 +187,8 @@ impl SearchIndex {
 
     writer.add_document(document)?;
 
-    writer.commit()?;
-
     log::info!(
-      "Indexed inscription with id `{}` to search index",
+      "Added inscription with id `{}` to search index",
       inscription_id
     );
 
