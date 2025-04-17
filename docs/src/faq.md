@@ -168,7 +168,7 @@ backwards-compatible soft forks.
 
 *Inscriptions are more secure.*
 
-Inscriptions inherit Bitcoin's transaction model, which allow a user to see
+Inscriptions inherit Bitcoin's transaction model, which allows a user to see
 exactly which inscriptions are being transferred by a transaction before they
 sign it. Inscriptions can be offered for sale using partially signed
 transactions, which don't require allowing a third party, such as an exchange
