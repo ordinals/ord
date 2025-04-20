@@ -453,8 +453,7 @@ impl Settings {
         }
         Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(err)))
           if err.code == -28 => {}
-        Err(err)
-          if err.to_string().contains("Resource temporarily unavailable") => {}
+        Err(err) if err.to_string().contains("Resource temporarily unavailable") => {}
         Err(err) => bail!("Failed to connect to Bitcoin Core RPC at `{rpc_url}`:  {err}"),
       }
 
