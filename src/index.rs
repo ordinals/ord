@@ -762,7 +762,6 @@ impl Index {
                 .value()
                 .parse(self)
                 .script_pubkey()
-                .unwrap()
                 .to_vec(),
             )
           } else {
