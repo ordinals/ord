@@ -103,6 +103,8 @@
 %% }
   <dt>preview</dt>
   <dd><a href=/preview/{{self.id}}>link</a></dd>
+  <dt>content</dt>
+  <dd><a href=/content/{{self.id}}>link</a></dd>
 %% if let Some(content_length) = self.inscription.content_length() {
   <dt>content length</dt>
   <dd>{{ content_length }} bytes</dd>
@@ -130,14 +132,6 @@
   <dd><a class=collapse href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
-  <dt>details</dt>
-  <dd>
-    <details>
-      <summary>...</summary>
-      <dl>
-        <dt>ethereum teleburn address</dt>
-        <dd class=collapse>{{ teleburn::Ethereum::from(self.id) }}</dd>
-      </dl>
-    </details>
-  </dd>
+  <dt>ethereum teleburn address</dt>
+  <dd class=collapse>{{ teleburn::Ethereum::from(self.id) }}</dd>
 </dl>

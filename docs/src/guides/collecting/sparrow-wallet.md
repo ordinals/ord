@@ -26,7 +26,7 @@ Select `Use 12 Words` and then click `Generate New`. Leave the passphrase blank.
 
 ![](images/wallet_setup_03.png)
 
-A new 12 word BIP39 seed phrase will be generated for you. Write this down somewhere safe as this is your backup to get access to your wallet. NEVER share or show this seed phrase to anyone else.
+A new 12 word [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) seed phrase will be generated for you. Write this down somewhere safe as this is your backup to get access to your wallet. NEVER share or show this seed phrase to anyone else.
 
 Once you have written down the seed phrase click `Confirm Backup`.
 
@@ -44,7 +44,7 @@ Click `Apply`. Add a password for the wallet if you want to.
 
 ![](images/wallet_setup_07.png)
 
-You now have a wallet which is compatible with `ord`, and can be imported into `ord` using the BIP39 Seed Phrase. To receive ordinals or inscriptions, click on the `Receive` tab and copy a new address.
+You now have a wallet which is compatible with `ord`, and can be imported into `ord` using the [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) Seed Phrase. To receive ordinals or inscriptions, click on the `Receive` tab and copy a new address.
 
 Each time you want to receive you should use a brand-new address, and not re-use existing addresses.
 
@@ -121,7 +121,7 @@ There you will find some metadata about your inscription which looks like the fo
 
 ![](images/sending_01.png)
 
-There is a few of important things to check here:
+There are a few of important things to check here:
 * The `output` identifier matches the identifier of the UTXO you are going to send
 * The `offset` of the inscription is `0` (this means that the inscription is located on the first sat in the UTXO)
 * the `output_value` has enough sats to cover the transaction fee (postage) for sending the transaction. The exact amount you will need depends on the fee rate you will select for the transaction
@@ -133,13 +133,13 @@ If all of the above are true for your inscription, it should be safe for you to 
 #### Sending your inscription
 To send an inscription navigate to the `UTXOs` tab, and find the UTXO which you previously validated contains your inscription.
 
-If you previously froze the UXTO you will need to right-click on it and unfreeze it.
+If you previously froze the UTXO you will need to right-click on it and unfreeze it.
 
 Select the UTXO you want to send, and ensure that is the _only_ UTXO is selected. You should see `UTXOs 1/1` in the interface. Once you are sure this is the case you can hit `Send Selected`.
 
 ![](images/sending_02.png)
 
-You will then be presented with the transaction construction interface. There is a few things you need to check here to make sure that this is a safe send:
+You will then be presented with the transaction construction interface. There are a few things you need to check here to make sure that this is a safe send:
 
 * The transaction should have only 1 input, and this should be the UTXO with the label you want to send
 * The transaction should have only 1 output, which is the address/label where you want to send the inscription

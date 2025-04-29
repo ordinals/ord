@@ -1,6 +1,54 @@
 Changelog
 =========
 
+[0.23.1](https://github.com/ordinals/ord/releases/tag/0.23.1) - 2025-04-01
+--------------------------------------------------------------------------
+
+### Fixed
+- Don't wrap iframe media types in preview page ([#4315](https://github.com/ordinals/ord/pull/4315) by [casey](https://github.com/casey))
+
+### Misc
+- Add security section to handbook ([#4314](https://github.com/ordinals/ord/pull/4314) by [casey](https://github.com/casey))
+
+[0.23.0](https://github.com/ordinals/ord/releases/tag/0.23.0) - 2025-03-31
+--------------------------------------------------------------------------
+
+### Changed
+- Differentiate previews and thumbnails ([#4295](https://github.com/ordinals/ord/pull/4295) by [casey](https://github.com/casey))
+- Render borders around thumbnails ([#4292](https://github.com/ordinals/ord/pull/4292) by [casey](https://github.com/casey))
+- Wrap iframe media types in preview page ([#4258](https://github.com/ordinals/ord/pull/4258) by [casey](https://github.com/casey))
+
+### Fixed
+- Recognize inscriptions with content type `audio/ogg` as audio ([#4288](https://github.com/ordinals/ord/pull/4288) by [casey](https://github.com/casey))
+
+### Added
+- Add confirmations and fix spent in output page and API ([#4257](https://github.com/ordinals/ord/pull/4257) by [raphjaph](https://github.com/raphjaph))
+- Proxy `/r/sat/{sat}/at/{index}` endpoint ([#4022](https://github.com/ordinals/ord/pull/4022) by [arik-so](https://github.com/arik-so))
+- Add `/r/parents/:inscription_id/inscriptions` endpoint ([#4088](https://github.com/ordinals/ord/pull/4088) by [gmart7t2](https://github.com/gmart7t2))
+- Add inscription galleries ([#4212](https://github.com/ordinals/ord/pull/4212) by [casey](https://github.com/casey))
+- Proxy recursive sat_at_index_content endpoint ([#4205](https://github.com/ordinals/ord/pull/4205) by [arik-so](https://github.com/arik-so))
+
+### Misc
+- Delete testnet instances ([#4294](https://github.com/ordinals/ord/pull/4294) by [raphjaph](https://github.com/raphjaph))
+- Better preview titles ([#4272](https://github.com/ordinals/ord/pull/4272) by [jtraub91](https://github.com/jtraub91))
+- Fix degree notation examples ([#4289](https://github.com/ordinals/ord/pull/4289) by [casey](https://github.com/casey))
+- Move /r/utxo to recursive module ([#4287](https://github.com/ordinals/ord/pull/4287) by [raphjaph](https://github.com/raphjaph))
+- Make ParsedEnvelope and Envelope public ([#4249](https://github.com/ordinals/ord/pull/4249) by [NCrashed](https://github.com/NCrashed))
+- Add badges to readme ([#4253](https://github.com/ordinals/ord/pull/4253) by [casey](https://github.com/casey))
+- Move LANGUAGES variable into job ([#4250](https://github.com/ordinals/ord/pull/4250) by [casey](https://github.com/casey))
+- Fix bounty typo ([#4248](https://github.com/ordinals/ord/pull/4248) by [oxbau](https://github.com/oxbau))
+- Fix audit-content-security-policy binary ([#4242](https://github.com/ordinals/ord/pull/4242) by [casey](https://github.com/casey))
+- Fix wrong title link in metadata docs ([#4240](https://github.com/ordinals/ord/pull/4240) by [costcould](https://github.com/costcould))
+- Allow empty query parameters on /satscard route ([#4238](https://github.com/ordinals/ord/pull/4238) by [casey](https://github.com/casey))
+- Abridge recursion examples ([#4232](https://github.com/ordinals/ord/pull/4232) by [cryptoni9n](https://github.com/cryptoni9n))
+- Fix some typos ([#4227](https://github.com/ordinals/ord/pull/4227) by [renshuncui](https://github.com/renshuncui))
+- Don't unnecessarily bump pointer for SameSat mode ([#4214](https://github.com/ordinals/ord/pull/4214) by [SmarakNayak](https://github.com/SmarakNayak))
+- Upgrade redb to 2.4.0 to improve reorg performance ([#4215](https://github.com/ordinals/ord/pull/4215) by [emilcondrea](https://github.com/emilcondrea))
+- Allow CORS content type ([#4216](https://github.com/ordinals/ord/pull/4216) by [raphjaph](https://github.com/raphjaph))
+- Allow CORS for POST requests as well ([#4210](https://github.com/ordinals/ord/pull/4210) by [raphjaph](https://github.com/raphjaph))
+- Use middleware for proxied endpoints ([#4204](https://github.com/ordinals/ord/pull/4204) by [arik-so](https://github.com/arik-so))
+- Remove wildcard dependency ([#4202](https://github.com/ordinals/ord/pull/4202) by [casey](https://github.com/casey))
+
 [0.22.2](https://github.com/ordinals/ord/releases/tag/0.22.2) - 2025-01-27
 --------------------------------------------------------------------------
 

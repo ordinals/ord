@@ -71,6 +71,8 @@ mod tests {
           <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
+          <dt>content</dt>
+          <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
@@ -89,16 +91,8 @@ mod tests {
           <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
-          <dt>details</dt>
-          <dd>
-            <details>
-              <summary>...</summary>
-              <dl>
-                <dt>ethereum teleburn address</dt>
-                <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
-              </dl>
-            </details>
-          </dd>
+          <dt>ethereum teleburn address</dt>
+          <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
@@ -250,7 +244,7 @@ mod tests {
           <dt>parents</dt>
           <dd>
             <div class=thumbnails>
-              <a href=/inscription/2{64}i2><iframe .* src=/thumbnail/2{64}i2></iframe></a>
+              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
             </div>
             <div class=center>
               <a href=/parents/1{64}i1>all</a>
@@ -260,6 +254,8 @@ mod tests {
           <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
+          <dt>content</dt>
+          <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
@@ -278,16 +274,8 @@ mod tests {
           <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
-          <dt>details</dt>
-          <dd>
-            <details>
-              <summary>...</summary>
-              <dl>
-                <dt>ethereum teleburn address</dt>
-                <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
-              </dl>
-            </details>
-          </dd>
+          <dt>ethereum teleburn address</dt>
+          <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
 "
       .unindent()
@@ -318,8 +306,8 @@ mod tests {
           <dt>children</dt>
           <dd>
             <div class=thumbnails>
-              <a href=/inscription/2{64}i2><iframe .* src=/thumbnail/2{64}i2></iframe></a>
-              <a href=/inscription/3{64}i3><iframe .* src=/thumbnail/3{64}i3></iframe></a>
+              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+              <a href=/inscription/3{64}i3><iframe .* src=/preview/3{64}i3></iframe></a>
             </div>
             <div class=center>
               <a href=/children/1{64}i1>all \\(2\\)</a>
@@ -329,6 +317,8 @@ mod tests {
           <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
+          <dt>content</dt>
+          <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
@@ -347,16 +337,8 @@ mod tests {
           <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
-          <dt>details</dt>
-          <dd>
-            <details>
-              <summary>...</summary>
-              <dl>
-                <dt>ethereum teleburn address</dt>
-                <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
-              </dl>
-            </details>
-          </dd>
+          <dt>ethereum teleburn address</dt>
+          <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
@@ -387,7 +369,7 @@ mod tests {
           <dt>children</dt>
           <dd>
             <div class=thumbnails>
-              <a href=/inscription/2{64}i2><iframe .* src=/thumbnail/2{64}i2></iframe></a>
+              <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
             </div>
             <div class=center>
               <a href=/children/1{64}i1>all \\(1\\)</a>
@@ -397,6 +379,8 @@ mod tests {
           <dd class=collapse>1{64}i1</dd>
           <dt>preview</dt>
           <dd><a href=/preview/1{64}i1>link</a></dd>
+          <dt>content</dt>
+          <dd><a href=/content/1{64}i1>link</a></dd>
           <dt>content length</dt>
           <dd>10 bytes</dd>
           <dt>content type</dt>
@@ -415,16 +399,8 @@ mod tests {
           <dd><a class=collapse href=/output/1{64}:1>1{64}:1</a></dd>
           <dt>offset</dt>
           <dd>0</dd>
-          <dt>details</dt>
-          <dd>
-            <details>
-              <summary>...</summary>
-              <dl>
-                <dt>ethereum teleburn address</dt>
-                <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
-              </dl>
-            </details>
-          </dd>
+          <dt>ethereum teleburn address</dt>
+          <dd class=collapse>0xa1DfBd1C519B9323FD7Fd8e498Ac16c2E502F059</dd>
         </dl>
       "
       .unindent()
