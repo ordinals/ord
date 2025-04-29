@@ -27,7 +27,7 @@ mod tests {
 
   #[test]
   fn index_starts_with_no_runes() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
     context.assert_runes([], []);
   }
 
@@ -53,7 +53,7 @@ mod tests {
 
   #[test]
   fn empty_runestone_does_not_create_rune() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -72,7 +72,7 @@ mod tests {
 
   #[test]
   fn etching_with_no_edicts_creates_rune() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -105,7 +105,7 @@ mod tests {
 
   #[test]
   fn etching_with_edict_creates_rune() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -154,7 +154,7 @@ mod tests {
     {
       let context = Context::builder()
         .chain(Chain::Regtest)
-        .args(["--index-runes"])
+        .arg("--index-runes")
         .build();
 
       context.etch(
@@ -180,7 +180,7 @@ mod tests {
     {
       let context = Context::builder()
         .chain(Chain::Regtest)
-        .args(["--index-runes"])
+        .arg("--index-runes")
         .build();
 
       let (txid, id) = context.etch(
@@ -223,7 +223,7 @@ mod tests {
   #[test]
   fn etching_cannot_specify_reserved_rune() {
     {
-      let context = Context::builder().args(["--index-runes"]).build();
+      let context = Context::builder().arg("--index-runes").build();
 
       context.etch(
         Runestone {
@@ -245,7 +245,7 @@ mod tests {
     }
 
     {
-      let context = Context::builder().args(["--index-runes"]).build();
+      let context = Context::builder().arg("--index-runes").build();
 
       let (txid, id) = context.etch(
         Runestone {
@@ -286,7 +286,7 @@ mod tests {
 
   #[test]
   fn reserved_runes_may_be_etched() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -420,7 +420,7 @@ mod tests {
 
   #[test]
   fn etching_with_non_zero_divisibility_and_rune() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -464,7 +464,7 @@ mod tests {
 
   #[test]
   fn allocations_over_max_supply_are_ignored() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -511,7 +511,7 @@ mod tests {
 
   #[test]
   fn allocations_partially_over_max_supply_are_honored() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -559,7 +559,7 @@ mod tests {
 
   #[test]
   fn etching_may_allocate_less_than_max_supply() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -601,7 +601,7 @@ mod tests {
 
   #[test]
   fn etching_may_allocate_to_multiple_outputs() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -652,7 +652,7 @@ mod tests {
 
   #[test]
   fn allocations_to_invalid_outputs_produce_cenotaph() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -698,7 +698,7 @@ mod tests {
 
   #[test]
   fn input_runes_may_be_allocated() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -786,7 +786,7 @@ mod tests {
 
   #[test]
   fn etched_rune_is_allocated_with_zero_supply_for_cenotaph() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -825,7 +825,7 @@ mod tests {
 
   #[test]
   fn etched_rune_parameters_are_unset_for_cenotaph() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -881,7 +881,7 @@ mod tests {
 
   #[test]
   fn reserved_runes_are_not_allocated_in_cenotaph() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -910,7 +910,7 @@ mod tests {
 
   #[test]
   fn input_runes_are_burned_if_an_unrecognized_even_tag_is_encountered() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -989,7 +989,7 @@ mod tests {
 
   #[test]
   fn unallocated_runes_are_assigned_to_first_non_op_return_output() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -1067,7 +1067,7 @@ mod tests {
 
   #[test]
   fn unallocated_runes_are_burned_if_no_non_op_return_output_is_present() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -1141,7 +1141,7 @@ mod tests {
 
   #[test]
   fn unallocated_runes_are_assigned_to_default_output() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -1226,7 +1226,7 @@ mod tests {
 
   #[test]
   fn unallocated_runes_are_burned_if_default_output_is_op_return() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -1313,7 +1313,7 @@ mod tests {
   #[test]
   fn unallocated_runes_in_transactions_with_no_runestone_are_assigned_to_first_non_op_return_output(
   ) {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -1391,7 +1391,7 @@ mod tests {
 
   #[test]
   fn duplicate_runes_are_forbidden() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -1467,7 +1467,7 @@ mod tests {
 
   #[test]
   fn output_may_hold_multiple_runes() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id0) = context.etch(
       Runestone {
@@ -1631,7 +1631,7 @@ mod tests {
 
   #[test]
   fn multiple_input_runes_on_the_same_input_may_be_allocated() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id0) = context.etch(
       Runestone {
@@ -1871,7 +1871,7 @@ mod tests {
 
   #[test]
   fn multiple_input_runes_on_different_inputs_may_be_allocated() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id0) = context.etch(
       Runestone {
@@ -2054,7 +2054,7 @@ mod tests {
   #[test]
   fn unallocated_runes_are_assigned_to_first_non_op_return_output_when_op_return_is_not_last_output(
   ) {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -2131,7 +2131,7 @@ mod tests {
 
   #[test]
   fn multiple_runes_may_be_etched_in_one_block() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id0) = context.etch(
       Runestone {
@@ -2220,7 +2220,7 @@ mod tests {
 
   #[test]
   fn edicts_with_id_zero_are_skipped() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -2315,7 +2315,7 @@ mod tests {
 
   #[test]
   fn edicts_which_refer_to_input_rune_with_no_balance_are_skipped() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id0) = context.etch(
       Runestone {
@@ -2503,7 +2503,7 @@ mod tests {
 
   #[test]
   fn edicts_over_max_inputs_are_ignored() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -2591,7 +2591,7 @@ mod tests {
 
   #[test]
   fn edicts_may_transfer_runes_to_op_return_outputs() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -2632,7 +2632,7 @@ mod tests {
 
   #[test]
   fn outputs_with_no_runes_have_no_balance() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -2672,7 +2672,7 @@ mod tests {
 
   #[test]
   fn edicts_which_transfer_no_runes_to_output_create_no_balance_entry() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -2719,7 +2719,7 @@ mod tests {
 
   #[test]
   fn split_in_etching() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -2764,7 +2764,7 @@ mod tests {
 
   #[test]
   fn split_in_etching_with_preceding_edict() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -2828,7 +2828,7 @@ mod tests {
 
   #[test]
   fn split_in_etching_with_following_edict() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -2880,7 +2880,7 @@ mod tests {
 
   #[test]
   fn split_with_amount_in_etching() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -2925,7 +2925,7 @@ mod tests {
 
   #[test]
   fn split_in_etching_with_amount_with_preceding_edict() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -2976,7 +2976,7 @@ mod tests {
 
   #[test]
   fn split_in_etching_with_amount_with_following_edict() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -3031,7 +3031,7 @@ mod tests {
 
   #[test]
   fn split() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -3129,7 +3129,7 @@ mod tests {
 
   #[test]
   fn split_with_preceding_edict() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -3234,7 +3234,7 @@ mod tests {
 
   #[test]
   fn split_with_following_edict() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -3339,7 +3339,7 @@ mod tests {
 
   #[test]
   fn split_with_amount() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -3437,7 +3437,7 @@ mod tests {
 
   #[test]
   fn split_with_amount_with_preceding_edict() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -3542,7 +3542,7 @@ mod tests {
 
   #[test]
   fn split_with_amount_with_following_edict() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -3661,7 +3661,7 @@ mod tests {
 
   #[test]
   fn etching_may_specify_symbol() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -3703,7 +3703,7 @@ mod tests {
 
   #[test]
   fn allocate_all_remaining_runes_in_etching() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -3743,7 +3743,7 @@ mod tests {
 
   #[test]
   fn allocate_all_remaining_runes_in_inputs() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -3832,7 +3832,7 @@ mod tests {
 
   #[test]
   fn rune_can_be_minted_without_edict() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -3920,7 +3920,7 @@ mod tests {
 
   #[test]
   fn rune_cannot_be_minted_less_than_limit_amount() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -4014,7 +4014,7 @@ mod tests {
 
   #[test]
   fn etching_with_amount_can_be_minted() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -4228,7 +4228,7 @@ mod tests {
 
   #[test]
   fn open_mints_can_be_limited_with_offset_end() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -4321,7 +4321,7 @@ mod tests {
 
   #[test]
   fn open_mints_can_be_limited_with_offset_start() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -4405,7 +4405,7 @@ mod tests {
 
   #[test]
   fn open_mints_can_be_limited_with_height_start() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -4489,7 +4489,7 @@ mod tests {
 
   #[test]
   fn open_mints_can_be_limited_with_height_end() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -4582,7 +4582,7 @@ mod tests {
 
   #[test]
   fn open_mints_must_be_ended_with_etched_height_plus_offset_end() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -4674,7 +4674,7 @@ mod tests {
 
   #[test]
   fn open_mints_must_be_ended_with_height_end() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -4766,7 +4766,7 @@ mod tests {
 
   #[test]
   fn open_mints_must_be_started_with_height_start() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -4852,7 +4852,7 @@ mod tests {
 
   #[test]
   fn open_mints_must_be_started_with_etched_height_plus_offset_start() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -4938,7 +4938,7 @@ mod tests {
 
   #[test]
   fn open_mints_with_offset_end_zero_can_be_premined() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -5026,7 +5026,7 @@ mod tests {
 
   #[test]
   fn open_mints_can_be_limited_to_cap() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -5231,7 +5231,7 @@ mod tests {
 
   #[test]
   fn open_mints_without_a_cap_are_unmintable() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -5316,7 +5316,7 @@ mod tests {
 
   #[test]
   fn open_mint_claims_can_use_split() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -5417,7 +5417,7 @@ mod tests {
 
   #[test]
   fn runes_can_be_etched_and_premined_in_the_same_transaction() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -5465,7 +5465,7 @@ mod tests {
 
   #[test]
   fn omitted_edicts_defaults_to_mint_amount() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -5507,7 +5507,7 @@ mod tests {
 
   #[test]
   fn premines_can_claim_over_mint_amount() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid, id) = context.etch(
       Runestone {
@@ -5558,7 +5558,7 @@ mod tests {
 
   #[test]
   fn transactions_cannot_claim_more_than_mint_amount() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -5627,7 +5627,7 @@ mod tests {
 
   #[test]
   fn multiple_edicts_in_one_transaction_may_claim_open_mint() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -5730,7 +5730,7 @@ mod tests {
 
   #[test]
   fn commits_are_not_valid_in_non_taproot_witnesses() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let block_count = context.index.block_count().unwrap().into_usize();
 
@@ -5790,7 +5790,7 @@ mod tests {
 
   #[test]
   fn immature_commits_are_not_valid() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let block_count = context.index.block_count().unwrap().into_usize();
 
@@ -5850,7 +5850,7 @@ mod tests {
 
   #[test]
   fn immature_commits_are_not_valid_even_when_bitcoind_is_ahead() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let block_count = context.index.block_count().unwrap().into_usize();
 
@@ -5912,7 +5912,7 @@ mod tests {
 
   #[test]
   fn etchings_are_not_valid_without_commitment() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let block_count = context.index.block_count().unwrap().into_usize();
 
@@ -5962,7 +5962,7 @@ mod tests {
 
   #[test]
   fn tx_commits_to_rune_ignores_invalid_script() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     context.mine_blocks(1);
 
@@ -5997,7 +5997,7 @@ mod tests {
 
   #[test]
   fn edict_with_amount_zero_and_no_destinations_is_ignored() {
-    let context = Context::builder().args(["--index-runes"]).build();
+    let context = Context::builder().arg("--index-runes").build();
 
     let (txid0, id) = context.etch(
       Runestone {
@@ -6083,7 +6083,7 @@ mod tests {
 
     Context::builder()
       .chain(Chain::Mainnet)
-      .args(["--index-runes"])
+      .arg("--index-runes")
       .build()
       .assert_runes(
         [(
