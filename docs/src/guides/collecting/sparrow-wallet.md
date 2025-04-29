@@ -26,7 +26,7 @@ Select `Use 12 Words` and then click `Generate New`. Leave the passphrase blank.
 
 ![](images/wallet_setup_03.png)
 
-A new 12 word BIP39 seed phrase will be generated for you. Write this down somewhere safe as this is your backup to get access to your wallet. NEVER share or show this seed phrase to anyone else.
+A new 12 word [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) seed phrase will be generated for you. Write this down somewhere safe as this is your backup to get access to your wallet. NEVER share or show this seed phrase to anyone else.
 
 Once you have written down the seed phrase click `Confirm Backup`.
 
@@ -44,7 +44,7 @@ Click `Apply`. Add a password for the wallet if you want to.
 
 ![](images/wallet_setup_07.png)
 
-You now have a wallet which is compatible with `ord`, and can be imported into `ord` using the BIP39 Seed Phrase. To receive ordinals or inscriptions, click on the `Receive` tab and copy a new address.
+You now have a wallet which is compatible with `ord`, and can be imported into `ord` using the [BIP39](https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki) Seed Phrase. To receive ordinals or inscriptions, click on the `Receive` tab and copy a new address.
 
 Each time you want to receive you should use a brand-new address, and not re-use existing addresses.
 
