@@ -138,7 +138,6 @@ impl Context {
         .is_some_and(|script| script.is_op_return())
       {
         for (_, balance) in balances.iter() {
-          println!("burned_balances: {}", burned_balances);
           burned_balances += *balance;
         }
       }
