@@ -942,7 +942,7 @@ impl Server {
           StatusCode::NOT_FOUND.into_response()
         } else {
           let unlock = if let Some(height) = rune.unlock_height(server_config.chain.network()) {
-            Some((height, index.block_time(height)?.timestamp()))
+            Some((height, index.block_time(height)?))
           } else {
             None
           };
@@ -2937,7 +2937,7 @@ mod tests {
         rune: Rune(0),
         unlock: Some((
           Height(209999),
-          DateTime::from_timestamp(125998800, 0).unwrap(),
+          Blocktime::Expected(DateTime::from_timestamp(125998800, 0).unwrap()),
         )),
       },
     );
