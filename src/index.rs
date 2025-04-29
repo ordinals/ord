@@ -6642,7 +6642,7 @@ mod tests {
 
     let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
     let context = Context::builder()
-      .args(["--index-runes", "--index-addresses"])
+      .arg("--index-runes")
       .event_sender(event_sender)
       .build();
 
