@@ -135,7 +135,6 @@ impl Context {
         .index
         .get_output_script(outpoint)
         .ok()
-        .flatten()
         .is_some_and(|script| script.is_op_return())
       {
         for (_, balance) in balances.iter() {

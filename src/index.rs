@@ -500,21 +500,24 @@ impl Index {
   }
 
   #[cfg(test)]
-  pub fn get_output_script(&self, output: &OutPoint) -> Result<Option<ScriptBuf>> {
-    let rtx = self.database.begin_read()?;
-    let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
+  pub fn get_output_script(&self, output: &OutPoint) -> Result<ScriptBuf> {
+    Ok(if self.index_addresses {
+      let rtx = self.database.begin_read()?;
+      let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
+      let entry = outpoint_to_utxo_entry
+        .get(&output.store())?
+        .ok_or_else(|| anyhow!("UTXO entry not found for output: {:?}", output))?;
 
-    let entry = outpoint_to_utxo_entry
-      .get(&output.store())?
-      .ok_or_else(|| anyhow!("UTXO entry not found for output: {:?}", output))?;
+      let parsed = entry.value().parse(self);
 
-    let parsed = entry.value().parse(self);
-
-    Ok(
-      parsed
-        .script_pubkey()
-        .map(|bytes| ScriptBuf::from_bytes(bytes.to_vec())),
-    )
+      ScriptBuf::from_bytes(parsed.script_pubkey().to_vec())
+    } else {
+      self
+        .get_output_info(*output)?
+        .ok_or_else(|| anyhow!("output {output} not found"))?
+        .0
+        .script_pubkey
+    })
   }
 
   pub fn has_address_index(&self) -> bool {
