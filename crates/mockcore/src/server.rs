@@ -536,7 +536,7 @@ impl Api for Server {
             if state
               .txid_to_block_height
               .get(&tx_in.previous_output.txid)
-              .expect("input has not been miined")
+              .expect("input has not been mined")
               + u32::from(blocks.value())
               > u32::try_from(state.hashes.len()).unwrap()
             {
