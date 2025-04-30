@@ -66,7 +66,7 @@ To track the status of your transaction you can right-click on it,  select `Copy
 
 ![](images/validating_viewing_02.png)
 
-Once the transaction has been confirmed, you can validate and view your inscription by heading over to the `UTXOs` tab, finding the UTXO you want to check, right-clicking on the `Output` and selecting `Copy Transaction Output`. This transaction output id can then be pasted into the [ordinals.com](https://ordinals.com) search.
+Once the transaction has confirmed, you can validate and view your inscription by heading over to the `UTXOs` tab, finding the UTXO you want to check, right-clicking on the `Output` and selecting `Copy Transaction Output`. This transaction output id can then be pasted into the [ordinals.com](https://ordinals.com) search.
 
 
 ## Freezing UTXO's
