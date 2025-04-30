@@ -300,7 +300,7 @@ $ord outputs
 <pre><code>bitcoin-cli generatetoaddress 6 &lt;receive address&gt;
 </code></pre>
 <h3 id="dependencias-en-mainnet"><a class="header" href="#dependencias-en-mainnet">Dependencias en Mainnet</a></h3>
-<p>Para evitar tener que cambiar los IDs de inscripción de dependencias a los IDs de inscripción de mainnet, puedes utilizar un proxy de contenido. <code>ord server</code> acepta una opción <code>--proxy</code>, que toma la URL de otra instancia de <code>ord server</code>. Al hacer una solicitud a <code>/content/&lt;ID_DE_INSCRIPCIÓN&gt;</code> cuando se establece un proxy de contenido y no se encuentra la inscripción, <code>ord server</code> reenviará la solicitud al proxy de contenido. Esto te permite ejecutar una instancia de prueba de <code>ord server</code> con un proxy de contenido de mainnet. Luego puedes usar ID de inscripciónes de mainnet en tu inscripción de prueba, lo cual retornará el contenido de las inscripciones en mainnet.</p>
+<p>To avoid having to change dependency inscription IDs to mainnet inscription IDs, you may utilize a content proxy when testing. <code>ord server</code> accepts a <code>--proxy</code> option, which takes the URL of another <code>ord server</code> instance. When making a request to <code>/content/&lt;INSCRIPTION_ID&gt;</code> when a content proxy is set and the inscription is not found, <code>ord server</code> will forward the request to the content proxy. This allows you to run a test <code>ord server</code> instance with a mainnet content proxy. You can then use mainnet inscription IDs in your test inscription, which will then return the content of the mainnet inscriptions.</p>
 <pre><code>ord --regtest server --proxy https://ordinals.com
 </code></pre>
 
