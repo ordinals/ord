@@ -6116,7 +6116,7 @@ next
       ..default()
     });
 
-    server.mine_blocks(1);
+    let block = &server.mine_blocks(1)[0];
 
     let inscription_id = InscriptionId { txid, index: 0 };
     let second_inscription_id = InscriptionId { txid, index: 1 };
@@ -6146,6 +6146,7 @@ next
           (50 * COIN_VALUE, 2 * 50 * COIN_VALUE)
         ]),
         value: 150 * COIN_VALUE,
+        blockhash: block.header.block_hash(),
       }
     );
   }
@@ -6161,7 +6162,7 @@ next
       ..default()
     });
 
-    server.mine_blocks(1);
+    let block = &server.mine_blocks(1)[0];
 
     let inscription_id = InscriptionId { txid, index: 0 };
     let outpoint: OutPoint = OutPoint { txid, vout: 0 };
@@ -6175,6 +6176,7 @@ next
         runes: None,
         sat_ranges: None,
         value: 50 * COIN_VALUE,
+        blockhash: block.header.block_hash(),
       }
     );
   }
