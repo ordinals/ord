@@ -29,6 +29,14 @@ next
   %% }
 </ul>
 %% }
+<h2>{{"Minted Rune".tally(self.minted_runes.len())}}</h2>
+%% if self.minted_runes.len() > 0 {
+<ul>
+  %% for (spaced_rune, amount) in &self.minted_runes {
+  <li><a href=/rune/{{ spaced_rune }}>{{ spaced_rune }}</a>: {{ amount }}</li>
+  %% }
+</ul>
+%% }
 <h2>{{"Inscription".tally(self.inscription_count)}}</h2>
 <div class=thumbnails>
 %% for id in &self.featured_inscriptions {
