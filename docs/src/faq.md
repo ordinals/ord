@@ -113,7 +113,7 @@ The phrase "digital artifact" is highly suggestive, even to someone who has
 never heard the term before. In comparison, NFT is an acronym, and doesn't
 provide any indication of what it means if you haven't heard the term before.
 
-Additionally, "NFT" feels like financial terminology, and the both word
+Additionally, "NFT" feels like financial terminology, and both the word
 "fungible" and sense of the word "token" as used in "NFT" is uncommon outside
 of financial contexts.
 
