@@ -1,10 +1,10 @@
 <h1>{{ self.rune }}</h1>
 <dl>
-%% if let Some((height, time)) = self.unlock {
+%% if let Some((height, blocktime)) = self.unlock {
   <dt>unlock height</dt>
   <dd>{{ height }}</dd>
   <dt>unlock time</dt>
-  <dd><time>{{ time }}</time> (expected)</dd>
+  <dd><time>{{blocktime.timestamp()}}</time>{{blocktime.suffix()}}</dd>
   <dt>reserved</dt>
   <dd>false</dd>
 %% } else {
