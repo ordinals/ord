@@ -6173,9 +6173,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms).contains(&Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       let sat = entry.sat;
 
@@ -6205,7 +6205,7 @@ mod tests {
 
       assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms).contains(&Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(sat, entry.sat);
 
@@ -6229,9 +6229,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms).contains(&Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, -2);
 
