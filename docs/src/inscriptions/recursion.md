@@ -1049,7 +1049,7 @@ curl -s \
 &nbsp;
 &nbsp;
 
-Note: `<SAT_NUMBER>` only allows the actual number of a sat no other sat
+Note: `<SAT_NUMBER>` only allows the actual number of a sat, not other sat
 notations like degree, percentile or decimal. We may expand to allow those in
 the future.
 
