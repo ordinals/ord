@@ -350,6 +350,7 @@ impl Updater<'_> {
     }
 
     if self.index.index_runes && self.height >= self.index.settings.first_rune_height() {
+      let mut height_to_rune_mints = wtx.open_table(HEIGHT_TO_RUNE_MINTS)?;
       let mut outpoint_to_rune_balances = wtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
       let mut rune_id_to_rune_entry = wtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
       let mut rune_to_rune_id = wtx.open_table(RUNE_TO_RUNE_ID)?;
@@ -367,12 +368,14 @@ impl Updater<'_> {
         burned: HashMap::new(),
         client: &self.index.client,
         height: self.height,
+        height_to_mints: &mut height_to_rune_mints,
         id_to_entry: &mut rune_id_to_rune_entry,
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
         minimum: Rune::minimum_at_height(
           self.index.settings.chain().network(),
           Height(self.height),
         ),
+        minted: BTreeMap::new(),
         outpoint_to_balances: &mut outpoint_to_rune_balances,
         rune_to_id: &mut rune_to_rune_id,
         runes,
