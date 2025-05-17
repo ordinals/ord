@@ -2486,11 +2486,11 @@ impl Index {
     };
 
     Ok(Some(api::UtxoRecursive {
+      blockhash: tx_info.blockhash.unwrap(),
       inscriptions: self.get_inscriptions_for_output(outpoint)?,
       runes: self.get_rune_balances_for_output(outpoint)?,
       sat_ranges: self.list(outpoint)?,
       value: utxo_entry.value().parse(self).total_value(),
-      blockhash: tx_info.blockhash.unwrap(),
     }))
   }
 

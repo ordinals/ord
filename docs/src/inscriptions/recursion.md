@@ -1007,11 +1007,11 @@ curl -s \
 
 ```json
 {
+  "blockhash": "00000000000000000000f238f617bd97d3e877108328102d9adcb14a2a92ef00",
   "inscriptions": null,
   "runes": null,
   "sat_ranges": null,
-  "value": 5000000000,
-  "blockhash": "00000000000000000000f238f617bd97d3e877108328102d9adcb14a2a92ef00"
+  "value": 5000000000
 }
 ```
 
@@ -1024,6 +1024,7 @@ curl -s \
 
 ```json
 {
+  "blockhash": "00000000000000000000f238f617bd97d3e877108328102d9adcb14a2a92ef00",
   "inscriptions": [
     "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
   ],
@@ -1040,8 +1041,7 @@ curl -s \
       1905800627509443
     ]
   ],
-  "value": 330,
-  "blockhash": "00000000000000000000f238f617bd97d3e877108328102d9adcb14a2a92ef00"
+  "value": 330
 }
 ```
 </details>
