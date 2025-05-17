@@ -6127,6 +6127,7 @@ next
     pretty_assert_eq!(
       utxo_recursive,
       api::UtxoRecursive {
+        blockhash: block.header.block_hash(),
         inscriptions: Some(vec![inscription_id, second_inscription_id]),
         runes: Some(
           [(
@@ -6146,7 +6147,6 @@ next
           (50 * COIN_VALUE, 2 * 50 * COIN_VALUE)
         ]),
         value: 150 * COIN_VALUE,
-        blockhash: block.header.block_hash(),
       }
     );
   }
