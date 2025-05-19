@@ -229,3 +229,6 @@ env:
 
 env-open:
   open http://127.0.0.1:9001
+
+test:
+  ./bin/test
