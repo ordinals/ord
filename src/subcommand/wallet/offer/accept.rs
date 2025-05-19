@@ -12,13 +12,19 @@ pub struct Output {
 }
 
 #[derive(Debug, Parser)]
+#[command(group = ArgGroup::new("target")
+  .required(true)
+  .multiple(false)
+  .args(["inscription", "rune"]))]
 pub(crate) struct Accept {
   #[arg(long, help = "Assert offer is for <AMOUNT>")]
   amount: Amount,
   #[arg(long, help = "Don't sign or broadcast transaction")]
   dry_run: bool,
   #[arg(long, help = "Assert offer is for <INSCRIPTION>")]
-  inscription: InscriptionId,
+  inscription: Option<InscriptionId>,
+  #[arg(long, help = "<DECIMAL:RUNE> to make offer for.")]
+  rune: Option<Outgoing>,
   #[arg(long, help = "Accept <PSBT> offer")]
   psbt: String,
 }
@@ -46,31 +52,94 @@ impl Accept {
       bail!("PSBT contains no inputs owned by wallet");
     };
 
-    if let Some(runes) = wallet.get_runes_balances_in_output(&outgoing)? {
-      ensure! {
-        runes.is_empty(),
-        "outgoing input {} contains runes", outgoing,
+    match (self.inscription, self.rune.clone()) {
+      (Some(inscription_id), None) => {
+        if let Some(runes) = wallet.get_runes_balances_in_output(&outgoing)? {
+          ensure! {
+            runes.is_empty(),
+            "outgoing input {} contains runes", outgoing,
+          }
+        }
+
+        let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing)? else {
+          bail! {
+            "index must have inscription index to accept PSBT",
+          }
+        };
+
+        ensure! {
+          inscriptions.len() <= 1,
+          "outgoing input {} contains {} inscriptions", outgoing, inscriptions.len(),
+        }
+
+        let Some(inscription) = inscriptions.into_iter().next() else {
+          bail!("outgoing input contains no inscriptions");
+        };
+
+        ensure! {
+          inscription == inscription_id,
+          "unexpected outgoing inscription {inscription}",
+        }
       }
-    }
+      (None, Some(rune)) => {
+        let (decimal, spaced_rune) = match rune {
+          Outgoing::Rune { decimal, rune } => (decimal, rune),
+          _ => bail!("invalid format for --rune (must be `DECIMAL:RUNE`)"),
+        };
 
-    let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing)? else {
-      bail! {
-        "index must have inscription index to accept PSBT",
+        ensure!(
+          wallet.has_rune_index(),
+          "accepting rune offer with `offer` requires index created with `--index-runes` flag",
+        );
+
+        wallet
+          .get_rune(spaced_rune.rune)?
+          .with_context(|| format!("rune `{}` has not been etched", spaced_rune.rune))?;
+
+        let Some(runes) = wallet.get_runes_balances_in_output(&outgoing)? else {
+          bail! {
+            "outgoing input {} contains no runes",
+            outgoing
+          }
+        };
+
+        if let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing)? {
+          ensure! {
+            inscriptions.is_empty(),
+            "outgoing input {} contains {} inscription(s)",
+            outgoing,
+            inscriptions.len()
+          }
+        }
+
+        let Some(pile) = runes.get(&spaced_rune) else {
+          bail!(format!(
+            "outgoing input {} does not contain rune {}",
+            outgoing, spaced_rune
+          ));
+        };
+
+        ensure! {
+          runes.len() == 1,
+          "outgoing input {} holds multiple runes",
+          outgoing
+        }
+
+        ensure! {
+          pile.amount == decimal.value,
+          "unexpected rune {} balance at outgoing input {} (expected {}, found {})",
+          spaced_rune,
+          outgoing,
+          decimal.value,
+          pile.amount
+        }
+
+        ensure! {
+          Runestone::decipher(&psbt.unsigned_tx).is_none(),
+          "unexpected runestone in PSBT"
+        }
       }
-    };
-
-    ensure! {
-      inscriptions.len() <= 1,
-      "outgoing input {} contains {} inscriptions", outgoing, inscriptions.len(),
-    }
-
-    let Some(inscription) = inscriptions.into_iter().next() else {
-      bail!("outgoing input contains no inscriptions");
-    };
-
-    ensure! {
-      inscription == self.inscription,
-      "unexpected outgoing inscription {inscription}",
+      _ => unreachable!("--inscription or --rune must be set, but not both"),
     }
 
     let balance_change = wallet.simulate_transaction(&psbt.unsigned_tx)?;
