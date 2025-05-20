@@ -148,7 +148,7 @@ impl Sat {
         9 => 0,
         10..=u64::MAX => unreachable!(),
       };
-      n = n / 10;
+      n /= 10;
       if n == 0 {
         return luck;
       }
