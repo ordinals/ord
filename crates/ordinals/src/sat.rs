@@ -129,6 +129,32 @@ impl Sat {
     charms
   }
 
+  pub fn luck(self) -> i64 {
+    let mut n = self.n();
+    let mut luck = 0;
+
+    loop {
+      let digit = n % 10;
+      luck += match digit {
+        0 => 0,
+        1 => 0,
+        2 => 0,
+        3 => 0,
+        4 => -1,
+        5 => 0,
+        6 => 0,
+        7 => 0,
+        8 => 1,
+        9 => 0,
+        10..=u64::MAX => unreachable!(),
+      };
+      n = n / 10;
+      if n == 0 {
+        return luck;
+      }
+    }
+  }
+
   fn from_name(s: &str) -> Result<Self, Error> {
     let mut x = 0;
     for c in s.chars() {
@@ -832,6 +858,22 @@ mod tests {
     assert!(Charm::Palindrome.is_set(Sat(0).charms()));
     assert!(!Charm::Palindrome.is_set(Sat(10).charms()));
     assert!(Charm::Palindrome.is_set(Sat(11).charms()));
+  }
+
+  #[test]
+  fn luck() {
+    assert_eq!(Sat(0).luck(), 0);
+    assert_eq!(Sat(1).luck(), 0);
+    assert_eq!(Sat(4).luck(), -1);
+    assert_eq!(Sat(8).luck(), 1);
+    assert_eq!(Sat(10).luck(), 0);
+    assert_eq!(Sat(40).luck(), -1);
+    assert_eq!(Sat(48).luck(), 0);
+    assert_eq!(Sat(80).luck(), 1);
+    assert_eq!(Sat(84).luck(), 0);
+    assert_eq!(Sat(88).luck(), 2);
+    assert_eq!(Sat::LAST.luck(), 1);
+    assert_eq!(Sat(u64::MAX).luck(), -3);
   }
 
   #[test]
