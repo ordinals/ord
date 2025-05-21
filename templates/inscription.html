@@ -44,9 +44,12 @@
   <dt>gallery</dt>
   <dd>
     <div class=thumbnails>
-%% for id in gallery {
-      {{Iframe::thumbnail(id)}}
+%% for id in &gallery[0..4] {
+      {{Iframe::thumbnail(*id)}}
 %% }
+    </div>
+    <div class=center>
+      <a href=/gallery/{{self.id}}>all ({{ gallery.len() }} )</a>
     </div>
   </dd>
 %% }

@@ -6,7 +6,7 @@ use {
   },
   super::*,
   crate::templates::{
-    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
+    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, GalleryHtml, ClockSvg, CollectionsHtml, HomeHtml,
     InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
     PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
     PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
@@ -191,9 +191,14 @@ impl Server {
         .route("/blocks", get(Self::blocks))
         .route("/bounties", get(Self::bounties))
         .route("/children/{inscription_id}", get(Self::children))
+        .route("/gallery/{inscription_id}", get(Self::gallery))
         .route(
           "/children/{inscription_id}/{page}",
           get(Self::children_paginated),
+        )
+        .route(
+          "/gallery/{inscription_id}/{page}",
+          get(Self::gallery_paginated),
         )
         .route("/clock", get(Self::clock))
         .route("/collections", get(Self::collections))
@@ -1750,6 +1755,66 @@ impl Server {
           parent,
           parent_number,
           children,
+          prev_page,
+          next_page,
+        }
+        .page(server_config)
+        .into_response(),
+      )
+    })
+  }
+
+  async fn gallery(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult {
+    Self::gallery_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path((inscription_id, 0)),
+    )
+    .await
+  }
+  
+  async fn gallery_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((gallery, page)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let entry = index
+        .get_inscription_entry(gallery)?
+        .ok_or_not_found(|| format!("inscription {gallery}"))?;
+
+      let gallery_number = entry.inscription_number;
+
+      let inscription = index.get_inscription_by_id(gallery)?
+        .ok_or_not_found(|| format!("inscription {gallery}"))?;
+
+      let gallery_items = inscription.gallery();
+
+      let page_size = 100;
+      let mut gallery_items = gallery_items
+        .into_iter()
+        .skip(page * page_size)
+        .take(page_size.saturating_add(1))
+        .collect::<Vec<InscriptionId>>();
+      let more = gallery_items.len() > page_size;
+
+      if more {
+        gallery_items.pop();
+      }
+
+      let prev_page = page.checked_sub(1);
+
+      let next_page = more.then_some(page + 1);
+
+      Ok(
+        GalleryHtml {
+          gallery,
+          gallery_number,
+          gallery_items,
           prev_page,
           next_page,
         }
