@@ -60,6 +60,7 @@ define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
+define_table! { HEIGHT_TO_RUNE_MINTS, u32, &[u8] }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
@@ -314,6 +315,7 @@ impl Index {
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
+        tx.open_table(HEIGHT_TO_RUNE_MINTS)?;
         tx.open_table(HOME_INSCRIPTIONS)?;
         tx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
@@ -1992,6 +1994,42 @@ impl Index {
       .collect::<Result<Vec<SpacedRune>, StorageError>>()?;
 
     Ok(runes)
+  }
+
+  pub fn get_minted_runes_in_block(&self, block_height: u32) -> Result<BTreeMap<SpacedRune, Pile>> {
+    let rtx = self.database.begin_read()?;
+    let height_to_rune_mints = rtx.open_table(HEIGHT_TO_RUNE_MINTS)?;
+
+    let Some(guard) = height_to_rune_mints.get(block_height)? else {
+      return Ok(BTreeMap::new());
+    };
+    let mints_buffer = guard.value();
+
+    let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
+
+    let mut mints_in_block = BTreeMap::new();
+    let mut i = 0;
+    while i < mints_buffer.len() {
+      let ((id, amount), length) = Index::decode_rune_balance(&mints_buffer[i..]).unwrap();
+      i += length;
+
+      let entry = if let Some(guard) = rune_id_to_rune_entry.get(id.store())? {
+        RuneEntry::load(guard.value())
+      } else {
+        return Err(anyhow!("could not find rune entry for id {id}"));
+      };
+
+      mints_in_block.insert(
+        entry.spaced_rune,
+        Pile {
+          amount,
+          divisibility: entry.divisibility,
+          symbol: entry.symbol,
+        },
+      );
+    }
+
+    Ok(mints_in_block)
   }
 
   pub fn get_highest_paying_inscriptions_in_block(
