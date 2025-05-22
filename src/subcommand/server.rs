@@ -191,14 +191,9 @@ impl Server {
         .route("/blocks", get(Self::blocks))
         .route("/bounties", get(Self::bounties))
         .route("/children/{inscription_id}", get(Self::children))
-        .route("/gallery/{inscription_id}", get(Self::gallery))
         .route(
           "/children/{inscription_id}/{page}",
           get(Self::children_paginated),
-        )
-        .route(
-          "/gallery/{inscription_id}/{page}",
-          get(Self::gallery_paginated),
         )
         .route("/clock", get(Self::clock))
         .route("/collections", get(Self::collections))
@@ -207,6 +202,11 @@ impl Server {
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
+        .route("/gallery/{inscription_id}", get(Self::gallery))
+        .route(
+          "/gallery/{inscription_id}/{page}",
+          get(Self::gallery_paginated),
+        )
         .route("/input/{block}/{transaction}/{input}", get(Self::input))
         .route("/inscription/{inscription_query}", get(Self::inscription))
         .route(
