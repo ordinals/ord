@@ -44,7 +44,7 @@
   <dt>gallery</dt>
   <dd>
     <div class=thumbnails>
-%% for id in &gallery[0..4] {
+%% for id in gallery.iter().take(4) {
       {{Iframe::thumbnail(*id)}}
 %% }
     </div>

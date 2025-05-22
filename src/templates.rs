@@ -5,9 +5,9 @@ pub(crate) use {
   address::AddressHtml,
   block::BlockHtml,
   children::ChildrenHtml,
-  gallery::GalleryHtml,
   clock::ClockSvg,
   collections::CollectionsHtml,
+  gallery::GalleryHtml,
   home::HomeHtml,
   iframe::Iframe,
   input::InputHtml,
@@ -35,9 +35,9 @@ pub mod address;
 pub mod block;
 pub mod blocks;
 mod children;
-mod gallery;
 mod clock;
 pub mod collections;
+mod gallery;
 mod home;
 mod iframe;
 mod input;
