@@ -7,7 +7,10 @@
   <a href=https://github.com/ordinals/ord/actions/workflows/ci.yaml>
     <img src=https://github.com/ordinals/ord/actions/workflows/ci.yaml/badge.svg alt="build status">
   </a>
-  <a href=https://github.com/ordinals/ord/releases>
+ <a href=https://github.com/ordinals/ord/releases>
+    <img src=https://img.shields.io/github/v/release/ordinals/ord alt=releases>
+  </a>  
+  <a href=https://www.npmjs.com/package/ordinals>
     <img src=https://img.shields.io/github/downloads/ordinals/ord/total.svg alt=downloads>
   </a>
   <a href=https://discord.gg/ordinals>
