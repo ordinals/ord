@@ -419,7 +419,7 @@ Changelog
 
 ### Misc
 - Check rune minimum at height before sending ([#3626](https://github.com/ordinals/ord/pull/3626) by [raphjaph](https://github.com/raphjaph))
-- Update recursion.md with consistant syntax ([#3585](https://github.com/ordinals/ord/pull/3585) by [zmeyer44](https://github.com/zmeyer44))
+- Update recursion.md with consistent syntax ([#3585](https://github.com/ordinals/ord/pull/3585) by [zmeyer44](https://github.com/zmeyer44))
 - Add test Rune cannot be minted less than limit amount ([#3556](https://github.com/ordinals/ord/pull/3556) by [lugondev](https://github.com/lugondev))
 - Clear etching when rune commitment is spent ([#3618](https://github.com/ordinals/ord/pull/3618) by [felipelincoln](https://github.com/felipelincoln))
 - Remove timeout for wallet client ([#3621](https://github.com/ordinals/ord/pull/3621) by [raphjaph](https://github.com/raphjaph))
@@ -692,7 +692,7 @@ Changelog
 - Exclude unnecessary docs ([#3043](https://github.com/ordinals/ord/pull/3043) by [raphjaph](https://github.com/raphjaph))
 - Add documentation for reinscriptions ([#2963](https://github.com/ordinals/ord/pull/2963) by [mj10021](https://github.com/mj10021))
 - Better wallet error messages ([#3041](https://github.com/ordinals/ord/pull/3041) by [raphjaph](https://github.com/raphjaph))
-- Remove uneccessary allocations in Inscription Script Creation ([#3039](https://github.com/ordinals/ord/pull/3039) by [JeremyRubin](https://github.com/JeremyRubin))
+- Remove unnecessary allocations in Inscription Script Creation ([#3039](https://github.com/ordinals/ord/pull/3039) by [JeremyRubin](https://github.com/JeremyRubin))
 - Test fee-spent inscription numbering ([#3032](https://github.com/ordinals/ord/pull/3032) by [casey](https://github.com/casey))
 - Break deploy recipes into multiple lines ([#3026](https://github.com/ordinals/ord/pull/3026) by [casey](https://github.com/casey))
 - Use untyped table API to get table info ([#2747](https://github.com/ordinals/ord/pull/2747) by [casey](https://github.com/casey))
@@ -783,7 +783,7 @@ Changelog
 - Serve HTTP/2 ([#2895](https://github.com/ordinals/ord/pull/2895) by [casey](https://github.com/casey))
 - Don't display trailing spacers in spaced runes ([#2896](https://github.com/ordinals/ord/pull/2896) by [casey](https://github.com/casey))
 - Split runes more evenly ([#2897](https://github.com/ordinals/ord/pull/2897) by [casey](https://github.com/casey))
-- Dispaly rune ID above height and index ([#2874](https://github.com/ordinals/ord/pull/2874) by [casey](https://github.com/casey))
+- Display rune ID above height and index ([#2874](https://github.com/ordinals/ord/pull/2874) by [casey](https://github.com/casey))
 - Use transaction version 2 ([#2873](https://github.com/ordinals/ord/pull/2873) by [casey](https://github.com/casey))
 
 [0.13.1](https://github.com/ordinals/ord/releases/tag/0.13.1) - 2023-12-16
@@ -1064,14 +1064,14 @@ Changelog
 - Add Chinese version of the handbook ([#2406](https://github.com/ordinals/ord/pull/2406) by [DrJingLee](https://github.com/DrJingLee))
 - Add language picker for docs ([#2403](https://github.com/ordinals/ord/pull/2403) by [raphjaph](https://github.com/raphjaph))
 - Add reindexing docs ([#2393](https://github.com/ordinals/ord/pull/2393) by [raphjaph](https://github.com/raphjaph))
-- Vaccuum log with every new deploy ([#2390](https://github.com/ordinals/ord/pull/2390) by [raphjaph](https://github.com/raphjaph))
+- Vacuum log with every new deploy ([#2390](https://github.com/ordinals/ord/pull/2390) by [raphjaph](https://github.com/raphjaph))
 
 ### Changed
 
 - Fold BlockIndex into database ([#2436](https://github.com/ordinals/ord/pull/2436) by [raphjaph](https://github.com/raphjaph))
 - Prevent search when query field is empty ([#2425](https://github.com/ordinals/ord/pull/2425) by [elocremarc](https://github.com/elocremarc))
 - Make any zero-valued input inscription unbound ([#2397](https://github.com/ordinals/ord/pull/2397) by [raphjaph](https://github.com/raphjaph))
-- Tweak translations intructions ([#2413](https://github.com/ordinals/ord/pull/2413) by [raphjaph](https://github.com/raphjaph))
+- Tweak translations instructions ([#2413](https://github.com/ordinals/ord/pull/2413) by [raphjaph](https://github.com/raphjaph))
 - Remove unused itertools dependency ([#2416](https://github.com/ordinals/ord/pull/2416) by [casey](https://github.com/casey))
 - Update dependencies ([#2414](https://github.com/ordinals/ord/pull/2414) by [casey](https://github.com/casey))
 - Update clap ([#2415](https://github.com/ordinals/ord/pull/2415) by [casey](https://github.com/casey))
