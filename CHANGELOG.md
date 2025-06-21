@@ -1567,7 +1567,7 @@ Changelog
 - Allow inscribing without specifying a satpoint ([#919](https://github.com/ordinals/ord/pull/919) by [raphjaph](https://github.com/raphjaph))
 - Add `ord wallet inscriptions` ([#917](https://github.com/ordinals/ord/pull/917) by [raphjaph](https://github.com/raphjaph))
 - Add `ord wallet utxos` ([#911](https://github.com/ordinals/ord/pull/911) by [raphjaph](https://github.com/raphjaph))
-- Add `ord wallet recieve` ([#909](https://github.com/ordinals/ord/pull/909) by [raphjaph](https://github.com/raphjaph))
+- Add `ord wallet receive` ([#909](https://github.com/ordinals/ord/pull/909) by [raphjaph](https://github.com/raphjaph))
 - Fix signet block explorer link ([#908](https://github.com/ordinals/ord/pull/908) by [casey](https://github.com/casey))
 - Opt wallet transactions into RBF ([#901](https://github.com/ordinals/ord/pull/901) by [casey](https://github.com/casey))
 - Avoid `as` conversions ([#903](https://github.com/ordinals/ord/pull/903) by [casey](https://github.com/casey))
