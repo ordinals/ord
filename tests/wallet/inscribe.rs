@@ -522,7 +522,7 @@ fn inscribe_with_no_limit() {
 
   core.mine_blocks(1);
 
-  let one_megger = std::iter::repeat(0).take(1_000_000).collect::<Vec<u8>>();
+  let one_megger = std::iter::repeat_n(0, 1_000_000).collect::<Vec<u8>>();
   CommandBuilder::new("wallet inscribe --no-limit --file degenerate.png --fee-rate 1")
     .write("degenerate.png", one_megger)
     .core(&core)
