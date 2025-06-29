@@ -1223,7 +1223,7 @@ fn inscription_with_delegate_returns_effective_content_type() {
   core.mine_blocks(1);
 
   let inscription_id = inscribe.inscriptions[0].id;
-  let json_response = ord.json_request(format!("/inscription/{}", inscription_id));
+  let json_response = ord.json_request(format!("/inscription/{inscription_id}"));
 
   let inscription_json: api::Inscription =
     serde_json::from_str(&json_response.text().unwrap()).unwrap();

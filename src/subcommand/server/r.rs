@@ -196,8 +196,7 @@ pub(super) async fn children_paginated(
   task::block_in_place(|| {
     let Some(parent) = index.get_inscription_entry(parent)? else {
       return Err(ServerError::NotFound(format!(
-        "inscription {} not found",
-        parent
+        "inscription {parent} not found"
       )));
     };
 
@@ -320,8 +319,7 @@ pub(super) async fn inscription(
   task::block_in_place(|| {
     let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
       return Err(ServerError::NotFound(format!(
-        "inscription {} not found",
-        inscription_id
+        "inscription {inscription_id} not found",
       )));
     };
 
@@ -387,8 +385,7 @@ pub(super) async fn metadata(
   task::block_in_place(|| {
     let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
       return Err(ServerError::NotFound(format!(
-        "inscription {} not found",
-        inscription_id
+        "inscription {inscription_id} not found"
       )));
     };
 

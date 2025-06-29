@@ -233,7 +233,7 @@ impl Index {
 
     let index_cache_size = settings.index_cache_size();
 
-    log::info!("Setting index cache size to {} bytes", index_cache_size);
+    log::info!("Setting index cache size to {index_cache_size} bytes");
 
     let durability = if cfg!(test) {
       redb::Durability::None
@@ -705,7 +705,7 @@ impl Index {
       .map(|(height, _header)| height.value() + 1)
       .unwrap_or(0);
 
-    writeln!(writer, "# export at block height {}", blocks_indexed)?;
+    writeln!(writer, "# export at block height {blocks_indexed}")?;
 
     log::info!("exporting database tables to {filename}");
 
@@ -764,7 +764,7 @@ impl Index {
             .map(|address| address.to_string())
             .unwrap_or_else(|e| e.to_string())
         };
-        write!(writer, "\t{}", address)?;
+        write!(writer, "\t{address}")?;
       }
       writeln!(writer)?;
 
