@@ -41,7 +41,7 @@ impl Display for Decimal {
         width -= 1;
       }
 
-      write!(f, ".{fraction:0>width$}", width = width)?;
+      write!(f, ".{fraction:0>width$}")?;
     }
 
     Ok(())

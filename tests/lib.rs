@@ -120,7 +120,7 @@ fn inscribe_with_options(
   );
 
   if let Some(postage_value) = postage {
-    command_str.push_str(&format!(" --postage {}sat", postage_value));
+    command_str.push_str(&format!(" --postage {postage_value}sat"));
   }
 
   let output = CommandBuilder::new(command_str)

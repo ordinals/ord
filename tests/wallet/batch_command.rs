@@ -493,24 +493,21 @@ fn batch_in_separate_outputs_with_parent() {
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*{}:0.*",
-      output_1
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*{output_1}:0.*"
     ),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*{}:0.*",
-      output_2
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*{output_2}:0.*"
     ),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*{}:0.*",
-      output_3
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>10000</dd>.*.*<dt>location</dt>.*{output_3}:0.*"
     ),
   );
 }
@@ -571,24 +568,21 @@ fn batch_in_separate_outputs_with_parent_and_non_default_postage() {
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*{}:0.*",
-      output_1
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*{output_1}:0.*"
     ),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[1].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*{}:0.*",
-      output_2
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*{output_2}:0.*"
     ),
   );
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[2].id),
     format!(
-      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*{}:0.*",
-      output_3
+      r".*<dt>parents</dt>\s*<dd>.*{parent_id}.*</dd>.*<dt>value</dt>.*<dd>777</dd>.*.*<dt>location</dt>.*{output_3}:0.*"
     ),
   );
 }
@@ -805,7 +799,7 @@ fn batch_same_sat_with_parent() {
   let txid = output.inscriptions[0].location.outpoint.txid;
 
   ord.assert_response_regex(
-    format!("/inscription/{}", parent_id),
+    format!("/inscription/{parent_id}"),
     format!(r".*<dt>location</dt>.*{txid}:0:0.*",),
   );
 
@@ -857,7 +851,7 @@ fn batch_same_sat_with_satpoint_and_reinscription() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("mode: same-sat\nsatpoint: {}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n", satpoint)
+      format!("mode: same-sat\nsatpoint: {satpoint}\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -871,7 +865,7 @@ fn batch_same_sat_with_satpoint_and_reinscription() {
     .write("meow.wav", [0; 2048])
     .write(
       "batch.yaml",
-      format!("mode: same-sat\nsatpoint: {}\nreinscribe: true\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n", satpoint)
+      format!("mode: same-sat\nsatpoint: {satpoint}\nreinscribe: true\ninscriptions:\n- file: inscription.txt\n- file: tulip.png\n- file: meow.wav\n")
     )
     .core(&core)
     .ord(&ord)
@@ -891,7 +885,7 @@ fn batch_same_sat_with_satpoint_and_reinscription() {
   let outpoint = output.inscriptions[0].location.outpoint;
 
   ord.assert_response_regex(
-    format!("/inscription/{}", inscription_id),
+    format!("/inscription/{inscription_id}"),
     format!(r".*<dt>location</dt>.*{outpoint}:0.*",),
   );
 
@@ -1240,13 +1234,12 @@ parents:
 - {parent_id}
 inscriptions:
 - file: inscription.txt
-  satpoint: {}
+  satpoint: {satpoint_1}
 - file: tulip.png
-  satpoint: {}
+  satpoint: {satpoint_2}
 - file: meow.wav
-  satpoint: {}
-"#,
-        satpoint_1, satpoint_2, satpoint_3
+  satpoint: {satpoint_3}
+"#
       ),
     )
     .core(&core)
@@ -1256,7 +1249,7 @@ inscriptions:
   core.mine_blocks(1);
 
   ord.assert_response_regex(
-    format!("/inscription/{}", parent_id),
+    format!("/inscription/{parent_id}"),
     format!(r".*<dt>location</dt>.*{}:0:0.*", output.reveal),
   );
 
@@ -1417,13 +1410,12 @@ fn batch_inscribe_with_satpoints_with_different_sizes() {
 mode: satpoints
 inscriptions:
 - file: inscription.txt
-  satpoint: {}
+  satpoint: {satpoint_1}
 - file: tulip.png
-  satpoint: {}
+  satpoint: {satpoint_2}
 - file: meow.wav
-  satpoint: {}
-"#,
-        satpoint_1, satpoint_2, satpoint_3
+  satpoint: {satpoint_3}
+"#
       ),
     )
     .core(&core)
