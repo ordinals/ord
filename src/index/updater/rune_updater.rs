@@ -6,9 +6,11 @@ pub(super) struct RuneUpdater<'a, 'tx, 'client> {
   pub(super) client: &'client Client,
   pub(super) event_sender: Option<&'a mpsc::Sender<Event>>,
   pub(super) height: u32,
+  pub(super) height_to_mints: &'a mut Table<'tx, u32, &'static [u8]>,
   pub(super) id_to_entry: &'a mut Table<'tx, RuneIdValue, RuneEntryValue>,
   pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
+  pub(super) minted: BTreeMap<RuneId, Lot>,
   pub(super) outpoint_to_balances: &'a mut Table<'tx, &'static OutPointValue, &'static [u8]>,
   pub(super) rune_to_id: &'a mut Table<'tx, u128, RuneIdValue>,
   pub(super) runes: u64,
@@ -29,6 +31,7 @@ impl RuneUpdater<'_, '_, '_> {
       if let Some(id) = artifact.mint() {
         if let Some(amount) = self.mint(id)? {
           *unallocated.entry(id).or_default() += amount;
+          *self.minted.entry(id).or_default() += amount;
 
           if let Some(sender) = self.event_sender {
             sender.blocking_send(Event::RuneMinted {
@@ -236,6 +239,16 @@ impl RuneUpdater<'_, '_, '_> {
       let mut entry = RuneEntry::load(self.id_to_entry.get(&rune_id.store())?.unwrap().value());
       entry.burned = entry.burned.checked_add(burned.n()).unwrap();
       self.id_to_entry.insert(&rune_id.store(), entry.store())?;
+    }
+
+    let mut buffer: Vec<u8> = Vec::new();
+    for (rune_id, amount) in self.minted {
+      Index::encode_rune_balance(rune_id, amount.n(), &mut buffer);
+    }
+    if !buffer.is_empty() {
+      self
+        .height_to_mints
+        .insert(self.height, buffer.as_slice())?;
     }
 
     Ok(())
