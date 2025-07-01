@@ -185,6 +185,7 @@ impl Server {
       // non-recursive endpoints
       let router = Router::new()
         .route("/", get(Self::home))
+        .route("/latest/{page}", get(Self::latest_paginated))
         .route("/address/{address}", get(Self::address))
         .route("/block/{query}", get(Self::block))
         .route("/blockcount", get(Self::block_count))
@@ -1032,10 +1033,25 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult<PageHtml<HomeHtml>> {
+    Self::latest_paginated(Extension(server_config), Extension(index), Path(0)).await
+  }
+
+  async fn latest_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(page_index): Path<u32>,
+  ) -> ServerResult<PageHtml<HomeHtml>> {
     task::block_in_place(|| {
+      let (inscriptions, more) = index.get_home_inscriptions_paginated(100, page_index)?;
+
+      let prev = page_index.checked_sub(1);
+      let next = more.then_some(page_index + 1);
+
       Ok(
         HomeHtml {
-          inscriptions: index.get_home_inscriptions()?,
+          inscriptions,
+          prev,
+          next,
         }
         .page(server_config),
       )
@@ -3880,6 +3896,69 @@ mod tests {
 ",
         ids[100]
       ),
+    );
+  }
+
+  #[test]
+  fn home_pagination() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let mut ids = Vec::new();
+
+    // Create 150 inscriptions to test pagination
+    for i in 0..150 {
+      let txid = server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(
+          i + 1,
+          0,
+          0,
+          inscription("image/png", format!("inscription {}", i)).to_witness(),
+        )],
+        ..default()
+      });
+      ids.push(InscriptionId { txid, index: 0 });
+      server.mine_blocks(1);
+    }
+
+    server.assert_response_regex(
+      "/",
+      StatusCode::OK,
+      r".*<h1>Latest Inscriptions</h1>
+<div class=thumbnails>
+  (<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>\s*){100}
+</div>
+<div class=center>
+prev
+<a class=next href=/latest/1>next</a>
+</div>.*",
+    );
+
+    server.assert_response_regex(
+      "/latest/1",
+      StatusCode::OK,
+      r".*<h1>Latest Inscriptions</h1>
+<div class=thumbnails>
+  (<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>\s*){50}
+</div>
+<div class=center>
+<a class=prev href=/latest/0>prev</a>
+next
+</div>.*",
+    );
+
+    server.assert_response_regex(
+      "/latest/0",
+      StatusCode::OK,
+      r".*<h1>Latest Inscriptions</h1>
+<div class=thumbnails>
+  (<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>\s*){100}
+</div>
+<div class=center>
+prev
+<a class=next href=/latest/1>next</a>
+</div>.*",
     );
   }
 
