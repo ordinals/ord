@@ -78,6 +78,10 @@ impl Plan {
 
       let reveal_psbt = Psbt::from_unsigned_tx(Self::remove_witnesses(reveal_tx.clone()))?;
 
+      if !self.no_backup {
+        Self::backup_recovery_key(wallet, recovery_key_pair)?;
+      }
+
       return Ok(Some(Box::new(self.output(
         commit_tx.compute_txid(),
         Some(commit_psbt),
