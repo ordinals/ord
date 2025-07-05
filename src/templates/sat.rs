@@ -49,6 +49,7 @@ mod tests {
             <span title=mythic>🎃</span>
             <span title=palindrome>🦋</span>
           </dd>
+          <dt>luck</dt><dd>0</dd>
         </dl>
         .*
         prev
@@ -87,6 +88,7 @@ mod tests {
           <dd>
             <span title=uncommon>🌱</span>
           </dd>
+          <dt>luck</dt><dd>1</dd>
         </dl>
         .*
         <a class=prev href=/sat/2099999997689998>prev</a>
