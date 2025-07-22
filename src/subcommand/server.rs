@@ -1717,13 +1717,13 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
-    accept_json: AcceptJson,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     Self::children_paginated(
       Extension(server_config),
       Extension(index),
       Path((inscription_id, 0)),
-      accept_json,
+      AcceptJson(accept_json),
     )
     .await
   }
