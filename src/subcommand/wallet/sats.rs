@@ -328,9 +328,7 @@ mod tests {
   #[test]
   fn parse_error_reports_line_and_value() {
     assert_eq!(
-      Sats::needles("0\n===\n")
-        .unwrap_err()
-        .to_string(),
+      Sats::needles("0\n===\n").unwrap_err().to_string(),
       "failed to parse sat from string \"===\" on line 2: failed to parse sat `===`: invalid integer: invalid digit found in string",
     );
   }

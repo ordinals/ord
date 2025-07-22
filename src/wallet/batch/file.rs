@@ -75,7 +75,10 @@ impl File {
       );
 
       ensure!(
-        batchfile.inscriptions.iter().all(|entry| entry.satpoint.is_some()),
+        batchfile
+          .inscriptions
+          .iter()
+          .all(|entry| entry.satpoint.is_some()),
         "if `satpoint` is set for any inscription, then all inscriptions need to specify a satpoint"
       );
 
