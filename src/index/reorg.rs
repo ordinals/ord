@@ -101,11 +101,7 @@ impl Reorg {
       && blocks.saturating_sub(height) <= savepoint_interval * max_savepoints + 1;
 
     log::trace!(
-      "is_savepoint_required={}: height={}, last_savepoint_height={}, blocks={}",
-      result,
-      height,
-      last_savepoint_height,
-      blocks
+      "is_savepoint_required={result}: height={height}, last_savepoint_height={last_savepoint_height}, blocks={blocks}"
     );
 
     Ok(result)
@@ -134,7 +130,7 @@ impl Reorg {
 
       let wtx = index.begin_write()?;
 
-      log::info!("Creating savepoint at height {}", height);
+      log::info!("Creating savepoint at height {height}");
 
       wtx.persistent_savepoint()?;
 

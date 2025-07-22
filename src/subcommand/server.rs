@@ -3,16 +3,15 @@ use {
     accept_encoding::AcceptEncoding,
     accept_json::AcceptJson,
     error::{OptionExt, ServerError, ServerResult},
-    sec_fetch_dest::SecFetchDest,
   },
   super::*,
   crate::templates::{
     AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
     InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
-    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewIframeHtml,
-    PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml,
-    SatscardHtml, TransactionHtml,
+    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+    PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+    PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml, SatscardHtml,
+    TransactionHtml,
   },
   axum::{
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
@@ -47,7 +46,6 @@ mod accept_json;
 mod error;
 pub mod query;
 mod r;
-mod sec_fetch_dest;
 mod server_config;
 
 enum SpawnConfig {
@@ -285,7 +283,7 @@ impl Server {
           "/r/undelegated-content/{inscription_id}",
           get(r::undelegated_content),
         )
-        .route("/r/utxo/{outpoint}", get(Self::utxo));
+        .route("/r/utxo/{outpoint}", get(r::utxo));
 
       let proxiable_routes = Router::new()
         .route("/content/{inscription_id}", get(r::content))
@@ -526,8 +524,8 @@ impl Server {
     tokio::spawn(async move {
       while let Some(result) = state.next().await {
         match result {
-          Ok(ok) => log::info!("ACME event: {:?}", ok),
-          Err(err) => log::error!("ACME error: {:?}", err),
+          Ok(ok) => log::info!("ACME event: {ok:?}"),
+          Err(err) => log::error!("ACME error: {err:?}"),
         }
       }
     });
@@ -632,7 +630,7 @@ impl Server {
 
     if let Ok(form) = Query::<Form>::try_from_uri(&uri) {
       return if let Some(fragment) = form.url.0.fragment() {
-        Ok(Redirect::to(&format!("/satscard?{}", fragment)).into_response())
+        Ok(Redirect::to(&format!("/satscard?{fragment}")).into_response())
       } else {
         Err(ServerError::BadRequest(
           "satscard URL missing fragment".into(),
@@ -769,6 +767,7 @@ impl Server {
       } else {
         OutputHtml {
           chain: server_config.chain,
+          confirmations: output_info.confirmations,
           inscriptions: output_info.inscriptions,
           outpoint,
           output: txout,
@@ -779,22 +778,6 @@ impl Server {
         .page(server_config)
         .into_response()
       })
-    })
-  }
-
-  async fn utxo(
-    Extension(index): Extension<Arc<Index>>,
-    Path(outpoint): Path<OutPoint>,
-  ) -> ServerResult {
-    task::block_in_place(|| {
-      Ok(
-        Json(
-          index
-            .get_utxo_recursive(outpoint)?
-            .ok_or_not_found(|| format!("output {outpoint}"))?,
-        )
-        .into_response(),
-      )
     })
   }
 
@@ -959,7 +942,7 @@ impl Server {
           StatusCode::NOT_FOUND.into_response()
         } else {
           let unlock = if let Some(height) = rune.unlock_height(server_config.chain.network()) {
-            Some((height, index.block_time(height)?.timestamp()))
+            Some((height, index.block_time(height)?))
           } else {
             None
           };
@@ -1469,7 +1452,6 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
-    sec_fetch_dest: SecFetchDest,
   ) -> ServerResult {
     task::block_in_place(|| {
       if settings.is_hidden(inscription_id) {
@@ -1479,6 +1461,11 @@ impl Server {
       let mut inscription = index
         .get_inscription_by_id(inscription_id)?
         .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+      let inscription_number = index
+        .get_inscription_entry(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?
+        .inscription_number;
 
       if let Some(delegate) = inscription.delegate() {
         inscription = index
@@ -1490,37 +1477,46 @@ impl Server {
 
       if let Media::Iframe = media {
         return Ok(
-          r::content_response(
-            &server_config,
-            inscription_id,
-            accept_encoding,
-            sec_fetch_dest,
-            inscription,
-          )?
-          .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
-          .into_response(),
+          r::content_response(inscription, accept_encoding, &server_config)?
+            .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
+            .into_response(),
         );
       }
 
       let content_security_policy = server_config.preview_content_security_policy(media)?;
 
       match media {
-        Media::Audio => {
-          Ok((content_security_policy, PreviewAudioHtml { inscription_id }).into_response())
-        }
+        Media::Audio => Ok(
+          (
+            content_security_policy,
+            PreviewAudioHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
         Media::Code(language) => Ok(
           (
             content_security_policy,
             PreviewCodeHtml {
               inscription_id,
               language,
+              inscription_number,
             },
           )
             .into_response(),
         ),
-        Media::Font => {
-          Ok((content_security_policy, PreviewFontHtml { inscription_id }).into_response())
-        }
+        Media::Font => Ok(
+          (
+            content_security_policy,
+            PreviewFontHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
         Media::Iframe => unreachable!(),
         Media::Image(image_rendering) => Ok(
           (
@@ -1528,6 +1524,7 @@ impl Server {
             PreviewImageHtml {
               image_rendering,
               inscription_id,
+              inscription_number,
             },
           )
             .into_response(),
@@ -1535,23 +1532,54 @@ impl Server {
         Media::Markdown => Ok(
           (
             content_security_policy,
-            PreviewMarkdownHtml { inscription_id },
+            PreviewMarkdownHtml {
+              inscription_id,
+              inscription_number,
+            },
           )
             .into_response(),
         ),
-        Media::Model => {
-          Ok((content_security_policy, PreviewModelHtml { inscription_id }).into_response())
-        }
-        Media::Pdf => {
-          Ok((content_security_policy, PreviewPdfHtml { inscription_id }).into_response())
-        }
-        Media::Text => {
-          Ok((content_security_policy, PreviewTextHtml { inscription_id }).into_response())
-        }
+        Media::Model => Ok(
+          (
+            content_security_policy,
+            PreviewModelHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
+        Media::Pdf => Ok(
+          (
+            content_security_policy,
+            PreviewPdfHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
+        Media::Text => Ok(
+          (
+            content_security_policy,
+            PreviewTextHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
         Media::Unknown => Ok((content_security_policy, PreviewUnknownHtml).into_response()),
-        Media::Video => {
-          Ok((content_security_policy, PreviewVideoHtml { inscription_id }).into_response())
-        }
+        Media::Video => Ok(
+          (
+            content_security_policy,
+            PreviewVideoHtml {
+              inscription_id,
+              inscription_number,
+            },
+          )
+            .into_response(),
+        ),
       }
     })
   }
@@ -2890,7 +2918,7 @@ mod tests {
 
     for i in 1..6 {
       server.assert_response_regex(
-        format!("/rune/{}", i),
+        format!("/rune/{i}"),
         StatusCode::OK,
         ".*<title>Rune AAAAAAAAAAAA.*</title>.*",
       );
@@ -2919,7 +2947,7 @@ mod tests {
         rune: Rune(0),
         unlock: Some((
           Height(209999),
-          DateTime::from_timestamp(125998800, 0).unwrap(),
+          Blocktime::Expected(DateTime::from_timestamp(125998800, 0).unwrap()),
         )),
       },
     );
@@ -3405,6 +3433,7 @@ mod tests {
         value: 5000000000,
         script_pubkey: address.script_pubkey(),
         address: Some(uncheck(&address)),
+        confirmations: 1,
         transaction: txid,
         sat_ranges: None,
         indexed: true,
@@ -3693,6 +3722,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
+  <dt>confirmations</dt><dd>1</dd>
   <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
@@ -3715,6 +3745,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace>OP_PUSHBYTES_65 [[:xdigit:]]{{130}} OP_CHECKSIG</dd>
   <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
+  <dt>confirmations</dt><dd>1</dd>
   <dt>spent</dt><dd>false</dd>
 </dl>.*"
       ),
@@ -3738,6 +3769,7 @@ mod tests {
   <dt>value</dt><dd>5000000000</dd>
   <dt>script pubkey</dt><dd class=monospace></dd>
   <dt>transaction</dt><dd><a class=collapse href=/tx/{txid}>{txid}</a></dd>
+  <dt>confirmations</dt><dd>0</dd>
   <dt>spent</dt><dd>false</dd>
 </dl>
 <h2>1 Sat Range</h2>
@@ -3780,7 +3812,7 @@ mod tests {
     let inscription_id = InscriptionId { txid, index: 0 };
 
     server.assert_response_regex(
-      format!("/inscription/{}", inscription_id),
+      format!("/inscription/{inscription_id}"),
       StatusCode::OK,
       format!(
         ".*<dl>
@@ -4292,51 +4324,70 @@ mod tests {
 
   #[test]
   fn content_response_no_content() {
-    assert!(r::content_response(
-      &ServerConfig::default(),
-      inscription_id(0),
-      AcceptEncoding::default(),
-      SecFetchDest::Other,
-      Inscription {
-        content_type: Some("text/plain".as_bytes().to_vec()),
-        body: None,
-        ..default()
-      },
-    )
-    .unwrap()
-    .is_none());
+    assert_eq!(
+      r::content_response(
+        Inscription {
+          content_type: Some("text/plain".as_bytes().to_vec()),
+          body: None,
+          ..default()
+        },
+        AcceptEncoding::default(),
+        &ServerConfig::default(),
+      )
+      .unwrap(),
+      None
+    );
   }
 
   #[test]
   fn content_response_with_content() {
-    let response = r::content_response(
-      &ServerConfig::default(),
-      inscription_id(0),
-      AcceptEncoding::default(),
-      SecFetchDest::Other,
+    let (headers, body) = r::content_response(
       Inscription {
         content_type: Some("text/plain".as_bytes().to_vec()),
         body: Some(vec![1, 2, 3]),
         ..default()
       },
+      AcceptEncoding::default(),
+      &ServerConfig::default(),
     )
     .unwrap()
     .unwrap();
 
-    assert_eq!(response.content_type, "text/plain");
-    assert_eq!(response.body, vec![1, 2, 3]);
+    assert_eq!(headers["content-type"], "text/plain");
+    assert_eq!(body, vec![1, 2, 3]);
   }
 
   #[test]
   fn content_security_policy_no_origin() {
-    let response = r::content_response(
-      &ServerConfig::default(),
-      inscription_id(0),
-      AcceptEncoding::default(),
-      SecFetchDest::Other,
+    let (headers, _) = r::content_response(
       Inscription {
         content_type: Some("text/plain".as_bytes().to_vec()),
         body: Some(vec![1, 2, 3]),
+        ..default()
+      },
+      AcceptEncoding::default(),
+      &ServerConfig::default(),
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(
+      headers["content-security-policy"],
+      HeaderValue::from_static("default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:")
+    );
+  }
+
+  #[test]
+  fn content_security_policy_with_origin() {
+    let (headers, _) = r::content_response(
+      Inscription {
+        content_type: Some("text/plain".as_bytes().to_vec()),
+        body: Some(vec![1, 2, 3]),
+        ..default()
+      },
+      AcceptEncoding::default(),
+      &ServerConfig {
+        csp_origin: Some("https://ordinals.com".into()),
         ..default()
       },
     )
@@ -4344,31 +4395,11 @@ mod tests {
     .unwrap();
 
     assert_eq!(
-      response.content_security_policy,
-      "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
+      headers["content-security-policy"],
+      HeaderValue::from_static(
+        "default-src https://ordinals.com/content/ https://ordinals.com/blockheight https://ordinals.com/blockhash https://ordinals.com/blockhash/ https://ordinals.com/blocktime https://ordinals.com/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"
+      )
     );
-  }
-
-  #[test]
-  fn content_security_policy_with_origin() {
-    let response = r::content_response(
-      &ServerConfig {
-        csp_origin: Some("https://ordinals.com".into()),
-        ..default()
-      },
-      inscription_id(0),
-      AcceptEncoding::default(),
-      SecFetchDest::Other,
-      Inscription {
-        content_type: Some("text/plain".as_bytes().to_vec()),
-        body: Some(vec![1, 2, 3]),
-        ..default()
-      },
-    )
-    .unwrap()
-    .unwrap();
-
-    assert_eq!(response.content_security_policy, "default-src https://ordinals.com/content/ https://ordinals.com/blockheight https://ordinals.com/blockhash https://ordinals.com/blockhash/ https://ordinals.com/blocktime https://ordinals.com/r/ 'unsafe-eval' 'unsafe-inline' data: blob:");
   }
 
   #[test]
@@ -4388,10 +4419,12 @@ mod tests {
       let inscription_id = InscriptionId { txid, index: 0 };
 
       server.assert_response_csp(
-        format!("/preview/{}", inscription_id),
+        format!("/preview/{inscription_id}"),
         StatusCode::OK,
         "default-src 'self'",
-        format!(".*<html lang=en data-inscription={}>.*", inscription_id),
+        format!(
+          ".*<html lang=en data-inscription={inscription_id}>.*<title>Inscription 0 Preview</title>.*"
+        ),
       );
     }
 
@@ -4413,10 +4446,10 @@ mod tests {
       let inscription_id = InscriptionId { txid, index: 0 };
 
       server.assert_response_csp(
-        format!("/preview/{}", inscription_id),
+        format!("/preview/{inscription_id}"),
         StatusCode::OK,
         "default-src https://ordinals.com",
-        format!(".*<html lang=en data-inscription={}>.*", inscription_id),
+        format!(".*<html lang=en data-inscription={inscription_id}>.*"),
       );
     }
   }
@@ -4447,43 +4480,39 @@ mod tests {
   }
 
   #[test]
-  fn content_response_bad_content_type() {
-    let content_response = r::content_response(
-      &ServerConfig::default(),
-      inscription_id(0),
-      AcceptEncoding::default(),
-      SecFetchDest::Other,
-      Inscription {
-        content_type: Some("\n".as_bytes().to_vec()),
-        body: Some(Vec::new()),
-        ..Default::default()
-      },
-    )
-    .unwrap()
-    .unwrap();
-
-    assert_eq!(content_response.content_type, "application/octet-stream");
-    assert!(content_response.body.is_empty());
-  }
-
-  #[test]
   fn content_response_no_content_type() {
-    let content_response = r::content_response(
-      &ServerConfig::default(),
-      inscription_id(0),
-      AcceptEncoding::default(),
-      SecFetchDest::Other,
+    let (headers, body) = r::content_response(
       Inscription {
         content_type: None,
         body: Some(Vec::new()),
         ..default()
       },
+      AcceptEncoding::default(),
+      &ServerConfig::default(),
     )
     .unwrap()
     .unwrap();
 
-    assert_eq!(content_response.content_type, "application/octet-stream");
-    assert!(content_response.body.is_empty());
+    assert_eq!(headers["content-type"], "application/octet-stream");
+    assert!(body.is_empty());
+  }
+
+  #[test]
+  fn content_response_bad_content_type() {
+    let (headers, body) = r::content_response(
+      Inscription {
+        content_type: Some("\n".as_bytes().to_vec()),
+        body: Some(Vec::new()),
+        ..Default::default()
+      },
+      AcceptEncoding::default(),
+      &ServerConfig::default(),
+    )
+    .unwrap()
+    .unwrap();
+
+    assert_eq!(headers["content-type"], "application/octet-stream");
+    assert!(body.is_empty());
   }
 
   #[test]
@@ -4506,10 +4535,10 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", inscription_id),
+      format!("/preview/{inscription_id}"),
       StatusCode::OK,
       "default-src 'self'",
-      format!(".*<html lang=en data-inscription={}>.*", inscription_id),
+      format!(".*<html lang=en data-inscription={inscription_id}>.*"),
     );
   }
 
@@ -4621,57 +4650,27 @@ mod tests {
 
   #[test]
   fn iframe_preview() {
-    #[track_caller]
-    fn case(
-      server: &TestServer,
-      id: InscriptionId,
-      endpoint: &str,
-      sec_fetch_dest: &str,
-      expected: &str,
-    ) {
-      let response = reqwest::blocking::Client::new()
-        .get(server.join_url(&format!("/{endpoint}/{id}")))
-        .header(SecFetchDest::HEADER_NAME, sec_fetch_dest)
-        .send()
-        .unwrap();
-
-      assert_eq!(response.status(), StatusCode::OK);
-
-      assert!(response
-        .headers()
-        .get_all(header::VARY)
-        .iter()
-        .any(|value| value == HeaderValue::from_name(SecFetchDest::HEADER_NAME)));
-
-      let text = response.text().unwrap();
-      let re = Regex::new(expected).unwrap();
-
-      if !re.is_match(&text) {
-        panic!(
-          "/{endpoint} response for {}: {sec_fetch_dest} did not match regex {expected}:\n{text}",
-          SecFetchDest::HEADER_NAME,
-        )
-      }
-    }
-
     let server = TestServer::builder().chain(Chain::Regtest).build();
     server.mine_blocks(1);
 
     let txid = server.core.broadcast_tx(TransactionTemplate {
-      inputs: &[(1, 0, 0, inscription("text/html", "foo").to_witness())],
+      inputs: &[(
+        1,
+        0,
+        0,
+        inscription("text/html;charset=utf-8", "hello").to_witness(),
+      )],
       ..default()
     });
-    let id = InscriptionId { txid, index: 0 };
 
     server.mine_blocks(1);
 
-    let pattern =
-      format!(r".*<iframe sandbox=allow-scripts loading=lazy src=/content/{id}></iframe>.*");
-
-    case(&server, id, "preview", "iframe", "foo");
-    case(&server, id, "preview", "document", &pattern);
-    case(&server, id, "content", "iframe", "foo");
-    case(&server, id, "content", "document", &pattern);
+    server.assert_response_csp(
+      format!("/preview/{}", InscriptionId { txid, index: 0 }),
+      StatusCode::OK,
+      "default-src 'self' 'unsafe-eval' 'unsafe-inline' data: blob:",
+      "hello",
+    );
   }
 
   #[test]
@@ -6137,7 +6136,7 @@ next
     let second_inscription_id = InscriptionId { txid, index: 1 };
     let outpoint: OutPoint = OutPoint { txid, vout: 0 };
 
-    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{}", outpoint));
+    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{outpoint}"));
 
     pretty_assert_eq!(
       utxo_recursive,
@@ -6181,7 +6180,7 @@ next
     let inscription_id = InscriptionId { txid, index: 0 };
     let outpoint: OutPoint = OutPoint { txid, vout: 0 };
 
-    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{}", outpoint));
+    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{outpoint}"));
 
     pretty_assert_eq!(
       utxo_recursive,

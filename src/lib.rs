@@ -23,6 +23,7 @@ use {
       media::{self, ImageRendering, Media},
       teleburn,
     },
+    into_u64::IntoU64,
     into_usize::IntoUsize,
     option_ext::OptionExt,
     outgoing::Outgoing,
@@ -119,6 +120,7 @@ mod error;
 mod fee_rate;
 pub mod index;
 mod inscriptions;
+mod into_u64;
 mod into_usize;
 mod macros;
 mod object;
@@ -277,6 +279,17 @@ fn gracefully_shut_down_indexer() {
       log::warn!("Index thread panicked; join failed");
     }
   }
+}
+
+/// Nota bene: This function extracts the leaf script from a witness if the
+/// witness could represent a taproot script path spend, respecting and
+/// ignoring the taproot script annex, if present. Note that the witness may
+/// not actually be for a P2TR output, and the leaf script version is ignored.
+/// This means that this function will return scripts for any witness program
+/// version, past and present, as well as for any leaf script version.
+fn unversioned_leaf_script_from_witness(witness: &Witness) -> Option<&Script> {
+  #[allow(deprecated)]
+  witness.tapscript()
 }
 
 pub fn main() {

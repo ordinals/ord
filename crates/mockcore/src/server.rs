@@ -258,17 +258,25 @@ impl Api for Server {
       }
     }
 
+    let Some(tx) = state.transactions.get(&txid) else {
+      return Ok(None);
+    };
+
+    let script_pubkey = &tx.output[usize::try_from(vout).unwrap()].script_pubkey;
+
     Ok(Some(GetTxOutResult {
       bestblock: BlockHash::all_zeros(),
       coinbase: false,
       confirmations: confirmations.unwrap().try_into().unwrap(),
       script_pub_key: GetRawTransactionResultVoutScriptPubKey {
         asm: String::new(),
-        hex: Vec::new(),
+        hex: script_pubkey.to_bytes(),
         req_sigs: None,
         type_: None,
         addresses: Vec::new(),
-        address: None,
+        address: Address::from_script(script_pubkey, state.network)
+          .ok()
+          .map(|addr| addr.into_unchecked()),
       },
       value: *value,
     }))
@@ -368,7 +376,7 @@ impl Api for Server {
       .output
       .iter()
       .map(|txout| txout.value.to_sat())
-      .sum();
+      .sum::<u64>();
 
     let mut utxos = state
       .utxos
@@ -528,7 +536,7 @@ impl Api for Server {
             if state
               .txid_to_block_height
               .get(&tx_in.previous_output.txid)
-              .expect("input has not been miined")
+              .expect("input has not been mined")
               + u32::from(blocks.value())
               > u32::try_from(state.hashes.len()).unwrap()
             {
