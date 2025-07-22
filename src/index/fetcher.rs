@@ -139,7 +139,7 @@ impl Fetcher {
           "failed to parse JSON-RPC response: {e}. response: {response}",
           e = e,
           response = String::from_utf8_lossy(&buf)
-        ))
+        ));
       }
     };
 

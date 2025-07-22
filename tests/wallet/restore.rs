@@ -277,19 +277,19 @@ fn restore_with_now_timestamp() {
     .stderr_regex(".*")
     .run_and_deserialize_output::<ListDescriptorsResult>();
 
-  assert!(output
-    .descriptors
-    .iter()
-    .all(|descriptor| match descriptor.timestamp {
+  assert!(output.descriptors.iter().all(|descriptor| {
+    match descriptor.timestamp {
       bitcoincore_rpc::json::Timestamp::Now => true,
-      bitcoincore_rpc::json::Timestamp::Time(time) =>
+      bitcoincore_rpc::json::Timestamp::Time(time) => {
         time.abs_diff(
           std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs()
-        ) <= 5,
-    }));
+            .as_secs(),
+        ) <= 5
+      }
+    }
+  }));
 }
 
 #[test]
