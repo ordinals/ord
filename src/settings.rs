@@ -449,7 +449,7 @@ impl Settings {
             "testnet" => Chain::Testnet,
             "testnet4" => Chain::Testnet4,
             other => bail!("Bitcoin RPC server on unknown chain: {other}"),
-          }
+          };
         }
         Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(err)))
           if err.code == -28 => {}

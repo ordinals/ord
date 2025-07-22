@@ -166,9 +166,9 @@ impl Batch {
 
       if let Some(start) = terms.height.and_then(|range| range.start) {
         ensure!(
-            start > u64::from(reveal_height),
-            "`terms.height.start` must be greater than the reveal transaction block height of {reveal_height}"
-          );
+          start > u64::from(reveal_height),
+          "`terms.height.start` must be greater than the reveal transaction block height of {reveal_height}"
+        );
       }
 
       ensure!(terms.cap > 0, "`terms.cap` must be greater than zero");

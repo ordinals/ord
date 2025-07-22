@@ -260,7 +260,9 @@ pub(super) fn content_response(
         );
     }
     Some(origin) => {
-      let csp = format!("default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:");
+      let csp = format!(
+        "default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"
+      );
       headers.insert(
         header::CONTENT_SECURITY_POLICY,
         HeaderValue::from_str(&csp).map_err(|err| ServerError::Internal(Error::from(err)))?,
