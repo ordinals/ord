@@ -1,6 +1,30 @@
 Changelog
 =========
 
+[0.23.2](https://github.com/ordinals/ord/releases/tag/0.23.2) - 2025-05-20
+--------------------------------------------------------------------------
+
+### Added
+- Allow inscribing JPEG XL ([#4326](https://github.com/ordinals/ord/pull/4326) by [casey](https://github.com/casey))
+
+### Fixed
+- Don't display `(expected)` when rune has already unlocked ([#4323](https://github.com/ordinals/ord/pull/4323) by [casey](https://github.com/casey))
+
+### Misc
+- Bump minimum required Rust version to 1.81.0 ([#4353](https://github.com/ordinals/ord/pull/4353) by [casey](https://github.com/casey))
+- Fix typo in recursion.md ([#4348](https://github.com/ordinals/ord/pull/4348) by [furo-tests-in-prod](https://github.com/furo-tests-in-prod))
+- Fix typo in faq.md ([#4347](https://github.com/ordinals/ord/pull/4347) by [furo-tests-in-prod](https://github.com/furo-tests-in-prod))
+- Fix clippy errors ([#4350](https://github.com/ordinals/ord/pull/4350) by [raphjaph](https://github.com/raphjaph))
+- Fix minor typos ([#4337](https://github.com/ordinals/ord/pull/4337) by [GarmashAlex](https://github.com/GarmashAlex))
+- Fix grammatical errors ([#4328](https://github.com/ordinals/ord/pull/4328) by [VolodymyrBg](https://github.com/VolodymyrBg))
+- Fix moderation.md typo ([#4327](https://github.com/ordinals/ord/pull/4327) by [0xbasar](https://github.com/0xbasar))
+- Update sparrow-wallet.md ([#4332](https://github.com/ordinals/ord/pull/4332) by [gap-editor](https://github.com/gap-editor))
+- Bump actions/checkout to v4 ([#4330](https://github.com/ordinals/ord/pull/4330) by [dizer-ti](https://github.com/dizer-ti))
+- Retry RPC client ([#4329](https://github.com/ordinals/ord/pull/4329) by [SmarakNayak](https://github.com/SmarakNayak))
+- Move ethereum teleburn address out of details ([#4325](https://github.com/ordinals/ord/pull/4325) by [casey](https://github.com/casey))
+- Update sparrow-wallet.md ([#4324](https://github.com/ordinals/ord/pull/4324) by [owenzimmew06](https://github.com/owenzimmew06))
+- Fix typos in documentation and comments ([#4322](https://github.com/ordinals/ord/pull/4322) by [leopardracer](https://github.com/leopardracer))
+
 [0.23.1](https://github.com/ordinals/ord/releases/tag/0.23.1) - 2025-04-01
 --------------------------------------------------------------------------
 

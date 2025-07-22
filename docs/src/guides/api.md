@@ -475,7 +475,7 @@ curl -s -H "Accept: application/json" \
 <details>
   <summary>
     <code>GET</code>
-    <code><b>/decode/&lt;TRANSCATION_ID&gt;</b></code>
+    <code><b>/decode/&lt;TRANSACTION_ID&gt;</b></code>
   </summary>
 
 ### Description

@@ -68,10 +68,18 @@ impl Display for Error {
       Error::Dust {
         output_value,
         dust_value,
-      } => write!(f, "output value is below dust value: {output_value} < {dust_value}"),
-      Error::InvalidAddress(source) => write!(f, "invalid address: {source}", ),
-      Error::NotInWallet(outgoing_satpoint) => write!(f, "outgoing satpoint {outgoing_satpoint} not in wallet"),
-      Error::OutOfRange(outgoing_satpoint, maximum) => write!(f, "outgoing satpoint {outgoing_satpoint} offset higher than maximum {maximum}"),
+      } => write!(
+        f,
+        "output value is below dust value: {output_value} < {dust_value}"
+      ),
+      Error::InvalidAddress(source) => write!(f, "invalid address: {source}",),
+      Error::NotInWallet(outgoing_satpoint) => {
+        write!(f, "outgoing satpoint {outgoing_satpoint} not in wallet")
+      }
+      Error::OutOfRange(outgoing_satpoint, maximum) => write!(
+        f,
+        "outgoing satpoint {outgoing_satpoint} offset higher than maximum {maximum}"
+      ),
       Error::NotEnoughCardinalUtxos => write!(
         f,
         "wallet does not contain enough cardinal UTXOs, please add additional funds to wallet."
@@ -83,7 +91,11 @@ impl Display for Error {
       } => write!(
         f,
         "cannot send {outgoing_satpoint} without also sending inscription {} at {inscribed_satpoint}",
-        inscription_ids.iter().map(ToString::to_string).collect::<Vec<String>>().join(", "),
+        inscription_ids
+          .iter()
+          .map(ToString::to_string)
+          .collect::<Vec<String>>()
+          .join(", "),
       ),
       Error::ValueOverflow => write!(f, "arithmetic overflow calculating value"),
       Error::DuplicateAddress(address) => write!(f, "duplicate input address: {address}"),
