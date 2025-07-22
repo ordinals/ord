@@ -165,8 +165,8 @@ impl Plan {
         Ok(txid) => txid,
         Err(err) => {
           return Err(anyhow!(
-        "Failed to send reveal transaction: {err}\nCommit tx {commit_txid} will be recovered once mined"
-      ))
+            "Failed to send reveal transaction: {err}\nCommit tx {commit_txid} will be recovered once mined"
+          ));
         }
       };
 
