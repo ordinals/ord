@@ -196,8 +196,7 @@ pub(super) async fn children_paginated(
   task::block_in_place(|| {
     let Some(parent) = index.get_inscription_entry(parent)? else {
       return Err(ServerError::NotFound(format!(
-        "inscription {} not found",
-        parent
+        "inscription {parent} not found"
       )));
     };
 
@@ -261,7 +260,9 @@ pub(super) fn content_response(
         );
     }
     Some(origin) => {
-      let csp = format!("default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:");
+      let csp = format!(
+        "default-src {origin}/content/ {origin}/blockheight {origin}/blockhash {origin}/blockhash/ {origin}/blocktime {origin}/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"
+      );
       headers.insert(
         header::CONTENT_SECURITY_POLICY,
         HeaderValue::from_str(&csp).map_err(|err| ServerError::Internal(Error::from(err)))?,
@@ -320,8 +321,7 @@ pub(super) async fn inscription(
   task::block_in_place(|| {
     let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
       return Err(ServerError::NotFound(format!(
-        "inscription {} not found",
-        inscription_id
+        "inscription {inscription_id} not found",
       )));
     };
 
@@ -387,8 +387,7 @@ pub(super) async fn metadata(
   task::block_in_place(|| {
     let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
       return Err(ServerError::NotFound(format!(
-        "inscription {} not found",
-        inscription_id
+        "inscription {inscription_id} not found"
       )));
     };
 

@@ -78,7 +78,7 @@ impl Fetcher {
             ));
           }
 
-          log::info!("failed to fetch raw transactions, retrying: {}", error);
+          log::info!("failed to fetch raw transactions, retrying: {error}");
 
           tokio::time::sleep(Duration::from_millis(100 * u64::pow(2, retries))).await;
           retries += 1;
@@ -139,7 +139,7 @@ impl Fetcher {
           "failed to parse JSON-RPC response: {e}. response: {response}",
           e = e,
           response = String::from_utf8_lossy(&buf)
-        ))
+        ));
       }
     };
 

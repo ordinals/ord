@@ -91,7 +91,7 @@ impl Wallet {
     let signature = self.secp.sign_schnorr_no_aux_rand(
       &secp256k1::Message::from_digest_slice(sighash.as_ref())
         .expect("should be cryptographically secure hash"),
-      &tweaked_keypair.to_inner(),
+      &tweaked_keypair.to_keypair(),
     );
 
     let witness = sighash_cache
