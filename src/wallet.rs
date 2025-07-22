@@ -216,6 +216,27 @@ impl Wallet {
     Ok(inscription)
   }
 
+  pub(crate) fn get_output_info(&self, output: OutPoint) -> Result<Option<api::Output>> {
+    let output_info = self
+      .ord_client
+      .get(self.rpc_url.join(&format!("/output/{output}")).unwrap())
+      .send()?
+      .json()?;
+
+    Ok(output_info)
+  }
+
+  pub(crate) fn output_exists(&self, output: OutPoint) -> Result<bool> {
+    Ok(
+      !self
+        .ord_client
+        .get(self.rpc_url.join(&format!("/output/{output}")).unwrap())
+        .send()?
+        .status()
+        .is_client_error(),
+    )
+  }
+
   pub(crate) fn inscription_exists(&self, inscription_id: InscriptionId) -> Result<bool> {
     Ok(
       !self
