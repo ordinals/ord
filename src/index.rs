@@ -233,7 +233,7 @@ impl Index {
 
     let index_cache_size = settings.index_cache_size();
 
-    log::info!("Setting index cache size to {} bytes", index_cache_size);
+    log::info!("Setting index cache size to {index_cache_size} bytes");
 
     let durability = if cfg!(test) {
       redb::Durability::None
@@ -280,18 +280,15 @@ impl Index {
             .unwrap_or(0);
 
           match schema_version.cmp(&SCHEMA_VERSION) {
-            cmp::Ordering::Less =>
-              bail!(
-                "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-                path.display()
-              ),
-            cmp::Ordering::Greater =>
-              bail!(
-                "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-                path.display()
-              ),
-            cmp::Ordering::Equal => {
-            }
+            cmp::Ordering::Less => bail!(
+              "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+              path.display()
+            ),
+            cmp::Ordering::Greater => bail!(
+              "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+              path.display()
+            ),
+            cmp::Ordering::Equal => {}
           }
         }
 
@@ -705,7 +702,7 @@ impl Index {
       .map(|(height, _header)| height.value() + 1)
       .unwrap_or(0);
 
-    writeln!(writer, "# export at block height {}", blocks_indexed)?;
+    writeln!(writer, "# export at block height {blocks_indexed}")?;
 
     log::info!("exporting database tables to {filename}");
 
@@ -764,7 +761,7 @@ impl Index {
             .map(|address| address.to_string())
             .unwrap_or_else(|e| e.to_string())
         };
-        write!(writer, "\t{}", address)?;
+        write!(writer, "\t{address}")?;
       }
       writeln!(writer)?;
 
@@ -3618,8 +3615,17 @@ mod tests {
     let delimiter = if cfg!(windows) { '\\' } else { '/' };
 
     assert_eq!(
-      Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
-      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema {SCHEMA_VERSION}", path.display()));
+      Context::builder()
+        .tempdir(tempdir)
+        .try_build()
+        .err()
+        .unwrap()
+        .to_string(),
+      format!(
+        "index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema {SCHEMA_VERSION}",
+        path.display()
+      )
+    );
   }
 
   #[test]
@@ -3645,8 +3651,18 @@ mod tests {
     let delimiter = if cfg!(windows) { '\\' } else { '/' };
 
     assert_eq!(
-      Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
-      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}", path.display(), u64::MAX));
+      Context::builder()
+        .tempdir(tempdir)
+        .try_build()
+        .err()
+        .unwrap()
+        .to_string(),
+      format!(
+        "index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}",
+        path.display(),
+        u64::MAX
+      )
+    );
   }
 
   #[test]
