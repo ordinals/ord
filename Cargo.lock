@@ -542,6 +542,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitcoin-embed"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbbca7939350037cbbfce0fb2f9b1ce49dc2bf01ce2300b60f628cb1bb648cca"
+dependencies = [
+ "bitcoin",
+]
+
+[[package]]
 name = "bitcoin-internals"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2619,6 +2628,7 @@ dependencies = [
  "bip322",
  "bip39",
  "bitcoin",
+ "bitcoin-embed",
  "bitcoincore-rpc",
  "boilerplate",
  "brotli",
