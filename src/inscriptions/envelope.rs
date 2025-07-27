@@ -11,7 +11,7 @@ use {
   std::iter::Peekable,
 };
 
-pub(crate) const PROTOCOL_TAG: u128 = 55;
+pub(crate) const PROTOCOL_ANNEX_TAG: u128 = 55;
 pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
 pub(crate) const BODY_TAG: [u8; 0] = [];
 
@@ -137,7 +137,7 @@ impl RawEnvelope {
     };
 
     for message in messages {
-      if message.tag != PROTOCOL_TAG {
+      if message.tag != PROTOCOL_ANNEX_TAG {
         continue;
       }
 
