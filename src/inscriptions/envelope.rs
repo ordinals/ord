@@ -1230,6 +1230,12 @@ mod tests {
           ..default()
         },
         ParsedEnvelope {
+          payload: inscription2,
+          input: 1,
+          annex: false,
+          ..default()
+        },
+        ParsedEnvelope {
           payload: inscription3,
           offset: 1,
           annex: true,
@@ -1239,12 +1245,6 @@ mod tests {
           payload: inscription4,
           offset: 2,
           annex: true,
-          ..default()
-        },
-        ParsedEnvelope {
-          payload: inscription2,
-          input: 1,
-          annex: false,
           ..default()
         },
         ParsedEnvelope {
