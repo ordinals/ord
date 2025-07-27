@@ -1,6 +1,7 @@
 use super::*;
 
 mod addresses;
+mod annex;
 mod authentication;
 mod balance;
 mod batch_command;
