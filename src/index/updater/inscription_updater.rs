@@ -84,11 +84,9 @@ impl InscriptionUpdater<'_, '_> {
     let mut has_new_inscriptions = !envelopes.is_empty();
 
     let mut embeddings = Vec::new();
-    if let Some(index_annex_at_height) = index.settings.index_annex_at_height() {
-      if self.height >= index_annex_at_height {
-        embeddings = ParsedEmbedding::from_transaction(tx);
-        has_new_inscriptions = has_new_inscriptions || !embeddings.is_empty();
-      }
+    if self.height >= index.settings.chain().first_annex_inscription_height() {
+      embeddings = ParsedEmbedding::from_transaction(tx);
+      has_new_inscriptions = has_new_inscriptions || !embeddings.is_empty();
     }
 
     let mut parsed_inscriptions: Vec<_> = envelopes.into_iter().chain(embeddings).collect();

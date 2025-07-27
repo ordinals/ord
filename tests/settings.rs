@@ -24,7 +24,6 @@ fn default() {
   "http_port": null,
   "index": ".*index\.redb",
   "index_addresses": false,
-  "index_annex_at_height": null,
   "index_cache_size": \d+,
   "index_runes": false,
   "index_sats": false,

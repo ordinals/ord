@@ -53,11 +53,6 @@ pub struct Options {
   pub(crate) index_addresses: bool,
   #[arg(
     long,
-    help = "Index annex inscriptions after <INDEX_ANNEX_AT_HEIGHT> blocks."
-  )]
-  pub(crate) index_annex_at_height: Option<u32>,
-  #[arg(
-    long,
     help = "Set index cache size to <INDEX_CACHE_SIZE> bytes. [default: 1/4 available RAM]"
   )]
   pub(crate) index_cache_size: Option<usize>,
