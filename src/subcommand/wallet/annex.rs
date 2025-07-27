@@ -44,7 +44,7 @@ impl Annex {
       self.compress,
     )?;
 
-    let annex = hex::encode(&Inscription::convert_batch_to_annex(&inscriptions));
+    let annex = hex::encode(Inscription::convert_batch_to_annex(&inscriptions));
 
     Ok(Some(Box::new(annex::Output { annex })))
   }
