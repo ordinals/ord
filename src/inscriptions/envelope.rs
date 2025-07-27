@@ -14,6 +14,7 @@ use {
 pub(crate) const PROTOCOL_ANNEX_TAG: u128 = 55;
 pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
 pub(crate) const BODY_TAG: [u8; 0] = [];
+pub(crate) const BODY_ANNEX_TAG: u8 = 0;
 
 type Result<T> = std::result::Result<T, script::Error>;
 pub type RawEnvelope = Envelope<Vec<Vec<u8>>>;
@@ -110,10 +111,10 @@ impl RawEnvelope {
     let mut annex_envelopes = Vec::new();
 
     for (i, input) in transaction.input.iter().enumerate() {
-      let mut offset = 0;
+      let mut offset: usize = 0;
       if let Some(tapscript) = unversioned_leaf_script_from_witness(&input.witness) {
         if let Ok(input_envelopes) = Self::from_tapscript(tapscript, i) {
-          offset += input_envelopes.len() as u32;
+          offset += input_envelopes.len();
           envelopes.extend(input_envelopes);
         }
       }
@@ -129,7 +130,7 @@ impl RawEnvelope {
     envelopes
   }
 
-  pub fn from_annex(bytes: &[u8], input: usize, mut offset: u32) -> Vec<Self> {
+  pub fn from_annex(bytes: &[u8], input: usize, mut offset: usize) -> Vec<Self> {
     let mut envelopes = Vec::new();
 
     let Ok(messages) = Message::decode(bytes) else {
@@ -141,43 +142,44 @@ impl RawEnvelope {
         continue;
       }
 
-      let Ok((val, size)) = varint::decode(&message.body) else {
-        continue;
-      };
+      let mut index = 0;
+      let mut payload = Vec::new();
+      let mut invalid = message.body.len() == 1;
+      while index + 1 < message.body.len() {
+        if message.body[index] == BODY_ANNEX_TAG {
+          payload.push(BODY_TAG.to_vec());
+          payload.push(message.body[index + 1..].to_vec());
+          break;
+        }
 
-      if val >= u32::MAX.into() {
+        let Ok((length, size)) = varint::decode(&message.body[index + 1..]) else {
+          invalid = true;
+          break;
+        };
+
+        if length >= u32::MAX.into() {
+          invalid = true;
+          break;
+        }
+
+        let length: usize = length.try_into().unwrap();
+        if index + size + length + 1 > message.body.len() {
+          invalid = true;
+          break;
+        }
+
+        payload.push(vec![message.body[index]]);
+        payload.push(message.body[index + size + 1..index + size + length + 1].to_vec());
+        index += size + length + 1;
+      }
+
+      if invalid {
         continue;
       }
-      let prefix_size = val as usize;
-
-      if message.body.len() < size + prefix_size {
-        continue;
-      }
-
-      let mut prefix = script::Builder::new()
-        .push_opcode(opcodes::OP_FALSE)
-        .push_opcode(opcodes::all::OP_IF)
-        .push_slice(PROTOCOL_ID)
-        .into_bytes();
-      prefix.extend(&message.body[size..size + prefix_size]);
-      prefix.push(opcodes::all::OP_ENDIF.to_u8());
-
-      let Ok(raw_envelopes) = RawEnvelope::from_tapscript(Script::from_bytes(&prefix), input)
-      else {
-        continue;
-      };
-      let Some(raw_envelope) = raw_envelopes.first() else {
-        continue;
-      };
-
-      let body = &message.body[size + prefix_size..];
-      let mut payload = raw_envelope.payload.clone();
-      payload.push(BODY_TAG.to_vec());
-      payload.push(body.to_vec());
 
       envelopes.push(Self {
         input: input.try_into().unwrap(),
-        offset,
+        offset: offset.try_into().unwrap(),
         payload,
         pushnum: false,
         stutter: false,

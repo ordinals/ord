@@ -124,21 +124,19 @@ impl Inscription {
     let mut messages = Vec::new();
 
     for inscription in inscriptions {
-      let mut builder = ScriptBuf::builder();
-      Tag::ContentType.append(&mut builder, &inscription.content_type);
-      Tag::ContentEncoding.append(&mut builder, &inscription.content_encoding);
-      Tag::Metaprotocol.append(&mut builder, &inscription.metaprotocol);
-      Tag::Parent.append_array(&mut builder, &inscription.parents);
-      Tag::Delegate.append(&mut builder, &inscription.delegate);
-      Tag::Pointer.append(&mut builder, &inscription.pointer);
-      Tag::Metadata.append(&mut builder, &inscription.metadata);
-      Tag::Rune.append(&mut builder, &inscription.rune);
-      Tag::Properties.append(&mut builder, &inscription.properties);
-
-      let mut bytes = builder.into_bytes();
-      bytes.splice(0..0, varint::encode(bytes.len() as u128));
+      let mut bytes = Vec::new();
+      Tag::ContentType.append_as_bytes(&mut bytes, &inscription.content_type);
+      Tag::ContentEncoding.append_as_bytes(&mut bytes, &inscription.content_encoding);
+      Tag::Metaprotocol.append_as_bytes(&mut bytes, &inscription.metaprotocol);
+      Tag::Parent.append_array_as_bytes(&mut bytes, &inscription.parents);
+      Tag::Delegate.append_as_bytes(&mut bytes, &inscription.delegate);
+      Tag::Pointer.append_as_bytes(&mut bytes, &inscription.pointer);
+      Tag::Metadata.append_as_bytes(&mut bytes, &inscription.metadata);
+      Tag::Rune.append_as_bytes(&mut bytes, &inscription.rune);
+      Tag::Properties.append_as_bytes(&mut bytes, &inscription.properties);
 
       if let Some(body) = &inscription.body {
+        bytes.push(envelope::BODY_ANNEX_TAG);
         bytes.extend(body);
       }
 

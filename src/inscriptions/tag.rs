@@ -51,6 +51,14 @@ impl Tag {
     }
   }
 
+  pub(crate) fn append_as_bytes(self, bytes: &mut Vec<u8>, value: &Option<Vec<u8>>) {
+    if let Some(value) = value {
+      bytes.push(self as u8);
+      varint::encode_to_vec(value.len() as u128, bytes);
+      bytes.extend(value);
+    }
+  }
+
   pub(crate) fn append_array(self, builder: &mut script::Builder, values: &Vec<Vec<u8>>) {
     let mut tmp = script::Builder::new();
     mem::swap(&mut tmp, builder);
@@ -62,6 +70,14 @@ impl Tag {
     }
 
     mem::swap(&mut tmp, builder);
+  }
+
+  pub(crate) fn append_array_as_bytes(self, bytes: &mut Vec<u8>, values: &Vec<Vec<u8>>) {
+    for value in values {
+      bytes.push(self as u8);
+      varint::encode_to_vec(value.len() as u128, bytes);
+      bytes.extend(value);
+    }
   }
 
   pub(crate) fn take(self, fields: &mut BTreeMap<&[u8], Vec<&[u8]>>) -> Option<Vec<u8>> {
