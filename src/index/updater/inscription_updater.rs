@@ -91,10 +91,7 @@ impl InscriptionUpdater<'_, '_> {
       }
     }
 
-    let mut parsed_inscriptions: Vec<_> = envelopes
-      .into_iter()
-      .chain(embeddings.into_iter())
-      .collect();
+    let mut parsed_inscriptions: Vec<_> = envelopes.into_iter().chain(embeddings).collect();
     parsed_inscriptions.sort_by_key(|inscription| inscription.input);
     let mut parsed_inscriptions = parsed_inscriptions.into_iter().peekable();
 

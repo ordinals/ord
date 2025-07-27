@@ -107,7 +107,7 @@ impl RawEmbedding {
 mod tests {
   use super::*;
 
-  fn parse(witnesses: &[Witness]) -> Vec<ParsedEmbedding> {
+  fn parse(witnesses: &[Witness]) -> Vec<ParsedEnvelope> {
     ParsedEmbedding::from_transaction(&Transaction {
       version: Version(2),
       lock_time: LockTime::ZERO,
@@ -167,7 +167,7 @@ mod tests {
 
     assert_eq!(
       parse(&[Witness::from_slice(&[vec![], annex])]),
-      vec![ParsedEmbedding {
+      vec![ParsedEnvelope {
         payload: inscription,
         ..default()
       }]
@@ -183,11 +183,11 @@ mod tests {
     assert_eq!(
       parse(&[Witness::from_slice(&[vec![], annex])]),
       vec![
-        ParsedEmbedding {
+        ParsedEnvelope {
           payload: inscription1,
           ..default()
         },
-        ParsedEmbedding {
+        ParsedEnvelope {
           payload: inscription2,
           offset: 1,
           ..default()
@@ -211,21 +211,21 @@ mod tests {
         Witness::from_slice(&[vec![], annex1])
       ]),
       vec![
-        ParsedEmbedding {
+        ParsedEnvelope {
           payload: inscription1,
           ..default()
         },
-        ParsedEmbedding {
+        ParsedEnvelope {
           payload: inscription2,
           offset: 1,
           ..default()
         },
-        ParsedEmbedding {
+        ParsedEnvelope {
           payload: inscription3,
           input: 1,
           ..default()
         },
-        ParsedEmbedding {
+        ParsedEnvelope {
           payload: inscription4,
           input: 1,
           offset: 1,

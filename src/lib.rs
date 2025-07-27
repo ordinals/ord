@@ -98,7 +98,7 @@ pub use self::{
   fee_rate::FeeRate,
   index::{Index, RuneEntry},
   inscriptions::{
-    Envelope, Inscription, InscriptionId, ParsedEnvelope, ParsedEmbedding, RawEnvelope,
+    Envelope, Inscription, InscriptionId, ParsedEmbedding, ParsedEnvelope, RawEnvelope,
   },
   object::Object,
   options::Options,
