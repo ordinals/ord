@@ -5,10 +5,11 @@ use tag::Tag;
 pub(crate) use self::media::Media;
 
 pub use self::{
+  embedding::ParsedEmbedding,
   envelope::Envelope,
   envelope::ParsedEnvelope,
   envelope::RawEnvelope,
-  inscription::{Inscription, ParsedInscription},
+  inscription::Inscription,
   inscription_id::InscriptionId,
 };
 

@@ -7,7 +7,6 @@ use {
       Instructions,
     },
   },
-  inscription::ParsedInscription,
   std::iter::Peekable,
 };
 
@@ -25,24 +24,6 @@ pub struct Envelope<T> {
   pub payload: T,
   pub pushnum: bool,
   pub stutter: bool,
-}
-
-impl ParsedInscription for Envelope<Inscription> {
-  fn input(&self) -> u32 {
-    self.input
-  }
-  fn offset(&self) -> u32 {
-    self.offset
-  }
-  fn payload(&self) -> &Inscription {
-    &self.payload
-  }
-  fn pushnum(&self) -> bool {
-    self.pushnum
-  }
-  fn stutter(&self) -> bool {
-    self.stutter
-  }
 }
 
 impl From<RawEnvelope> for ParsedEnvelope {

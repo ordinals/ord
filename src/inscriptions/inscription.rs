@@ -9,14 +9,6 @@ use {
   std::str,
 };
 
-pub trait ParsedInscription {
-  fn input(&self) -> u32;
-  fn offset(&self) -> u32;
-  fn payload(&self) -> &Inscription;
-  fn pushnum(&self) -> bool;
-  fn stutter(&self) -> bool;
-}
-
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
 pub struct Inscription {
   pub body: Option<Vec<u8>>,
