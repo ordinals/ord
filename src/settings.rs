@@ -21,6 +21,7 @@ pub struct Settings {
   http_port: Option<u16>,
   index: Option<PathBuf>,
   index_addresses: bool,
+  index_annex_at_height: Option<u32>,
   index_cache_size: Option<usize>,
   index_runes: bool,
   index_sats: bool,
@@ -136,6 +137,7 @@ impl Settings {
       http_port: self.http_port.or(source.http_port),
       index: self.index.or(source.index),
       index_addresses: self.index_addresses || source.index_addresses,
+      index_annex_at_height: self.index_annex_at_height.or(source.index_annex_at_height),
       index_cache_size: self.index_cache_size.or(source.index_cache_size),
       index_runes: self.index_runes || source.index_runes,
       index_sats: self.index_sats || source.index_sats,
@@ -174,6 +176,7 @@ impl Settings {
       http_port: None,
       index: options.index,
       index_addresses: options.index_addresses,
+      index_annex_at_height: options.index_annex_at_height,
       index_cache_size: options.index_cache_size,
       index_runes: options.index_runes,
       index_sats: options.index_sats,
@@ -264,6 +267,7 @@ impl Settings {
       http_port: get_u16("HTTP_PORT")?,
       index: get_path("INDEX"),
       index_addresses: get_bool("INDEX_ADDRESSES"),
+      index_annex_at_height: get_u32("INDEX_ANNEX_AT_HEIGHT")?,
       index_cache_size: get_usize("INDEX_CACHE_SIZE")?,
       index_runes: get_bool("INDEX_RUNES"),
       index_sats: get_bool("INDEX_SATS"),
@@ -296,6 +300,7 @@ impl Settings {
       http_port: None,
       index: None,
       index_addresses: true,
+      index_annex_at_height: None,
       index_cache_size: None,
       index_runes: true,
       index_sats: true,
@@ -365,6 +370,7 @@ impl Settings {
       http_port: self.http_port,
       index: Some(index),
       index_addresses: self.index_addresses,
+      index_annex_at_height: self.index_annex_at_height,
       index_cache_size: Some(match self.index_cache_size {
         Some(index_cache_size) => index_cache_size,
         None => {
@@ -550,6 +556,10 @@ impl Settings {
 
   pub fn index_addresses_raw(&self) -> bool {
     self.index_addresses
+  }
+
+  pub fn index_annex_at_height(&self) -> Option<u32> {
+    self.index_annex_at_height
   }
 
   pub fn index_inscriptions_raw(&self) -> bool {
@@ -1079,6 +1089,7 @@ mod tests {
       ("INDEX", "index"),
       ("INDEX_CACHE_SIZE", "4"),
       ("INDEX_ADDRESSES", "1"),
+      ("INDEX_ANNEX_AT_HEIGHT", "7"),
       ("INDEX_RUNES", "1"),
       ("INDEX_SATS", "1"),
       ("INDEX_TRANSACTIONS", "1"),
@@ -1124,6 +1135,7 @@ mod tests {
         http_port: Some(8080),
         index: Some("index".into()),
         index_addresses: true,
+        index_annex_at_height: Some(7),
         index_cache_size: Some(4),
         index_runes: true,
         index_sats: true,
@@ -1158,6 +1170,7 @@ mod tests {
           "--datadir=/data/dir",
           "--height-limit=3",
           "--index-addresses",
+          "--index-annex-at-height=7",
           "--index-cache-size=4",
           "--index-runes",
           "--index-sats",
@@ -1189,6 +1202,7 @@ mod tests {
         http_port: None,
         index: Some("index".into()),
         index_addresses: true,
+        index_annex_at_height: Some(7),
         index_cache_size: Some(4),
         index_runes: true,
         index_sats: true,
