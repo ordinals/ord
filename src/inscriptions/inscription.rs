@@ -124,8 +124,6 @@ impl Inscription {
     let mut messages = Vec::new();
 
     for inscription in inscriptions {
-      let tag = 55;
-
       let mut builder = ScriptBuf::builder();
       Tag::ContentType.append(&mut builder, &inscription.content_type);
       Tag::ContentEncoding.append(&mut builder, &inscription.content_encoding);
@@ -144,12 +142,12 @@ impl Inscription {
         bytes.extend(body);
       }
 
-      let message = Message::new(tag, bytes).unwrap();
+      let message = Message::new(embedding::PROTOCOL_TAG, bytes).unwrap();
       messages.push(message);
     }
 
     let mut annex = Message::encode(messages);
-    annex.splice(0..0, [TAPROOT_ANNEX_DATA_TAG]);
+    annex.splice(0..0, [0x50, TAPROOT_ANNEX_DATA_TAG]);
     annex
   }
 

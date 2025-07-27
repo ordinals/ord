@@ -9,6 +9,7 @@ pub use self::{
   inscription_id::InscriptionId,
 };
 
+mod embedding;
 mod envelope;
 mod inscription;
 pub(crate) mod inscription_id;

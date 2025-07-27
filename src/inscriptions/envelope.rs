@@ -115,7 +115,7 @@ impl RawEnvelope {
     envelopes
   }
 
-  fn from_tapscript(tapscript: &Script, input: usize) -> Result<Vec<Self>> {
+  pub fn from_tapscript(tapscript: &Script, input: usize) -> Result<Vec<Self>> {
     let mut envelopes = Vec::new();
 
     let mut instructions = tapscript.instructions().peekable();
