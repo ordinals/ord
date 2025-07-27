@@ -7,9 +7,11 @@ use {
       Instructions,
     },
   },
+  bitcoin_embed::{message::Message, TAPROOT_ANNEX_DATA_TAG},
   std::iter::Peekable,
 };
 
+pub(crate) const PROTOCOL_TAG: u128 = 55;
 pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
 pub(crate) const BODY_TAG: [u8; 0] = [];
 
@@ -24,6 +26,7 @@ pub struct Envelope<T> {
   pub payload: T,
   pub pushnum: bool,
   pub stutter: bool,
+  pub annex: bool,
 }
 
 impl From<RawEnvelope> for ParsedEnvelope {
@@ -87,6 +90,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
       offset: envelope.offset,
       pushnum: envelope.pushnum,
       stutter: envelope.stutter,
+      annex: envelope.annex,
     }
   }
 }
@@ -103,13 +107,83 @@ impl ParsedEnvelope {
 impl RawEnvelope {
   pub fn from_transaction(transaction: &Transaction) -> Vec<Self> {
     let mut envelopes = Vec::new();
+    let mut annex_envelopes = Vec::new();
 
     for (i, input) in transaction.input.iter().enumerate() {
+      let mut offset = 0;
       if let Some(tapscript) = unversioned_leaf_script_from_witness(&input.witness) {
         if let Ok(input_envelopes) = Self::from_tapscript(tapscript, i) {
+          offset += input_envelopes.len() as u32;
           envelopes.extend(input_envelopes);
         }
       }
+
+      if let Some(annex) = input.witness.taproot_annex() {
+        if annex.len() > 2 && annex[1] == TAPROOT_ANNEX_DATA_TAG {
+          annex_envelopes.extend(Self::from_annex(&annex[2..], i, offset));
+        }
+      }
+    }
+
+    envelopes.extend(annex_envelopes);
+    envelopes
+  }
+
+  pub fn from_annex(bytes: &[u8], input: usize, mut offset: u32) -> Vec<Self> {
+    let mut envelopes = Vec::new();
+
+    let Ok(messages) = Message::decode(bytes) else {
+      return Vec::new();
+    };
+
+    for message in messages {
+      if message.tag != PROTOCOL_TAG {
+        continue;
+      }
+
+      let Ok((val, size)) = varint::decode(&message.body) else {
+        continue;
+      };
+
+      if val >= u32::MAX.into() {
+        continue;
+      }
+      let prefix_size = val as usize;
+
+      if message.body.len() < size + prefix_size {
+        continue;
+      }
+
+      let mut prefix = script::Builder::new()
+        .push_opcode(opcodes::OP_FALSE)
+        .push_opcode(opcodes::all::OP_IF)
+        .push_slice(PROTOCOL_ID)
+        .into_bytes();
+      prefix.extend(&message.body[size..size + prefix_size]);
+      prefix.push(opcodes::all::OP_ENDIF.to_u8());
+
+      let Ok(raw_envelopes) = RawEnvelope::from_tapscript(Script::from_bytes(&prefix), input)
+      else {
+        continue;
+      };
+      let Some(raw_envelope) = raw_envelopes.first() else {
+        continue;
+      };
+
+      let body = &message.body[size + prefix_size..];
+      let mut payload = raw_envelope.payload.clone();
+      payload.push(BODY_TAG.to_vec());
+      payload.push(body.to_vec());
+
+      envelopes.push(Self {
+        input: input.try_into().unwrap(),
+        offset,
+        payload,
+        pushnum: false,
+        stutter: false,
+        annex: true,
+      });
+      offset += 1;
     }
 
     envelopes
@@ -177,6 +251,7 @@ impl RawEnvelope {
               payload,
               pushnum,
               stutter,
+              annex: false,
             }),
           ));
         }
@@ -1044,6 +1119,149 @@ mod tests {
         stutter: false,
         ..default()
       }],
+    );
+  }
+
+  #[test]
+  fn single_inscription_in_single_annex() {
+    let inscription = inscription("text/plain;charset=utf-8", "ord");
+    let annex = Inscription::convert_batch_to_annex(&[inscription.clone()]);
+
+    assert_eq!(
+      parse(&[Witness::from_slice(&[vec![], annex])]),
+      vec![ParsedEnvelope {
+        payload: inscription,
+        annex: true,
+        ..default()
+      }]
+    );
+  }
+
+  #[test]
+  fn multiple_inscriptions_in_single_annex() {
+    let inscription1 = inscription("text/plain;charset=utf-8", "ord");
+    let inscription2 = inscription("text/plain;charset=utf-8", "ord2");
+    let annex = Inscription::convert_batch_to_annex(&[inscription1.clone(), inscription2.clone()]);
+
+    assert_eq!(
+      parse(&[Witness::from_slice(&[vec![], annex])]),
+      vec![
+        ParsedEnvelope {
+          payload: inscription1,
+          annex: true,
+          ..default()
+        },
+        ParsedEnvelope {
+          payload: inscription2,
+          offset: 1,
+          annex: true,
+          ..default()
+        }
+      ]
+    );
+  }
+
+  #[test]
+  fn multiple_inscriptions_in_multiple_annexes() {
+    let inscription1 = inscription("text/plain;charset=utf-8", "ord");
+    let inscription2 = inscription("text/plain;charset=utf-8", "ord2");
+    let inscription3 = inscription("text/plain;charset=utf-8", "ord3");
+    let inscription4 = inscription("text/plain;charset=utf-8", "ord4");
+    let annex0 = Inscription::convert_batch_to_annex(&[inscription1.clone(), inscription2.clone()]);
+    let annex1 = Inscription::convert_batch_to_annex(&[inscription3.clone(), inscription4.clone()]);
+
+    assert_eq!(
+      parse(&[
+        Witness::from_slice(&[vec![], annex0]),
+        Witness::from_slice(&[vec![], annex1])
+      ]),
+      vec![
+        ParsedEnvelope {
+          payload: inscription1,
+          annex: true,
+          ..default()
+        },
+        ParsedEnvelope {
+          payload: inscription2,
+          offset: 1,
+          annex: true,
+          ..default()
+        },
+        ParsedEnvelope {
+          payload: inscription3,
+          input: 1,
+          annex: true,
+          ..default()
+        },
+        ParsedEnvelope {
+          payload: inscription4,
+          input: 1,
+          offset: 1,
+          annex: true,
+          ..default()
+        }
+      ]
+    );
+  }
+
+  #[test]
+  fn multiple_inscriptions_in_multiple_annexes_and_script() {
+    let inscription1 = inscription("text/plain;charset=utf-8", "ord");
+    let inscription2 = inscription("text/plain;charset=utf-8", "ord2");
+    let inscription3 = inscription("text/plain;charset=utf-8", "ord3");
+    let inscription4 = inscription("text/plain;charset=utf-8", "ord4");
+    let inscription5 = inscription("text/plain;charset=utf-8", "ord5");
+    let inscription6 = inscription("text/plain;charset=utf-8", "ord6");
+    let annex0 = Inscription::convert_batch_to_annex(&[inscription3.clone(), inscription4.clone()]);
+    let annex1 = Inscription::convert_batch_to_annex(&[inscription5.clone(), inscription6.clone()]);
+
+    let mut witness0 = inscription1.to_witness();
+    witness0.push(annex0);
+
+    let mut witness1 = inscription2.to_witness();
+    witness1.push(annex1);
+
+    assert_eq!(
+      parse(&[witness0, witness1,]),
+      vec![
+        ParsedEnvelope {
+          payload: inscription1,
+          annex: false,
+          ..default()
+        },
+        ParsedEnvelope {
+          payload: inscription3,
+          offset: 1,
+          annex: true,
+          ..default()
+        },
+        ParsedEnvelope {
+          payload: inscription4,
+          offset: 2,
+          annex: true,
+          ..default()
+        },
+        ParsedEnvelope {
+          payload: inscription2,
+          input: 1,
+          annex: false,
+          ..default()
+        },
+        ParsedEnvelope {
+          payload: inscription5,
+          input: 1,
+          offset: 1,
+          annex: true,
+          ..default()
+        },
+        ParsedEnvelope {
+          payload: inscription6,
+          input: 1,
+          offset: 2,
+          annex: true,
+          ..default()
+        }
+      ]
     );
   }
 }

@@ -142,7 +142,7 @@ impl Inscription {
         bytes.extend(body);
       }
 
-      let message = Message::new(embedding::PROTOCOL_TAG, bytes).unwrap();
+      let message = Message::new(envelope::PROTOCOL_TAG, bytes).unwrap();
       messages.push(message);
     }
 

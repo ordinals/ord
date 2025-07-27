@@ -80,18 +80,13 @@ impl InscriptionUpdater<'_, '_> {
       .map(|txout| txout.value.to_sat())
       .sum::<u64>();
 
-    let envelopes = ParsedEnvelope::from_transaction(tx);
-    let mut has_new_inscriptions = !envelopes.is_empty();
-
-    let mut embeddings = Vec::new();
-    if self.height >= index.settings.chain().first_annex_inscription_height() {
-      embeddings = ParsedEmbedding::from_transaction(tx);
-      has_new_inscriptions = has_new_inscriptions || !embeddings.is_empty();
+    let mut envelopes = ParsedEnvelope::from_transaction(tx);
+    if self.height < index.settings.chain().first_annex_inscription_height() {
+      // remove annex inscriptions
+      envelopes.retain(|envelope| !envelope.annex);
     }
-
-    let mut parsed_inscriptions: Vec<_> = envelopes.into_iter().chain(embeddings).collect();
-    parsed_inscriptions.sort_by_key(|inscription| inscription.input);
-    let mut parsed_inscriptions = parsed_inscriptions.into_iter().peekable();
+    let has_new_inscriptions = !envelopes.is_empty();
+    let mut envelopes = envelopes.into_iter().peekable();
 
     for (input_index, txin) in tx.input.iter().enumerate() {
       // skip subsidy since no inscriptions possible
@@ -141,7 +136,7 @@ impl InscriptionUpdater<'_, '_> {
       total_input_value += input_value;
 
       // go through all inscriptions in this input
-      while let Some(inscription) = parsed_inscriptions.peek() {
+      while let Some(inscription) = envelopes.peek() {
         if inscription.input != u32::try_from(input_index).unwrap() {
           break;
         }
@@ -222,7 +217,7 @@ impl InscriptionUpdater<'_, '_> {
           .or_insert((inscription_id, 0))
           .1 += 1;
 
-        parsed_inscriptions.next();
+        envelopes.next();
         id_counter += 1;
       }
     }
