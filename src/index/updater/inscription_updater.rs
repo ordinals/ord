@@ -133,7 +133,7 @@ impl InscriptionUpdater<'_, '_> {
 
       // go through all inscriptions in this input
       while let Some(inscription) = envelopes.peek() {
-        if inscription.input != u32::try_from(input_index).unwrap() {
+        if inscription.input() != u32::try_from(input_index).unwrap() {
           break;
         }
 
@@ -142,21 +142,21 @@ impl InscriptionUpdater<'_, '_> {
           index: id_counter,
         };
 
-        let curse = if inscription.payload.unrecognized_even_field {
+        let curse = if inscription.payload().unrecognized_even_field {
           Some(Curse::UnrecognizedEvenField)
-        } else if inscription.payload.duplicate_field {
+        } else if inscription.payload().duplicate_field {
           Some(Curse::DuplicateField)
-        } else if inscription.payload.incomplete_field {
+        } else if inscription.payload().incomplete_field {
           Some(Curse::IncompleteField)
-        } else if inscription.input != 0 {
+        } else if inscription.input() != 0 {
           Some(Curse::NotInFirstInput)
-        } else if inscription.offset != 0 {
+        } else if inscription.offset() != 0 {
           Some(Curse::NotAtOffsetZero)
-        } else if inscription.payload.pointer.is_some() {
+        } else if inscription.payload().pointer.is_some() {
           Some(Curse::Pointer)
-        } else if inscription.pushnum {
+        } else if inscription.pushnum() {
           Some(Curse::Pushnum)
-        } else if inscription.stutter {
+        } else if inscription.stutter() {
           Some(Curse::Stutter)
         } else if let Some((id, count)) = inscribed_offsets.get(&offset) {
           if *count > 1 {
@@ -187,7 +187,7 @@ impl InscriptionUpdater<'_, '_> {
         };
 
         let offset = inscription
-          .payload
+          .payload()
           .pointer()
           .filter(|&pointer| pointer < total_output_value)
           .unwrap_or(offset);
@@ -198,12 +198,12 @@ impl InscriptionUpdater<'_, '_> {
           origin: Origin::New {
             cursed: curse.is_some() && !jubilant,
             fee: 0,
-            hidden: inscription.payload.hidden(),
-            parents: inscription.payload.parents(),
+            hidden: inscription.payload().hidden(),
+            parents: inscription.payload().parents(),
             reinscription: inscribed_offsets.contains_key(&offset),
             unbound: input_value == 0
               || curse == Some(Curse::UnrecognizedEvenField)
-              || inscription.payload.unrecognized_even_field,
+              || inscription.payload().unrecognized_even_field,
             vindicated: curse.is_some() && jubilant,
           },
         });

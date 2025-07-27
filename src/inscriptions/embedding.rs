@@ -3,6 +3,7 @@ use {
   bitcoin::blockdata::opcodes,
   bitcoin_embed::{message::Message, Embedding as BitcoinEmbedding, EmbeddingLocation},
   envelope::{RawEnvelope, BODY_TAG, PROTOCOL_ID},
+  inscription::ParsedInscription,
 };
 
 pub(crate) const PROTOCOL_TAG: u128 = 55;
@@ -15,6 +16,24 @@ pub struct Embedding<T> {
   pub input: u32,
   pub offset: u32,
   pub payload: T,
+}
+
+impl ParsedInscription for Embedding<Inscription> {
+  fn input(&self) -> u32 {
+    self.input
+  }
+  fn offset(&self) -> u32 {
+    self.offset
+  }
+  fn payload(&self) -> &Inscription {
+    &self.payload
+  }
+  fn pushnum(&self) -> bool {
+    false
+  }
+  fn stutter(&self) -> bool {
+    false
+  }
 }
 
 impl From<RawEmbedding> for ParsedEmbedding {

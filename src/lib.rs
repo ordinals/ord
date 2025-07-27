@@ -97,7 +97,9 @@ pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
   index::{Index, RuneEntry},
-  inscriptions::{Envelope, Inscription, InscriptionId, ParsedEnvelope, RawEnvelope},
+  inscriptions::{
+    Envelope, Inscription, InscriptionId, ParsedEnvelope, ParsedInscription, RawEnvelope,
+  },
   object::Object,
   options::Options,
   wallet::transaction_builder::{Target, TransactionBuilder},
