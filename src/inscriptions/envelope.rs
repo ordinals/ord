@@ -11,7 +11,7 @@ use {
   std::iter::Peekable,
 };
 
-pub(crate) const PROTOCOL_ANNEX_TAG: u128 = 55;
+pub(crate) const PROTOCOL_ANNEX_TAG: u128 = 0x37;
 pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
 pub(crate) const BODY_TAG: [u8; 0] = [];
 pub(crate) const BODY_ANNEX_TAG: u8 = 0;
