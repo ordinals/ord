@@ -128,17 +128,11 @@ impl Sweep {
 
       let sighash = sighash_cache
         .p2wpkh_signature_hash(i, &script_pubkey, value, sighash_type)
-        .expect("signature hash should compute");
+        .unwrap();
 
-      let signature = secp.sign_ecdsa(
-        &Message::from_digest_slice(sighash.as_ref())
-          .expect("should be cryptographically secure hash"),
-        &private_key.inner,
-      );
+      let signature = secp.sign_ecdsa(&Message::from_digest(*sighash.as_ref()), &private_key.inner);
 
-      let witness = sighash_cache
-        .witness_mut(i)
-        .expect("getting mutable witness reference should work");
+      let witness = sighash_cache.witness_mut(i).unwrap();
 
       witness.push_ecdsa_signature(&Signature {
         signature,
