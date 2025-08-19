@@ -104,13 +104,20 @@ impl Sweep {
       })
       .collect();
 
-    let output = utxos
+    let values = utxos
       .iter()
-      .map(|output| TxOut {
-        value: Amount::from_sat(output.value),
-        script_pubkey: wallet.get_receive_address().unwrap().script_pubkey(),
+      .map(|output| Amount::from_sat(output.value))
+      .collect::<Vec<Amount>>();
+
+    let output = values
+      .iter()
+      .map(|&value| {
+        Ok(TxOut {
+          value,
+          script_pubkey: wallet.get_receive_address()?.script_pubkey(),
+        })
       })
-      .collect();
+      .collect::<Result<Vec<TxOut>>>()?;
 
     let mut tx = Transaction {
       version: Version::TWO,
@@ -118,11 +125,6 @@ impl Sweep {
       input,
       output,
     };
-
-    let values = utxos
-      .iter()
-      .map(|output| Amount::from_sat(output.value))
-      .collect::<Vec<Amount>>();
 
     Self::sign_transaction(
       compressed_public_key,
@@ -135,12 +137,12 @@ impl Sweep {
 
     wallet.lock_non_cardinal_outputs()?;
 
-    let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &tx).unwrap();
+    let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &tx)
+      .context("failed to fund transaction")?;
 
     let mut tx = consensus::encode::deserialize(&tx)?;
 
-    // re-sign transactions, since `fundrawtransaction` may have added inputs
-    // and outputs
+    // re-sign transaction, `fundrawtransaction` may add inputs and outputs
     Self::sign_transaction(
       compressed_public_key,
       private_key,
@@ -174,7 +176,7 @@ impl Sweep {
 
     for (i, value) in values.iter().enumerate() {
       let sighash = sighash_cache
-        .p2wpkh_signature_hash(i, &script_pubkey, *value, sighash_type)
+        .p2wpkh_signature_hash(i, script_pubkey, *value, sighash_type)
         .unwrap();
 
       let signature = secp.sign_ecdsa(&Message::from_digest(*sighash.as_ref()), &private_key.inner);
