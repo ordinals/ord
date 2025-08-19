@@ -1149,4 +1149,12 @@ impl Wallet {
         .balance_change,
     )
   }
+
+  pub(crate) fn ord_client(&self) -> reqwest::blocking::Client {
+    self.ord_client.clone()
+  }
+
+  pub(crate) fn rpc_url(&self) -> &Url {
+    &self.rpc_url
+  }
 }
