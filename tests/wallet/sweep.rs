@@ -35,6 +35,8 @@ fn sweep() {
     .stdout_regex(r".*")
     .run_and_deserialize_output::<Send>();
 
+  // TODO: successful transfer
+
   core.mine_blocks(1);
 
   let _output = CommandBuilder::new("wallet sweep --fee-rate 1")
@@ -45,5 +47,5 @@ fn sweep() {
 
   core.mine_blocks(1);
 
-  // TODO
+  // TODO: assert successful sweep
 }
