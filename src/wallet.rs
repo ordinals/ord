@@ -340,6 +340,16 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn get_receive_address(&self) -> Result<Address> {
+    Ok(
+      self
+        .bitcoin_client
+        .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))
+        .context("could not get receive addresses from wallet")?
+        .require_network(self.chain().network())?,
+    )
+  }
+
   pub(crate) fn has_sat_index(&self) -> bool {
     self.has_sat_index
   }

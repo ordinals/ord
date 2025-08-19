@@ -4,6 +4,7 @@ use {
     ecdsa::Signature,
     secp256k1::Message,
     sighash::{EcdsaSighashType, SighashCache},
+    AddressType, CompressedPublicKey, PrivateKey, WPubkeyHash,
   },
   miniscript::{descriptor::DescriptorSecretKey, Descriptor},
 };
@@ -15,6 +16,8 @@ pub struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Sweep {
+  #[arg(long, help = "Source address type")]
+  address_type: AddressType,
   #[arg(long, help = "Don't sign or broadcast transaction")]
   dry_run: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
@@ -23,13 +26,38 @@ pub(crate) struct Sweep {
 
 impl Sweep {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    // TODO: should we allow runes?
+    // TODO:
+    // - should we allow runes? either send them to a dedicated output, or panic if
+    //   they're present. either way, require a rune index so we can check for them.
+    // - handle errors
+    // - take a WIF private key and address instead of a descriptor
+    // - improve help messages
+    // - check that address derivation is correct
+    // - should we just take the `addresstype:privatekey` format which satscard produces?
+
     let secp = Secp256k1::new();
 
     let mut buffer = String::new();
     io::stdin().read_to_string(&mut buffer)?;
 
-    let (descriptor, keymap) = Descriptor::parse_descriptor(&secp, &buffer).unwrap(); // TODO
+    ensure! {
+      self.address_type == AddressType::P2wpkh,
+      "address type {} unsupported",
+      self.address_type,
+    }
+
+    let private_key = buffer.parse::<PrivateKey>().unwrap();
+
+    let compressed_public_key = CompressedPublicKey::from_private_key(&secp, &private_key)
+      .context("failed to derive compressed public key")?;
+
+    let pubkey_hash = WPubkeyHash::from(compressed_public_key);
+
+    let script_pubkey = ScriptBuf::new_p2wpkh(&pubkey_hash);
+
+    let address = Address::from_script(&script_pubkey, wallet.chain().network().params()).unwrap();
+
+    let (descriptor, keymap) = Descriptor::parse_descriptor(&secp, &buffer).unwrap();
 
     ensure!(
       !descriptor.has_wildcard(),
@@ -41,14 +69,14 @@ impl Sweep {
       "descriptor may not be multipath"
     );
 
-    let descriptor = descriptor.derived_descriptor(&secp, 0).unwrap(); // TODO
+    let descriptor = descriptor.derived_descriptor(&secp, 0).unwrap();
     let expected_spk = descriptor.script_pubkey();
 
     let Descriptor::Wpkh(ref expected_pk) = descriptor else {
       bail!("descriptor type not allowed");
     };
 
-    let address = descriptor.address(wallet.chain().network()).unwrap(); // TODO
+    let address = descriptor.address(wallet.chain().network()).unwrap();
 
     let ord_client = wallet.ord_client();
 
@@ -98,8 +126,7 @@ impl Sweep {
       .iter()
       .map(|output| TxOut {
         value: Amount::from_sat(output.value),
-        script_pubkey: wallet.get_change_address().unwrap().script_pubkey(), // TODO: should this
-                                                                             // just be a change address or can it be set in the command
+        script_pubkey: wallet.get_receive_address().unwrap().script_pubkey(),
       })
       .collect();
 
