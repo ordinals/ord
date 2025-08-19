@@ -6,7 +6,6 @@ use {
     sighash::{EcdsaSighashType, SighashCache},
     AddressType, CompressedPublicKey, PrivateKey, WPubkeyHash,
   },
-  miniscript::{descriptor::DescriptorSecretKey, Descriptor},
 };
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -16,7 +15,10 @@ pub struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Sweep {
-  #[arg(long, help = "Source address type")]
+  #[arg(
+    long,
+    help = "Source address type. Currently only `p2wpkh` is supported."
+  )]
   address_type: AddressType,
   #[arg(long, help = "Don't sign or broadcast transaction")]
   dry_run: bool,
@@ -27,13 +29,14 @@ pub(crate) struct Sweep {
 impl Sweep {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     // TODO:
-    // - should we allow runes? either send them to a dedicated output, or panic if
-    //   they're present. either way, require a rune index so we can check for them.
     // - handle errors
-    // - take a WIF private key and address instead of a descriptor
     // - improve help messages
-    // - check that address derivation is correct
-    // - should we just take the `addresstype:privatekey` format which satscard produces?
+    // - request outputs in parallel
+
+    ensure!(
+      wallet.has_rune_index(),
+      "sweeping private key requires index created with `--index-runes`",
+    );
 
     let secp = Secp256k1::new();
 
@@ -42,7 +45,7 @@ impl Sweep {
 
     ensure! {
       self.address_type == AddressType::P2wpkh,
-      "address type {} unsupported",
+      "address type `{}` unsupported",
       self.address_type,
     }
 
@@ -57,62 +60,41 @@ impl Sweep {
 
     let address = Address::from_script(&script_pubkey, wallet.chain().network().params()).unwrap();
 
-    let (descriptor, keymap) = Descriptor::parse_descriptor(&secp, &buffer).unwrap();
-
-    ensure!(
-      !descriptor.has_wildcard(),
-      "descriptor may not contain wildcards"
-    );
-
-    ensure!(
-      !descriptor.is_multipath(),
-      "descriptor may not be multipath"
-    );
-
-    let descriptor = descriptor.derived_descriptor(&secp, 0).unwrap();
-    let expected_spk = descriptor.script_pubkey();
-
-    let Descriptor::Wpkh(ref expected_pk) = descriptor else {
-      bail!("descriptor type not allowed");
-    };
-
-    let address = descriptor.address(wallet.chain().network()).unwrap();
+    eprintln!("Sweeping from address {address}…");
 
     let ord_client = wallet.ord_client();
 
-    let address_info: api::AddressInfo = serde_json::from_str(
-      &ord_client
-        .get(wallet.rpc_url().join(&format!("/address/{address}"))?)
-        .send()
-        .map_err(|err| anyhow!(err))?
-        .text()
-        .unwrap(),
-    )
-    .unwrap();
-
-    // TODO: make concurrent with futures
-    let mut outputs = Vec::new();
-    for output in &address_info.outputs {
-      let output: api::Output = serde_json::from_str(
-        &ord_client
-          .get(wallet.rpc_url().join(&format!("/output/{output}"))?)
-          .send()
-          .map_err(|err| anyhow!(err))?
-          .text()
-          .unwrap(),
-      )
+    let address_info = &ord_client
+      .get(wallet.rpc_url().join(&format!("/address/{address}"))?)
+      .send()
+      .map_err(|err| anyhow!(err))?
+      .json::<api::AddressInfo>()
       .unwrap();
 
-      ensure!(
-        output.script_pubkey == expected_spk,
-        "output {} scriptPubKey doesn't match descriptor",
-        output.outpoint
-      );
+    let mut utxos = Vec::new();
+    for outpoint in &address_info.outputs {
+      let output = ord_client
+        .get(wallet.rpc_url().join(&format!("/output/{outpoint}"))?)
+        .send()
+        .map_err(|err| anyhow!(err))?
+        .json::<api::Output>()
+        .unwrap();
 
-      outputs.push(output);
+      ensure! {
+        output.runes.as_ref().unwrap().is_empty(),
+        "sweeping runes is not supported",
+      }
+
+      ensure! {
+        output.script_pubkey == script_pubkey,
+        "output {} script pubkey doesn't match descriptor",
+        output.outpoint
+      }
+
+      utxos.push(output);
     }
 
-    let input = outputs
+    let input = utxos
       .iter()
       .map(|output| TxIn {
         previous_output: output.outpoint,
@@ -122,7 +104,7 @@ impl Sweep {
       })
       .collect();
 
-    let output = outputs
+    let output = utxos
       .iter()
       .map(|output| TxOut {
         value: Amount::from_sat(output.value),
@@ -139,29 +121,19 @@ impl Sweep {
 
     let mut sighash_cache = SighashCache::new(&mut transaction);
 
-    let sk = match keymap.values().next() {
-      Some(DescriptorSecretKey::Single(k)) => k.key,
-      _ => bail!("unsupported or missing private key in descriptor"),
-    };
-
-    let pk = sk.public_key(&secp);
-
-    ensure!(pk == *expected_pk.as_inner(), "unexpected public key");
-
-    let script_buf = ScriptBuf::new_p2wpkh(&pk.wpubkey_hash().unwrap());
     let sighash_type = EcdsaSighashType::All;
 
-    for (i, output) in outputs.iter().enumerate() {
-      let value = Amount::from_sat(output.value);
+    for (i, utxo) in utxos.iter().enumerate() {
+      let value = Amount::from_sat(utxo.value);
 
       let sighash = sighash_cache
-        .p2wpkh_signature_hash(i, &script_buf, value, sighash_type)
+        .p2wpkh_signature_hash(i, &script_pubkey, value, sighash_type)
         .expect("signature hash should compute");
 
       let signature = secp.sign_ecdsa(
         &Message::from_digest_slice(sighash.as_ref())
           .expect("should be cryptographically secure hash"),
-        &sk.inner,
+        &private_key.inner,
       );
 
       let witness = sighash_cache
@@ -173,12 +145,12 @@ impl Sweep {
         sighash_type,
       });
 
-      witness.push(pk.to_bytes());
+      witness.push(compressed_public_key.to_bytes());
     }
 
     wallet.lock_non_cardinal_outputs()?;
 
-    let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &transaction).unwrap(); // TODO
+    let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &transaction).unwrap();
 
     let result = wallet
       .bitcoin_client()
