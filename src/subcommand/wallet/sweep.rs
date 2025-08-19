@@ -30,8 +30,6 @@ impl Sweep {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     // TODO:
     // - handle errors
-    // - improve help messages
-    // - request outputs in parallel
 
     ensure!(
       wallet.has_rune_index(),
@@ -41,7 +39,9 @@ impl Sweep {
     let secp = Secp256k1::new();
 
     let mut buffer = String::new();
-    io::stdin().read_to_string(&mut buffer)?;
+    io::stdin()
+      .read_to_string(&mut buffer)
+      .context("failed to read private key from standard input")?;
 
     ensure! {
       self.address_type == AddressType::P2wpkh,
@@ -49,7 +49,9 @@ impl Sweep {
       self.address_type,
     }
 
-    let private_key = buffer.parse::<PrivateKey>().unwrap();
+    let private_key = buffer
+      .parse::<PrivateKey>()
+      .context("failed to parse private key")?;
 
     let compressed_public_key = CompressedPublicKey::from_private_key(&secp, &private_key)
       .context("failed to derive compressed public key")?;
@@ -67,28 +69,27 @@ impl Sweep {
     let address_info = &ord_client
       .get(wallet.rpc_url().join(&format!("/address/{address}"))?)
       .send()
-      .map_err(|err| anyhow!(err))?
+      .context("failed to get address info from ord server")?
       .json::<api::AddressInfo>()
-      .unwrap();
+      .context("failed to get address info from ord server")?;
 
     let mut utxos = Vec::new();
     for outpoint in &address_info.outputs {
       let output = ord_client
         .get(wallet.rpc_url().join(&format!("/output/{outpoint}"))?)
         .send()
-        .map_err(|err| anyhow!(err))?
+        .context("failed to get output info from ord server")?
         .json::<api::Output>()
-        .unwrap();
+        .context("failed to get output info from ord server")?;
 
       ensure! {
         output.runes.as_ref().unwrap().is_empty(),
-        "sweeping runes is not supported",
+        "output `{outpoint}` contains runes, sweeping runes is not supported",
       }
 
       ensure! {
         output.script_pubkey == script_pubkey,
-        "output {} script pubkey doesn't match descriptor",
-        output.outpoint
+        "output `{outpoint}` script pubkey doesn't match descriptor",
       }
 
       utxos.push(output);
@@ -99,7 +100,7 @@ impl Sweep {
       .map(|output| TxIn {
         previous_output: output.outpoint,
         script_sig: ScriptBuf::new(),
-        sequence: Sequence::MAX,
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
         witness: Witness::new(),
       })
       .collect();
@@ -126,38 +127,48 @@ impl Sweep {
       output,
     };
 
-    Self::sign_transaction(
-      compressed_public_key,
-      private_key,
-      &script_pubkey,
-      &secp,
-      &mut tx,
-      &values,
-    );
+    if !self.dry_run {
+      Self::sign_transaction(
+        compressed_public_key,
+        private_key,
+        &script_pubkey,
+        &secp,
+        &mut tx,
+        &values,
+      );
+    }
 
     wallet.lock_non_cardinal_outputs()?;
 
     let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &tx)
       .context("failed to fund transaction")?;
 
-    let mut tx = consensus::encode::deserialize(&tx)?;
+    let mut tx = consensus::encode::deserialize::<Transaction>(&tx)?;
 
-    // re-sign transaction, `fundrawtransaction` may add inputs and outputs
-    Self::sign_transaction(
-      compressed_public_key,
-      private_key,
-      &script_pubkey,
-      &secp,
-      &mut tx,
-      &values,
-    );
+    let txid = if self.dry_run {
+      tx.compute_txid()
+    } else {
+      // re-sign since `fundrawtransaction` may add inputs and outputs
+      for input in &mut tx.input[..utxos.len()] {
+        input.witness.clear();
+      }
 
-    let result = wallet
-      .bitcoin_client()
-      .sign_raw_transaction_with_wallet(&tx, None, None)
-      .unwrap();
+      Self::sign_transaction(
+        compressed_public_key,
+        private_key,
+        &script_pubkey,
+        &secp,
+        &mut tx,
+        &values,
+      );
 
-    let txid = wallet.send_raw_transaction(&result.hex, None)?;
+      let result = wallet
+        .bitcoin_client()
+        .sign_raw_transaction_with_wallet(&tx, None, None)
+        .context("failed to sign transaction with wallet")?;
+
+      wallet.send_raw_transaction(&result.hex, None)?
+    };
 
     Ok(Some(Box::new(Output { txid })))
   }
@@ -183,7 +194,7 @@ impl Sweep {
 
       let witness = sighash_cache.witness_mut(i).unwrap();
 
-      witness.clear();
+      assert!(witness.is_empty());
 
       witness.push_ecdsa_signature(&Signature {
         signature,
