@@ -37,7 +37,7 @@ impl Sweep {
 
     let mut buffer = String::new();
     io::stdin()
-      .read_to_string(&mut buffer)
+      .read_line(&mut buffer)
       .context("failed to read private key from standard input")?;
 
     ensure! {
@@ -47,6 +47,7 @@ impl Sweep {
     }
 
     let private_key = buffer
+      .trim()
       .parse::<PrivateKey>()
       .context("failed to parse private key")?;
 
