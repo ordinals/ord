@@ -35,7 +35,7 @@ fn sweep() {
     .stdout_regex(r".*")
     .run_and_deserialize_output::<Send>();
 
-  // TODO: successful transfer
+  // TODO: assert successful transfer
 
   core.mine_blocks(1);
 
