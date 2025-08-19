@@ -76,6 +76,12 @@ impl Sweep {
       )
       .unwrap();
 
+      ensure!(
+        output.script_pubkey == expected_spk,
+        "output {} scriptPubKey doesn't match descriptor",
+        output.outpoint
+      );
+
       outputs.push(output);
     }
 
@@ -120,12 +126,6 @@ impl Sweep {
     let sighash_type = EcdsaSighashType::All;
 
     for (i, output) in outputs.iter().enumerate() {
-      ensure!(
-        output.script_pubkey == expected_spk,
-        "output {} scriptPubKey doesn't match descriptor",
-        output.outpoint
-      );
-
       let value = Amount::from_sat(output.value);
 
       let sighash = sighash_cache
