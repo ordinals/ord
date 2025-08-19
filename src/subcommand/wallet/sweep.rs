@@ -4,13 +4,12 @@ use {
     ecdsa::Signature,
     secp256k1::Message,
     sighash::{EcdsaSighashType, SighashCache},
-    PrivateKey, PublicKey,
   },
   miniscript::{descriptor::DescriptorSecretKey, Descriptor},
 };
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Output {
+pub struct Output {
   pub txid: Txid,
 }
 
@@ -113,23 +112,23 @@ impl Sweep {
 
     let mut sighash_cache = SighashCache::new(&mut transaction);
 
-    let sk: PrivateKey = match keymap.values().next() {
+    let sk = match keymap.values().next() {
       Some(DescriptorSecretKey::Single(k)) => k.key,
       _ => bail!("unsupported or missing private key in descriptor"),
     };
 
-    let pk: PublicKey = sk.public_key(&secp);
+    let pk = sk.public_key(&secp);
 
     ensure!(pk == *expected_pk.as_inner(), "unexpected public key");
 
-    let script_code = ScriptBuf::new_p2pkh(&pk.pubkey_hash());
+    let script_buf = ScriptBuf::new_p2wpkh(&pk.wpubkey_hash().unwrap());
     let sighash_type = EcdsaSighashType::All;
 
     for (i, output) in outputs.iter().enumerate() {
       let value = Amount::from_sat(output.value);
 
       let sighash = sighash_cache
-        .p2wpkh_signature_hash(i, &script_code, value, sighash_type)
+        .p2wpkh_signature_hash(i, &script_buf, value, sighash_type)
         .expect("signature hash should compute");
 
       let signature = secp.sign_ecdsa(
