@@ -112,39 +112,43 @@ impl Sweep {
       })
       .collect();
 
-    let mut transaction = Transaction {
+    let mut tx = Transaction {
       version: Version::TWO,
       lock_time: LockTime::ZERO,
       input,
       output,
     };
 
-    let mut sighash_cache = SighashCache::new(&mut transaction);
+    let values = utxos
+      .iter()
+      .map(|output| Amount::from_sat(output.value))
+      .collect::<Vec<Amount>>();
 
-    let sighash_type = EcdsaSighashType::All;
-
-    for (i, utxo) in utxos.iter().enumerate() {
-      let value = Amount::from_sat(utxo.value);
-
-      let sighash = sighash_cache
-        .p2wpkh_signature_hash(i, &script_pubkey, value, sighash_type)
-        .unwrap();
-
-      let signature = secp.sign_ecdsa(&Message::from_digest(*sighash.as_ref()), &private_key.inner);
-
-      let witness = sighash_cache.witness_mut(i).unwrap();
-
-      witness.push_ecdsa_signature(&Signature {
-        signature,
-        sighash_type,
-      });
-
-      witness.push(compressed_public_key.to_bytes());
-    }
+    Self::sign_transaction(
+      compressed_public_key,
+      private_key,
+      &script_pubkey,
+      &secp,
+      &mut tx,
+      &values,
+    );
 
     wallet.lock_non_cardinal_outputs()?;
 
-    let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &transaction).unwrap();
+    let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &tx).unwrap();
+
+    let mut tx = consensus::encode::deserialize(&tx)?;
+
+    // re-sign transactions, since `fundrawtransaction` may have added inputs
+    // and outputs
+    Self::sign_transaction(
+      compressed_public_key,
+      private_key,
+      &script_pubkey,
+      &secp,
+      &mut tx,
+      &values,
+    );
 
     let result = wallet
       .bitcoin_client()
@@ -154,5 +158,37 @@ impl Sweep {
     let txid = wallet.send_raw_transaction(&result.hex, None)?;
 
     Ok(Some(Box::new(Output { txid })))
+  }
+
+  fn sign_transaction(
+    compressed_public_key: CompressedPublicKey,
+    private_key: PrivateKey,
+    script_pubkey: &Script,
+    secp: &Secp256k1<secp256k1::All>,
+    tx: &mut Transaction,
+    values: &[Amount],
+  ) {
+    let mut sighash_cache = SighashCache::new(tx);
+
+    let sighash_type = EcdsaSighashType::All;
+
+    for (i, value) in values.iter().enumerate() {
+      let sighash = sighash_cache
+        .p2wpkh_signature_hash(i, &script_pubkey, *value, sighash_type)
+        .unwrap();
+
+      let signature = secp.sign_ecdsa(&Message::from_digest(*sighash.as_ref()), &private_key.inner);
+
+      let witness = sighash_cache.witness_mut(i).unwrap();
+
+      witness.clear();
+
+      witness.push_ecdsa_signature(&Signature {
+        signature,
+        sighash_type,
+      });
+
+      witness.push(compressed_public_key.to_bytes());
+    }
   }
 }
