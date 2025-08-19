@@ -93,7 +93,8 @@ impl Sweep {
       .iter()
       .map(|output| TxOut {
         value: Amount::from_sat(output.value),
-        script_pubkey: output.script_pubkey.clone(),
+        script_pubkey: wallet.get_change_address().unwrap().script_pubkey(), // TODO: should this
+                                                                             // just be a change address or can it be set in the command
       })
       .collect();
 
