@@ -28,9 +28,6 @@ pub(crate) struct Sweep {
 
 impl Sweep {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    // TODO:
-    // - handle errors
-
     ensure!(
       wallet.has_rune_index(),
       "sweeping private key requires index created with `--index-runes`",
