@@ -125,17 +125,6 @@ impl Sweep {
       output,
     };
 
-    if !self.dry_run {
-      Self::sign_transaction(
-        compressed_public_key,
-        private_key,
-        &script_pubkey,
-        &secp,
-        &mut tx,
-        &values,
-      );
-    }
-
     wallet.lock_non_cardinal_outputs()?;
 
     let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &tx)
@@ -165,7 +154,9 @@ impl Sweep {
         .sign_raw_transaction_with_wallet(&tx, None, None)
         .context("failed to sign transaction with wallet")?;
 
-      wallet.send_raw_transaction(&result.hex, None)?
+      wallet
+        .send_raw_transaction(&result.hex, None)
+        .context("failed to send transaction")?
     };
 
     Ok(Some(Box::new(Output { txid })))
