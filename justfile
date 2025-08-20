@@ -244,4 +244,5 @@ sweep:
     --server-url https://charlie.ordinals.net \
     sweep \
     --address-type p2wpkh \
-    --fee-rate 10
+    --fee-rate 10 \
+    --dry-run
