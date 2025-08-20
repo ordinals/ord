@@ -2,7 +2,8 @@
   clippy::large_enum_variant,
   clippy::result_large_err,
   clippy::too_many_arguments,
-  clippy::type_complexity
+  clippy::type_complexity,
+  mismatched_lifetime_syntaxes
 )]
 #![deny(
   clippy::cast_lossless,
