@@ -193,7 +193,7 @@ fn fund_raw_transaction(
           change_position: Some(unfunded_transaction.output.len().try_into()?),
           ..default()
         }),
-        Some(false),
+        Some(true),
       )
       .map_err(|err| {
         if matches!(

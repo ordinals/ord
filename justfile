@@ -229,3 +229,19 @@ env:
 
 env-open:
   open http://127.0.0.1:9001
+
+offer-create:
+  cargo run wallet \
+    --server-url https://charlie.ordinals.net \
+    offer create \
+    --inscription 6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 \
+    --amount 1000sat \
+    --fee-rate 10
+
+sweep:
+  cat private-key | \
+    cargo run wallet \
+    --server-url https://charlie.ordinals.net \
+    sweep \
+    --address-type p2wpkh \
+    --fee-rate 10

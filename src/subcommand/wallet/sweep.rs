@@ -125,6 +125,17 @@ impl Sweep {
       output,
     };
 
+    if !self.dry_run {
+      Self::sign_transaction(
+        compressed_public_key,
+        private_key,
+        &script_pubkey,
+        &secp,
+        &mut tx,
+        &values,
+      );
+    }
+
     wallet.lock_non_cardinal_outputs()?;
 
     let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &tx)
