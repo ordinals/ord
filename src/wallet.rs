@@ -891,6 +891,7 @@ impl Wallet {
       self.bitcoin_client(),
       fee_rate,
       &unfunded_transaction,
+      None,
     )?)?;
 
     Ok(unsigned_transaction)
@@ -1122,7 +1123,7 @@ impl Wallet {
     };
 
     let unsigned_transaction =
-      fund_raw_transaction(self.bitcoin_client(), fee_rate, &unfunded_transaction)?;
+      fund_raw_transaction(self.bitcoin_client(), fee_rate, &unfunded_transaction, None)?;
 
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 

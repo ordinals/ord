@@ -142,6 +142,7 @@ impl Split {
       wallet.bitcoin_client(),
       self.fee_rate,
       &unfunded_transaction,
+      None,
     )?;
 
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;

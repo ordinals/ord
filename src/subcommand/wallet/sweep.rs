@@ -37,7 +37,7 @@ impl Sweep {
 
     let mut buffer = String::new();
     io::stdin()
-      .read_to_string(&mut buffer)
+      .read_line(&mut buffer)
       .context("failed to read private key from standard input")?;
 
     ensure! {
@@ -47,6 +47,7 @@ impl Sweep {
     }
 
     let private_key = buffer
+      .trim()
       .parse::<PrivateKey>()
       .context("failed to parse private key")?;
 
@@ -117,28 +118,52 @@ impl Sweep {
       })
       .collect::<Result<Vec<TxOut>>>()?;
 
-    let mut tx = Transaction {
+    let tx = Transaction {
       version: Version::TWO,
       lock_time: LockTime::ZERO,
       input,
       output,
     };
 
-    if !self.dry_run {
-      Self::sign_transaction(
-        compressed_public_key,
-        private_key,
-        &script_pubkey,
-        &secp,
-        &mut tx,
-        &values,
-      );
-    }
-
     wallet.lock_non_cardinal_outputs()?;
 
-    let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &tx)
-      .context("failed to fund transaction")?;
+    let input_weights = {
+      let mut witness = Witness::new();
+
+      // public key
+      witness.push([0; 33]);
+
+      // signature
+      witness.push([0; 73]);
+
+      let input_weight = TxIn {
+        previous_output: OutPoint::null(),
+        script_sig: ScriptBuf::new(),
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        witness,
+      }
+      .segwit_weight()
+      .to_wu()
+      .try_into()
+      .unwrap();
+
+      utxos
+        .iter()
+        .map(|output| fund_raw_transaction::InputWeight {
+          txid: output.outpoint.txid,
+          vout: output.outpoint.vout,
+          weight: input_weight,
+        })
+        .collect()
+    };
+
+    let tx = fund_raw_transaction(
+      wallet.bitcoin_client(),
+      self.fee_rate,
+      &tx,
+      Some(input_weights),
+    )
+    .context("failed to fund transaction")?;
 
     let mut tx = consensus::encode::deserialize::<Transaction>(&tx)?;
 
@@ -164,7 +189,9 @@ impl Sweep {
         .sign_raw_transaction_with_wallet(&tx, None, None)
         .context("failed to sign transaction with wallet")?;
 
-      wallet.send_raw_transaction(&result.hex, None)?
+      wallet
+        .send_raw_transaction(&result.hex, None)
+        .context("failed to send transaction")?
     };
 
     Ok(Some(Box::new(Output { txid })))
