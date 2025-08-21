@@ -283,7 +283,6 @@ fn sweep_does_not_select_non_cardinal_utxos() {
   ))
   .core(&core)
   .ord(&ord)
-  .stdout_regex(r".*")
   .run_and_deserialize_output::<Send>();
 
   core.mine_blocks(1);
@@ -294,7 +293,50 @@ fn sweep_does_not_select_non_cardinal_utxos() {
     .stdin(wif_privkey.into())
     .core(&core)
     .ord(&ord)
-    .expected_stderr("error: not enough cardinal utxos\n")
+    .stderr_regex(".*not enough cardinal utxos.*")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
+fn complain_if_runes_contained_in_any_of_the_inputs() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+  let ord = TestServer::spawn_with_server_args(
+    &core,
+    &["--index-addresses", "--index-runes", "--regtest"],
+    &[],
+  );
+
+  create_wallet(&core, &ord);
+
+  let rune = etch(&core, &ord, Rune(RUNE)).output.rune.unwrap().rune.rune;
+  let (inscription, _) = inscribe(&core, &ord);
+
+  let (address, wif_privkey) = sweepable_address(Network::Regtest);
+
+  CommandBuilder::new(format!(
+    "--regtest wallet send --fee-rate 1 {address} 1:{rune}"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(format!(
+    "--regtest wallet send --fee-rate 1 {address} {inscription}",
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new("--regtest wallet sweep --fee-rate 1 --address-type p2wpkh")
+    .stdin(wif_privkey.into())
+    .core(&core)
+    .ord(&ord)
+    .stderr_regex(".*contains runes, sweeping runes is not supported.*")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -308,7 +350,5 @@ fn sweep_does_not_select_non_cardinal_utxos() {
 // test tx created output values mirror input values
 // check fee rate respected and correct
 // add list of sweeped utxos to command output
-
-// TODO
-// complain if runes in one of the inputs
 // testing that it's locking non-cardinal outputs
+// complain if runes in one of the inputs
