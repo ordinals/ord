@@ -118,7 +118,7 @@ impl Sweep {
       })
       .collect::<Result<Vec<TxOut>>>()?;
 
-    let mut tx = Transaction {
+    let tx = Transaction {
       version: Version::TWO,
       lock_time: LockTime::ZERO,
       input,
