@@ -11,6 +11,7 @@ use {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
   pub txid: Txid,
+  pub outputs: Vec<OutPoint>,
 }
 
 #[derive(Debug, Parser)]
@@ -194,7 +195,10 @@ impl Sweep {
         .context("failed to send transaction")?
     };
 
-    Ok(Some(Box::new(Output { txid })))
+    Ok(Some(Box::new(Output {
+      txid,
+      outputs: utxos.iter().map(|utxo| utxo.outpoint).collect(),
+    })))
   }
 
   fn sign_transaction(
