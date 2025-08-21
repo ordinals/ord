@@ -27,7 +27,7 @@ use {
   serde::de::DeserializeOwned,
   std::sync::Arc,
   std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     ffi::{OsStr, OsString},
     fs,
     io::{BufRead, BufReader, Write},

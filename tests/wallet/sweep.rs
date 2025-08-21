@@ -40,12 +40,14 @@ fn sweep() {
 
   assert!(output.is_empty());
 
-  CommandBuilder::new("wallet sweep --fee-rate 1 --address-type p2wpkh")
+  let sweep = CommandBuilder::new("wallet sweep --fee-rate 1 --address-type p2wpkh")
     .stdin(wif_privkey.into())
     .core(&core)
     .ord(&ord)
     .stderr_regex(".*")
     .run_and_deserialize_output::<Sweep>();
+
+  assert_eq!(sweep.outputs, [output[0].location.outpoint]);
 
   core.mine_blocks(1);
 
@@ -228,14 +230,27 @@ fn sweep_multiple() {
   )
   .unwrap();
 
-  CommandBuilder::new("wallet sweep --fee-rate 9 --address-type p2wpkh")
+  let sweep = CommandBuilder::new("wallet sweep --fee-rate 9 --address-type p2wpkh")
     .stdin(wif_privkey.into())
     .core(&core)
     .ord(&ord)
     .stderr_regex(".*")
     .run_and_deserialize_output::<Sweep>();
 
+  assert_eq!(
+    sweep
+      .outputs
+      .iter()
+      .copied()
+      .collect::<BTreeSet<OutPoint>>(),
+    [inscription_output.outpoint, cardinal_output.outpoint]
+      .iter()
+      .copied()
+      .collect()
+  );
+
   let tx = core.mempool()[0].clone();
+  assert_eq!(tx.compute_txid(), sweep.txid);
 
   for output in [inscription_output, cardinal_output] {
     let position = tx
@@ -340,15 +355,3 @@ fn complain_if_runes_contained_in_any_of_the_inputs() {
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
-
-// Tests
-// complain if no rune index
-// check that dry run flag respected
-// check correct address type
-// test with more than one input on the private key
-// check txid correct
-// test tx created output values mirror input values
-// check fee rate respected and correct
-// add list of sweeped utxos to command output
-// testing that it's locking non-cardinal outputs
-// complain if runes in one of the inputs
