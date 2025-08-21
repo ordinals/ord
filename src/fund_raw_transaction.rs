@@ -38,10 +38,10 @@ enum EstimateMode {
 }
 
 #[derive(Serialize, Clone, PartialEq, Eq, Debug)]
-struct InputWeight {
-  txid: Txid,
-  vout: u32,
-  weight: u32,
+pub(crate) struct InputWeight {
+  pub(crate) txid: Txid,
+  pub(crate) vout: u32,
+  pub(crate) weight: u32,
 }
 
 #[derive(Serialize, Clone, PartialEq, Eq, Debug, Default)]
@@ -87,6 +87,7 @@ pub(crate) fn fund_raw_transaction(
   client: &Client,
   fee_rate: FeeRate,
   unfunded_transaction: &Transaction,
+  input_weights: Option<Vec<InputWeight>>,
 ) -> Result<Vec<u8>> {
   let mut buffer = Vec::new();
 
@@ -105,17 +106,7 @@ pub(crate) fn fund_raw_transaction(
     // by 1000.
     fee_rate: Some(Amount::from_sat((fee_rate.n() * 1000.0).ceil() as u64)),
     change_position: Some(unfunded_transaction.output.len().try_into()?),
-    input_weights: Some(
-      unfunded_transaction
-        .input
-        .iter()
-        .map(|tx_in| InputWeight {
-          txid: tx_in.previous_output.txid,
-          vout: tx_in.previous_output.vout,
-          weight: 165,
-        })
-        .collect(),
-    ),
+    input_weights,
     ..default()
   });
 
