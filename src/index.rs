@@ -45,6 +45,7 @@ pub(crate) mod entry;
 pub mod event;
 mod fetcher;
 mod lot;
+pub(crate) mod mempool;
 mod reorg;
 mod rtx;
 mod updater;
@@ -75,6 +76,10 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
+define_table! { MEMPOOL_TRANSACTIONS, &[u8], &[u8] }
+define_table! { MEMPOOL_OUTSPENTS, &[u8], &[u8] }
+define_table! { MEMPOOL_ADDRESS_INDEX, &[u8], &[u8] }
+define_table! { MEMPOOL_INCRIPTIONS, &[u8], &[u8] }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
@@ -324,6 +329,10 @@ impl Index {
         tx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
         tx.open_table(TRANSACTION_ID_TO_RUNE)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
+        tx.open_table(MEMPOOL_TRANSACTIONS)?;
+        tx.open_table(MEMPOOL_OUTSPENTS)?;
+        tx.open_table(MEMPOOL_ADDRESS_INDEX)?;
+        tx.open_table(MEMPOOL_INCRIPTIONS)?;
 
         {
           let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;

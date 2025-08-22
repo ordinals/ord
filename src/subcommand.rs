@@ -7,6 +7,7 @@ pub mod epochs;
 pub mod find;
 pub mod index;
 pub mod list;
+pub mod mempool;
 pub mod parse;
 pub mod runes;
 pub mod server;
@@ -57,6 +58,8 @@ pub(crate) enum Subcommand {
   Wallet(wallet::WalletCommand),
   #[command(about = "List all Bitcoin Core wallets")]
   Wallets,
+  #[command(about = "Display mempool information")]
+  Mempool(mempool::Mempool),
 }
 
 impl Subcommand {
@@ -85,6 +88,7 @@ impl Subcommand {
       Self::Verify(verify) => verify.run(),
       Self::Wallet(wallet) => wallet.run(settings),
       Self::Wallets => wallets::run(settings),
+      Self::Mempool(mempool) => mempool.run(settings),
     }
   }
 }

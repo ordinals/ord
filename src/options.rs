@@ -91,4 +91,6 @@ pub struct Options {
   pub(crate) testnet: bool,
   #[arg(long, help = "Use testnet4. Equivalent to `--chain testnet4`.")]
   pub(crate) testnet4: bool,
+  #[arg(long, short, help = "enable mempool indexing")]
+  pub(crate) index_mempool: bool,
 }

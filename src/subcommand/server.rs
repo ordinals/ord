@@ -5,13 +5,16 @@ use {
     error::{OptionExt, ServerError, ServerResult},
   },
   super::*,
-  crate::templates::{
-    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
-    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
-    PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml, SatscardHtml,
-    TransactionHtml,
+  crate::{
+    index::mempool::MempoolIndexer,
+    templates::{
+      AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
+      InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
+      PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+      PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
+      PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml, SatscardHtml,
+      TransactionHtml,
+    },
   },
   axum::{
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
@@ -141,6 +144,8 @@ pub struct Server {
     help = "Poll Bitcoin Core every <POLLING_INTERVAL>."
   )]
   pub(crate) polling_interval: humantime::Duration,
+  #[arg(long, help = "Enable indexing of mempool transactions.")]
+  pub(crate) index_mempool: bool,
 }
 
 impl Server {
@@ -168,6 +173,17 @@ impl Server {
       });
 
       INDEXER.lock().unwrap().replace(index_thread);
+
+      if self.index_mempool {
+        log::info!("Mempool indexing enabled.");
+        
+        let mempool_index_clone = index.clone();
+        let mempool_indexer = MempoolIndexer::new(mempool_index_clone);
+
+        tokio::spawn(async move {
+          mempool_indexer.run().await;
+        });
+      }
 
       let settings = Arc::new(settings);
       let acme_domains = self.acme_domains()?;
