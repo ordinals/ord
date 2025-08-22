@@ -1,4 +1,4 @@
-#![allow(clippy::too_many_arguments)]
+#![allow(clippy::too_many_arguments, mismatched_lifetime_syntaxes)]
 
 use {
   api::Api,
