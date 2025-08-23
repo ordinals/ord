@@ -171,7 +171,7 @@ impl Sweep {
     let txid = if self.dry_run {
       tx.compute_txid()
     } else {
-      let mut sighash_cache = SighashCache::new(tx);
+      let mut sighash_cache = SighashCache::new(&mut tx);
 
       let sighash_type = EcdsaSighashType::All;
 
