@@ -171,19 +171,29 @@ impl Sweep {
     let txid = if self.dry_run {
       tx.compute_txid()
     } else {
-      // re-sign since `fundrawtransaction` may add inputs and outputs
-      for input in &mut tx.input[..utxos.len()] {
-        input.witness.clear();
-      }
+      let mut sighash_cache = SighashCache::new(tx);
 
-      Self::sign_transaction(
-        compressed_public_key,
-        private_key,
-        &script_pubkey,
-        &secp,
-        &mut tx,
-        &values,
-      );
+      let sighash_type = EcdsaSighashType::All;
+
+      for (i, value) in values.iter().enumerate() {
+        let sighash = sighash_cache
+          .p2wpkh_signature_hash(i, &script_pubkey, *value, sighash_type)
+          .unwrap();
+
+        let signature =
+          secp.sign_ecdsa(&Message::from_digest(*sighash.as_ref()), &private_key.inner);
+
+        let witness = sighash_cache.witness_mut(i).unwrap();
+
+        assert!(witness.is_empty());
+
+        witness.push_ecdsa_signature(&Signature {
+          signature,
+          sighash_type,
+        });
+
+        witness.push(compressed_public_key.to_bytes());
+      }
 
       let result = wallet
         .bitcoin_client()
@@ -199,37 +209,5 @@ impl Sweep {
       txid,
       outputs: utxos.iter().map(|utxo| utxo.outpoint).collect(),
     })))
-  }
-
-  fn sign_transaction(
-    compressed_public_key: CompressedPublicKey,
-    private_key: PrivateKey,
-    script_pubkey: &Script,
-    secp: &Secp256k1<secp256k1::All>,
-    tx: &mut Transaction,
-    values: &[Amount],
-  ) {
-    let mut sighash_cache = SighashCache::new(tx);
-
-    let sighash_type = EcdsaSighashType::All;
-
-    for (i, value) in values.iter().enumerate() {
-      let sighash = sighash_cache
-        .p2wpkh_signature_hash(i, script_pubkey, *value, sighash_type)
-        .unwrap();
-
-      let signature = secp.sign_ecdsa(&Message::from_digest(*sighash.as_ref()), &private_key.inner);
-
-      let witness = sighash_cache.witness_mut(i).unwrap();
-
-      assert!(witness.is_empty());
-
-      witness.push_ecdsa_signature(&Signature {
-        signature,
-        sighash_type,
-      });
-
-      witness.push(compressed_public_key.to_bytes());
-    }
   }
 }
