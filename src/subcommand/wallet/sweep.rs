@@ -93,6 +93,11 @@ impl Sweep {
       utxos.push(output);
     }
 
+    ensure! {
+      !utxos.is_empty(),
+      "address {address} has no UTXOs",
+    }
+
     let input = utxos
       .iter()
       .map(|output| TxIn {

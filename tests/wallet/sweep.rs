@@ -356,3 +356,21 @@ fn complain_if_runes_contained_in_any_of_the_inputs() {
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
+
+#[test]
+fn sweep_needs_utxos() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (address, wif_privkey) = sweepable_address(Network::Bitcoin);
+
+  CommandBuilder::new("wallet sweep --fee-rate 1 --address-type p2wpkh")
+    .stdin(wif_privkey.into())
+    .core(&core)
+    .ord(&ord)
+    .expected_exit_code(1)
+    .expected_stderr(format!("error: address {address} has no UTXOs\n"))
+    .run_and_extract_stdout();
+}
