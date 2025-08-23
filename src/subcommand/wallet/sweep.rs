@@ -10,8 +10,9 @@ use {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Output {
-  pub txid: Txid,
+  pub address: Address<NetworkUnchecked>,
   pub outputs: Vec<OutPoint>,
+  pub txid: Txid,
 }
 
 #[derive(Debug, Parser)]
@@ -60,8 +61,6 @@ impl Sweep {
     let script_pubkey = ScriptBuf::new_p2wpkh(&pubkey_hash);
 
     let address = Address::from_script(&script_pubkey, wallet.chain().network().params()).unwrap();
-
-    eprintln!("Sweeping from address {address}…");
 
     let ord_client = wallet.ord_client();
 
@@ -206,8 +205,9 @@ impl Sweep {
     };
 
     Ok(Some(Box::new(Output {
-      txid,
+      address: address.into_unchecked(),
       outputs: utxos.iter().map(|utxo| utxo.outpoint).collect(),
+      txid,
     })))
   }
 }

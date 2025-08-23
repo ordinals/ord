@@ -48,6 +48,7 @@ fn sweep() {
     .run_and_deserialize_output::<Sweep>();
 
   assert_eq!(sweep.outputs, [OutPoint::new(send.txid, 0)]);
+  assert_eq!(sweep.address, address.into_unchecked());
 
   core.mine_blocks(1);
 
