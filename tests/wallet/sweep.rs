@@ -25,7 +25,7 @@ fn sweep() {
 
   let (address, wif_privkey) = sweepable_address(Network::Bitcoin);
 
-  CommandBuilder::new(format!("wallet send --fee-rate 1 {address} {inscription}",))
+  let send = CommandBuilder::new(format!("wallet send --fee-rate 1 {address} {inscription}",))
     .core(&core)
     .ord(&ord)
     .stdout_regex(r".*")
@@ -47,7 +47,7 @@ fn sweep() {
     .stderr_regex(".*")
     .run_and_deserialize_output::<Sweep>();
 
-  assert_eq!(sweep.outputs, [output[0].location.outpoint]);
+  assert_eq!(sweep.outputs, [OutPoint::new(send.txid, 0)]);
 
   core.mine_blocks(1);
 
