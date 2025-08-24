@@ -435,9 +435,9 @@ fn burn_rune() {
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 450 * COIN_VALUE - 2 * 10000 + 129,
+      cardinal: 450 * COIN_VALUE - 2 * 10000,
       ordinal: 10000,
-      runic: Some(9871),
+      runic: Some(10000),
       runes: Some(
         [(
           SpacedRune { rune, spacers: 0 },
