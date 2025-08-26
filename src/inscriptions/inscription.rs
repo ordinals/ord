@@ -3,6 +3,7 @@ use {
   anyhow::ensure,
   axum::http::header::HeaderValue,
   bitcoin::blockdata::opcodes,
+  bitcoin_embed::{message::Message, TAPROOT_ANNEX_DATA_TAG},
   brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
   io::Write,
   std::str,
@@ -117,6 +118,35 @@ impl Inscription {
     }
 
     bytes
+  }
+
+  pub fn convert_batch_to_annex(inscriptions: &[Inscription]) -> Vec<u8> {
+    let mut messages = Vec::new();
+
+    for inscription in inscriptions {
+      let mut bytes = Vec::new();
+      Tag::ContentType.append_as_bytes(&mut bytes, &inscription.content_type);
+      Tag::ContentEncoding.append_as_bytes(&mut bytes, &inscription.content_encoding);
+      Tag::Metaprotocol.append_as_bytes(&mut bytes, &inscription.metaprotocol);
+      Tag::Parent.append_array_as_bytes(&mut bytes, &inscription.parents);
+      Tag::Delegate.append_as_bytes(&mut bytes, &inscription.delegate);
+      Tag::Pointer.append_as_bytes(&mut bytes, &inscription.pointer);
+      Tag::Metadata.append_as_bytes(&mut bytes, &inscription.metadata);
+      Tag::Rune.append_as_bytes(&mut bytes, &inscription.rune);
+      Tag::Properties.append_as_bytes(&mut bytes, &inscription.properties);
+
+      if let Some(body) = &inscription.body {
+        bytes.push(envelope::BODY_ANNEX_TAG);
+        bytes.extend(body);
+      }
+
+      let message = Message::new(envelope::PROTOCOL_ANNEX_TAG, bytes).unwrap();
+      messages.push(message);
+    }
+
+    let mut annex = Message::encode(messages);
+    annex.splice(0..0, [0x50, TAPROOT_ANNEX_DATA_TAG]);
+    annex
   }
 
   pub fn append_reveal_script_to_builder(&self, mut builder: script::Builder) -> script::Builder {

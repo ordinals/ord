@@ -741,6 +741,7 @@ fn get_decode_tx() {
     offset: 0,
     pushnum: false,
     stutter: false,
+    annex: false,
   }];
   let runestone = Runestone::decipher(&transaction);
   let response = ord.json_request(format!("/decode/{txid}"));

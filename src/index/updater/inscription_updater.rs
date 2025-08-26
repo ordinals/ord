@@ -80,7 +80,11 @@ impl InscriptionUpdater<'_, '_> {
       .map(|txout| txout.value.to_sat())
       .sum::<u64>();
 
-    let envelopes = ParsedEnvelope::from_transaction(tx);
+    let mut envelopes = ParsedEnvelope::from_transaction(tx);
+    if self.height < index.settings.chain().first_annex_inscription_height() {
+      // remove annex inscriptions
+      envelopes.retain(|envelope| !envelope.annex);
+    }
     let has_new_inscriptions = !envelopes.is_empty();
     let mut envelopes = envelopes.into_iter().peekable();
 

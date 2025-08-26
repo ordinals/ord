@@ -67,6 +67,16 @@ impl Chain {
     }
   }
 
+  pub(crate) fn first_annex_inscription_height(self) -> u32 {
+    match self {
+      Self::Mainnet => 950000,
+      Self::Regtest => 120,
+      Self::Signet => 270000,
+      Self::Testnet => 5000000,
+      Self::Testnet4 => 100000,
+    }
+  }
+
   pub(crate) fn genesis_block(self) -> Block {
     bitcoin::blockdata::constants::genesis_block(self.network())
   }
