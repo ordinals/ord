@@ -27,7 +27,7 @@ use {
   serde::de::DeserializeOwned,
   std::sync::Arc,
   std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     ffi::{OsStr, OsString},
     fs,
     io::{BufRead, BufReader, Write},
@@ -87,6 +87,7 @@ type Inscriptions = Vec<ord::subcommand::wallet::inscriptions::Output>;
 type Send = ord::subcommand::wallet::send::Output;
 type Split = ord::subcommand::wallet::split::Output;
 type Supply = ord::subcommand::supply::Output;
+type Sweep = ord::subcommand::wallet::sweep::Output;
 
 fn create_wallet(core: &mockcore::Handle, ord: &TestServer) {
   CommandBuilder::new(format!("--chain {} wallet create", core.network()))

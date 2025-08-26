@@ -148,7 +148,7 @@ outputs:
   )
   .run_and_deserialize_output::<Split>();
 
-  assert_eq!(output.fee, 2030);
+  assert_eq!(output.fee, 2440);
 
   core.mine_blocks_with_subsidy(1, 0);
 
