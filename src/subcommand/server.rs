@@ -679,6 +679,8 @@ impl Server {
   ) -> ServerResult {
     task::block_in_place(|| {
       let inscriptions = index.get_inscription_ids_by_sat(sat)?;
+      
+      // Try to find the current satpoint for this sat
       let satpoint = index.rare_sat_satpoint(sat)?.or_else(|| {
         inscriptions.first().and_then(|&first_inscription_id| {
           index
@@ -686,7 +688,15 @@ impl Server {
             .ok()
             .flatten()
         })
+      }).or_else(|| {
+        // If we have sat index or tracked sats, try to find the current location
+        if index.has_sat_index() || index.has_tracked_sats() {
+          index.find(sat).ok().flatten()
+        } else {
+          None
+        }
       });
+      
       let blocktime = index.block_time(sat.height())?;
 
       let charms = sat.charms();

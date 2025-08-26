@@ -1,0 +1,63 @@
+# Example file for tracking specific satoshis
+# Each line should contain a satoshi number
+# Lines starting with # are comments and will be ignored
+# Empty lines are also ignored
+
+# Genesis block satoshis (first few sats ever created)
+0
+1
+2
+3
+4
+5
+
+# First block reward boundary (50 BTC = 5,000,000,000 sats)
+4999999999
+5000000000
+5000000001
+
+# Some interesting smaller numbers (avoiding too many trailing zeros)
+137
+1337
+12345
+54321
+98765
+1234567
+7654321
+87654321
+
+# Larger numbers in billions (1e9 range) - varied endings
+1234567890
+3141592653
+2718281828
+4567891234
+8765432109
+
+# Very large numbers in trillions (1e12 range) - avoiding round numbers
+1234567890123
+9876543210987
+3141592653589
+2718281828459
+1618033988749
+
+# Numbers approaching the example sat (1e14+ range)
+123456789012345
+234567890123456
+321987654321987
+456789012345678
+567890123456789
+678901234567890
+789012345678901
+890123456789012
+987654321098765
+111222333444555
+222333444555666
+333333333333333
+
+# Some sats after the example - varied patterns
+333333333333337
+333333333333421
+333333333334567
+333444555666777
+444555666777888
+555666777888999 

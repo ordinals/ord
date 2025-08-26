@@ -85,7 +85,7 @@ fn no_satoshi_index() {
   let core = mockcore::spawn();
   CommandBuilder::new("find 0")
     .core(&core)
-    .expected_stderr("error: find requires index created with `--index-sats` flag\n")
+    .expected_stderr("error: find requires index created with `--index-sats` flag or `--track-sats` flag\n")
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }

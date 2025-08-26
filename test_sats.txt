@@ -1,0 +1,11 @@
+# Test file for tracking specific satoshis
+# Each line should contain a satoshi number
+# Lines starting with # are comments and will be ignored
+
+0
+1
+100
+1000
+10000
+50000
+100000 

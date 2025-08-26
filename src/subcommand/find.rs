@@ -24,8 +24,8 @@ impl Find {
   pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     let index = Index::open(&settings)?;
 
-    if !index.has_sat_index() {
-      bail!("find requires index created with `--index-sats` flag");
+    if !index.has_sat_index() && !index.has_tracked_sats() {
+      bail!("find requires index created with `--index-sats` flag or `--track-sats` flag");
     }
 
     index.update()?;

@@ -60,6 +60,8 @@ pub struct Options {
   pub(crate) index_runes: bool,
   #[arg(long, help = "Track location of all satoshis.")]
   pub(crate) index_sats: bool,
+  #[arg(long, help = "Track specific satoshis from file <TRACK_SATS_FILE>.")]
+  pub(crate) track_sats: Option<PathBuf>,
   #[arg(long, help = "Store transactions in index.")]
   pub(crate) index_transactions: bool,
   #[arg(long, help = "Run in integration test mode.")]

@@ -54,6 +54,9 @@ impl TestServer {
     let index = Arc::new(Index::open(&settings).unwrap());
     let ord_server_handle = Handle::new();
 
+    // Add a small delay to reduce port conflicts between tests
+    thread::sleep(Duration::from_millis(10));
+
     {
       let index = index.clone();
       let ord_server_handle = ord_server_handle.clone();
