@@ -340,6 +340,16 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn get_receive_address(&self) -> Result<Address> {
+    Ok(
+      self
+        .bitcoin_client
+        .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))
+        .context("could not get receive addresses from wallet")?
+        .require_network(self.chain().network())?,
+    )
+  }
+
   pub(crate) fn has_sat_index(&self) -> bool {
     self.has_sat_index
   }
@@ -454,7 +464,7 @@ impl Wallet {
         return Err(anyhow!(
           "Failed to send reveal transaction: {err}\nCommit tx {} will be recovered once mined",
           entry.commit.compute_txid()
-        ))
+        ));
       }
     };
 
@@ -478,7 +488,10 @@ impl Wallet {
       .count();
 
     if tr != 2 || descriptors.len() != 2 + rawtr {
-      bail!("wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`", wallet_name);
+      bail!(
+        "wallet \"{}\" contains unexpected output descriptors, and does not appear to be an `ord` wallet, create a new wallet with `ord wallet create`",
+        wallet_name
+      );
     }
 
     Ok(descriptors)
@@ -685,18 +698,15 @@ impl Wallet {
             .unwrap_or(0);
 
           match schema_version.cmp(&SCHEMA_VERSION) {
-            cmp::Ordering::Less =>
-              bail!(
-                "wallet database at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-                path.display()
-              ),
-            cmp::Ordering::Greater =>
-              bail!(
-                "wallet database at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-                path.display()
-              ),
-            cmp::Ordering::Equal => {
-            }
+            cmp::Ordering::Less => bail!(
+              "wallet database at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+              path.display()
+            ),
+            cmp::Ordering::Greater => bail!(
+              "wallet database at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+              path.display()
+            ),
+            cmp::Ordering::Equal => {}
           }
         }
 
@@ -881,6 +891,7 @@ impl Wallet {
       self.bitcoin_client(),
       fee_rate,
       &unfunded_transaction,
+      None,
     )?)?;
 
     Ok(unsigned_transaction)
@@ -1112,7 +1123,7 @@ impl Wallet {
     };
 
     let unsigned_transaction =
-      fund_raw_transaction(self.bitcoin_client(), fee_rate, &unfunded_transaction)?;
+      fund_raw_transaction(self.bitcoin_client(), fee_rate, &unfunded_transaction, None)?;
 
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 
@@ -1148,5 +1159,13 @@ impl Wallet {
         )?
         .balance_change,
     )
+  }
+
+  pub(crate) fn ord_client(&self) -> reqwest::blocking::Client {
+    self.ord_client.clone()
+  }
+
+  pub(crate) fn rpc_url(&self) -> &Url {
+    &self.rpc_url
   }
 }
