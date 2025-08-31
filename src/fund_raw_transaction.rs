@@ -100,7 +100,7 @@ pub(crate) fn fund_raw_transaction(
       .consensus_encode(&mut buffer)?;
   }
 
-  let options = Some(&FundRawTransactionOptions {
+  let options = Some(FundRawTransactionOptions {
     // NB. This is `fundrawtransaction`'s `feeRate`, which is fee per kvB
     // and *not* fee per vB. So, we multiply the fee rate given by the user
     // by 1000.
