@@ -394,7 +394,17 @@ impl Api for Server {
     utxos.sort();
     utxos.reverse();
 
-    if output_value > input_value {
+    let estimated_fee = if let Some(fee_rate) = options.fee_rate {
+      let funded_vsize = transaction.vsize() as f64 + 68.0 / 4.0;
+      let funded_kwu = funded_vsize / 1000.0;
+      let fee = (funded_kwu * fee_rate.to_sat() as f64) as u64;
+      // we want to overestimate the fee to account for added inputs
+      fee * 10
+    } else {
+      0
+    };
+
+    if (output_value + estimated_fee) > input_value {
       for (value, outpoint) in utxos {
         if state.locked.contains(&outpoint) {
           continue;
@@ -421,12 +431,12 @@ impl Api for Server {
 
         input_value += value.to_sat();
 
-        if input_value > output_value {
+        if input_value > (output_value + estimated_fee) {
           break;
         }
       }
 
-      if output_value > input_value {
+      if (output_value + estimated_fee) > input_value {
         return Err(jsonrpc_core::Error {
           code: jsonrpc_core::ErrorCode::ServerError(-6),
           message: "insufficient funds".into(),

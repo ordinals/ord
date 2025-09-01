@@ -28,6 +28,7 @@ pub mod send;
 mod shared_args;
 pub mod sign;
 pub mod split;
+pub mod sweep;
 pub mod transactions;
 
 #[derive(Debug, Parser)]
@@ -92,6 +93,8 @@ pub(crate) enum Subcommand {
   Sign(sign::Sign),
   #[command(about = "Split outputs")]
   Split(split::Split),
+  #[command(about = "Sweep assets from private key")]
+  Sweep(sweep::Sweep),
   #[command(about = "See wallet transactions")]
   Transactions(transactions::Transactions),
 }
@@ -140,6 +143,7 @@ impl WalletCommand {
       Subcommand::Send(send) => send.run(wallet),
       Subcommand::Sign(sign) => sign.run(wallet),
       Subcommand::Split(split) => split.run(wallet),
+      Subcommand::Sweep(sweep) => sweep.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
     }
   }

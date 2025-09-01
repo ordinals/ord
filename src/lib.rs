@@ -2,7 +2,8 @@
   clippy::large_enum_variant,
   clippy::result_large_err,
   clippy::too_many_arguments,
-  clippy::type_complexity
+  clippy::type_complexity,
+  mismatched_lifetime_syntaxes
 )]
 #![deny(
   clippy::cast_lossless,
@@ -17,6 +18,7 @@ use {
     blocktime::Blocktime,
     decimal::Decimal,
     deserialize_from_str::DeserializeFromStr,
+    fund_raw_transaction::fund_raw_transaction,
     index::BitcoinCoreRpcResultExt,
     inscriptions::{
       inscription_id,
@@ -47,7 +49,8 @@ use {
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
     policy::MAX_STANDARD_TX_WEIGHT,
-    script, secp256k1,
+    script,
+    secp256k1::{self, Secp256k1},
     transaction::Version,
     Amount, Block, KnownHrp, Network, OutPoint, Script, ScriptBuf, Sequence, SignedAmount,
     Transaction, TxIn, TxOut, Txid, Witness,
@@ -118,6 +121,7 @@ pub mod decimal;
 mod deserialize_from_str;
 mod error;
 mod fee_rate;
+mod fund_raw_transaction;
 pub mod index;
 mod inscriptions;
 mod into_u64;
@@ -160,53 +164,6 @@ pub struct SimulateRawTransactionResult {
 #[derive(Deserialize, Serialize)]
 pub struct SimulateRawTransactionOptions {
   include_watchonly: bool,
-}
-
-#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-fn fund_raw_transaction(
-  client: &Client,
-  fee_rate: FeeRate,
-  unfunded_transaction: &Transaction,
-) -> Result<Vec<u8>> {
-  let mut buffer = Vec::new();
-
-  {
-    unfunded_transaction.version.consensus_encode(&mut buffer)?;
-    unfunded_transaction.input.consensus_encode(&mut buffer)?;
-    unfunded_transaction.output.consensus_encode(&mut buffer)?;
-    unfunded_transaction
-      .lock_time
-      .consensus_encode(&mut buffer)?;
-  }
-
-  Ok(
-    client
-      .fund_raw_transaction(
-        &buffer,
-        Some(&bitcoincore_rpc::json::FundRawTransactionOptions {
-          // NB. This is `fundrawtransaction`'s `feeRate`, which is fee per kvB
-          // and *not* fee per vB. So, we multiply the fee rate given by the user
-          // by 1000.
-          fee_rate: Some(Amount::from_sat((fee_rate.n() * 1000.0).ceil() as u64)),
-          change_position: Some(unfunded_transaction.output.len().try_into()?),
-          ..default()
-        }),
-        Some(false),
-      )
-      .map_err(|err| {
-        if matches!(
-          err,
-          bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(
-            bitcoincore_rpc::jsonrpc::error::RpcError { code: -6, .. }
-          ))
-        ) {
-          anyhow!("not enough cardinal utxos")
-        } else {
-          err.into()
-        }
-      })?
-      .hex,
-  )
 }
 
 pub fn timestamp(seconds: u64) -> DateTime<Utc> {
