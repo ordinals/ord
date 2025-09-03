@@ -25,7 +25,7 @@ edition = "2021"
 homepage = "https://github.com/ordinals/ord"
 license = "CC0-1.0"
 repository = "https://github.com/ordinals/ord"
-rust-version = "1.81.0"
+rust-version = "1.85.0"
 
 [workspace.dependencies]
 base64 = "0.22.0"
@@ -77,7 +77,7 @@ minicbor = { version = "1.0.0", features = ["alloc", "derive"] }
 miniscript = "12.0.0"
 mp4 = "0.14.0"
 ordinals = { version = "0.0.15", path = "crates/ordinals" }
-redb = "2.4.0"
+redb = "2.6.0"
 ref-cast = "1.0.23"
 regex.workspace = true
 reqwest.workspace = true

@@ -524,8 +524,8 @@ impl Server {
     tokio::spawn(async move {
       while let Some(result) = state.next().await {
         match result {
-          Ok(ok) => log::info!("ACME event: {:?}", ok),
-          Err(err) => log::error!("ACME error: {:?}", err),
+          Ok(ok) => log::info!("ACME event: {ok:?}"),
+          Err(err) => log::error!("ACME error: {err:?}"),
         }
       }
     });
@@ -630,7 +630,7 @@ impl Server {
 
     if let Ok(form) = Query::<Form>::try_from_uri(&uri) {
       return if let Some(fragment) = form.url.0.fragment() {
-        Ok(Redirect::to(&format!("/satscard?{}", fragment)).into_response())
+        Ok(Redirect::to(&format!("/satscard?{fragment}")).into_response())
       } else {
         Err(ServerError::BadRequest(
           "satscard URL missing fragment".into(),
@@ -1717,11 +1717,13 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     Self::children_paginated(
       Extension(server_config),
       Extension(index),
       Path((inscription_id, 0)),
+      AcceptJson(accept_json),
     )
     .await
   }
@@ -1730,6 +1732,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((parent, page)): Path<(InscriptionId, usize)>,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
       let entry = index
@@ -1745,7 +1748,14 @@ impl Server {
 
       let next_page = more_children.then_some(page + 1);
 
-      Ok(
+      Ok(if accept_json {
+        Json(api::Children {
+          ids: children,
+          more: more_children,
+          page,
+        })
+        .into_response()
+      } else {
         ChildrenHtml {
           parent,
           parent_number,
@@ -1754,8 +1764,8 @@ impl Server {
           next_page,
         }
         .page(server_config)
-        .into_response(),
-      )
+        .into_response()
+      })
     })
   }
 
@@ -2908,7 +2918,7 @@ mod tests {
 
     for i in 1..6 {
       server.assert_response_regex(
-        format!("/rune/{}", i),
+        format!("/rune/{i}"),
         StatusCode::OK,
         ".*<title>Rune AAAAAAAAAAAA.*</title>.*",
       );
@@ -3802,7 +3812,7 @@ mod tests {
     let inscription_id = InscriptionId { txid, index: 0 };
 
     server.assert_response_regex(
-      format!("/inscription/{}", inscription_id),
+      format!("/inscription/{inscription_id}"),
       StatusCode::OK,
       format!(
         ".*<dl>
@@ -4384,7 +4394,12 @@ mod tests {
     .unwrap()
     .unwrap();
 
-    assert_eq!(headers["content-security-policy"], HeaderValue::from_static("default-src https://ordinals.com/content/ https://ordinals.com/blockheight https://ordinals.com/blockhash https://ordinals.com/blockhash/ https://ordinals.com/blocktime https://ordinals.com/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"));
+    assert_eq!(
+      headers["content-security-policy"],
+      HeaderValue::from_static(
+        "default-src https://ordinals.com/content/ https://ordinals.com/blockheight https://ordinals.com/blockhash https://ordinals.com/blockhash/ https://ordinals.com/blocktime https://ordinals.com/r/ 'unsafe-eval' 'unsafe-inline' data: blob:"
+      )
+    );
   }
 
   #[test]
@@ -4404,12 +4419,11 @@ mod tests {
       let inscription_id = InscriptionId { txid, index: 0 };
 
       server.assert_response_csp(
-        format!("/preview/{}", inscription_id),
+        format!("/preview/{inscription_id}"),
         StatusCode::OK,
         "default-src 'self'",
         format!(
-          ".*<html lang=en data-inscription={}>.*<title>Inscription 0 Preview</title>.*",
-          inscription_id
+          ".*<html lang=en data-inscription={inscription_id}>.*<title>Inscription 0 Preview</title>.*"
         ),
       );
     }
@@ -4432,10 +4446,10 @@ mod tests {
       let inscription_id = InscriptionId { txid, index: 0 };
 
       server.assert_response_csp(
-        format!("/preview/{}", inscription_id),
+        format!("/preview/{inscription_id}"),
         StatusCode::OK,
         "default-src https://ordinals.com",
-        format!(".*<html lang=en data-inscription={}>.*", inscription_id),
+        format!(".*<html lang=en data-inscription={inscription_id}>.*"),
       );
     }
   }
@@ -4521,10 +4535,10 @@ mod tests {
     server.mine_blocks(1);
 
     server.assert_response_csp(
-      format!("/preview/{}", inscription_id),
+      format!("/preview/{inscription_id}"),
       StatusCode::OK,
       "default-src 'self'",
-      format!(".*<html lang=en data-inscription={}>.*", inscription_id),
+      format!(".*<html lang=en data-inscription={inscription_id}>.*"),
     );
   }
 
@@ -6122,7 +6136,7 @@ next
     let second_inscription_id = InscriptionId { txid, index: 1 };
     let outpoint: OutPoint = OutPoint { txid, vout: 0 };
 
-    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{}", outpoint));
+    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{outpoint}"));
 
     pretty_assert_eq!(
       utxo_recursive,
@@ -6166,7 +6180,7 @@ next
     let inscription_id = InscriptionId { txid, index: 0 };
     let outpoint: OutPoint = OutPoint { txid, vout: 0 };
 
-    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{}", outpoint));
+    let utxo_recursive = server.get_json::<api::UtxoRecursive>(format!("/r/utxo/{outpoint}"));
 
     pretty_assert_eq!(
       utxo_recursive,
@@ -6343,6 +6357,80 @@ next
 
     let children_json =
       server.get_json::<api::Children>(format!("/r/children/{parent_inscription_id}/1"));
+
+    assert_eq!(children_json.ids.len(), 11);
+    assert_eq!(children_json.ids[0], hundred_first_child_inscription_id);
+    assert_eq!(children_json.ids[10], hundred_eleventh_child_inscription_id);
+    assert!(!children_json.more);
+    assert_eq!(children_json.page, 1);
+  }
+
+  #[test]
+  fn children_json_endpoint() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    server.assert_response(
+      format!("/children/{parent_inscription_id}"),
+      StatusCode::NOT_FOUND,
+      &format!("inscription {parent_inscription_id} not found"),
+    );
+
+    server.mine_blocks(1);
+
+    let children_json =
+      server.get_json::<api::Children>(format!("/children/{parent_inscription_id}"));
+    assert_eq!(children_json.ids.len(), 0);
+    assert!(!children_json.more);
+    assert_eq!(children_json.page, 0);
+
+    let mut builder = script::Builder::new();
+    for _ in 0..111 {
+      builder = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parents: vec![parent_inscription_id.value()],
+        unrecognized_even_field: false,
+        ..default()
+      }
+      .append_reveal_script_to_builder(builder);
+    }
+
+    let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let first_child_inscription_id = InscriptionId { txid, index: 0 };
+    let hundredth_child_inscription_id = InscriptionId { txid, index: 99 };
+    let hundred_first_child_inscription_id = InscriptionId { txid, index: 100 };
+    let hundred_eleventh_child_inscription_id = InscriptionId { txid, index: 110 };
+
+    let children_json =
+      server.get_json::<api::Children>(format!("/children/{parent_inscription_id}"));
+
+    assert_eq!(children_json.ids.len(), 100);
+    assert_eq!(children_json.ids[0], first_child_inscription_id);
+    assert_eq!(children_json.ids[99], hundredth_child_inscription_id);
+    assert!(children_json.more);
+    assert_eq!(children_json.page, 0);
+
+    let children_json =
+      server.get_json::<api::Children>(format!("/children/{parent_inscription_id}/1"));
 
     assert_eq!(children_json.ids.len(), 11);
     assert_eq!(children_json.ids[0], hundred_first_child_inscription_id);

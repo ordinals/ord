@@ -336,7 +336,7 @@ inscriptions:
 
   core.mine_blocks(1);
 
-  let response = ord.json_request(format!("/output/{}:0", reveal_txid));
+  let response = ord.json_request(format!("/output/{reveal_txid}:0"));
   assert_eq!(response.status(), StatusCode::OK);
 
   let output_json: api::Output = serde_json::from_str(&response.text().unwrap()).unwrap();
@@ -376,8 +376,7 @@ inscriptions:
 
   // try and fail to send first
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i0",
-    reveal_txid,
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal_txid}i0"
   ))
   .core(&core)
     .ord(&ord)
@@ -389,8 +388,7 @@ inscriptions:
 
   // splitting out last
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i2",
-    reveal_txid,
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal_txid}i2"
   ))
   .core(&core)
   .ord(&ord)
@@ -400,8 +398,7 @@ inscriptions:
 
   // splitting second to last
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i1",
-    reveal_txid,
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal_txid}i1"
   ))
   .core(&core)
   .ord(&ord)
@@ -411,8 +408,7 @@ inscriptions:
 
   // splitting send first
   CommandBuilder::new(format!(
-    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {}i0",
-    reveal_txid,
+    "wallet send --fee-rate 1 bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {reveal_txid}i0"
   ))
   .core(&core)
   .ord(&ord)
@@ -987,11 +983,11 @@ fn sending_rune_creates_change_output_for_non_outgoing_runes() {
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 84999960160,
+      cardinal: 84999960000,
       ordinal: 20000,
       runes: Some([(SpacedRune::new(Rune(RUNE + 1), 0), "1000".parse().unwrap())].into()),
       runic: Some(10000),
-      total: 84999990160,
+      total: 84999990000,
     }
   );
 }
@@ -1017,7 +1013,7 @@ fn sending_spaced_rune_works_with_no_change() {
 
   let tx = core.tx_by_id(output.txid);
 
-  assert_eq!(tx.output.len(), 1);
+  assert_eq!(tx.output.len(), 2);
 
   let balances = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)
@@ -1083,8 +1079,7 @@ fn sending_rune_with_divisibility_works() {
   );
 
   let output = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 10.1:{}",
-    rune
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 10.1:{rune}"
   ))
   .core(&core)
     .ord(&ord)

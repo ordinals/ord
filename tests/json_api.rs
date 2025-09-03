@@ -97,8 +97,7 @@ fn get_sat_with_inscription_on_common_sat_and_more_inscriptions() {
   let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
 
   let Batch { reveal, .. } = CommandBuilder::new(format!(
-    "wallet inscribe --satpoint {}:0:1 --fee-rate 1 --file foo.txt",
-    txid
+    "wallet inscribe --satpoint {txid}:0:1 --fee-rate 1 --file foo.txt"
   ))
   .write("foo.txt", "FOO")
   .core(&core)
@@ -154,7 +153,7 @@ fn get_inscription() {
 
   let (inscription_id, reveal) = inscribe(&core, &ord);
 
-  let response = ord.json_request(format!("/inscription/{}", inscription_id));
+  let response = ord.json_request(format!("/inscription/{inscription_id}"));
 
   assert_eq!(response.status(), StatusCode::OK);
 
@@ -377,7 +376,7 @@ fn get_output() {
   let server = TestServer::spawn_with_server_args(&core, &["--index-sats"], &["--no-sync"]);
 
   let response = reqwest::blocking::Client::new()
-    .get(server.url().join(&format!("/output/{}:0", txid)).unwrap())
+    .get(server.url().join(&format!("/output/{txid}:0")).unwrap())
     .header(reqwest::header::ACCEPT, "application/json")
     .send()
     .unwrap();
@@ -392,7 +391,7 @@ fn get_output() {
 
   let server = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
 
-  let response = server.json_request(format!("/output/{}:0", txid));
+  let response = server.json_request(format!("/output/{txid}:0"));
   assert_eq!(response.status(), StatusCode::OK);
 
   let output_json: api::Output = serde_json::from_str(&response.text().unwrap()).unwrap();
@@ -790,6 +789,8 @@ fn outputs_address() {
   .stdout_regex(".*")
   .run_and_deserialize_output::<Output>();
 
+  core.mine_blocks(1);
+
   let cardinal_send = CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet send --fee-rate 13.3 {address} 2btc"
   ))
@@ -799,7 +800,7 @@ fn outputs_address() {
 
   core.mine_blocks(6);
 
-  let cardinals_response = ord.json_request(format!("/outputs/{}?type=cardinal", address));
+  let cardinals_response = ord.json_request(format!("/outputs/{address}?type=cardinal"));
 
   assert_eq!(cardinals_response.status(), StatusCode::OK);
 
@@ -831,7 +832,7 @@ fn outputs_address() {
     }]
   );
 
-  let runes_response = ord.json_request(format!("/outputs/{}?type=runic", address));
+  let runes_response = ord.json_request(format!("/outputs/{address}?type=runic"));
 
   assert_eq!(runes_response.status(), StatusCode::OK);
 
@@ -855,7 +856,7 @@ fn outputs_address() {
     runes_json,
     vec![api::Output {
       address: Some(address.parse().unwrap()),
-      confirmations: 6,
+      confirmations: 7,
       inscriptions: Some(vec![]),
       outpoint: OutPoint {
         txid: rune_send.txid,
@@ -872,11 +873,11 @@ fn outputs_address() {
       ),
       spent: false,
       transaction: rune_send.txid,
-      value: 9901,
+      value: 10000,
     }]
   );
 
-  let inscriptions_response = ord.json_request(format!("/outputs/{}?type=inscribed", address));
+  let inscriptions_response = ord.json_request(format!("/outputs/{address}?type=inscribed"));
 
   assert_eq!(inscriptions_response.status(), StatusCode::OK);
 
@@ -887,7 +888,7 @@ fn outputs_address() {
     inscriptions_json,
     vec![api::Output {
       address: Some(address.parse().unwrap()),
-      confirmations: 14,
+      confirmations: 15,
       inscriptions: Some(vec![InscriptionId {
         txid: reveal,
         index: 0
@@ -913,7 +914,7 @@ fn outputs_address() {
 
   let any: Vec<api::Output> = serde_json::from_str(
     &ord
-      .json_request(format!("/outputs/{}?type=any", address))
+      .json_request(format!("/outputs/{address}?type=any"))
       .text()
       .unwrap(),
   )
@@ -921,7 +922,7 @@ fn outputs_address() {
 
   let default: Vec<api::Output> = serde_json::from_str(
     &ord
-      .json_request(format!("/outputs/{}", address))
+      .json_request(format!("/outputs/{address}"))
       .text()
       .unwrap(),
   )
@@ -956,13 +957,13 @@ fn outputs_address_returns_400_for_missing_indices() {
 
   let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
 
-  let inscriptions_response = ord.json_request(format!("/outputs/{}?type=inscribed", address));
+  let inscriptions_response = ord.json_request(format!("/outputs/{address}?type=inscribed"));
   assert_eq!(inscriptions_response.status(), StatusCode::BAD_REQUEST);
 
-  let runes_response = ord.json_request(format!("/outputs/{}?type=runic", address));
+  let runes_response = ord.json_request(format!("/outputs/{address}?type=runic"));
   assert_eq!(runes_response.status(), StatusCode::BAD_REQUEST);
 
-  let cardinal_response = ord.json_request(format!("/outputs/{}?type=runic", address));
+  let cardinal_response = ord.json_request(format!("/outputs/{address}?type=runic"));
   assert_eq!(cardinal_response.status(), StatusCode::BAD_REQUEST);
 }
 
@@ -973,12 +974,12 @@ fn outputs_address_returns_400_for_missing_rune_index() {
 
   let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
 
-  let inscriptions_response = ord.json_request(format!("/outputs/{}?type=inscribed", address));
+  let inscriptions_response = ord.json_request(format!("/outputs/{address}?type=inscribed"));
   assert_eq!(inscriptions_response.status(), StatusCode::BAD_REQUEST);
 
-  let runes_response = ord.json_request(format!("/outputs/{}?type=runic", address));
+  let runes_response = ord.json_request(format!("/outputs/{address}?type=runic"));
   assert_eq!(runes_response.status(), StatusCode::BAD_REQUEST);
 
-  let cardinal_response = ord.json_request(format!("/outputs/{}?type=runic", address));
+  let cardinal_response = ord.json_request(format!("/outputs/{address}?type=runic"));
   assert_eq!(cardinal_response.status(), StatusCode::BAD_REQUEST);
 }

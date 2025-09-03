@@ -165,8 +165,8 @@ impl Plan {
         Ok(txid) => txid,
         Err(err) => {
           return Err(anyhow!(
-        "Failed to send reveal transaction: {err}\nCommit tx {commit_txid} will be recovered once mined"
-      ))
+            "Failed to send reveal transaction: {err}\nCommit tx {commit_txid} will be recovered once mined"
+          ));
         }
       };
 
@@ -695,7 +695,7 @@ impl Plan {
         active: Some(false),
         range: None,
         next_index: None,
-        internal: Some(false),
+        internal: None,
         label: Some("commit tx recovery key".to_string()),
       })?;
 
