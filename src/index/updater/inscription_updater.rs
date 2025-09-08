@@ -25,6 +25,7 @@ enum Origin {
   New {
     cursed: bool,
     fee: u64,
+    gallery: Vec<InscriptionId>,
     hidden: bool,
     parents: Vec<InscriptionId>,
     reinscription: bool,
@@ -53,6 +54,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) transaction_id_to_transaction: &'a mut Table<'tx, &'static TxidValue, &'static [u8]>,
   pub(super) sat_to_sequence_number: &'a mut MultimapTable<'tx, u64, u32>,
   pub(super) sequence_number_to_children: &'a mut MultimapTable<'tx, u32, u32>,
+  pub(super) sequence_number_to_gallery_items: &'a mut MultimapTable<'tx, u32, u32>,
   pub(super) sequence_number_to_entry: &'a mut Table<'tx, u32, InscriptionEntryValue>,
   pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
@@ -198,6 +200,7 @@ impl InscriptionUpdater<'_, '_> {
           origin: Origin::New {
             cursed: curse.is_some() && !jubilant,
             fee: 0,
+            gallery: inscription.payload.gallery(),
             hidden: inscription.payload.hidden(),
             parents: inscription.payload.parents(),
             reinscription: inscribed_offsets.contains_key(&offset),
@@ -413,6 +416,7 @@ impl InscriptionUpdater<'_, '_> {
       Origin::New {
         cursed,
         fee,
+        gallery,
         hidden,
         parents,
         reinscription,
@@ -492,6 +496,19 @@ impl InscriptionUpdater<'_, '_> {
             Ok(parent_sequence_number)
           })
           .collect::<Result<Vec<u32>>>()?;
+
+        // Index gallery items
+        for gallery_item in &gallery {
+          if let Ok(Some(gallery_item_sequence_number)) = self
+            .id_to_sequence_number
+            .get(&gallery_item.store())
+            .map(|entry| entry.map(|e| e.value()))
+          {
+            self
+              .sequence_number_to_gallery_items
+              .insert(sequence_number, gallery_item_sequence_number)?;
+          }
+        }
 
         if let Some(ref sender) = index.event_sender {
           sender.blocking_send(Event::InscriptionCreated {

@@ -422,6 +422,8 @@ impl Updater<'_> {
     let mut sat_to_sequence_number = wtx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
     let mut script_pubkey_to_outpoint = wtx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
     let mut sequence_number_to_children = wtx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+    let mut sequence_number_to_gallery_items =
+      wtx.open_multimap_table(SEQUENCE_NUMBER_TO_GALLERY_ITEMS)?;
     let mut sequence_number_to_inscription_entry =
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
@@ -515,6 +517,7 @@ impl Updater<'_> {
       reward: Height(self.height).subsidy(),
       sat_to_sequence_number: &mut sat_to_sequence_number,
       sequence_number_to_children: &mut sequence_number_to_children,
+      sequence_number_to_gallery_items: &mut sequence_number_to_gallery_items,
       sequence_number_to_entry: &mut sequence_number_to_inscription_entry,
       timestamp: block.header.time,
       transaction_buffer: Vec::new(),
