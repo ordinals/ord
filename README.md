@@ -20,7 +20,7 @@
 software with no warranty. See [LICENSE](LICENSE) for more details.
 
 Ordinal theory imbues satoshis with numismatic value, allowing them to
-be collected and traded as curios.
+be collected and traded as curious.
 
 Ordinal numbers are serial numbers for satoshis, assigned in the order in which
 they are mined, and preserved across transactions.
