@@ -5129,7 +5129,12 @@ next
 
       gallery_item_ids.push(InscriptionId {
         txid: server.core.broadcast_tx(TransactionTemplate {
-          inputs: &[(i + 1, 0, 0, inscription("text/plain", "gallery item").to_witness())],
+          inputs: &[(
+            i + 1,
+            0,
+            0,
+            inscription("text/plain", "gallery item").to_witness(),
+          )],
           ..default()
         }),
         index: 0,
@@ -5202,6 +5207,13 @@ prev
 next
 </div>.*"
         .unindent(),
+    );
+
+    // Test navigation includes correct gallery icon
+    server.assert_response_regex(
+      "/galleries",
+      StatusCode::OK,
+      r".*<a href=/galleries title=galleries><img class=icon src=/static/gallery\.svg></a>.*",
     );
   }
 
