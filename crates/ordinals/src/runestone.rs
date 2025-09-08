@@ -2184,4 +2184,85 @@ mod tests {
       );
     }
   }
+
+  #[test]
+  fn debug_specific_rune_transaction() {
+    use bitcoin::{OutPoint, Txid, Witness, Sequence};
+    use std::str::FromStr;
+
+    // Helper function to decode hex
+    fn hex_decode(s: &str) -> Vec<u8> {
+      (0..s.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&s[i..i + 2], 16).unwrap())
+        .collect()
+    }
+
+    // Specific transaction data
+    // https://mempool.space/api/tx/8bf9d4ec8ed69ae7bac256285b06ae6566cec4679dcfb45b5671a323c2f18c3c
+    let tx = Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: vec![TxIn {
+            previous_output: OutPoint {
+                txid: Txid::from_str("bd546ac9aa0e275a7f06a960a54db0a9c0de634ad71805cb2d10418b3befc8e8").unwrap(),
+                vout: 0,
+            },
+            script_sig: ScriptBuf::new(),
+            sequence: Sequence(4294967293),
+            witness: Witness::from_slice(&[
+                &hex_decode("059b4e426c21d39a438c0f047c3c724f3bfb69ecfcbc223746cd03a35cdfaf7ea5e4266b6b14153620f8493a4a52a8fef4a9487b86fd1c5d2afca2e93b32573f"),
+                &hex_decode("200ffc1a61f24b4b064ce03abebdd8de737d1afb5172831315982a3463e37528e9ac00630925d6f33e24da21141068"),
+                &hex_decode("c1481061324ba36899de17e82ce812d32aa9fd94dd9381afc4fcb7d486b09d2228"),
+            ]),
+        }],
+        output: vec![
+            TxOut {
+                // OP_RETURN output with rune data
+                script_pubkey: ScriptBuf::from_hex("6a5d20020304a5accff7c3c4f6909420010003a00405b84106a096800ae8070888a401").unwrap(),
+                value: Amount::from_sat(0),
+            },
+            TxOut {
+                script_pubkey: ScriptBuf::from_hex("51202b35c0d80bce33fe2036479ab82a4ea60dd760fe2310a433427cc4199da59b8a").unwrap(),
+                value: Amount::from_sat(546),
+            },
+            TxOut {
+                script_pubkey: ScriptBuf::from_hex("00143d71d44fc31fec24a6e3c1e7955e9d388c5ef312").unwrap(),
+                value: Amount::from_sat(22454),
+            },
+        ],
+    };
+
+    let result = Runestone::decipher(&tx);
+
+    match &result {
+        Some(Artifact::Runestone(runestone)) => {
+            println!("Successfully decoded runestone: {:?}", runestone);
+        }
+        Some(Artifact::Cenotaph(cenotaph)) => {
+            println!("Transaction resulted in cenotaph: {:?}", cenotaph);
+            if let Some(flaw) = cenotaph.flaw {
+                println!("Flaw detected: {:?}", flaw);
+            }
+        }
+        None => {
+            println!("No runestone found in transaction");
+        }
+    }
+
+    let payload_result = Runestone::payload(&tx);
+
+    if let Some(Payload::Valid(ref payload)) = payload_result {
+        match Runestone::integers(&payload) {
+            Ok(integers) => {
+                println!("Decoded integers: {:?}", integers);
+            }
+            Err(e) => {
+                println!("Failed to decode integers: {:?}", e);
+            }
+        }
+    }
+
+    assert!(result.is_some(), "Expected to find a runestone or cenotaph");
+  }
 }
