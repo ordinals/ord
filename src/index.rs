@@ -1221,6 +1221,7 @@ impl Index {
     let mut galleries = rtx
       .open_multimap_table(SEQUENCE_NUMBER_TO_GALLERY_ITEMS)?
       .iter()?
+      .rev()
       .skip(page_index.saturating_mul(page_size))
       .take(page_size.saturating_add(1))
       .map(|result| {
