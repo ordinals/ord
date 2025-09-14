@@ -1,3 +1,4 @@
+pub use super::create::Payment;
 use super::*;
 
 #[derive(PartialEq)]
@@ -13,8 +14,11 @@ pub struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Accept {
-  #[arg(long, help = "Assert offer is for <AMOUNT>")]
-  amount: Amount,
+  #[arg(
+    long,
+    help = "Assert offer is for <PAYMENT> - either an amount (e.g. 1btc) or inscription ID"
+  )]
+  r#for: Payment,
   #[arg(long, help = "Don't sign or broadcast transaction")]
   dry_run: bool,
   #[arg(long, help = "Assert offer is for <INSCRIPTION>")]
@@ -75,9 +79,31 @@ impl Accept {
 
     let balance_change = wallet.simulate_transaction(&psbt.unsigned_tx)?;
 
-    ensure! {
-      balance_change == self.amount.to_signed()?,
-      "unexpected balance change of {balance_change}",
+    match &self.r#for {
+      Payment::Amount(amount) => {
+        ensure! {
+          balance_change == amount.to_signed()?,
+          "unexpected balance change of {balance_change}",
+        }
+      }
+      Payment::InscriptionId(payment_inscription_id) => {
+        let mut found_inscription = false;
+        for input in &psbt.unsigned_tx.input {
+          if !wallet.utxos().contains_key(&input.previous_output) {
+            if let Some(inscriptions) = wallet.get_inscriptions_in_output(&input.previous_output)? {
+              if inscriptions.contains(payment_inscription_id) {
+                found_inscription = true;
+                break;
+              }
+            }
+          }
+        }
+        ensure! {
+          found_inscription,
+          "PSBT does not contain payment inscription {}",
+          payment_inscription_id
+        }
+      }
     }
 
     let signatures = Self::psbt_signatures(&psbt)?;

@@ -26,7 +26,7 @@ fn accepted_offer_works() {
     .remove_wallet_address(inscription_address.clone());
 
   let create = CommandBuilder::new(format!(
-    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 0"
+    "wallet offer create --inscription {inscription} --for 1btc --fee-rate 0"
   ))
   .core(&core)
   .ord(&ord)
@@ -38,7 +38,7 @@ fn accepted_offer_works() {
   core.state().add_wallet_address(inscription_address.clone());
 
   CommandBuilder::new(format!(
-    "wallet offer accept --inscription {inscription} --amount 1btc --psbt {} --dry-run",
+    "wallet offer accept --inscription {inscription} --for 1btc --psbt {} --dry-run",
     create.psbt
   ))
   .core(&core)
@@ -56,7 +56,7 @@ fn accepted_offer_works() {
   assert_eq!(balance.cardinal, 50 * COIN_VALUE);
 
   CommandBuilder::new(format!(
-    "wallet offer accept --inscription {inscription} --amount 1btc --psbt {}",
+    "wallet offer accept --inscription {inscription} --for 1btc --psbt {}",
     create.psbt
   ))
   .core(&core)
@@ -114,7 +114,7 @@ fn error_case(core: &mockcore::Handle, ord: &TestServer, tx: Transaction, messag
     "accept",
     "--inscription",
     "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
-    "--amount",
+    "--for",
     "1btc",
     "--psbt",
     &base64,
@@ -202,7 +202,7 @@ fn error_on_base64_psbt_decode() {
     "accept",
     "--inscription",
     "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
-    "--amount",
+    "--for",
     "1btc",
     "--psbt",
     "=",
@@ -228,7 +228,7 @@ fn error_on_psbt_deserialize() {
     "accept",
     "--inscription",
     "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
-    "--amount",
+    "--for",
     "1btc",
     "--psbt",
     "",
@@ -340,7 +340,7 @@ fn unexpected_balance_change() {
     "accept",
     "--inscription",
     &inscription.to_string(),
-    "--amount",
+    "--for",
     "1btc",
     "--psbt",
     &base64,
@@ -466,7 +466,7 @@ fn outgoing_does_not_contain_runes() {
     "accept",
     "--inscription",
     "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
-    "--amount",
+    "--for",
     "1btc",
     "--psbt",
     &base64,
@@ -516,7 +516,7 @@ fn must_have_inscription_index_to_accept() {
     "accept",
     "--inscription",
     &inscription.to_string(),
-    "--amount",
+    "--for",
     "1btc",
     "--psbt",
     &base64,
@@ -551,7 +551,7 @@ fn buyer_inputs_must_be_signed() {
     .remove_wallet_address(inscription_address.clone());
 
   let create = CommandBuilder::new(format!(
-    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 0"
+    "wallet offer create --inscription {inscription} --for 1btc --fee-rate 0"
   ))
   .core(&core)
   .ord(&ord)
@@ -567,7 +567,7 @@ fn buyer_inputs_must_be_signed() {
   core.state().add_wallet_address(inscription_address.clone());
 
   CommandBuilder::new(format!(
-    "wallet offer accept --inscription {inscription} --amount 1btc --psbt {} --dry-run",
+    "wallet offer accept --inscription {inscription} --for 1btc --psbt {} --dry-run",
     base64_encode(&psbt.serialize()),
   ))
   .core(&core)
@@ -603,7 +603,7 @@ fn seller_input_must_not_be_signed() {
     .remove_wallet_address(inscription_address.clone());
 
   let create = CommandBuilder::new(format!(
-    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 0"
+    "wallet offer create --inscription {inscription} --for 1btc --fee-rate 0"
   ))
   .core(&core)
   .ord(&ord)
@@ -619,7 +619,7 @@ fn seller_input_must_not_be_signed() {
   core.state().add_wallet_address(inscription_address.clone());
 
   CommandBuilder::new(format!(
-    "wallet offer accept --inscription {inscription} --amount 1btc --psbt {} --dry-run",
+    "wallet offer accept --inscription {inscription} --for 1btc --psbt {} --dry-run",
     base64_encode(&psbt.serialize()),
   ))
   .core(&core)
