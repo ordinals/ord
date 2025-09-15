@@ -251,3 +251,11 @@ pub struct AddressInfo {
   pub sat_balance: u64,
   pub runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
 }
+
+#[derive(Serialize)]
+pub struct OfferSubmit {}
+
+#[derive(Serialize)]
+pub struct Offers {
+  pub(crate) offers: Vec<Vec<u8>>,
+}

@@ -222,6 +222,7 @@ impl Server {
         .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route("/install.sh", get(Self::install_script))
         .route("/offer", post(Self::offer))
+        .route("/offers", get(Self::offers))
         .route("/ordinal/{sat}", get(Self::ordinal))
         .route("/output/{output}", get(Self::output))
         .route("/outputs", post(Self::outputs))
@@ -1076,12 +1077,12 @@ impl Server {
   async fn offer(
     Extension(settings): Extension<Arc<Settings>>,
     Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
     body: body::Bytes,
-  ) -> ServerResult<()> {
+  ) -> ServerResult {
     // tests:
-    // - offers are only accepted if configuration is set
     // - offers are accepted (will require listing offers)
-    // - use the name "offers" consistently
+    // - offers are only accepted if accept json and accept offers is set
     //
     // later:
     // - reject unknown keys
@@ -1094,6 +1095,10 @@ impl Server {
     // - offer size is limited, regardless of whether JSON API is enabled
     // - handle reorgs or put in separate database {state,server,offers}.redb
 
+    if !accept_json {
+      return Ok(StatusCode::NOT_FOUND.into_response());
+    }
+
     if !settings.accept_offers() {
       return Err(ServerError::NotFound(
         "this server does not accept offers".into(),
@@ -1104,7 +1109,25 @@ impl Server {
       let offer = Psbt::deserialize(&body)
         .map_err(|err| ServerError::BadRequest(format!("invalid offer PSBT: {err}")))?;
       index.insert_offer(offer).map_err(ServerError::Internal)?;
-      Ok(())
+      Ok(Json(api::OfferSubmit {}).into_response())
+    })
+  }
+
+  async fn offers(
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    if !accept_json {
+      return Ok(StatusCode::NOT_FOUND.into_response());
+    }
+
+    task::block_in_place(|| {
+      Ok(
+        Json(api::Offers {
+          offers: index.get_offers()?,
+        })
+        .into_response(),
+      )
     })
   }
 

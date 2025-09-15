@@ -833,6 +833,19 @@ impl Index {
       .unwrap_or_default()
   }
 
+  pub(crate) fn get_offers(&self) -> Result<Vec<Vec<u8>>> {
+    let tx = self.database.begin_read()?;
+
+    let number_to_offer = tx.open_table(NUMBER_TO_OFFER)?;
+
+    Ok(
+      number_to_offer
+        .iter()?
+        .map(|result| result.map(|(_key, value)| value.value().to_vec()))
+        .collect::<Result<Vec<Vec<u8>>, StorageError>>()?,
+    )
+  }
+
   pub(crate) fn insert_offer(&self, offer: Psbt) -> Result {
     let tx = self.database.begin_write()?;
 
