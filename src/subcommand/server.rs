@@ -1085,10 +1085,10 @@ impl Server {
     }
 
     task::block_in_place(|| {
-      let psbt = Psbt::deserialize(&body)
-        .map_err(|err| ServerError::BadRequest(format!("invalid PSBT: {err}")))?;
+      let offer = Psbt::deserialize(&body)
+        .map_err(|err| ServerError::BadRequest(format!("invalid offer PSBT: {err}")))?;
 
-      index.insert_psbt(psbt).map_err(ServerError::Internal)?;
+      index.insert_offer(offer).map_err(ServerError::Internal)?;
       Ok(())
     })
   }
