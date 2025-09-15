@@ -3,7 +3,6 @@ use {super::*, bitcoincore_rpc::Auth};
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(default, deny_unknown_fields)]
 pub struct Settings {
-  accept_offers: bool,
   bitcoin_data_dir: Option<PathBuf>,
   bitcoin_rpc_limit: Option<u32>,
   bitcoin_rpc_password: Option<String>,
@@ -111,7 +110,6 @@ impl Settings {
 
   pub fn or(self, source: Settings) -> Self {
     Self {
-      accept_offers: self.accept_offers || source.accept_offers,
       bitcoin_data_dir: self.bitcoin_data_dir.or(source.bitcoin_data_dir),
       bitcoin_rpc_limit: self.bitcoin_rpc_limit.or(source.bitcoin_rpc_limit),
       bitcoin_rpc_password: self.bitcoin_rpc_password.or(source.bitcoin_rpc_password),
@@ -152,7 +150,6 @@ impl Settings {
 
   pub fn from_options(options: Options) -> Self {
     Self {
-      accept_offers: options.accept_offers,
       bitcoin_data_dir: options.bitcoin_data_dir,
       bitcoin_rpc_limit: options.bitcoin_rpc_limit,
       bitcoin_rpc_password: options.bitcoin_rpc_password,
@@ -249,7 +246,6 @@ impl Settings {
     };
 
     Ok(Self {
-      accept_offers: get_bool("ACCEPT_OFFERS"),
       bitcoin_data_dir: get_path("BITCOIN_DATA_DIR"),
       bitcoin_rpc_limit: get_u32("BITCOIN_RPC_LIMIT")?,
       bitcoin_rpc_password: get_string("BITCOIN_RPC_PASSWORD"),
@@ -282,7 +278,6 @@ impl Settings {
 
   pub fn for_env(dir: &Path, rpc_url: &str, server_url: &str) -> Self {
     Self {
-      accept_offers: true,
       bitcoin_data_dir: Some(dir.into()),
       bitcoin_rpc_limit: None,
       bitcoin_rpc_password: None,
@@ -347,7 +342,6 @@ impl Settings {
     };
 
     Ok(Self {
-      accept_offers: false,
       bitcoin_data_dir: Some(bitcoin_data_dir),
       bitcoin_rpc_limit: Some(self.bitcoin_rpc_limit.unwrap_or(12)),
       bitcoin_rpc_password: self.bitcoin_rpc_password,
@@ -388,10 +382,6 @@ impl Settings {
       server_url: self.server_url,
       server_username: self.server_username,
     })
-  }
-
-  pub fn accept_offers(&self) -> bool {
-    self.accept_offers
   }
 
   pub fn default_data_dir() -> Result<PathBuf> {
@@ -1070,7 +1060,6 @@ mod tests {
   #[test]
   fn from_env() {
     let env = vec![
-      ("ACCEPT_OFFERS", "1"),
       ("BITCOIN_DATA_DIR", "/bitcoin/data/dir"),
       ("BITCOIN_RPC_LIMIT", "12"),
       ("BITCOIN_RPC_PASSWORD", "bitcoin password"),
@@ -1106,7 +1095,6 @@ mod tests {
     pretty_assert_eq!(
       Settings::from_env(env).unwrap(),
       Settings {
-        accept_offers: true,
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
         bitcoin_rpc_limit: Some(12),
         bitcoin_rpc_password: Some("bitcoin password".into()),
@@ -1155,7 +1143,6 @@ mod tests {
       Settings::from_options(
         Options::try_parse_from([
           "ord",
-          "--accept-offers",
           "--bitcoin-data-dir=/bitcoin/data/dir",
           "--bitcoin-rpc-limit=12",
           "--bitcoin-rpc-password=bitcoin password",
@@ -1184,7 +1171,6 @@ mod tests {
         .unwrap()
       ),
       Settings {
-        accept_offers: true,
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
         bitcoin_rpc_limit: Some(12),
         bitcoin_rpc_password: Some("bitcoin password".into()),

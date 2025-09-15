@@ -849,16 +849,20 @@ impl Index {
   pub(crate) fn insert_offer(&self, offer: Psbt) -> Result {
     let tx = self.database.begin_write()?;
 
-    let mut number_to_offer = tx.open_table(NUMBER_TO_OFFER)?;
+    {
+      let mut number_to_offer = tx.open_table(NUMBER_TO_OFFER)?;
 
-    let number = number_to_offer
-      .last()?
-      .map(|(key, _value)| key.value() + 1)
-      .unwrap_or_default();
+      let number = number_to_offer
+        .last()?
+        .map(|(key, _value)| key.value() + 1)
+        .unwrap_or_default();
 
-    let offer = offer.serialize();
+      let offer = offer.serialize();
 
-    number_to_offer.insert(number, offer.as_slice())?;
+      number_to_offer.insert(number, offer.as_slice())?;
+    }
+
+    tx.commit()?;
 
     Ok(())
   }

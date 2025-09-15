@@ -39,7 +39,7 @@ reqwest = { version = "0.12.0", features = ["blocking", "json", "brotli"] }
 secp256k1 = { version = "0.29.1", features = ["global-context"] }
 serde = { version = "1.0.137", features = ["derive"] }
 serde_json = { version = "1.0.81", features = ["preserve_order"] }
-serde_with = "3.7.0"
+serde_with = { version = "3.7.0", features = ["hex"] }
 tempfile = "3.2.0"
 
 [dependencies]

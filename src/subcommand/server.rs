@@ -86,6 +86,8 @@ lazy_static! {
 
 #[derive(Debug, Parser, Clone)]
 pub struct Server {
+  #[arg(long, help = "Accept PSBT offer submissions to server.")]
+  pub(crate) accept_offers: bool,
   #[arg(
     long,
     help = "Listen on <ADDRESS> for incoming requests. [default: 0.0.0.0]"
@@ -174,6 +176,7 @@ impl Server {
       let acme_domains = self.acme_domains()?;
 
       let server_config = Arc::new(ServerConfig {
+        accept_offers: self.accept_offers,
         chain: settings.chain(),
         csp_origin: self.csp_origin.clone(),
         decompress: self.decompress,
@@ -1075,7 +1078,7 @@ impl Server {
   }
 
   async fn offer(
-    Extension(settings): Extension<Arc<Settings>>,
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(accept_json): AcceptJson,
     body: body::Bytes,
@@ -1099,7 +1102,7 @@ impl Server {
       return Ok(StatusCode::NOT_FOUND.into_response());
     }
 
-    if !settings.accept_offers() {
+    if !server_config.accept_offers {
       return Err(ServerError::NotFound(
         "this server does not accept offers".into(),
       ));
@@ -1109,7 +1112,7 @@ impl Server {
       let offer = Psbt::deserialize(&body)
         .map_err(|err| ServerError::BadRequest(format!("invalid offer PSBT: {err}")))?;
       index.insert_offer(offer).map_err(ServerError::Internal)?;
-      Ok(Json(api::OfferSubmit {}).into_response())
+      Ok("".into_response())
     })
   }
 
@@ -1124,7 +1127,7 @@ impl Server {
     task::block_in_place(|| {
       Ok(
         Json(api::Offers {
-          offers: index.get_offers()?,
+          offers: index.get_offers()?.into_iter().map(api::Offer).collect(),
         })
         .into_response(),
       )
@@ -2323,6 +2326,22 @@ mod tests {
       assert_eq!(response.status(), StatusCode::OK);
 
       response.json().unwrap()
+    }
+
+    #[track_caller]
+    fn post(&self, path: impl AsRef<str>, body: &[u8]) -> reqwest::blocking::Response {
+      if let Err(error) = self.index.update() {
+        log::error!("{error}");
+      }
+
+      let client = reqwest::blocking::Client::new();
+
+      client
+        .post(self.join_url(path.as_ref()))
+        .header(header::ACCEPT, "application/json")
+        .body(body.to_vec())
+        .send()
+        .unwrap()
     }
 
     fn join_url(&self, url: &str) -> Url {
@@ -7841,6 +7860,47 @@ next
       "/r/sat/0/at/0/content",
       StatusCode::NOT_FOUND,
       "this server has no sat index",
+    );
+  }
+
+  #[test]
+  fn offers_are_accepted() {
+    let server = TestServer::builder().server_flag("--accept-offers").build();
+
+    let psbt = Psbt {
+      unsigned_tx: Transaction {
+        version: Version(0),
+        lock_time: LockTime::ZERO,
+        input: Vec::new(),
+        output: Vec::new(),
+      },
+      version: 0,
+      xpub: BTreeMap::new(),
+      proprietary: BTreeMap::new(),
+      unknown: BTreeMap::new(),
+      inputs: Vec::new(),
+      outputs: Vec::new(),
+    }
+    .serialize();
+
+    let response = server.post("offer", &psbt);
+
+    assert_eq!(
+      response.status(),
+      StatusCode::OK,
+      "{}",
+      response.text().unwrap()
+    );
+
+    assert_eq!(response.text().unwrap(), "");
+
+    let offers = server.get_json::<api::Offers>("/offers");
+
+    assert_eq!(
+      offers,
+      api::Offers {
+        offers: vec![api::Offer(psbt)],
+      },
     );
   }
 }

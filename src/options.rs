@@ -7,8 +7,6 @@ use super::*;
     .args(&["chain_argument", "signet", "regtest", "testnet", "testnet4"]),
 ))]
 pub struct Options {
-  #[arg(long, help = "Accept PSBT offer submissions to server.")]
-  pub(crate) accept_offers: bool,
   #[arg(long, help = "Load Bitcoin Core data dir from <BITCOIN_DATA_DIR>.")]
   pub(crate) bitcoin_data_dir: Option<PathBuf>,
   #[arg(

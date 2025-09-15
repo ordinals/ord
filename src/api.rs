@@ -1,6 +1,7 @@
 use {
   super::*,
   serde_hex::{SerHex, Strict},
+  serde_with::serde_as,
 };
 
 pub use crate::{
@@ -252,10 +253,11 @@ pub struct AddressInfo {
   pub runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
 }
 
-#[derive(Serialize)]
-pub struct OfferSubmit {}
-
-#[derive(Serialize)]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Offers {
-  pub(crate) offers: Vec<Vec<u8>>,
+  pub(crate) offers: Vec<Offer>,
 }
+
+#[serde_as]
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Offer(#[serde_as(as = "serde_with::hex::Hex")] pub(crate) Vec<u8>);
