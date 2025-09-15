@@ -52,7 +52,7 @@ use {
     script,
     secp256k1::{self, Secp256k1},
     transaction::Version,
-    Amount, Block, KnownHrp, Network, OutPoint, Script, ScriptBuf, Sequence, SignedAmount,
+    Amount, Block, KnownHrp, Network, OutPoint, Psbt, Script, ScriptBuf, Sequence, SignedAmount,
     Transaction, TxIn, TxOut, Txid, Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},

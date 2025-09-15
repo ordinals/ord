@@ -14,6 +14,7 @@ use {
     TransactionHtml,
   },
   axum::{
+    body,
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
     http::{self, header, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
     response::{IntoResponse, Redirect, Response},
@@ -220,6 +221,7 @@ impl Server {
         )
         .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route("/install.sh", get(Self::install_script))
+        .route("/offer", post(Self::offer))
         .route("/ordinal/{sat}", get(Self::ordinal))
         .route("/output/{output}", get(Self::output))
         .route("/outputs", post(Self::outputs))
@@ -1069,6 +1071,16 @@ impl Server {
 
   async fn install_script() -> Redirect {
     Redirect::to("https://raw.githubusercontent.com/ordinals/ord/master/install.sh")
+  }
+
+  async fn offer(Extension(index): Extension<Arc<Index>>, body: body::Bytes) -> ServerResult<()> {
+    let psbt = Psbt::deserialize(&body)
+      .map_err(|err| ServerError::BadRequest(format!("invalid PSBT: {err}")))?;
+
+    task::block_in_place(|| {
+      index.insert_psbt(psbt).map_err(ServerError::Internal)?;
+      Ok(())
+    })
   }
 
   async fn address(

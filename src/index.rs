@@ -56,13 +56,14 @@ pub(crate) mod testing;
 const SCHEMA_VERSION: u64 = 30;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
-define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
+define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
+define_table! { NUMBER_TO_PSBT, u64, &[u8] }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_UTXO_ENTRY, &OutPointValue, &UtxoEntry }
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
@@ -314,6 +315,7 @@ impl Index {
         tx.open_table(HOME_INSCRIPTIONS)?;
         tx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
+        tx.open_table(NUMBER_TO_PSBT)?;
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         tx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
@@ -829,6 +831,23 @@ impl Index {
       .unwrap()
       .map(|x| x.value())
       .unwrap_or_default()
+  }
+
+  pub(crate) fn insert_psbt(&self, psbt: Psbt) -> Result {
+    let tx = self.database.begin_write()?;
+
+    let mut number_to_psbt = tx.open_table(NUMBER_TO_PSBT)?;
+
+    let number = number_to_psbt
+      .last()?
+      .map(|(key, _value)| key.value() + 1)
+      .unwrap_or_default();
+
+    let psbt = psbt.serialize();
+
+    number_to_psbt.insert(number, psbt.as_slice())?;
+
+    Ok(())
   }
 
   #[cfg(test)]
