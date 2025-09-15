@@ -1070,6 +1070,7 @@ mod tests {
   #[test]
   fn from_env() {
     let env = vec![
+      ("ACCEPT_OFFERS", "1"),
       ("BITCOIN_DATA_DIR", "/bitcoin/data/dir"),
       ("BITCOIN_RPC_LIMIT", "12"),
       ("BITCOIN_RPC_PASSWORD", "bitcoin password"),
@@ -1077,23 +1078,23 @@ mod tests {
       ("BITCOIN_RPC_USERNAME", "bitcoin username"),
       ("CHAIN", "signet"),
       ("COMMIT_INTERVAL", "1"),
-      ("SAVEPOINT_INTERVAL", "10"),
-      ("MAX_SAVEPOINTS", "2"),
       ("CONFIG", "config"),
       ("CONFIG_DIR", "config dir"),
       ("COOKIE_FILE", "cookie file"),
       ("DATA_DIR", "/data/dir"),
       ("HEIGHT_LIMIT", "3"),
       ("HIDDEN", "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0"),
-    ("HTTP_PORT", "8080"),
+      ("HTTP_PORT", "8080"),
       ("INDEX", "index"),
-      ("INDEX_CACHE_SIZE", "4"),
       ("INDEX_ADDRESSES", "1"),
+      ("INDEX_CACHE_SIZE", "4"),
       ("INDEX_RUNES", "1"),
       ("INDEX_SATS", "1"),
       ("INDEX_TRANSACTIONS", "1"),
       ("INTEGRATION_TEST", "1"),
+      ("MAX_SAVEPOINTS", "2"),
       ("NO_INDEX_INSCRIPTIONS", "1"),
+      ("SAVEPOINT_INTERVAL", "10"),
       ("SERVER_PASSWORD", "server password"),
       ("SERVER_URL", "server url"),
       ("SERVER_USERNAME", "server username"),
@@ -1105,6 +1106,7 @@ mod tests {
     pretty_assert_eq!(
       Settings::from_env(env).unwrap(),
       Settings {
+        accept_offers: true,
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
         bitcoin_rpc_limit: Some(12),
         bitcoin_rpc_password: Some("bitcoin password".into()),
@@ -1153,6 +1155,7 @@ mod tests {
       Settings::from_options(
         Options::try_parse_from([
           "ord",
+          "--accept-offers",
           "--bitcoin-data-dir=/bitcoin/data/dir",
           "--bitcoin-rpc-limit=12",
           "--bitcoin-rpc-password=bitcoin password",
@@ -1181,6 +1184,7 @@ mod tests {
         .unwrap()
       ),
       Settings {
+        accept_offers: true,
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
         bitcoin_rpc_limit: Some(12),
         bitcoin_rpc_password: Some("bitcoin password".into()),

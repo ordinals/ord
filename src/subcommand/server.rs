@@ -1078,6 +1078,10 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     body: body::Bytes,
   ) -> ServerResult<()> {
+    // tests:
+    // - offer size is limited, regardless of whether JSON API is enabled
+    // - offers are only accepted if configuration is set
+
     if !settings.accept_offers() {
       return Err(ServerError::NotFound(
         "this server does not accept offers".into(),
