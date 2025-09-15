@@ -3,6 +3,7 @@ use {super::*, bitcoincore_rpc::Auth};
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(default, deny_unknown_fields)]
 pub struct Settings {
+  accept_offers: bool,
   bitcoin_data_dir: Option<PathBuf>,
   bitcoin_rpc_limit: Option<u32>,
   bitcoin_rpc_password: Option<String>,
@@ -10,8 +11,6 @@ pub struct Settings {
   bitcoin_rpc_username: Option<String>,
   chain: Option<Chain>,
   commit_interval: Option<usize>,
-  savepoint_interval: Option<usize>,
-  max_savepoints: Option<usize>,
   config: Option<PathBuf>,
   config_dir: Option<PathBuf>,
   cookie_file: Option<PathBuf>,
@@ -26,7 +25,9 @@ pub struct Settings {
   index_sats: bool,
   index_transactions: bool,
   integration_test: bool,
+  max_savepoints: Option<usize>,
   no_index_inscriptions: bool,
+  savepoint_interval: Option<usize>,
   server_password: Option<String>,
   server_url: Option<String>,
   server_username: Option<String>,
@@ -110,6 +111,7 @@ impl Settings {
 
   pub fn or(self, source: Settings) -> Self {
     Self {
+      accept_offers: self.accept_offers || source.accept_offers,
       bitcoin_data_dir: self.bitcoin_data_dir.or(source.bitcoin_data_dir),
       bitcoin_rpc_limit: self.bitcoin_rpc_limit.or(source.bitcoin_rpc_limit),
       bitcoin_rpc_password: self.bitcoin_rpc_password.or(source.bitcoin_rpc_password),
@@ -117,8 +119,6 @@ impl Settings {
       bitcoin_rpc_username: self.bitcoin_rpc_username.or(source.bitcoin_rpc_username),
       chain: self.chain.or(source.chain),
       commit_interval: self.commit_interval.or(source.commit_interval),
-      savepoint_interval: self.savepoint_interval.or(source.savepoint_interval),
-      max_savepoints: self.max_savepoints.or(source.max_savepoints),
       config: self.config.or(source.config),
       config_dir: self.config_dir.or(source.config_dir),
       cookie_file: self.cookie_file.or(source.cookie_file),
@@ -141,7 +141,9 @@ impl Settings {
       index_sats: self.index_sats || source.index_sats,
       index_transactions: self.index_transactions || source.index_transactions,
       integration_test: self.integration_test || source.integration_test,
+      max_savepoints: self.max_savepoints.or(source.max_savepoints),
       no_index_inscriptions: self.no_index_inscriptions || source.no_index_inscriptions,
+      savepoint_interval: self.savepoint_interval.or(source.savepoint_interval),
       server_password: self.server_password.or(source.server_password),
       server_url: self.server_url.or(source.server_url),
       server_username: self.server_username.or(source.server_username),
@@ -150,6 +152,7 @@ impl Settings {
 
   pub fn from_options(options: Options) -> Self {
     Self {
+      accept_offers: options.accept_offers,
       bitcoin_data_dir: options.bitcoin_data_dir,
       bitcoin_rpc_limit: options.bitcoin_rpc_limit,
       bitcoin_rpc_password: options.bitcoin_rpc_password,
@@ -163,8 +166,6 @@ impl Settings {
         .or(options.testnet4.then_some(Chain::Testnet4))
         .or(options.chain_argument),
       commit_interval: options.commit_interval,
-      savepoint_interval: options.savepoint_interval,
-      max_savepoints: options.max_savepoints,
       config: options.config,
       config_dir: options.config_dir,
       cookie_file: options.cookie_file,
@@ -179,7 +180,9 @@ impl Settings {
       index_sats: options.index_sats,
       index_transactions: options.index_transactions,
       integration_test: options.integration_test,
+      max_savepoints: options.max_savepoints,
       no_index_inscriptions: options.no_index_inscriptions,
+      savepoint_interval: options.savepoint_interval,
       server_password: options.server_password,
       server_url: None,
       server_username: options.server_username,
@@ -246,6 +249,7 @@ impl Settings {
     };
 
     Ok(Self {
+      accept_offers: get_bool("ACCEPT_OFFERS"),
       bitcoin_data_dir: get_path("BITCOIN_DATA_DIR"),
       bitcoin_rpc_limit: get_u32("BITCOIN_RPC_LIMIT")?,
       bitcoin_rpc_password: get_string("BITCOIN_RPC_PASSWORD"),
@@ -253,8 +257,6 @@ impl Settings {
       bitcoin_rpc_username: get_string("BITCOIN_RPC_USERNAME"),
       chain: get_chain("CHAIN")?,
       commit_interval: get_usize("COMMIT_INTERVAL")?,
-      savepoint_interval: get_usize("SAVEPOINT_INTERVAL")?,
-      max_savepoints: get_usize("MAX_SAVEPOINTS")?,
       config: get_path("CONFIG"),
       config_dir: get_path("CONFIG_DIR"),
       cookie_file: get_path("COOKIE_FILE"),
@@ -269,7 +271,9 @@ impl Settings {
       index_sats: get_bool("INDEX_SATS"),
       index_transactions: get_bool("INDEX_TRANSACTIONS"),
       integration_test: get_bool("INTEGRATION_TEST"),
+      max_savepoints: get_usize("MAX_SAVEPOINTS")?,
       no_index_inscriptions: get_bool("NO_INDEX_INSCRIPTIONS"),
+      savepoint_interval: get_usize("SAVEPOINT_INTERVAL")?,
       server_password: get_string("SERVER_PASSWORD"),
       server_url: get_string("SERVER_URL"),
       server_username: get_string("SERVER_USERNAME"),
@@ -278,15 +282,14 @@ impl Settings {
 
   pub fn for_env(dir: &Path, rpc_url: &str, server_url: &str) -> Self {
     Self {
+      accept_offers: true,
       bitcoin_data_dir: Some(dir.into()),
+      bitcoin_rpc_limit: None,
       bitcoin_rpc_password: None,
       bitcoin_rpc_url: Some(rpc_url.into()),
       bitcoin_rpc_username: None,
-      bitcoin_rpc_limit: None,
       chain: Some(Chain::Regtest),
       commit_interval: None,
-      savepoint_interval: None,
-      max_savepoints: None,
       config: None,
       config_dir: None,
       cookie_file: None,
@@ -301,7 +304,9 @@ impl Settings {
       index_sats: true,
       index_transactions: false,
       integration_test: false,
+      max_savepoints: None,
       no_index_inscriptions: false,
+      savepoint_interval: None,
       server_password: None,
       server_url: Some(server_url.into()),
       server_username: None,
@@ -342,6 +347,7 @@ impl Settings {
     };
 
     Ok(Self {
+      accept_offers: false,
       bitcoin_data_dir: Some(bitcoin_data_dir),
       bitcoin_rpc_limit: Some(self.bitcoin_rpc_limit.unwrap_or(12)),
       bitcoin_rpc_password: self.bitcoin_rpc_password,
@@ -354,8 +360,6 @@ impl Settings {
       bitcoin_rpc_username: self.bitcoin_rpc_username,
       chain: Some(chain),
       commit_interval: Some(self.commit_interval.unwrap_or(5000)),
-      savepoint_interval: Some(self.savepoint_interval.unwrap_or(10)),
-      max_savepoints: Some(self.max_savepoints.unwrap_or(2)),
       config: None,
       config_dir: None,
       cookie_file: Some(cookie_file),
@@ -377,11 +381,17 @@ impl Settings {
       index_sats: self.index_sats,
       index_transactions: self.index_transactions,
       integration_test: self.integration_test,
+      max_savepoints: Some(self.max_savepoints.unwrap_or(2)),
       no_index_inscriptions: self.no_index_inscriptions,
+      savepoint_interval: Some(self.savepoint_interval.unwrap_or(10)),
       server_password: self.server_password,
       server_url: self.server_url,
       server_username: self.server_username,
     })
+  }
+
+  pub fn accept_offers(&self) -> bool {
+    self.accept_offers
   }
 
   pub fn default_data_dir() -> Result<PathBuf> {

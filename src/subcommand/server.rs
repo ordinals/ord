@@ -1073,11 +1073,21 @@ impl Server {
     Redirect::to("https://raw.githubusercontent.com/ordinals/ord/master/install.sh")
   }
 
-  async fn offer(Extension(index): Extension<Arc<Index>>, body: body::Bytes) -> ServerResult<()> {
-    let psbt = Psbt::deserialize(&body)
-      .map_err(|err| ServerError::BadRequest(format!("invalid PSBT: {err}")))?;
+  async fn offer(
+    Extension(settings): Extension<Arc<Settings>>,
+    Extension(index): Extension<Arc<Index>>,
+    body: body::Bytes,
+  ) -> ServerResult<()> {
+    if !settings.accept_offers() {
+      return Err(ServerError::NotFound(
+        "this server does not accept offers".into(),
+      ));
+    }
 
     task::block_in_place(|| {
+      let psbt = Psbt::deserialize(&body)
+        .map_err(|err| ServerError::BadRequest(format!("invalid PSBT: {err}")))?;
+
       index.insert_psbt(psbt).map_err(ServerError::Internal)?;
       Ok(())
     })
