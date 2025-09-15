@@ -1079,8 +1079,20 @@ impl Server {
     body: body::Bytes,
   ) -> ServerResult<()> {
     // tests:
-    // - offer size is limited, regardless of whether JSON API is enabled
     // - offers are only accepted if configuration is set
+    // - offers are accepted (will require listing offers)
+    // - use the name "offers" consistently
+    //
+    // later:
+    // - reject unknown keys
+    // - reject proprietary keys
+    // - reject PSBTs with inputs that don't exist
+    // - reject PSBTs with inputs that aren't either signed or for sale
+    // - reject PSBTs with only for sale inputs (must have at least one signature)
+    // - reject PSBTs which don't pay for inputs
+    // - reject otherwise invalid PSBTs
+    // - offer size is limited, regardless of whether JSON API is enabled
+    // - handle reorgs or put in separate database {state,server,offers}.redb
 
     if !settings.accept_offers() {
       return Err(ServerError::NotFound(
