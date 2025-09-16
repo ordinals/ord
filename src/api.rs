@@ -1,7 +1,6 @@
 use {
   super::*,
   serde_hex::{SerHex, Strict},
-  serde_with::serde_as,
 };
 
 pub use crate::{
@@ -255,9 +254,5 @@ pub struct AddressInfo {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Offers {
-  pub(crate) offers: Vec<Offer>,
+  pub(crate) offers: Vec<String>,
 }
-
-#[serde_as]
-#[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Offer(#[serde_as(as = "serde_with::hex::Hex")] pub(crate) Vec<u8>);

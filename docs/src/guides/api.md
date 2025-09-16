@@ -1791,7 +1791,7 @@ See [wallet.md](wallet.md#installing-ord)
 
 ### Description
 
-Submit a PSBT offer. The body of the request is a binary-serialized PSBT.
+Submit a PSBT offer. The body of the request is a base64 encoded PSBT.
 
 ### Example
 

@@ -293,6 +293,12 @@ impl Index {
           }
         }
 
+        let tx = database.begin_write()?;
+
+        tx.open_table(NUMBER_TO_OFFER)?;
+
+        tx.commit()?;
+
         database
       }
       Err(DatabaseError::Storage(StorageError::Io(error)))
