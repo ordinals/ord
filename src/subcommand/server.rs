@@ -1087,20 +1087,6 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     body: body::Bytes,
   ) -> ServerResult {
-    // todo:
-    // - offer size is limited, regardless of whether JSON API is enabled
-    //
-    // later:
-    // - increase body size limit only for endpoints which need it and use minimal body limit
-    // - reject unknown keys
-    // - reject proprietary keys
-    // - reject PSBTs with inputs that don't exist
-    // - reject PSBTs with inputs that aren't either signed or for sale
-    // - reject PSBTs with only for sale inputs (must have at least one signature)
-    // - reject PSBTs which don't pay for inputs
-    // - reject otherwise invalid PSBTs
-    // - handle reorgs or put in separate database {state,server,offers}.redb
-
     if !server_config.accept_offers {
       return Err(ServerError::NotFound(
         "this server does not accept offers".into(),
