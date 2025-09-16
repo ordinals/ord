@@ -7920,6 +7920,12 @@ next
   }
 
   #[test]
+  fn offers_are_rejected_if_not_valid_psbts() {
+    let server = TestServer::builder().server_flag("--accept-offers").build();
+    server.post("offer", &[0], StatusCode::BAD_REQUEST);
+  }
+
+  #[test]
   fn offer_acceptance_requires_accept_offers_flag() {
     let server = TestServer::builder().build();
 
