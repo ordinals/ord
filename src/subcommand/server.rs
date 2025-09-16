@@ -1095,9 +1095,12 @@ impl Server {
     task::block_in_place(|| {
       let psbt = base64_decode(&body)
         .map_err(|err| ServerError::BadRequest(format!("failed to base64 decode PSBT: {err}")))?;
+
       let offer = Psbt::deserialize(&psbt)
         .map_err(|err| ServerError::BadRequest(format!("invalid offer PSBT: {err}")))?;
+
       index.insert_offer(offer).map_err(ServerError::Internal)?;
+
       Ok("".into_response())
     })
   }
