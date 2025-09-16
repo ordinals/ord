@@ -1791,7 +1791,7 @@ See [wallet.md](wallet.md#installing-ord)
 
 ### Description
 
-Submit a PSBT offer. The body of the request is a PSBT serialized as binary.
+Submit a PSBT offer. The body of the request is a binary-serialized PSBT.
 
 ### Example
 
@@ -1801,6 +1801,27 @@ curl -s -X POST --data-binary @offer.psbt http://0.0.0.0/offer
 
 ```json
 {}
+```
+</details>
+
+<details>
+ <summary>
+    <code>GET</code>
+    <code><b>/offers</b></code>
+ </summary>
+
+### Description
+
+Get submitted PSBT offers.
+
+### Example
+
+```bash
+curl -s -H "Accept: application/json" http://0.0.0.0/offers
+```
+
+```json
+["ab01…b42f","1127…caba"]
 ```
 </details>
 
