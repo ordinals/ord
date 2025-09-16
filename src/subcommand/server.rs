@@ -8039,7 +8039,7 @@ next
       response.status(),
       StatusCode::PAYLOAD_TOO_LARGE,
       "{}",
-      response.text().unwrap()
+      response.text().unwrap(),
     );
 
     let response = client
@@ -8053,7 +8053,7 @@ next
       response.status(),
       StatusCode::PAYLOAD_TOO_LARGE,
       "{}",
-      response.text().unwrap()
+      response.text().unwrap(),
     );
   }
 }
