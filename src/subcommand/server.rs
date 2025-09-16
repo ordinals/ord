@@ -7867,7 +7867,7 @@ next
   fn offers_are_accepted() {
     let server = TestServer::builder().server_flag("--accept-offers").build();
 
-    let psbt = Psbt {
+    let psbt0 = Psbt {
       unsigned_tx: Transaction {
         version: Version(0),
         lock_time: LockTime::ZERO,
@@ -7883,7 +7883,7 @@ next
     }
     .serialize();
 
-    let response = server.post("offer", &psbt);
+    let response = server.post("offer", &psbt0);
 
     assert_eq!(
       response.status(),
@@ -7899,7 +7899,43 @@ next
     assert_eq!(
       offers,
       api::Offers {
-        offers: vec![api::Offer(psbt)],
+        offers: vec![api::Offer(psbt0.clone())],
+      },
+    );
+
+    let psbt1 = Psbt {
+      unsigned_tx: Transaction {
+        version: Version(1),
+        lock_time: LockTime::ZERO,
+        input: Vec::new(),
+        output: Vec::new(),
+      },
+      version: 0,
+      xpub: BTreeMap::new(),
+      proprietary: BTreeMap::new(),
+      unknown: BTreeMap::new(),
+      inputs: Vec::new(),
+      outputs: Vec::new(),
+    }
+    .serialize();
+
+    let response = server.post("offer", &psbt1);
+
+    assert_eq!(
+      response.status(),
+      StatusCode::OK,
+      "{}",
+      response.text().unwrap()
+    );
+
+    assert_eq!(response.text().unwrap(), "");
+
+    let offers = server.get_json::<api::Offers>("/offers");
+
+    assert_eq!(
+      offers,
+      api::Offers {
+        offers: vec![api::Offer(psbt0), api::Offer(psbt1)],
       },
     );
   }
