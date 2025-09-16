@@ -1084,7 +1084,7 @@ impl Server {
   async fn offer(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    body: String,
+    offer: String,
   ) -> ServerResult {
     if !server_config.accept_offers {
       return Err(ServerError::NotFound(
@@ -1093,10 +1093,10 @@ impl Server {
     }
 
     task::block_in_place(|| {
-      let psbt = base64_decode(&body)
+      let offer = base64_decode(&offer)
         .map_err(|err| ServerError::BadRequest(format!("failed to base64 decode PSBT: {err}")))?;
 
-      let offer = Psbt::deserialize(&psbt)
+      let offer = Psbt::deserialize(&offer)
         .map_err(|err| ServerError::BadRequest(format!("invalid offer PSBT: {err}")))?;
 
       index.insert_offer(offer).map_err(ServerError::Internal)?;
