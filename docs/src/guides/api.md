@@ -1808,7 +1808,7 @@ curl -s -X POST --data-binary @offer.psbt http://0.0.0.0/offer
 
 ### Description
 
-Get submitted PSBT offers.
+Get submitted PSBT offers. Returns an array of base64 encoded PSBTs.
 
 ### Example
 
@@ -1817,7 +1817,7 @@ curl -s -H "Accept: application/json" http://0.0.0.0/offers
 ```
 
 ```json
-["ab01…b42f","1127…caba"]
+["bG…gd==","aG…GQ"]
 ```
 </details>
 
