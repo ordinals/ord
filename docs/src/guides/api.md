@@ -1798,10 +1798,6 @@ Submit a PSBT offer. The body of the request is a binary-serialized PSBT.
 ```bash
 curl -s -X POST --data-binary @offer.psbt http://0.0.0.0/offer
 ```
-
-```json
-{}
-```
 </details>
 
 <details>
