@@ -48,6 +48,8 @@ pub mod query;
 mod r;
 mod server_config;
 
+const MEBIBYTE: usize = 1 << 20;
+
 enum SpawnConfig {
   Https(AxumAcceptor),
   Http,
@@ -85,6 +87,8 @@ lazy_static! {
 
 #[derive(Debug, Parser, Clone)]
 pub struct Server {
+  #[arg(long, help = "Accept PSBT offer submissions to server.")]
+  pub(crate) accept_offers: bool,
   #[arg(
     long,
     help = "Listen on <ADDRESS> for incoming requests. [default: 0.0.0.0]"
@@ -173,6 +177,7 @@ impl Server {
       let acme_domains = self.acme_domains()?;
 
       let server_config = Arc::new(ServerConfig {
+        accept_offers: self.accept_offers,
         chain: settings.chain(),
         csp_origin: self.csp_origin.clone(),
         decompress: self.decompress,
@@ -181,6 +186,12 @@ impl Server {
         json_api_enabled: !self.disable_json_api,
         proxy: self.proxy.clone(),
       });
+
+      let body_limit = if server_config.json_api_enabled {
+        DefaultBodyLimit::max(32 * MEBIBYTE)
+      } else {
+        DefaultBodyLimit::max(2 * MEBIBYTE)
+      };
 
       // non-recursive endpoints
       let router = Router::new()
@@ -209,7 +220,10 @@ impl Server {
           get(Self::inscription_child),
         )
         .route("/inscriptions", get(Self::inscriptions))
-        .route("/inscriptions", post(Self::inscriptions_json))
+        .route(
+          "/inscriptions",
+          post(Self::inscriptions_json).layer(body_limit),
+        )
         .route(
           "/inscriptions/block/{height}",
           get(Self::inscriptions_in_block),
@@ -220,9 +234,11 @@ impl Server {
         )
         .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route("/install.sh", get(Self::install_script))
+        .route("/offer", post(Self::offer))
+        .route("/offers", get(Self::offers))
         .route("/ordinal/{sat}", get(Self::ordinal))
         .route("/output/{output}", get(Self::output))
-        .route("/outputs", post(Self::outputs))
+        .route("/outputs", post(Self::outputs).layer(body_limit))
         .route("/outputs/{address}", get(Self::outputs_address))
         .route("/parents/{inscription_id}", get(Self::parents))
         .route(
@@ -324,12 +340,6 @@ impl Server {
         )
         .layer(CompressionLayer::new())
         .with_state(server_config.clone());
-
-      let router = if server_config.json_api_enabled {
-        router.layer(DefaultBodyLimit::disable())
-      } else {
-        router
-      };
 
       let router = if let Some((username, password)) = settings.credentials() {
         router.layer(ValidateRequestHeaderLayer::basic(username, password))
@@ -1069,6 +1079,52 @@ impl Server {
 
   async fn install_script() -> Redirect {
     Redirect::to("https://raw.githubusercontent.com/ordinals/ord/master/install.sh")
+  }
+
+  async fn offer(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    offer: String,
+  ) -> ServerResult {
+    if !server_config.accept_offers {
+      return Err(ServerError::NotFound(
+        "this server does not accept offers".into(),
+      ));
+    }
+
+    task::block_in_place(|| {
+      let offer = base64_decode(&offer)
+        .map_err(|err| ServerError::BadRequest(format!("failed to base64 decode PSBT: {err}")))?;
+
+      let offer = Psbt::deserialize(&offer)
+        .map_err(|err| ServerError::BadRequest(format!("invalid offer PSBT: {err}")))?;
+
+      index.insert_offer(offer).map_err(ServerError::Internal)?;
+
+      Ok("".into_response())
+    })
+  }
+
+  async fn offers(
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    if !accept_json {
+      return Ok(StatusCode::NOT_FOUND.into_response());
+    }
+
+    task::block_in_place(|| {
+      Ok(
+        Json(api::Offers {
+          offers: index
+            .get_offers()?
+            .into_iter()
+            .map(|offer| base64_encode(&offer))
+            .collect(),
+        })
+        .into_response(),
+      )
+    })
   }
 
   async fn address(
@@ -2263,6 +2319,30 @@ mod tests {
       assert_eq!(response.status(), StatusCode::OK);
 
       response.json().unwrap()
+    }
+
+    #[track_caller]
+    fn post(
+      &self,
+      path: impl AsRef<str>,
+      body: &str,
+      status: StatusCode,
+    ) -> reqwest::blocking::Response {
+      if let Err(error) = self.index.update() {
+        log::error!("{error}");
+      }
+
+      let client = reqwest::blocking::Client::new();
+
+      let response = client
+        .post(self.join_url(path.as_ref()))
+        .body(body.as_bytes().to_vec())
+        .send()
+        .unwrap();
+
+      assert_eq!(response.status(), status, "{}", response.text().unwrap());
+
+      response
     }
 
     fn join_url(&self, url: &str) -> Url {
@@ -7781,6 +7861,199 @@ next
       "/r/sat/0/at/0/content",
       StatusCode::NOT_FOUND,
       "this server has no sat index",
+    );
+  }
+
+  #[test]
+  fn offers_are_accepted() {
+    let server = TestServer::builder().server_flag("--accept-offers").build();
+
+    let psbt0 = base64_encode(
+      &Psbt {
+        unsigned_tx: Transaction {
+          version: Version(0),
+          lock_time: LockTime::ZERO,
+          input: Vec::new(),
+          output: Vec::new(),
+        },
+        version: 0,
+        xpub: BTreeMap::new(),
+        proprietary: BTreeMap::new(),
+        unknown: BTreeMap::new(),
+        inputs: Vec::new(),
+        outputs: Vec::new(),
+      }
+      .serialize(),
+    );
+
+    let response = server.post("offer", &psbt0, StatusCode::OK);
+
+    assert_eq!(response.text().unwrap(), "");
+
+    let offers = server.get_json::<api::Offers>("/offers");
+
+    assert_eq!(
+      offers,
+      api::Offers {
+        offers: vec![psbt0.clone()],
+      },
+    );
+
+    let psbt1 = base64_encode(
+      &Psbt {
+        unsigned_tx: Transaction {
+          version: Version(1),
+          lock_time: LockTime::ZERO,
+          input: Vec::new(),
+          output: Vec::new(),
+        },
+        version: 0,
+        xpub: BTreeMap::new(),
+        proprietary: BTreeMap::new(),
+        unknown: BTreeMap::new(),
+        inputs: Vec::new(),
+        outputs: Vec::new(),
+      }
+      .serialize(),
+    );
+
+    let response = server.post("offer", &psbt1, StatusCode::OK);
+
+    assert_eq!(response.text().unwrap(), "");
+
+    let offers = server.get_json::<api::Offers>("/offers");
+
+    assert_eq!(
+      offers,
+      api::Offers {
+        offers: vec![psbt0, psbt1],
+      },
+    );
+  }
+
+  #[test]
+  fn offers_are_rejected_if_not_valid_psbts() {
+    let server = TestServer::builder().server_flag("--accept-offers").build();
+    server.post("offer", "0", StatusCode::BAD_REQUEST);
+  }
+
+  #[test]
+  fn offer_acceptance_requires_accept_offers_flag() {
+    let server = TestServer::builder().build();
+
+    let psbt = base64_encode(
+      &Psbt {
+        unsigned_tx: Transaction {
+          version: Version(0),
+          lock_time: LockTime::ZERO,
+          input: Vec::new(),
+          output: Vec::new(),
+        },
+        version: 0,
+        xpub: BTreeMap::new(),
+        proprietary: BTreeMap::new(),
+        unknown: BTreeMap::new(),
+        inputs: Vec::new(),
+        outputs: Vec::new(),
+      }
+      .serialize(),
+    );
+
+    server.post("offer", &psbt, StatusCode::NOT_FOUND);
+  }
+
+  #[test]
+  fn offer_acceptance_does_not_require_json_api() {
+    let server = TestServer::builder()
+      .server_flag("--disable-json-api")
+      .server_flag("--accept-offers")
+      .build();
+
+    let psbt = base64_encode(
+      &Psbt {
+        unsigned_tx: Transaction {
+          version: Version(0),
+          lock_time: LockTime::ZERO,
+          input: Vec::new(),
+          output: Vec::new(),
+        },
+        version: 0,
+        xpub: BTreeMap::new(),
+        proprietary: BTreeMap::new(),
+        unknown: BTreeMap::new(),
+        inputs: Vec::new(),
+        outputs: Vec::new(),
+      }
+      .serialize(),
+    );
+
+    server.post("offer", &psbt, StatusCode::OK);
+  }
+
+  #[test]
+  fn offer_size_is_limited() {
+    let server = TestServer::builder().server_flag("--accept-offers").build();
+
+    let psbt = base64_encode(
+      &Psbt {
+        unsigned_tx: Transaction {
+          version: Version(0),
+          lock_time: LockTime::ZERO,
+          input: Vec::new(),
+          output: vec![TxOut {
+            value: Amount::from_sat(1),
+            script_pubkey: ScriptBuf::builder()
+              .push_slice::<&PushBytes>(vec![0; 2 * MEBIBYTE].as_slice().try_into().unwrap())
+              .into_script(),
+          }],
+        },
+        version: 0,
+        xpub: BTreeMap::new(),
+        proprietary: BTreeMap::new(),
+        unknown: BTreeMap::new(),
+        inputs: Vec::new(),
+        outputs: vec![bitcoin::psbt::Output::default()],
+      }
+      .serialize(),
+    );
+
+    server.post("offer", &psbt, StatusCode::PAYLOAD_TOO_LARGE);
+  }
+
+  #[test]
+  fn post_bodies_are_limited_when_json_api_is_disabled() {
+    let server = TestServer::builder()
+      .server_flag("--disable-json-api")
+      .build();
+
+    let client = reqwest::blocking::Client::new();
+
+    let response = client
+      .post(server.join_url("outputs"))
+      .header(header::CONTENT_TYPE, "application/json")
+      .body(" ".repeat(2 * MEBIBYTE + 1))
+      .send()
+      .unwrap();
+
+    assert_eq!(
+      response.status(),
+      StatusCode::PAYLOAD_TOO_LARGE,
+      "{}",
+      response.text().unwrap(),
+    );
+
+    let response = client
+      .post(server.join_url("inscriptions"))
+      .header(header::CONTENT_TYPE, "application/json")
+      .body(" ".repeat(2 * MEBIBYTE + 1))
+      .send()
+      .unwrap();
+
+    assert_eq!(
+      response.status(),
+      StatusCode::PAYLOAD_TOO_LARGE,
+      "{}",
+      response.text().unwrap(),
     );
   }
 }
