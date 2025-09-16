@@ -245,7 +245,7 @@
 <p>List all assets of an address. Requires index with <code>--index-addresses</code> flag.</p>
 <h3 id="exemplo"><a class="header" href="#exemplo">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
+  http://0.0.0.0/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
 </code></pre>
 <pre><code class="language-json">{
   "outputs": [
@@ -318,7 +318,7 @@
 <p>Returns info about the specified block.</p>
 <h3 id="exemplo-1"><a class="header" href="#exemplo-1">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
+  http://0.0.0.0/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
 </code></pre>
 <pre><code class="language-json">{
   "best_height": 864325,
@@ -359,7 +359,7 @@
 <p>Returns info about the specified block.</p>
 <h3 id="exemplo-2"><a class="header" href="#exemplo-2">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/block/0
+  http://0.0.0.0/block/0
 </code></pre>
 <pre><code class="language-json">  {
     "best_height": 864325,
@@ -400,7 +400,7 @@
 <p>Returns the height of the latest block.</p>
 <h3 id="exemplo-3"><a class="header" href="#exemplo-3">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blockcount
+  http://0.0.0.0/blockcount
 </code></pre>
 <pre><code class="language-json">864328
 </code></pre>
@@ -414,7 +414,7 @@
 <p>Returns blockhash for the latest block.</p>
 <h3 id="exemplo-4"><a class="header" href="#exemplo-4">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blockhash
+  http://0.0.0.0/blockhash
 </code></pre>
 <pre><code class="language-text">00000000000000000000c82c12a925a224605b1bb767f696ae4ff10332dbe9bc
 </code></pre>
@@ -429,7 +429,7 @@
 <p>Returns blockhash of specified block.</p>
 <h3 id="exemplo-5"><a class="header" href="#exemplo-5">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blockhash/840000
+  http://0.0.0.0/blockhash/840000
 </code></pre>
 <pre><code class="language-text">0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5
 </code></pre>
@@ -443,7 +443,7 @@
 <p>Returns the height of the latest block.</p>
 <h3 id="exemplo-6"><a class="header" href="#exemplo-6">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blockheight
+  http://0.0.0.0/blockheight
 </code></pre>
 <pre><code class="language-json">864330
 </code></pre>
@@ -457,7 +457,7 @@
 <p>Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.</p>
 <h3 id="exemplo-7"><a class="header" href="#exemplo-7">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blocks
+  http://0.0.0.0/blocks
 </code></pre>
 <pre><code class="language-json">{
   "last": 864335,
@@ -627,7 +627,7 @@
 <p>Returns the UNIX timestamp of when the latest block was mined.</p>
 <h3 id="exemplo-8"><a class="header" href="#exemplo-8">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blocktime
+  http://0.0.0.0/blocktime
 </code></pre>
 <pre><code class="language-json">1728158372
 </code></pre>
@@ -641,7 +641,7 @@
 <p>Decode a transaction, congruent to the <code>ord decode</code> command</p>
 <h3 id="exemplo-9"><a class="header" href="#exemplo-9">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799
+  http://0.0.0.0/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799
 </code></pre>
 <pre><code class="language-json">{
   "inscriptions": [
@@ -1483,7 +1483,7 @@
 <p>Fetch details about a specific inscription by its ID.</p>
 <h3 id="exemplo-10"><a class="header" href="#exemplo-10">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" /
-  http://0.0.0.0:80/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
+  http://0.0.0.0/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 </code></pre>
 <pre><code class="language-json">{
   "address": "bc1ppth27qnr74qhusy9pmcyeaelgvsfky6qzquv9nf56gqmte59vfhqwkqguh",
@@ -1520,7 +1520,7 @@
 <p>Returns the inscription information for the specified child.</p>
 <h3 id="exemplo-11"><a class="header" href="#exemplo-11">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
+  http://0.0.0.0/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
 </code></pre>
 <pre><code class="language-json">{
   "address": "bc1pnhyyzpetra3zvm376ng8ncnv9phtt45fczpt7sv2eatedtjj9vjqwhj080",
@@ -1560,7 +1560,7 @@
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '["ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi1", "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0"]' \
-  http://0.0.0.0:80/inscriptions
+  http://0.0.0.0/inscriptions
 </code></pre>
 <pre><code class="language-json">[
   {
@@ -1623,7 +1623,7 @@
 <p>Get a list of the latest 100 inscriptions.</p>
 <h3 id="exemplo-13"><a class="header" href="#exemplo-13">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/inscriptions
+  http://0.0.0.0/inscriptions
 </code></pre>
 <pre><code class="language-json">{
   "ids": [
@@ -1742,7 +1742,7 @@
 <p>Pagination allows you to choose which page of 100 inscriptions to return.</p>
 <h3 id="exemplo-14"><a class="header" href="#exemplo-14">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/inscriptions/9
+  http://0.0.0.0/inscriptions/9
 </code></pre>
 <pre><code class="language-json">{
   "ids": [
@@ -1861,7 +1861,7 @@
 <p>Get inscriptions for a specific block.</p>
 <h3 id="exemplo-15"><a class="header" href="#exemplo-15">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/inscriptions/block/767430
+  http://0.0.0.0/inscriptions/block/767430
 </code></pre>
 <pre><code class="language-json">{
   "ids": [
@@ -1884,14 +1884,38 @@
 </details>
 <details>
  <summary>
+    <code>POST</code>
+    <code><b>/offer</b></code>
+ </summary>
+<h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
+<p>Submit a PSBT offer. The body of the request is a base64 encoded PSBT.</p>
+<h3 id="exemplo-17"><a class="header" href="#exemplo-17">Exemplo</a></h3>
+<pre><code class="language-bash">curl -s -X POST --data-binary @offer.psbt http://0.0.0.0/offer
+</code></pre>
+</details>
+<details>
+ <summary>
+    <code>GET</code>
+    <code><b>/offers</b></code>
+ </summary>
+<h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
+<p>Get submitted PSBT offers. Returns an array of base64 encoded PSBTs.</p>
+<h3 id="exemplo-18"><a class="header" href="#exemplo-18">Exemplo</a></h3>
+<pre><code class="language-bash">curl -s -H "Accept: application/json" http://0.0.0.0/offers
+</code></pre>
+<pre><code class="language-json">["bG…gd==","aG…GQ"]
+</code></pre>
+</details>
+<details>
+ <summary>
     <code>GET</code>
     <code><b>/output/&lt;OUTPOINT&gt;</b></code>
  </summary>
-<h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
+<h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
 <p>Returns information about a UTXO, including inscriptions within it.</p>
-<h3 id="exemplo-17"><a class="header" href="#exemplo-17">Exemplo</a></h3>
+<h3 id="exemplo-19"><a class="header" href="#exemplo-19">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
+  http://0.0.0.0/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
 </code></pre>
 <pre><code class="language-json">{
   "address": "bc1pz4kvfpurqc2hwgrq0nwtfve2lfxvdpfcdpzc6ujchyr3ztj6gd9sfr6ayf",
@@ -1913,14 +1937,14 @@
     <code>POST</code>
     <code><b>/outputs</b></code>
  </summary>
-<h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
+<h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
 <p>List information from a list of outputs.</p>
-<h3 id="exemplo-18"><a class="header" href="#exemplo-18">Exemplo</a></h3>
+<h3 id="exemplo-20"><a class="header" href="#exemplo-20">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '["bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0", "bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:1"]' \
-  http://0.0.0.0:80/outputs
+  http://0.0.0.0/outputs
 </code></pre>
 <pre><code class="language-json">[
   {
@@ -1955,7 +1979,7 @@
     <code>GET</code>
     <code><b>/outputs/&lt;ADDRESS&gt;</b></code>
   </summary>
-<h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
+<h3 id="description-21"><a class="header" href="#description-21">Description</a></h3>
 <p>Get UTXOs held by <code>&lt;ADDRESS&gt;</code>.</p>
 <h3 id="query-parameters"><a class="header" href="#query-parameters">Query Parameters</a></h3>
 <h4 id="type-optional"><a class="header" href="#type-optional"><code>type</code> (optional)</a></h4>
@@ -1966,9 +1990,9 @@
 <tr><td><code>runic</code></td><td>return UTXOs containing runes</td></tr>
 </tbody></table>
 </div>
-<h3 id="exemplo-19"><a class="header" href="#exemplo-19">Exemplo</a></h3>
+<h3 id="exemplo-21"><a class="header" href="#exemplo-21">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  "http://0.0.0.0:80/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
+  "http://0.0.0.0/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
 </code></pre>
 <pre><code class="language-json">[
   {
@@ -2029,9 +2053,9 @@
     <code>GET</code>
     <code><b>/rune/&lt;RUNE&gt;</b></code>
   </summary>
-<h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
+<h3 id="description-22"><a class="header" href="#description-22">Description</a></h3>
 <p>Returns details about the specified rune. Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="exemplo-20"><a class="header" href="#exemplo-20">Exemplo</a></h3>
+<h3 id="exemplo-22"><a class="header" href="#exemplo-22">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://localhost/rune/UNCOMMONGOODS
 </code></pre>
@@ -2072,11 +2096,11 @@
     <code>GET</code>
     <code><b>/runes</b></code>
   </summary>
-<h3 id="description-21"><a class="header" href="#description-21">Description</a></h3>
+<h3 id="description-23"><a class="header" href="#description-23">Description</a></h3>
 <p>Returns details for last 100 inscribed runes.  Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="exemplo-21"><a class="header" href="#exemplo-21">Exemplo</a></h3>
+<h3 id="exemplo-23"><a class="header" href="#exemplo-23">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/runes
+  http://0.0.0.0/runes
 </code></pre>
 <pre><code class="language-json">{
   "entries": [
@@ -3560,11 +3584,11 @@
     <code>GET</code>
     <code><b>/runes/&lt;PAGE&gt;</b></code>
   </summary>
-<h3 id="description-22"><a class="header" href="#description-22">Description</a></h3>
+<h3 id="description-24"><a class="header" href="#description-24">Description</a></h3>
 <p>Pagination allows you to specify which page of 100 runes you'd like to return.</p>
-<h3 id="exemplo-22"><a class="header" href="#exemplo-22">Exemplo</a></h3>
+<h3 id="exemplo-24"><a class="header" href="#exemplo-24">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/runes/0
+  http://0.0.0.0/runes/0
 </code></pre>
 <pre><code class="language-json">{
   "entries": [
@@ -5048,11 +5072,11 @@
     <code>GET</code>
     <code><b>/sat/&lt;SAT&gt;</b></code>
   </summary>
-<h3 id="description-23"><a class="header" href="#description-23">Description</a></h3>
+<h3 id="description-25"><a class="header" href="#description-25">Description</a></h3>
 <p>Returns details about a specific satoshi. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="exemplo-23"><a class="header" href="#exemplo-23">Exemplo</a></h3>
+<h3 id="exemplo-25"><a class="header" href="#exemplo-25">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/sat/2099994106992659
+  http://0.0.0.0/sat/2099994106992659
 </code></pre>
 <pre><code class="language-json">{
   "block": 3891094,
@@ -5078,11 +5102,11 @@
     <code>GET</code>
     <code><b>/status</b></code>
   </summary>
-<h3 id="description-24"><a class="header" href="#description-24">Description</a></h3>
+<h3 id="description-26"><a class="header" href="#description-26">Description</a></h3>
 <p>Returns details about the server installation and index.</p>
-<h3 id="exemplo-24"><a class="header" href="#exemplo-24">Exemplo</a></h3>
+<h3 id="exemplo-26"><a class="header" href="#exemplo-26">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/status
+  http://0.0.0.0/status
 </code></pre>
 <pre><code class="language-json">{
   "address_index": true,
@@ -5115,11 +5139,11 @@
     <code>GET</code>
     <code><b>/tx/&lt;TRANSACTION_ID&gt;</b></code>
   </summary>
-<h3 id="description-25"><a class="header" href="#description-25">Description</a></h3>
+<h3 id="description-27"><a class="header" href="#description-27">Description</a></h3>
 <p>Returns details about the specified transaction.</p>
-<h3 id="exemplo-25"><a class="header" href="#exemplo-25">Exemplo</a></h3>
+<h3 id="exemplo-27"><a class="header" href="#exemplo-27">Exemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
+  http://0.0.0.0/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
 </code></pre>
 <pre><code class="language-json">{
   "chain": "mainnet",
