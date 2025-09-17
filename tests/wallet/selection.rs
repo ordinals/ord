@@ -303,7 +303,7 @@ fn offer_create_does_not_select_non_cardinal_utxos() {
   drain(&core, &ord);
 
   CommandBuilder::new(format!(
-    "--regtest --index-runes wallet offer create --fee-rate 0 --inscription {inscription} --amount 1sat",
+    "--regtest --index-runes wallet offer create --fee-rate 0 --inscription {inscription} --for 1sat",
   ))
   .core(&core)
   .ord(&ord)
