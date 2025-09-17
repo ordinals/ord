@@ -412,7 +412,7 @@ impl Updater<'_> {
     statistic_to_count: &mut Table<'wtx, u64, u64>,
     sat_ranges_written: &mut u64,
     outputs_in_block: &mut u64,
-  ) -> Result<(), Error> {
+  ) -> Result {
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut home_inscriptions = wtx.open_table(HOME_INSCRIPTIONS)?;
     let mut inscription_number_to_sequence_number =

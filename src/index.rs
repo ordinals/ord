@@ -56,14 +56,15 @@ pub(crate) mod testing;
 const SCHEMA_VERSION: u64 = 31;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
-define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_GALLERY_ITEMS, u32, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
+define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
+define_table! { NUMBER_TO_OFFER, u64, &[u8] }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_UTXO_ENTRY, &OutPointValue, &UtxoEntry }
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
@@ -293,6 +294,12 @@ impl Index {
           }
         }
 
+        let tx = database.begin_write()?;
+
+        tx.open_table(NUMBER_TO_OFFER)?;
+
+        tx.commit()?;
+
         database
       }
       Err(DatabaseError::Storage(StorageError::Io(error)))
@@ -315,6 +322,7 @@ impl Index {
         tx.open_table(HOME_INSCRIPTIONS)?;
         tx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
+        tx.open_table(NUMBER_TO_OFFER)?;
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         tx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
@@ -830,6 +838,40 @@ impl Index {
       .unwrap()
       .map(|x| x.value())
       .unwrap_or_default()
+  }
+
+  pub(crate) fn get_offers(&self) -> Result<Vec<Vec<u8>>> {
+    let tx = self.database.begin_read()?;
+
+    let number_to_offer = tx.open_table(NUMBER_TO_OFFER)?;
+
+    Ok(
+      number_to_offer
+        .iter()?
+        .map(|result| result.map(|(_key, value)| value.value().to_vec()))
+        .collect::<Result<Vec<Vec<u8>>, StorageError>>()?,
+    )
+  }
+
+  pub(crate) fn insert_offer(&self, offer: Psbt) -> Result {
+    let tx = self.database.begin_write()?;
+
+    {
+      let mut number_to_offer = tx.open_table(NUMBER_TO_OFFER)?;
+
+      let number = number_to_offer
+        .last()?
+        .map(|(key, _value)| key.value() + 1)
+        .unwrap_or_default();
+
+      let offer = offer.serialize();
+
+      number_to_offer.insert(number, offer.as_slice())?;
+    }
+
+    tx.commit()?;
+
+    Ok(())
   }
 
   #[cfg(test)]
