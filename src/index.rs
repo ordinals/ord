@@ -2516,7 +2516,16 @@ impl Index {
       return Ok(None);
     };
 
+    let Some(tx_info) = self
+      .client
+      .get_raw_transaction_info(&outpoint.txid, None)
+      .into_option()?
+    else {
+      return Ok(None);
+    };
+
     Ok(Some(api::UtxoRecursive {
+      blockhash: tx_info.blockhash.unwrap(),
       inscriptions: self.get_inscriptions_for_output(outpoint)?,
       runes: self.get_rune_balances_for_output(outpoint)?,
       sat_ranges: self.list(outpoint)?,
