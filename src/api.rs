@@ -254,5 +254,5 @@ pub struct AddressInfo {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Offers {
-  pub(crate) offers: Vec<String>,
+  pub offers: Vec<String>,
 }
