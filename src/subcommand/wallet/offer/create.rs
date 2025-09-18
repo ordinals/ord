@@ -91,9 +91,9 @@ impl Create {
       "PSBT unexpectedly complete after processing with wallet",
     }
 
-    if let Some(submit) = &self.submit {
+    if let Some(url) = &self.submit {
       let response = reqwest::blocking::Client::new()
-        .post(submit)
+        .post(url)
         .body(result.psbt.as_bytes().to_vec())
         .send()
         .context("failed to submit PSBT")?;
