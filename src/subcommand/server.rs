@@ -633,6 +633,12 @@ impl Server {
     Extension(index): Extension<Arc<Index>>,
     uri: Uri,
   ) -> ServerResult<Response> {
+    // todo:
+    // - when visiting an ordinals.com satscard URL, form should not contain satscard.com
+    // - form should allow pasting an ordinals.com satscard URL
+    // - https://ordinals.com/satscard?u=S&o=0&r=4w9rytlk&n=b37ccaa62aa849e7&s=f1aab250cc6130e2937802a76bca3b03e8bebc33ba9cb77d72d5d9a0f0029fc70f32f39b6ec52e2c275833aec27986257f18811487a54047d953b412a7836fb1
+    // - https://getsatscard.com/start#u=U&o=2&r=rwclzd3f&n=eba098988550f480&s=40a78995e86cc1aecfec67162a65d11746a2618a5a6fa818dc0d76c1a77bacde428cbb71c9a60711d3e776e8c3a08732ab94b4f12fbf7ba1c970a141ebd56cbd
+
     #[derive(Debug, Deserialize)]
     struct Form {
       url: DeserializeFromStr<Url>,
