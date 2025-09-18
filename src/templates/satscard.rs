@@ -61,6 +61,9 @@ mod tests {
       }
       .to_string(),
       r#"<h1>Satscard bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
+<p>
+  <a href=https://docs.ordinals.com/guides/satscards.html>docs</a>
+</p>
 <form>
   <label for=url>Satscard URL</label>
   <input
@@ -106,6 +109,9 @@ mod tests {
       }
       .to_string(),
       r#"<h1>Satscard bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
+<p>
+  <a href=https://docs.ordinals.com/guides/satscards.html>docs</a>
+</p>
 <form>
   <label for=url>Satscard URL</label>
   <input

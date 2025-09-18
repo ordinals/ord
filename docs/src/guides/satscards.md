@@ -71,13 +71,13 @@ $ source venv/bin/activate
 $ pip3 install 'coinkite-tap-protocol[cli]'
 ```
 
-Unseal the slot:
+Unseal the satscard slot:
 
 ```console
 $ cktap unseal
 ```
 
-And export the private key:
+Export the private key:
 
 ```console
 $ cktap wif
@@ -104,9 +104,5 @@ Now sweep the assets into your `ord` wallet:
 ```console
 $ cat private-key.wif | ord wallet sweep --address-type p2wpkh --fee-rate 10
 ```
-
-- link to docs from /satscard
-
-- release new version of ord with sweeping
 
 Be careful, and good luck!
