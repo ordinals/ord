@@ -466,6 +466,7 @@ fn get_block() {
       height: 0,
       inscriptions: Vec::new(),
       runes: Vec::new(),
+      minted_runes: BTreeMap::new(),
       transactions: block_json.transactions.clone(),
     }
   );

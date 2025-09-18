@@ -17,6 +17,7 @@ pub struct Block {
   pub hash: BlockHash,
   pub height: u32,
   pub inscriptions: Vec<InscriptionId>,
+  pub minted_runes: BTreeMap<SpacedRune, Pile>,
   pub runes: Vec<SpacedRune>,
   pub target: BlockHash,
   pub transactions: Vec<bitcoin::blockdata::transaction::Transaction>,
@@ -29,6 +30,7 @@ impl Block {
     best_height: Height,
     inscriptions: Vec<InscriptionId>,
     runes: Vec<SpacedRune>,
+    minted_runes: BTreeMap<SpacedRune, Pile>,
   ) -> Self {
     Self {
       hash: block.header.block_hash(),
@@ -37,6 +39,7 @@ impl Block {
       best_height: best_height.0,
       inscriptions,
       runes,
+      minted_runes,
       transactions: block.txdata,
     }
   }

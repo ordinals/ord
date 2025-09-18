@@ -1220,6 +1220,8 @@ impl Server {
       };
 
       let runes = index.get_runes_in_block(u64::from(height))?;
+      let minted_runes = index.get_minted_runes_in_block(height)?;
+
       Ok(if accept_json {
         let inscriptions = index.get_inscriptions_in_block(height)?;
         Json(api::Block::new(
@@ -1228,6 +1230,7 @@ impl Server {
           Self::index_height(&index)?,
           inscriptions,
           runes,
+          minted_runes,
         ))
         .into_response()
       } else {
@@ -1240,6 +1243,7 @@ impl Server {
           total_num,
           featured_inscriptions,
           runes,
+          minted_runes,
         )
         .page(server_config)
         .into_response()
@@ -2295,6 +2299,22 @@ mod tests {
     }
 
     #[track_caller]
+    pub(crate) fn mint(&self, runestone: Runestone) -> Height {
+      self.mine_blocks(1);
+      let height = self.index.block_height().unwrap().unwrap();
+
+      self.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(height.n() as usize, 0, 0, Witness::default())],
+        op_return: Some(runestone.encipher()),
+        outputs: 1,
+        ..default()
+      });
+      self.mine_blocks(1);
+
+      height + 1
+    }
+
+    #[track_caller]
     fn get(&self, path: impl AsRef<str>) -> reqwest::blocking::Response {
       if let Err(error) = self.index.update() {
         log::error!("{error}");
@@ -3261,6 +3281,75 @@ mod tests {
       StatusCode::OK,
       format!(".*<h2>1 Rune</h2>.*<li><a href=/rune/{rune0}>{rune0}</a></li>.*"),
     );
+  }
+
+  #[test]
+  fn minted_runes_are_displayed_on_block_page() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_runes()
+      .build();
+
+    let divisibility = 0;
+    let rune = Rune(RUNE);
+    let spacers = 0;
+    let symbol = Some('%');
+    let amount = 10;
+
+    let etching_runestone = Runestone {
+      etching: Some(Etching {
+        divisibility: Some(divisibility),
+        rune: Some(rune),
+        spacers: Some(spacers),
+        symbol,
+        terms: Some(Terms {
+          amount: Some(amount),
+          cap: Some(amount * 10),
+          ..default()
+        }),
+        ..default()
+      }),
+      ..default()
+    };
+    let (_txid, rune_id) = server.etch(etching_runestone, 1, None);
+    let etching_height = rune_id.block.try_into().expect("can't fit in u32");
+    assert_eq!(
+      server
+        .index
+        .get_minted_runes_in_block(etching_height)
+        .unwrap()
+        .len(),
+      0
+    );
+
+    let mint_runestone = Runestone {
+      mint: Some(rune_id),
+      ..default()
+    };
+    let mint_height = server.mint(mint_runestone).n();
+    let minted_runes = server.index.get_minted_runes_in_block(mint_height).unwrap();
+    assert_eq!(minted_runes.len(), 1);
+
+    let spaced_rune = SpacedRune { rune, spacers };
+    let pile = minted_runes.get(&spaced_rune).unwrap();
+    pretty_assert_eq!(
+      pile,
+      &Pile {
+        amount,
+        divisibility: pile.divisibility,
+        symbol: pile.symbol,
+      }
+    );
+
+    let uri = format!("/block/{mint_height}");
+    server.assert_response_regex(
+      &uri,
+      StatusCode::OK,
+      format!(".*<h2>1 Minted Rune</h2>.*<li><a href=/rune/{spaced_rune}>{spaced_rune}</a>: {pile}</li>.*"),
+    );
+
+    let block = server.get_json::<api::Block>(uri);
+    pretty_assert_eq!(block.minted_runes, minted_runes);
   }
 
   #[test]
