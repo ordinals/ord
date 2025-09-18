@@ -31,7 +31,7 @@ fn created_offer_is_correct() {
     .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
 
   let create = CommandBuilder::new(format!(
-    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1"
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1",
   ))
   .core(&core)
   .ord(&ord)
@@ -184,4 +184,48 @@ fn inscription_must_have_valid_address() {
   ))
   .expected_exit_code(1)
   .run_and_extract_stdout();
+}
+
+#[test]
+fn offers_can_be_submitted() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &["--accept-offers"]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, _) = inscribe_with_options(&core, &ord, Some(9000), 0);
+
+  let address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
+    .parse::<Address<NetworkUnchecked>>()
+    .unwrap()
+    .require_network(Network::Bitcoin)
+    .unwrap();
+
+  CommandBuilder::new(format!("wallet send --fee-rate 0 {address} {inscription}"))
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Send>();
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new("wallet outputs")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Vec<ord::subcommand::wallet::outputs::Output>>();
+
+  let create = CommandBuilder::new(format!(
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 1 --submit {}",
+    ord.url().join("offer").unwrap(),
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Create>();
+
+  assert_eq!(
+    ord.json_request("/offers").json::<api::Offers>().unwrap(),
+    api::Offers {
+      offers: vec![create.psbt.clone()]
+    },
+  );
 }
