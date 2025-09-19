@@ -25,7 +25,7 @@ edition = "2021"
 homepage = "https://github.com/ordinals/ord"
 license = "CC0-1.0"
 repository = "https://github.com/ordinals/ord"
-rust-version = "1.88.0"
+rust-version = "1.89.0"
 
 [workspace.dependencies]
 base64 = "0.22.0"
