@@ -53,13 +53,56 @@ binary, available in the
 [coinkite-tap-proto](https://github.com/coinkite/coinkite-tap-proto)
 repository.
 
+After a satscard slot is unsealed, all assets should be swept from that slot to
+another wallet, as the private key can now be read via NFC with the PIN.
+
 Sweeping
 --------
 
-After a satscard slot is unsealed, all assets should be swept from that slot to
-another wallet, as the private key can now be read via NFC.
+First, clone the
+[coinkite-tap-proto](https://github.com/coinkite/coinkite-tap-proto) repository
+and install the `cktap` binary inside a Python virtual environment:
 
-`ord` does not yet support sweeping assets from other wallets, so assets will
-need to be transferred manually.
+```console
+$ git clone https://github.com/coinkite/coinkite-tap-proto.git
+$ cd coinkite-tap-proto
+$ python3 -m venv venv
+$ source venv/bin/activate
+$ pip3 install 'coinkite-tap-protocol[cli]'
+```
+
+Unseal the satscard slot:
+
+```console
+$ cktap unseal
+```
+
+Export the private key:
+
+```console
+$ cktap wif
+```
+
+This will print something like:
+
+```
+Slot #1:
+
+bc1q6e2renlnjyhwnyncd7sgr6s4s2cnkdknvrz40d
+
+p2wpkh:KwVN7HkFnTymkfCh1b4Y5bRGftySuK4jjPQdgBoMURWCi8CjbZPN
+```
+
+Note the address type, in this case `p2wpkh`, and the private key, in this case
+`KwVN7HkFnTymkfCh1b4Y5bRGftySuK4jjPQdgBoMURWCi8CjbZPN`.
+
+Write the private key to a file. This example will use the filename
+`private-key.wif`.
+
+Now sweep the assets into your `ord` wallet:
+
+```console
+$ cat private-key.wif | ord wallet sweep --address-type p2wpkh --fee-rate 10
+```
 
 Be careful, and good luck!
