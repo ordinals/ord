@@ -232,6 +232,20 @@ pub(crate) mod tests {
     "17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53",
   );
 
+  #[test]
+  fn query_from_ordinals_url() {
+    assert_eq!(
+      ordinals_satscard(),
+      Satscard {
+        address: ordinals_address(),
+        nonce: [0xb3, 0x7c, 0xca, 0xa6, 0x2a, 0xa8, 0x49, 0xe7],
+        slot: 0,
+        state: State::Sealed,
+        query_parameters: ordinals_query().into(),
+      }
+    );
+  }
+
   pub(crate) fn coinkite_fragment() -> &'static str {
     COINKITE_URL.split_once('#').unwrap().1
   }
