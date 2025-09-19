@@ -266,11 +266,38 @@ the <code>ord</code> explorer search bar, or the input field on the <code>/satsc
 binary, available in the
 <a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a>
 repository.</p>
-<h2 id="sweeping"><a class="header" href="#sweeping">Sweeping</a></h2>
 <p>After a satscard slot is unsealed, all assets should be swept from that slot to
-another wallet, as the private key can now be read via NFC.</p>
-<p><code>ord</code> does not yet support sweeping assets from other wallets, so assets will
-need to be transferred manually.</p>
+another wallet, as the private key can now be read via NFC with the PIN.</p>
+<h2 id="sweeping"><a class="header" href="#sweeping">Sweeping</a></h2>
+<p>First, clone the
+<a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a> repository
+and install the <code>cktap</code> binary inside a Python virtual environment:</p>
+<pre><code class="language-console">$ git clone https://github.com/coinkite/coinkite-tap-proto.git
+$ cd coinkite-tap-proto
+$ python3 -m venv venv
+$ source venv/bin/activate
+$ pip3 install 'coinkite-tap-protocol[cli]'
+</code></pre>
+<p>Unseal the satscard slot:</p>
+<pre><code class="language-console">$ cktap unseal
+</code></pre>
+<p>Export the private key:</p>
+<pre><code class="language-console">$ cktap wif
+</code></pre>
+<p>This will print something like:</p>
+<pre><code>Slot #1:
+
+bc1q6e2renlnjyhwnyncd7sgr6s4s2cnkdknvrz40d
+
+p2wpkh:KwVN7HkFnTymkfCh1b4Y5bRGftySuK4jjPQdgBoMURWCi8CjbZPN
+</code></pre>
+<p>Note the address type, in this case <code>p2wpkh</code>, and the private key, in this case
+<code>KwVN7HkFnTymkfCh1b4Y5bRGftySuK4jjPQdgBoMURWCi8CjbZPN</code>.</p>
+<p>Write the private key to a file. This example will use the filename
+<code>private-key.wif</code>.</p>
+<p>Now sweep the assets into your <code>ord</code> wallet:</p>
+<pre><code class="language-console">$ cat private-key.wif | ord wallet sweep --address-type p2wpkh --fee-rate 10
+</code></pre>
 <p>Be careful, and good luck!</p>
 
                     </main>
