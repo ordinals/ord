@@ -5,14 +5,6 @@ pub(crate) struct SatscardHtml {
   pub(crate) satscard: Option<(Satscard, Option<AddressHtml>)>,
 }
 
-impl SatscardHtml {
-  fn form_value(&self) -> Option<String> {
-    self.satscard.as_ref().map(|(satscard, _address_info)| {
-      format!("https://satscard.com/start#{}", satscard.query_parameters)
-    })
-  }
-}
-
 impl PageContent for SatscardHtml {
   fn title(&self) -> String {
     if let Some((satscard, _address_info)) = &self.satscard {
@@ -28,26 +20,13 @@ mod tests {
   use super::*;
 
   #[test]
-  fn form_value() {
-    assert_eq!(
-      SatscardHtml {
-        satscard: Some((crate::satscard::tests::satscard(), None)),
-      }
-      .form_value(),
-      Some(crate::satscard::tests::URL.into()),
-    );
-
-    assert_eq!(SatscardHtml { satscard: None }.form_value(), None);
-  }
-
-  #[test]
   fn title() {
     assert_eq!(
       SatscardHtml {
-        satscard: Some((crate::satscard::tests::satscard(), None)),
+        satscard: Some((crate::satscard::tests::coinkite_satscard(), None)),
       }
       .title(),
-      format!("Satscard {}", crate::satscard::tests::address())
+      format!("Satscard {}", crate::satscard::tests::coinkite_address())
     );
 
     assert_eq!(SatscardHtml { satscard: None }.title(), "Satscard");
@@ -57,7 +36,7 @@ mod tests {
   fn no_address_info() {
     pretty_assert_eq!(
       SatscardHtml {
-        satscard: Some((crate::satscard::tests::satscard(), None)),
+        satscard: Some((crate::satscard::tests::coinkite_satscard(), None)),
       }
       .to_string(),
       r#"<h1>Satscard bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf</h1>
@@ -67,13 +46,13 @@ mod tests {
     type=text
     id=url
     name=url
-    pattern='^https://(get)?satscard.com/start#.*$'
     required
-    title='The URL should begin with "https://(get)satscard.com/start#".'
-    value='https://satscard.com/start#u=S&amp;o=0&amp;r=a5x2tplf&amp;n=7664168a4ef7b8e8&amp;s=42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53'
   >
   <input type="submit" value="Submit">
 </form>
+<p>
+  <a href=https://docs.ordinals.com/guides/satscards.html>Guide</a>
+</p>
 <dl>
   <dt>slot</dt>
   <dd>1</dd>
@@ -93,9 +72,9 @@ mod tests {
     pretty_assert_eq!(
       SatscardHtml {
         satscard: Some((
-          crate::satscard::tests::satscard(),
+          crate::satscard::tests::coinkite_satscard(),
           Some(AddressHtml {
-            address: crate::satscard::tests::address(),
+            address: crate::satscard::tests::coinkite_address(),
             header: false,
             inscriptions: Some(Vec::new()),
             outputs: Vec::new(),
@@ -112,13 +91,13 @@ mod tests {
     type=text
     id=url
     name=url
-    pattern='^https://(get)?satscard.com/start#.*$'
     required
-    title='The URL should begin with "https://(get)satscard.com/start#".'
-    value='https://satscard.com/start#u=S&amp;o=0&amp;r=a5x2tplf&amp;n=7664168a4ef7b8e8&amp;s=42b209c86ab90be6418d36b0accc3a53c11901861b55be95b763799842d403dc17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53'
   >
   <input type="submit" value="Submit">
 </form>
+<p>
+  <a href=https://docs.ordinals.com/guides/satscards.html>Guide</a>
+</p>
 <dl>
   <dt>slot</dt>
   <dd>1</dd>
@@ -150,10 +129,10 @@ mod tests {
         satscard: Some((
           Satscard {
             state: crate::satscard::State::Error,
-            ..crate::satscard::tests::satscard()
+            ..crate::satscard::tests::coinkite_satscard()
           },
           Some(AddressHtml {
-            address: crate::satscard::tests::address(),
+            address: crate::satscard::tests::coinkite_address(),
             header: false,
             inscriptions: Some(Vec::new()),
             outputs: Vec::new(),
@@ -178,10 +157,10 @@ mod tests {
         satscard: Some((
           Satscard {
             state: crate::satscard::State::Unsealed,
-            ..crate::satscard::tests::satscard()
+            ..crate::satscard::tests::coinkite_satscard()
           },
           Some(AddressHtml {
-            address: crate::satscard::tests::address(),
+            address: crate::satscard::tests::coinkite_address(),
             header: false,
             inscriptions: Some(Vec::new()),
             outputs: Vec::new(),
