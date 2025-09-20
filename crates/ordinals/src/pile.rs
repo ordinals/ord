@@ -18,7 +18,7 @@ impl Display for Pile {
       write!(f, "{whole}")?;
     } else {
       let mut width = usize::from(self.divisibility);
-      while fractional % 10 == 0 {
+      while fractional.is_multiple_of(10) {
         fractional /= 10;
         width -= 1;
       }
