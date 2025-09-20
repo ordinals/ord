@@ -372,7 +372,6 @@ impl Handle {
       Network::Signet => Network::Signet.to_string(),
       Network::Testnet4 => Network::Testnet4.to_string(),
       Network::Testnet => Network::Testnet.to_string(),
-      _ => panic!(),
     }
   }
 

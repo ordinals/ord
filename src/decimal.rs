@@ -36,7 +36,7 @@ impl Display for Decimal {
     if fraction > 0 {
       let mut width = self.scale.into();
 
-      while fraction % 10 == 0 {
+      while fraction.is_multiple_of(10) {
         fraction /= 10;
         width -= 1;
       }
