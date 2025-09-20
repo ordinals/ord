@@ -180,9 +180,8 @@ msgid ""
 "with satoshis, giving them individual identities and allowing them to be "
 "tracked, transferred, and imbued with meaning."
 msgstr ""
-"このハンドブックはオーディナルズ理論（Ordinals Theory）のガイドです。 オーディナルズはSatoshiに注目"
-"し、それぞれに意味を持たせ、転送、追跡可能。"
-"にします。"
+"このハンドブックはオーディナルズ理論（Ordinals Theory）のガイドです。オーディナルズはSatoshiに注目"
+"し、それぞれに意味を持たせ、転送、追跡可能にします。"
 
 #: src/introduction.md:8
 msgid ""
@@ -1251,6 +1250,9 @@ msgid ""
 "immediately spent to fees are numbered as if they appear last in the block "
 "in which they are revealed."
 msgstr ""
+"多数の碑文番号を変更することなく修正できない`ord`の歴史的なバグにより、"
+"公開されてすぐに手数料として使用された碑文は、公開されたブロック内で"
+"最後に表示されたかのように番号付けされます。"
 
 #: src/inscriptions.md:139
 msgid ""
@@ -1258,6 +1260,9 @@ msgid ""
 "counting down. Cursed inscriptions on and after the jubilee at block 824544 "
 "are vindicated, and are assigned positive inscription numbers."
 msgstr ""
+"呪われた碑文は-1から始まって下方向にカウントされます。"
+"ブロック824544のジュビリー以降の呪われた碑文は名誉回復され、"
+"正の碑文番号が割り当てられます。"
 
 #: src/inscriptions.md:143
 msgid "Sandboxing"
@@ -1306,12 +1311,18 @@ msgid ""
 "of inscription X must be served from the URL path `/content/X`, _not_ `/"
 "content/Y`."
 msgstr ""
+"ID XのInstcriptionがID YのInscriptionに委譲する場合、つまり"
+"Inscription Xに値Yを持つ委譲フィールドが含まれている場合、"
+"Inscription XのコンテンツはURLパス`/content/X`から提供されなければならず、"
+"`/content/Y`からではありません。"
 
 #: src/inscriptions.md:170
 msgid ""
 "This allows delegating inscriptions to use their own inscription ID as a "
 "seed for generative delegate content."
 msgstr ""
+"これにより、委譲するInscriptionが自身のInscription IDを"
+"生成的な委譲コンテンツのシードとして使用することができます。"
 
 #: src/inscriptions.md:173
 msgid "Reinscriptions"
@@ -1448,6 +1459,10 @@ msgid ""
 "metadata longer than 520 bytes must be split into multiple tag `5` fields, "
 "which will then be concatenated before decoding."
 msgstr ""
+"Inscriptionには[CBOR](https://cbor.io/)メタデータを含めることができ、"
+"タグ`5`のフィールドにデータプッシュとして保存されます。データプッシュは"
+"520バイトに制限されているため、520バイトを超えるメタデータは複数の"
+"タグ`5`フィールドに分割し、デコード前に連結される必要があります。"
 
 #: src/inscriptions/metadata.md:9
 msgid ""
@@ -1455,32 +1470,36 @@ msgid ""
 "with its inscription. Inscribers are encouraged to consider how metadata "
 "will be displayed, and make metadata concise and attractive."
 msgstr ""
+"メタデータは人間が読める形式で、すべてのメタデータはInscriptionと"
+"ともにユーザーに表示されます。Inscriptionの作成者は、メタデータが"
+"どのように表示されるかを考慮し、簡潔で魅力的なメタデータを作成することが"
+"推奨されます。"
 
 #: src/inscriptions/metadata.md:13
 msgid "Metadata is rendered to HTML for display as follows:"
-msgstr ""
+msgstr "メタデータは以下のようにHTMLレンダリングされて表示されます："
 
 #: src/inscriptions/metadata.md:15
 msgid ""
 "`null`, `true`, `false`, numbers, floats, and strings are rendered as plain "
 "text."
-msgstr ""
+msgstr "`null`、`true`、`false`、数値、浮動小数点数、文字列はプレーンテキストとしてレンダリングされます。"
 
 #: src/inscriptions/metadata.md:17
 msgid "Byte strings are rendered as uppercase hexadecimal."
-msgstr ""
+msgstr "バイト文字列は大文字の16進数としてレンダリングされます。"
 
 #: src/inscriptions/metadata.md:18
 msgid ""
 "Arrays are rendered as `<ul>` tags, with every element wrapped in `<li>` "
 "tags."
-msgstr ""
+msgstr "配列は`<ul>`タグとしてレンダリングされ、各要素は`<li>`タグで囲まれます。"
 
 #: src/inscriptions/metadata.md:20
 msgid ""
 "Maps are rendered as `<dl>` tags, with every key wrapped in `<dt>` tags, and "
 "every value wrapped in `<dd>` tags."
-msgstr ""
+msgstr "マップは`<dl>`タグとしてレンダリングされ、各キーは`<dt>`タグ、各値は`<dd>`タグで囲まれます。"
 
 #: src/inscriptions/metadata.md:22
 msgid ""
@@ -16352,3 +16371,502 @@ msgstr "依然有効です！"
 
 #~ msgid " sat to the submission address:"
 #~ msgstr "聡は下のアドレスに"
+
+#: src/security.md:1
+msgid "Security"
+msgstr "セキュリティ"
+
+#: src/security.md:4
+msgid ""
+"Anyone can publish inscriptions, including arbitrary HTML, which `ord server` "
+"will serve at `/content/<INSCRIPTION_ID>`, "
+"`/r/undelegated-content/<INSCRIPTION_ID>`, and "
+"`/r/sat/<SAT_NUMBER>/at/<INDEX>/content`."
+msgstr ""
+"誰でも任意のHTMLを含むInscriptionを公開でき、`ord server`は"
+"これらを`/content/<INSCRIPTION_ID>`、"
+"`/r/undelegated-content/<INSCRIPTION_ID>`、および"
+"`/r/sat/<SAT_NUMBER>/at/<INDEX>/content`で提供します。"
+
+#: src/security.md:9
+msgid ""
+"This creates potential security vulnerabilities, including cross-site scripting "
+"and spoofing attacks."
+msgstr ""
+"これにより、クロスサイトスクリプティングや"
+"スプーフィング攻撃を含む潜在的なセキュリティ脆弱性が生まれます。"
+
+#: src/security.md:12
+msgid ""
+"Without mitigations, a domain hosting an `ord server` explorer instance should "
+"be considered to be completely untrusted."
+msgstr ""
+"軽減策なしでは、`ord server`エクスプローラーインスタンスを"
+"ホストするドメインは完全に信頼できないものと考えるべきです。"
+
+#: src/security.md:15
+msgid "Cross-site Scripting"
+msgstr "クロスサイトスクリプティング"
+
+#: src/security.md:17
+msgid ""
+"An attacker performs a cross-site scripting attack by injecting JavaScript into "
+"a vulnerable website such that it is later served to a victim, causing the "
+"malicious script to run in the victim's own browser with the same permissions "
+"as any other script from that website."
+msgstr ""
+"攻撃者は脆弱なウェブサイトにJavaScriptを注入し、後でそれが被害者に"
+"提供されることでクロスサイトスクリプティング攻撃を実行し、"
+"悪意のあるスクリプトが被害者のブラウザで、そのウェブサイトの"
+"他のスクリプトと同じ権限で実行されるようにします。"
+
+#: src/security.md:22
+msgid ""
+"Such a script could access private site resources or perform privileged actions "
+"on the user's behalf, since it would be making requests on behalf of the user."
+msgstr ""
+"このようなスクリプトは、ユーザーの代わりにリクエストを行うため、"
+"プライベートなサイトリソースにアクセスしたり、"
+"ユーザーに代わって特権的なアクションを実行する可能性があります。"
+
+#: src/security.md:25
+msgid ""
+"Cross-site scripting is *not* a concern for a vanilla `ord server` instance. "
+"`ord server` does not serve any private resources or allow privileged actions "
+"to be taken via the web interface, so although JavaScript can be injected using "
+"an inscription, it does not run with any meaningful permissions."
+msgstr ""
+"クロスサイトスクリプティングは、バニラの`ord server`インスタンスでは"
+"*問題ではありません*。`ord server`はプライベートリソースを提供せず、"
+"ウェブインターフェース経由で特権的なアクションを許可しないため、"
+"InscriptionでJavaScriptを注入できても、意味のある権限では実行されません。"
+
+#: src/security.md:30
+msgid ""
+"However, if you serve requests to `ord server` from a domain which *also* "
+"serves private resources or allow privileged actions, you may be vulnerable to "
+"cross-site scripting attacks."
+msgstr ""
+"ただし、プライベートリソースを提供したり特権的なアクションを許可する"
+"ドメインから`ord server`へのリクエストを提供する場合、"
+"クロスサイトスクリプティング攻撃に脆弱になる可能性があります。"
+
+#: src/security.md:34
+msgid "Example"
+msgstr "例"
+
+#: src/security.md:36
+msgid "`ord server` is run under `https://example.com/ord`."
+msgstr "`ord server`が`https://example.com/ord`で実行されています。"
+
+#: src/security.md:38
+msgid "A bitcoin exchange is run under `https://example.com/exchange`."
+msgstr "ビットコイン取引所が`https://example.com/exchange`で実行されています。"
+
+#: src/security.md:40
+msgid ""
+"Users can send bitcoin at `https://example.com/exchange/send`, with access "
+"controlled by a user's session cookie."
+msgstr ""
+"ユーザーは`https://example.com/exchange/send`でビットコインを送金でき、"
+"アクセスはユーザーのセッションクッキーによって制御されています。"
+
+#: src/security.md:43
+msgid ""
+"An attacker publishes a malicious HTML inscription with ID `XYZ` which "
+"contains JavaScript that accesses `https://example.com/exchange/send` and "
+"sends them to an attacker-controlled address."
+msgstr ""
+"攻撃者がID `XYZ`の悪意のあるHTML Inscriptionを公開し、"
+"`https://example.com/exchange/send`にアクセスして"
+"攻撃者が制御するアドレスに送金するJavaScriptが含まれています。"
+
+#: src/security.md:47
+msgid ""
+"When a user visits `https://example.com/ord/XYZ`, the malicious JavaScript "
+"requests `https://example.com/exchange/send`. Because the script executes on "
+"the user's behalf with the request including the user's session cookie, the "
+"server sends the user's bitcoin to the attacker."
+msgstr ""
+"ユーザーが`https://example.com/ord/XYZ`を訪問すると、悪意のあるJavaScriptが"
+"`https://example.com/exchange/send`にリクエストを送信します。"
+"スクリプトがユーザーのセッションクッキーを含むリクエストでユーザーの代わりに"
+"実行されるため、サーバーはユーザーのビットコインを攻撃者に送金します。"
+
+#: src/security.md:52
+msgid ""
+"To prevent this, do not make `ord server` available on the same domain and port "
+"as another web service which is vulnerable to cross-site scripting."
+msgstr ""
+"これを防ぐには、クロスサイトスクリプティングに脆弱な他のウェブサービスと"
+"同じドメインとポートで`ord server`を利用可能にしないでください。"
+
+#: src/security.md:55
+msgid "Spoofing"
+msgstr "スプーフィング"
+
+#: src/security.md:57
+msgid ""
+"If `ord server` is run at a well known domain, for example, `ordinals.com`, an "
+"attacker could publish a malicious inscription that attempts to trick users "
+"into thinking that it represents the owners of the domain. For example, by "
+"publishing a mint page to induce users to send bitcoin. Additionally, the "
+"[History API](https://developer.mozilla.org/en-US/docs/Web/API/History_API) can "
+"be used to change the path without triggering a page reload, so inscription "
+"content can appear to the user under URL that suggests it was published by the "
+"site owners."
+msgstr ""
+"`ord server`が`ordinals.com`などの有名なドメインで実行されている場合、"
+"攻撃者はそのドメインの所有者を表していると思わせる悪意のあるInscriptionを"
+"公開する可能性があります。例えば、ユーザーにビットコインを送金させるための"
+"ミントページを公開することが考えられます。さらに、"
+"[History API](https://developer.mozilla.org/en-US/docs/Web/API/History_API)を"
+"使用してページのリロードをトリガーせずにパスを変更できるため、"
+"Inscriptionコンテンツがサイト所有者によって公開されたことを示唆するURLで"
+"ユーザーに表示される可能性があります。"
+
+#: src/security.md:66
+msgid "Example"
+msgstr "例"
+
+#: src/security.md:68
+msgid ""
+"`ord server` is run at `https://example.com`, by popular and well-respected "
+"Example Corporation."
+msgstr ""
+"`ord server`が、人気があり高く評価されているExample Corporationによって"
+"`https://example.com`で実行されています。"
+
+#: src/security.md:71
+msgid ""
+"An attacker publishes a malicious HTML inscription with ID `XYZ` which "
+"displays a mint page, and changes the URL path using the History API to "
+"`/mint`."
+msgstr ""
+"攻撃者がID `XYZ`の悪意のあるHTML Inscriptionを公開し、"
+"ミントページを表示し、History APIを使用してURLパスを`/mint`に変更します。"
+
+#: src/security.md:75
+msgid ""
+"A user clicks a link to `https://example.com/inscription/XYZ` which displays "
+"the attacker's mint page, with the apparent URL of "
+"`https://example.com/mint`."
+msgstr ""
+"ユーザーが`https://example.com/inscription/XYZ`へのリンクをクリックすると、"
+"攻撃者のミントページが表示され、見かけ上のURLは"
+"`https://example.com/mint`になります。"
+
+#: src/security.md:79
+msgid ""
+"The user thinks that this is a potentially lucrative mint run by popular and "
+"well-respected Example Corporation and sends bitcoin to the mint address."
+msgstr ""
+"ユーザーは、これが人気があり高く評価されているExample Corporationが"
+"実行する潜在的に利益の高いミントだと思い、ミントアドレスにビットコインを送金します。"
+
+#: src/security.md:82
+msgid ""
+"To prevent this, avoid giving users the impression that a domain hosting an "
+"`ord` explorer can be trusted for anything other than the content of the `ord` "
+"explorer itself."
+msgstr ""
+"これを防ぐには、`ord`エクスプローラーをホストするドメインが"
+"`ord`エクスプローラー自体のコンテンツ以外の何かで信頼できるという"
+"印象をユーザーに与えないようにしてください。"
+
+#: src/guides/satscards.md:1
+msgid "Satscard"
+msgstr "Satscard"
+
+#: src/guides/satscards.md:4
+msgid ""
+"[Satscards](https://satscard.com/) are cards which can be used to store "
+"bitcoin, inscriptions, and runes."
+msgstr ""
+"[Satscard](https://satscard.com/)は、ビットコイン、Inscription、"
+"Runeを保存するために使用できるカードです。"
+
+#: src/guides/satscards.md:7
+msgid "Slots"
+msgstr "スロット"
+
+#: src/guides/satscards.md:10
+msgid ""
+"Each satscard has ten slots containing private keys with corresponding bitcoin "
+"addresses."
+msgstr ""
+"各Satscardには、対応するビットコインアドレスを持つ"
+"プライベートキーが格納された10個のスロットがあります。"
+
+#: src/guides/satscards.md:13
+msgid ""
+"Initially, all slots are sealed and the private keys are stored only the "
+"satscard."
+msgstr ""
+"最初は、すべてのスロットが封印されており、"
+"プライベートキーはSatscardにのみ保存されています。"
+
+#: src/guides/satscards.md:16
+msgid ""
+"Slots can be unsealed, which allows the corresponding private key to be "
+"extracted."
+msgstr ""
+"スロットは開封でき、対応するプライベートキーを抽出できます。"
+
+#: src/guides/satscards.md:19
+msgid ""
+"Unsealing is permanent. If a satscard is sealed, you can have some confidence "
+"that private key is not known to anyone. That taking physical ownership of a "
+"satscard makes you the sole owner of assets in any sealed slots."
+msgstr ""
+"開封は永続的です。Satscardが封印されている場合、そのプライベートキーは"
+"誰にも知られていないという確信を持つことができます。Satscardの物理的な"
+"所有権を得ることで、封印されたスロット内のアセットの唯一の所有者になります。"
+
+#: src/guides/satscards.md:23
+msgid "Lifespan"
+msgstr "寿命"
+
+#: src/guides/satscards.md:26
+msgid ""
+"Satscards are expected to have a usable lifetime of ten years. Do not use "
+"satscards for long-term storage of valuable assets."
+msgstr ""
+"Satscardの使用可能な寿命は10年間と予想されます。"
+"貴重な資産の長期保存にはSatscardを使用しないでください。"
+
+#: src/guides/satscards.md:30
+msgid "Viewing"
+msgstr "表示"
+
+#: src/guides/satscards.md:33
+msgid ""
+"When placed on a smartphone, the satscard transmits a URL, beginning with "
+"`https://satscard.com/start` or `https://getsatscard.com/start`, depending on "
+"when it was manufactured."
+msgstr ""
+"スマートフォンに置くと、Satscardは製造時期に応じて"
+"`https://satscard.com/start`または`https://getsatscard.com/start`で"
+"始まるURLを送信します。"
+
+#: src/guides/satscards.md:37
+msgid ""
+"This URL contains a signature which can be used to recover the address of the "
+"current slot. This signature is made over a random nonce, so it changes every "
+"time the satscard is tapped, and provides some confidence that the satscard "
+"contains the private key."
+msgstr ""
+"このURLには、現在のスロットのアドレスを復元するために使用できる署名が"
+"含まれています。この署名はランダムなナンスで作成されるため、"
+"Satscardがタップされるたびに変更され、Satscardにプライベートキーが"
+"含まれているという確信をある程度提供します。"
+
+#: src/guides/satscards.md:42
+msgid ""
+"`ord` supports viewing the contents of a satscard by entering the full URL into "
+"the `ord` explorer search bar, or the input field on the `/satscard` page."
+msgstr ""
+"`ord`は、完全なURLを`ord`エクスプローラーの検索バーまたは"
+"`/satscard`ページの入力フィールドに入力することで、"
+"Satscardの内容の表示をサポートしています。"
+
+#: src/guides/satscards.md:45
+msgid ""
+"For `ordinals.com`, this is "
+"[ordinals.com/satscard](https://ordinals.com/satscard)."
+msgstr ""
+"`ordinals.com`の場合、これは"
+"[ordinals.com/satscard](https://ordinals.com/satscard)です。"
+
+#: src/guides/satscards.md:48
+msgid "Unsealing"
+msgstr "開封"
+
+#: src/guides/satscards.md:51
+msgid ""
+"Satscard slots can be unsealed and the private keys extracted using the `cktap` "
+"binary, available in the "
+"[coinkite-tap-proto](https://github.com/coinkite/coinkite-tap-proto) "
+"repository."
+msgstr ""
+"Satscardスロットは、"
+"[coinkite-tap-proto](https://github.com/coinkite/coinkite-tap-proto)"
+"リポジトリで利用可能な`cktap`バイナリを使用して開封し、"
+"プライベートキーを抽出できます。"
+
+#: src/guides/satscards.md:56
+msgid ""
+"After a satscard slot is unsealed, all assets should be swept from that slot to "
+"another wallet, as the private key can now be read via NFC with the PIN."
+msgstr ""
+"Satscardスロットが開封された後は、PINとNFC経由でプライベートキーが"
+"読み取れるようになるため、そのスロットからすべてのアセットを"
+"別のウォレットにスイープする必要があります。"
+
+#: src/guides/satscards.md:59
+msgid "Sweeping"
+msgstr "スイープ"
+
+#: src/guides/satscards.md:62
+msgid ""
+"First, clone the "
+"[coinkite-tap-proto](https://github.com/coinkite/coinkite-tap-proto) repository "
+"and install the `cktap` binary inside a Python virtual environment:"
+msgstr ""
+"まず、[coinkite-tap-proto](https://github.com/coinkite/coinkite-tap-proto)"
+"リポジトリをクローンし、Python仮想環境内で`cktap`バイナリをインストールします："
+
+#: src/guides/satscards.md:74
+msgid "Unseal the satscard slot:"
+msgstr "Satscardスロットを開封します："
+
+#: src/guides/satscards.md:80
+msgid "Export the private key:"
+msgstr "プライベートキーをエクスポートします："
+
+#: src/guides/satscards.md:86
+msgid "This will print something like:"
+msgstr "これにより、次のような内容が出力されます："
+
+#: src/guides/satscards.md:96
+msgid ""
+"Note the address type, in this case `p2wpkh`, and the private key, in this case "
+"`KwVN7HkFnTymkfCh1b4Y5bRGftySuK4jjPQdgBoMURWCi8CjbZPN`."
+msgstr ""
+"アドレスタイプ（この場合は`p2wpkh`）とプライベートキー（この場合は"
+"`KwVN7HkFnTymkfCh1b4Y5bRGftySuK4jjPQdgBoMURWCi8CjbZPN`）をメモしてください。"
+
+#: src/guides/satscards.md:99
+msgid ""
+"Write the private key to a file. This example will use the filename "
+"`private-key.wif`."
+msgstr ""
+"プライベートキーをファイルに書き込みます。この例では"
+"ファイル名`private-key.wif`を使用します。"
+
+#: src/guides/satscards.md:102
+msgid "Now sweep the assets into your `ord` wallet:"
+msgstr "アセットを`ord`ウォレットにスイープします："
+
+#: src/guides/satscards.md:108
+msgid "Be careful, and good luck!"
+msgstr "注意深く行い、幸運を！"
+
+#: src/inscriptions/properties.md:1
+msgid "Properties"
+msgstr "プロパティ"
+
+#: src/inscriptions/properties.md:4
+msgid ""
+"Inscriptions may include [CBOR](https://cbor.io/) properties, stored as data "
+"pushes in fields with tag `17`. Since data pushes are limited to 520 bytes, "
+"CBOR longer than 520 bytes must be split into multiple tag `17` fields, which "
+"will then be concatenated before decoding."
+msgstr ""
+"Inscriptionには[CBOR](https://cbor.io/)プロパティを含めることができ、"
+"タグ`17`のフィールドにデータプッシュとして保存されます。データプッシュは"
+"520バイトに制限されているため、520バイトを超えるCBORは複数の"
+"タグ`17`フィールドに分割し、デコード前に連結される必要があります。"
+
+#: src/inscriptions/properties.md:9
+msgid ""
+"Properties are a structured counterpart to [metadata](metadata.md). While "
+"metadata may contain arbitrary CBOR which has no protocol-defined meaning and "
+"is presented on `/inscription` as HTML, properties have protocol-defined "
+"meaning and must conform to a strict schema."
+msgstr ""
+"プロパティは[メタデータ](metadata.md)の構造化された対応物です。"
+"メタデータはプロトコル定義の意味を持たない任意のCBORを含み、"
+"`/inscription`でHTMLとして表示されますが、プロパティは"
+"プロトコル定義の意味を持ち、厳密なスキーマに準拠する必要があります。"
+
+#: src/inscriptions/properties.md:14
+msgid ""
+"Indefinite-length types are not supported. All maps, arrays, byte strings, and "
+"text strings must be definite."
+msgstr ""
+"不定長型はサポートされていません。すべてのマップ、配列、バイト文字列、"
+"テキスト文字列は定長でなければなりません。"
+
+#: src/inscriptions/properties.md:17
+msgid ""
+"The non-normative [CDDL](https://datatracker.ietf.org/doc/html/rfc8610) schema "
+"of the properties value is as follows:"
+msgstr ""
+"プロパティ値の非規範的な[CDDL](https://datatracker.ietf.org/doc/html/rfc8610)"
+"スキーマは以下の通りです："
+
+#: src/inscriptions/properties.md:32
+msgid ""
+"The above CDDL schema is provided as a convenience. As always, the ordinals "
+"reference implementation `ord` is the normative specification of inscriptions, "
+"and thus the properties field."
+msgstr ""
+"上記のCDDLスキーマは便宜上提供されています。いつものように、"
+"オーディナルズのリファレンス実装である`ord`がInscriptionの規範的仕様であり、"
+"したがってプロパティフィールドの仕様でもあります。"
+
+#: src/inscriptions/properties.md:36
+msgid ""
+"Fields matching the `* any => any` wildcard must be ignored, for compatibility "
+"with future additions."
+msgstr ""
+"`* any => any`ワイルドカードにマッチするフィールドは、"
+"将来の追加との互換性のために無視される必要があります。"
+
+#: src/inscriptions/properties.md:39
+msgid "Galleries"
+msgstr "ギャラリー"
+
+#: src/inscriptions/properties.md:42
+msgid "Inscriptions whose properties field contains `GalleryItem`s are galleries."
+msgstr "プロパティフィールドに`GalleryItem`を含むInscriptionはギャラリーです。"
+
+#: src/inscriptions/properties.md:44
+msgid ""
+"Galleries contain `GalleryItem`s, whose only defined key `0` contains a "
+"serialized inscription ID. Inscription ID `TXIDiINDEX` is serialized as a byte "
+"string containing the 32 byte TXID, concatenated with by the four-byte "
+"little-endian `INDEX`. Trailing zeros may be removed from four-byte `INDEX`, so "
+"IDs ending in `i0` may be serialized in 32 bytes."
+msgstr ""
+"ギャラリーは`GalleryItem`を含み、その唯一の定義されたキー`0`には"
+"シリアライズされたInscription IDが含まれます。Inscription ID `TXIDiINDEX`は、"
+"32バイトのTXIDと4バイトのリトルエンディアン`INDEX`を連結したバイト文字列として"
+"シリアライズされます。4バイトの`INDEX`から末尾のゼロを削除できるため、"
+"`i0`で終わるIDは32バイトでシリアライズできます。"
+
+#: src/inscriptions/properties.md:50
+msgid ""
+"Gallery items are displayed on the inscriptions `/inscription` page on the "
+"explorer."
+msgstr ""
+"ギャラリーアイテムは、エクスプローラーのInscriptionの`/inscription`ページに表示されます。"
+
+#: src/inscriptions/properties.md:53
+msgid ""
+"Galleries are similar to children, in that they provide a way to create "
+"collections of inscriptions. However, galleries are permissionless. Anyone may "
+"create a gallery including any inscriptions. Thus, inclusion in a gallery does "
+"not imply provenance. Additionally, because of this, inclusion in a gallery "
+"does not create a backlink from the gallery item's `/inscription` page to the "
+"gallery."
+msgstr ""
+"ギャラリーは、Inscriptionのコレクションを作成する方法を提供するという点で"
+"子要素に似ています。ただし、ギャラリーはパーミッションレスです。"
+"誰でも任意のInscriptionを含むギャラリーを作成できます。したがって、"
+"ギャラリーに含まれることは出所を意味しません。さらに、このため、"
+"ギャラリーに含まれてもギャラリーアイテムの`/inscription`ページから"
+"ギャラリーへのバックリンクは作成されません。"
+
+#: src/inscriptions/properties.md:60
+msgid ""
+"Galleries may be created when batch inscribing with `ord wallet batch` by "
+"including an array of string inscription IDs of under the `gallery` key of the "
+"inscription entry in the batch file, or when using `ord wallet inscribe` using "
+"the `--gallery` option."
+msgstr ""
+"ギャラリーは、`ord wallet batch`でバッチInscriptionを行う際に、"
+"バッチファイルのInscriptionエントリの`gallery`キーの下に"
+"文字列Inscription IDの配列を含めることで作成できます。また、"
+"`ord wallet inscribe`で`--gallery`オプションを使用することでも作成できます。"
