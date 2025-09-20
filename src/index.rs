@@ -2675,6 +2675,105 @@ mod tests {
   }
 
   #[test]
+  fn annex_inscriptions_below_first_annex_inscription_height_are_skipped() {
+    let inscription1 = inscription("text/plain;charset=utf-8", "ord");
+    let inscription2 = inscription("text/plain;charset=utf-8", "ord2");
+    let mut witness = inscription1.clone().to_witness();
+    let annex = Inscription::convert_batch_to_annex(&[inscription2.clone()]);
+    witness.push(annex);
+
+    let template = TransactionTemplate {
+      inputs: &[(1, 0, 0, witness)],
+      ..default()
+    };
+
+    {
+      let context = Context::builder().build();
+      context.mine_blocks(120);
+      let txid = context.core.broadcast_tx(template.clone());
+      let inscription_id = InscriptionId { txid, index: 0 };
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context.index.get_inscription_by_id(inscription_id).unwrap(),
+        Some(inscription1.clone())
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_satpoint_by_id(inscription_id)
+          .unwrap(),
+        Some(SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        })
+      );
+
+      let annex_inscription_id = InscriptionId { txid, index: 1 };
+      assert_eq!(
+        context
+          .index
+          .get_inscription_by_id(annex_inscription_id)
+          .unwrap(),
+        Some(inscription2.clone())
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_satpoint_by_id(annex_inscription_id)
+          .unwrap(),
+        Some(SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        })
+      );
+    }
+
+    {
+      let context = Context::builder().build();
+      context.mine_blocks(1);
+      let txid = context.core.broadcast_tx(template.clone());
+      let inscription_id = InscriptionId { txid, index: 0 };
+      context.mine_blocks(1);
+
+      assert_eq!(
+        context.index.get_inscription_by_id(inscription_id).unwrap(),
+        Some(inscription1)
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_satpoint_by_id(inscription_id)
+          .unwrap(),
+        Some(SatPoint {
+          outpoint: OutPoint { txid, vout: 0 },
+          offset: 0,
+        })
+      );
+
+      let annex_inscription_id = InscriptionId { txid, index: 1 };
+      assert_eq!(
+        context
+          .index
+          .get_inscription_by_id(annex_inscription_id)
+          .unwrap(),
+        None
+      );
+
+      assert_eq!(
+        context
+          .index
+          .get_inscription_satpoint_by_id(annex_inscription_id)
+          .unwrap(),
+        None
+      );
+    }
+  }
+
+  #[test]
   fn inscriptions_are_not_indexed_if_no_index_inscriptions_flag_is_set() {
     let inscription = inscription("text/plain;charset=utf-8", "hello");
     let template = TransactionTemplate {
