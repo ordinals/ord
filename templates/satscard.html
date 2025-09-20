@@ -9,15 +9,13 @@
     type=text
     id=url
     name=url
-    pattern='^https://(get)?satscard.com/start#.*$'
     required
-    title='The URL should begin with "https://(get)satscard.com/start#".'
-%% if let Some(value) = self.form_value() {
-    value='{{ value }}'
-%% }
   >
   <input type="submit" value="Submit">
 </form>
+<p>
+  <a href=https://docs.ordinals.com/guides/satscards.html>Guide</a>
+</p>
 %% if let Some((Satscard { address, nonce, slot, state, .. }, address_info)) = &self.satscard {
 <dl>
   <dt>slot</dt>

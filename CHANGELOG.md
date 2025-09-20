@@ -1,6 +1,27 @@
 Changelog
 =========
 
+[0.23.3](https://github.com/ordinals/ord/releases/tag/0.23.3) - 2025-09-19
+--------------------------------------------------------------------------
+
+### Added
+- Support ordinals.com satscards ([#4410](https://github.com/ordinals/ord/pull/4410) by [casey](https://github.com/casey))
+- Allow submitting offers created with wallet ([#4409](https://github.com/ordinals/ord/pull/4409) by [casey](https://github.com/casey))
+- Add PSBT offer submission ([#4408](https://github.com/ordinals/ord/pull/4408) by [casey](https://github.com/casey))
+- Add wallet sweep command ([#4394](https://github.com/ordinals/ord/pull/4394) by [raphjaph](https://github.com/raphjaph))
+
+### Changed
+- Enable json response on `/children` routes ([#4281](https://github.com/ordinals/ord/pull/4281) by [felipelincoln](https://github.com/felipelincoln))
+
+### Misc
+- Fix new Rust lints ([#4396](https://github.com/ordinals/ord/pull/4396) by [casey](https://github.com/casey))
+- Update deps and fmt ([#4385](https://github.com/ordinals/ord/pull/4385) by [raphjaph](https://github.com/raphjaph))
+- Update api.md ([#4381](https://github.com/ordinals/ord/pull/4381) by [Galoretka](https://github.com/Galoretka))
+- Allow inscribing with backup and Core v29 ([#4371](https://github.com/ordinals/ord/pull/4371) by [gmart7t2](https://github.com/gmart7t2))
+- Update minimum Rust version to 1.85.0 ([#4356](https://github.com/ordinals/ord/pull/4356) by [blieb](https://github.com/blieb))
+- Fix clippy lints ([#4373](https://github.com/ordinals/ord/pull/4373) by [raphjaph](https://github.com/raphjaph))
+- Use `unversioned_leaf_script_from_witness()` ([#4355](https://github.com/ordinals/ord/pull/4355) by [casey](https://github.com/casey))
+
 [0.23.2](https://github.com/ordinals/ord/releases/tag/0.23.2) - 2025-05-20
 --------------------------------------------------------------------------
 
