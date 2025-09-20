@@ -643,6 +643,8 @@ impl Server {
     if let Ok(form) = Query::<Form>::try_from_uri(&uri) {
       return if let Some(fragment) = form.url.0.fragment() {
         Ok(Redirect::to(&format!("/satscard?{fragment}")).into_response())
+      } else if let Some(query) = form.url.0.query() {
+        Ok(Redirect::to(&format!("/satscard?{query}")).into_response())
       } else {
         Err(ServerError::BadRequest(
           "satscard URL missing fragment".into(),
@@ -1369,11 +1371,13 @@ impl Server {
         Ok(Redirect::to(&format!("/output/{query}")))
       } else if re::INSCRIPTION_ID.is_match(query) || re::INSCRIPTION_NUMBER.is_match(query) {
         Ok(Redirect::to(&format!("/inscription/{query}")))
-      } else if let Some(captures) = re::SATSCARD_URL.captures(query) {
+      } else if let Some(captures) = re::COINKITE_SATSCARD_URL.captures(query) {
         Ok(Redirect::to(&format!(
           "/satscard?{}",
           &captures["parameters"]
         )))
+      } else if let Some(captures) = re::ORDINALS_SATSCARD_URL.captures(query) {
+        Ok(Redirect::to(&format!("/satscard?{}", &captures["query"])))
       } else if re::SPACED_RUNE.is_match(query) {
         Ok(Redirect::to(&format!("/rune/{query}")))
       } else if re::RUNE_ID.is_match(query) {
@@ -2713,6 +2717,10 @@ mod tests {
     );
     TestServer::new().assert_redirect(
       "/search?query=https://getsatscard.com/start%23foo",
+      "/satscard?foo",
+    );
+    TestServer::new().assert_redirect(
+      "/search?query=https://ordinals.com/satscard?foo",
       "/satscard?foo",
     );
   }
@@ -7847,13 +7855,24 @@ next
   }
 
   #[test]
-  fn satscard_form_redirects_to_query() {
+  fn satscard_form_with_coinkite_url_redirects_to_query() {
     TestServer::new().assert_redirect(
       &format!(
         "/satscard?url={}",
-        urlencoding::encode(satscard::tests::URL)
+        urlencoding::encode(satscard::tests::COINKITE_URL)
       ),
-      &format!("/satscard?{}", satscard::tests::query_parameters()),
+      &format!("/satscard?{}", satscard::tests::coinkite_fragment()),
+    );
+  }
+
+  #[test]
+  fn satscard_form_with_ordinals_url_redirects_to_query() {
+    TestServer::new().assert_redirect(
+      &format!(
+        "/satscard?url={}",
+        urlencoding::encode(satscard::tests::ORDINALS_URL)
+      ),
+      &format!("/satscard?{}", satscard::tests::ordinals_query()),
     );
   }
 
@@ -7889,26 +7908,50 @@ next
       .chain(Chain::Mainnet)
       .build()
       .assert_html(
-        format!("/satscard?{}", satscard::tests::query_parameters()),
+        format!("/satscard?{}", satscard::tests::coinkite_fragment()),
         SatscardHtml {
-          satscard: Some((satscard::tests::satscard(), None)),
+          satscard: Some((satscard::tests::coinkite_satscard(), None)),
         },
       );
   }
 
   #[test]
-  fn satscard_display_with_address_index_empty() {
+  fn satscard_coinkite_display_with_address_index_empty() {
     TestServer::builder()
       .chain(Chain::Mainnet)
       .index_addresses()
       .build()
       .assert_html(
-        format!("/satscard?{}", satscard::tests::query_parameters()),
+        format!("/satscard?{}", satscard::tests::coinkite_fragment()),
         SatscardHtml {
           satscard: Some((
-            satscard::tests::satscard(),
+            satscard::tests::coinkite_satscard(),
             Some(AddressHtml {
-              address: satscard::tests::address(),
+              address: satscard::tests::coinkite_address(),
+              header: false,
+              inscriptions: Some(Vec::new()),
+              outputs: Vec::new(),
+              runes_balances: None,
+              sat_balance: 0,
+            }),
+          )),
+        },
+      );
+  }
+
+  #[test]
+  fn satscard_ordinals_display_with_address_index_empty() {
+    TestServer::builder()
+      .chain(Chain::Mainnet)
+      .index_addresses()
+      .build()
+      .assert_html(
+        format!("/satscard?{}", satscard::tests::ordinals_query()),
+        SatscardHtml {
+          satscard: Some((
+            satscard::tests::ordinals_satscard(),
+            Some(AddressHtml {
+              address: satscard::tests::ordinals_address(),
               header: false,
               inscriptions: Some(Vec::new()),
               outputs: Vec::new(),
@@ -7926,7 +7969,7 @@ next
       .chain(Chain::Testnet)
       .build()
       .assert_response(
-        format!("/satscard?{}", satscard::tests::query_parameters()),
+        format!("/satscard?{}", satscard::tests::coinkite_fragment()),
         StatusCode::BAD_REQUEST,
         "invalid satscard query parameters: address recovery failed",
       );
