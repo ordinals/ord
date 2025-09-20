@@ -504,6 +504,27 @@ impl Index {
     )
   }
 
+  #[cfg(test)]
+  pub fn get_output_script(&self, output: &OutPoint) -> Result<ScriptBuf> {
+    Ok(if self.index_addresses {
+      let rtx = self.database.begin_read()?;
+      let outpoint_to_utxo_entry = rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
+      let entry = outpoint_to_utxo_entry
+        .get(&output.store())?
+        .ok_or_else(|| anyhow!("UTXO entry not found for output: {:?}", output))?;
+
+      let parsed = entry.value().parse(self);
+
+      ScriptBuf::from_bytes(parsed.script_pubkey().to_vec())
+    } else {
+      self
+        .get_output_info(*output)?
+        .ok_or_else(|| anyhow!("output {output} not found"))?
+        .0
+        .script_pubkey
+    })
+  }
+
   pub fn has_address_index(&self) -> bool {
     self.index_addresses
   }
@@ -6864,13 +6885,22 @@ mod tests {
           ..Default::default()
         },
       )],
-      [(
-        OutPoint {
-          txid: txid3,
-          vout: 1,
-        },
-        vec![(id, 889)],
-      )],
+      [
+        (
+          OutPoint {
+            txid: txid3,
+            vout: 0,
+          },
+          vec![(id, 111)],
+        ),
+        (
+          OutPoint {
+            txid: txid3,
+            vout: 1,
+          },
+          vec![(id, 889)],
+        ),
+      ],
     );
 
     event_receiver.blocking_recv().unwrap();
