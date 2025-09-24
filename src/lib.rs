@@ -303,11 +303,11 @@ pub fn main() {
           eprintln!("- {err}");
         }
 
-        if let Some(backtrace) = err.backtrace() {
-          if backtrace.status() == BacktraceStatus::Captured {
-            eprintln!("backtrace:");
-            eprintln!("{backtrace}");
-          }
+        if let Some(backtrace) = err.backtrace()
+          && backtrace.status() == BacktraceStatus::Captured
+        {
+          eprintln!("backtrace:");
+          eprintln!("{backtrace}");
         }
       }
 

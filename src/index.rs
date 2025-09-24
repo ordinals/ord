@@ -1724,15 +1724,14 @@ impl Index {
       return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
     }
 
-    if self.index_transactions {
-      if let Some(transaction) = self
+    if self.index_transactions
+      && let Some(transaction) = self
         .database
         .begin_read()?
         .open_table(TRANSACTION_ID_TO_TRANSACTION)?
         .get(&txid.store())?
-      {
-        return Ok(Some(consensus::encode::deserialize(transaction.value())?));
-      }
+    {
+      return Ok(Some(consensus::encode::deserialize(transaction.value())?));
     }
 
     self.client.get_raw_transaction(&txid, None).into_option()

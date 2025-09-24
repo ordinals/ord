@@ -159,10 +159,10 @@ impl Server {
             break;
           }
 
-          if !self.no_sync {
-            if let Err(error) = index_clone.update() {
-              log::warn!("Updating index: {error}");
-            }
+          if !self.no_sync
+            && let Err(error) = index_clone.update()
+          {
+            log::warn!("Updating index: {error}");
           }
 
           thread::sleep(if integration_test {
@@ -1672,10 +1672,10 @@ impl Server {
     child: Option<usize>,
   ) -> ServerResult {
     task::block_in_place(|| {
-      if let query::Inscription::Sat(_) = query {
-        if !index.has_sat_index() {
-          return Err(ServerError::NotFound("sat index required".into()));
-        }
+      if let query::Inscription::Sat(_) = query
+        && !index.has_sat_index()
+      {
+        return Err(ServerError::NotFound("sat index required".into()));
       }
 
       let inscription_info = index.inscription_info(query, child)?;

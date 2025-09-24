@@ -167,10 +167,10 @@ impl Updater<'_> {
 
     thread::spawn(move || {
       loop {
-        if let Some(height_limit) = height_limit {
-          if height >= height_limit {
-            break;
-          }
+        if let Some(height_limit) = height_limit
+          && height >= height_limit
+        {
+          break;
         }
 
         match Self::get_block_with_retries(&client, height, first_index_height) {
@@ -837,10 +837,10 @@ impl Updater<'_> {
       let mut sequence_number_to_satpoint = wtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
 
       for (outpoint, mut utxo_entry) in utxo_cache {
-        if Index::is_special_outpoint(outpoint) {
-          if let Some(old_entry) = outpoint_to_utxo_entry.get(&outpoint.store())? {
-            utxo_entry = UtxoEntryBuf::merged(old_entry.value(), &utxo_entry, self.index);
-          }
+        if Index::is_special_outpoint(outpoint)
+          && let Some(old_entry) = outpoint_to_utxo_entry.get(&outpoint.store())?
+        {
+          utxo_entry = UtxoEntryBuf::merged(old_entry.value(), &utxo_entry, self.index);
         }
 
         outpoint_to_utxo_entry.insert(&outpoint.store(), utxo_entry.as_ref())?;
