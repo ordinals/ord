@@ -743,16 +743,18 @@ mod tests {
 
     assert_eq!(settings.bitcoin_rpc_url(None), "127.0.0.1:38332/");
 
-    assert!(settings
-      .cookie_file()
-      .unwrap()
-      .display()
-      .to_string()
-      .ends_with(if cfg!(windows) {
-        r"\signet\.cookie"
-      } else {
-        "/signet/.cookie"
-      }));
+    assert!(
+      settings
+        .cookie_file()
+        .unwrap()
+        .display()
+        .to_string()
+        .ends_with(if cfg!(windows) {
+          r"\signet\.cookie"
+        } else {
+          "/signet/.cookie"
+        })
+    );
   }
 
   #[test]

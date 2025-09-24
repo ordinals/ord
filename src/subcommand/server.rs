@@ -14,20 +14,20 @@ use {
     TransactionHtml,
   },
   axum::{
+    Router,
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
-    http::{self, header, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
+    http::{self, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri, header},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
-    Router,
   },
   axum_server::Handle,
   brotli::Decompressor,
   rust_embed::RustEmbed,
   rustls_acme::{
+    AcmeConfig,
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
     axum::AxumAcceptor,
     caches::DirCache,
-    AcmeConfig,
   },
   std::{str, sync::Arc},
   tokio_stream::StreamExt,
@@ -153,22 +153,24 @@ impl Server {
       let index_clone = index.clone();
       let integration_test = settings.integration_test();
 
-      let index_thread = thread::spawn(move || loop {
-        if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-          break;
-        }
+      let index_thread = thread::spawn(move || {
+        loop {
+          if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+            break;
+          }
 
-        if !self.no_sync {
-          if let Err(error) = index_clone.update() {
+          if !self.no_sync
+            && let Err(error) = index_clone.update()
+          {
             log::warn!("Updating index: {error}");
           }
-        }
 
-        thread::sleep(if integration_test {
-          Duration::from_millis(100)
-        } else {
-          self.polling_interval.into()
-        });
+          thread::sleep(if integration_test {
+            Duration::from_millis(100)
+          } else {
+            self.polling_interval.into()
+          });
+        }
       });
 
       INDEXER.lock().unwrap().replace(index_thread);
@@ -476,7 +478,7 @@ impl Server {
       Ok(self.acme_domain.clone())
     } else {
       Ok(vec![
-        System::host_name().ok_or(anyhow!("no hostname found"))?
+        System::host_name().ok_or(anyhow!("no hostname found"))?,
       ])
     }
   }
@@ -1670,10 +1672,10 @@ impl Server {
     child: Option<usize>,
   ) -> ServerResult {
     task::block_in_place(|| {
-      if let query::Inscription::Sat(_) = query {
-        if !index.has_sat_index() {
-          return Err(ServerError::NotFound("sat index required".into()));
-        }
+      if let query::Inscription::Sat(_) = query
+        && !index.has_sat_index()
+      {
+        return Err(ServerError::NotFound("sat index required".into()));
       }
 
       let inscription_info = index.inscription_info(query, child)?;
@@ -2025,8 +2027,8 @@ mod tests {
   use {
     super::*,
     reqwest::{
-      header::{self, HeaderMap},
       StatusCode, Url,
+      header::{self, HeaderMap},
     },
     serde::de::DeserializeOwned,
     std::net::TcpListener,
@@ -2561,36 +2563,40 @@ mod tests {
 
   #[test]
   fn acme_contact_accepts_multiple_values() {
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "server",
-      "--address",
-      "127.0.0.1",
-      "--http-port",
-      "0",
-      "--acme-contact",
-      "foo",
-      "--acme-contact",
-      "bar"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "server",
+        "--address",
+        "127.0.0.1",
+        "--http-port",
+        "0",
+        "--acme-contact",
+        "foo",
+        "--acme-contact",
+        "bar"
+      ])
+      .is_ok()
+    );
   }
 
   #[test]
   fn acme_domain_accepts_multiple_values() {
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "server",
-      "--address",
-      "127.0.0.1",
-      "--http-port",
-      "0",
-      "--acme-domain",
-      "foo",
-      "--acme-domain",
-      "bar"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "server",
+        "--address",
+        "127.0.0.1",
+        "--http-port",
+        "0",
+        "--acme-domain",
+        "foo",
+        "--acme-domain",
+        "bar"
+      ])
+      .is_ok()
+    );
   }
 
   #[test]
@@ -6375,10 +6381,12 @@ next
       Some(ids[110])
     );
 
-    assert!(server
-      .get_json::<api::SatInscription>("/r/sat/5000000000/at/111")
-      .id
-      .is_none());
+    assert!(
+      server
+        .get_json::<api::SatInscription>("/r/sat/5000000000/at/111")
+        .id
+        .is_none()
+    );
   }
 
   #[test]
@@ -7507,15 +7515,17 @@ next
   fn authentication_requires_username_and_password() {
     assert!(Arguments::try_parse_from(["ord", "--server-username", "server", "foo"]).is_err());
     assert!(Arguments::try_parse_from(["ord", "--server-password", "server", "bar"]).is_err());
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "--server-username",
-      "foo",
-      "--server-password",
-      "bar",
-      "server"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "--server-username",
+        "foo",
+        "--server-password",
+        "bar",
+        "server"
+      ])
+      .is_ok()
+    );
   }
 
   #[test]

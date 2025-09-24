@@ -1774,16 +1774,18 @@ fn batch_inscribe_can_etch_rune_with_offset() {
     ),
   );
 
-  assert!(core.state().is_wallet_address(
-    &batch
-      .output
-      .rune
-      .unwrap()
-      .destination
-      .unwrap()
-      .require_network(Network::Regtest)
-      .unwrap()
-  ));
+  assert!(
+    core.state().is_wallet_address(
+      &batch
+        .output
+        .rune
+        .unwrap()
+        .destination
+        .unwrap()
+        .require_network(Network::Regtest)
+        .unwrap()
+    )
+  );
 }
 
 #[test]
@@ -1848,16 +1850,18 @@ fn batch_inscribe_can_etch_rune_with_height() {
     ),
   );
 
-  assert!(core.state().is_wallet_address(
-    &batch
-      .output
-      .rune
-      .unwrap()
-      .destination
-      .unwrap()
-      .require_network(Network::Regtest)
-      .unwrap()
-  ));
+  assert!(
+    core.state().is_wallet_address(
+      &batch
+        .output
+        .rune
+        .unwrap()
+        .destination
+        .unwrap()
+        .require_network(Network::Regtest)
+        .unwrap()
+    )
+  );
 }
 
 #[test]

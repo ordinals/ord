@@ -12,9 +12,11 @@ fn receive() {
     .ord(&ord)
     .run_and_deserialize_output::<receive::Output>();
 
-  assert!(output
-    .addresses
-    .first()
-    .unwrap()
-    .is_valid_for_network(Network::Bitcoin));
+  assert!(
+    output
+      .addresses
+      .first()
+      .unwrap()
+      .is_valid_for_network(Network::Bitcoin)
+  );
 }
