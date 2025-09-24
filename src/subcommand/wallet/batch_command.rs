@@ -271,9 +271,11 @@ inscriptions:
     )
     .unwrap();
 
-    assert!(batch::File::load(&batch_path)
-      .unwrap_err()
-      .to_string()
-      .contains("unknown field `unknown`"));
+    assert!(
+      batch::File::load(&batch_path)
+        .unwrap_err()
+        .to_string()
+        .contains("unknown field `unknown`")
+    );
   }
 }

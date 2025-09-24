@@ -165,25 +165,27 @@ impl Updater<'_> {
 
     let client = index.settings.bitcoin_rpc_client(None)?;
 
-    thread::spawn(move || loop {
-      if let Some(height_limit) = height_limit {
-        if height >= height_limit {
-          break;
-        }
-      }
-
-      match Self::get_block_with_retries(&client, height, first_index_height) {
-        Ok(Some(block)) => {
-          if let Err(err) = tx.send(block.into()) {
-            log::info!("Block receiver disconnected: {err}");
+    thread::spawn(move || {
+      loop {
+        if let Some(height_limit) = height_limit {
+          if height >= height_limit {
             break;
           }
-          height += 1;
         }
-        Ok(None) => break,
-        Err(err) => {
-          log::error!("failed to fetch block {height}: {err}");
-          break;
+
+        match Self::get_block_with_retries(&client, height, first_index_height) {
+          Ok(Some(block)) => {
+            if let Err(err) = tx.send(block.into()) {
+              log::info!("Block receiver disconnected: {err}");
+              break;
+            }
+            height += 1;
+          }
+          Ok(None) => break,
+          Err(err) => {
+            log::error!("failed to fetch block {height}: {err}");
+            break;
+          }
         }
       }
     });

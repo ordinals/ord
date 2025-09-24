@@ -1,8 +1,8 @@
 use {
   super::*,
   bitcoin::{
-    secp256k1::{rand, Secp256k1, SecretKey},
     PrivateKey,
+    secp256k1::{Secp256k1, SecretKey, rand},
   },
 };
 

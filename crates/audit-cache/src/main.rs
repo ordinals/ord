@@ -1,6 +1,6 @@
 use {
   colored::Colorize,
-  reqwest::{blocking::get, StatusCode},
+  reqwest::{StatusCode, blocking::get},
   std::process,
 };
 
