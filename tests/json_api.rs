@@ -929,12 +929,16 @@ fn outputs_address() {
   .unwrap();
 
   assert_eq!(any.len(), 3);
-  assert!(any
-    .iter()
-    .any(|output| output.runes.clone().unwrap_or_default().len() == 1));
-  assert!(any
-    .iter()
-    .any(|output| output.inscriptions.clone().unwrap_or_default().len() == 1));
+  assert!(
+    any
+      .iter()
+      .any(|output| output.runes.clone().unwrap_or_default().len() == 1)
+  );
+  assert!(
+    any
+      .iter()
+      .any(|output| output.inscriptions.clone().unwrap_or_default().len() == 1)
+  );
   assert!(any.iter().any(
     |output| output.inscriptions.clone().unwrap_or_default().is_empty()
       && output.runes.clone().unwrap_or_default().is_empty()

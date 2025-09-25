@@ -74,17 +74,17 @@ impl Sat {
     // The block rewards for epochs 0 through 9 are all multiples
     // of 9765625 (the epoch 9 reward), so any sat from epoch 9 or
     // earlier that isn't divisible by 9765625 is definitely common.
-    if self < Epoch(10).starting_sat() && self.0 % Epoch(9).subsidy() != 0 {
+    if self < Epoch(10).starting_sat() && !self.0.is_multiple_of(Epoch(9).subsidy()) {
       return true;
     }
 
     // Fall back to the full calculation.
     let epoch = self.epoch();
-    (self.0 - epoch.starting_sat().0) % epoch.subsidy() != 0
+    !(self.0 - epoch.starting_sat().0).is_multiple_of(epoch.subsidy())
   }
 
   pub fn coin(self) -> bool {
-    self.n() % COIN_VALUE == 0
+    self.n().is_multiple_of(COIN_VALUE)
   }
 
   pub fn name(self) -> String {
@@ -186,7 +186,7 @@ impl Sat {
     // will increment by 336 every halving.
     let relationship = period_offset + SUBSIDY_HALVING_INTERVAL * CYCLE_EPOCHS - epoch_offset;
 
-    if relationship % HALVING_INCREMENT != 0 {
+    if !relationship.is_multiple_of(HALVING_INCREMENT) {
       return Err(ErrorKind::EpochPeriodMismatch.error(degree));
     }
 

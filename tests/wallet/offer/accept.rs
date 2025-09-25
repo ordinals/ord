@@ -86,9 +86,11 @@ fn accepted_offer_works() {
     .ord(&ord)
     .run_and_deserialize_output::<Inscriptions>();
 
-  assert!(inscriptions
-    .iter()
-    .any(|output| output.inscription == inscription));
+  assert!(
+    inscriptions
+      .iter()
+      .any(|output| output.inscription == inscription)
+  );
 
   let balance = CommandBuilder::new("wallet balance")
     .core(&core)

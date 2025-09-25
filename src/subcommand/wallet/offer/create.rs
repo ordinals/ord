@@ -15,6 +15,8 @@ pub(crate) struct Create {
   amount: Amount,
   #[arg(long, help = "<FEE_RATE> for finalized transaction.")]
   fee_rate: FeeRate,
+  #[arg(long, help = "Submit offer to <URL>.", value_name = "URL")]
+  submit: Option<String>,
 }
 
 impl Create {
@@ -87,6 +89,25 @@ impl Create {
     ensure! {
       !result.complete,
       "PSBT unexpectedly complete after processing with wallet",
+    }
+
+    if let Some(url) = &self.submit {
+      let response = reqwest::blocking::Client::new()
+        .post(url)
+        .body(result.psbt.as_bytes().to_vec())
+        .send()
+        .context("failed to submit PSBT")?;
+
+      let status = response.status();
+
+      let text = response
+        .text()
+        .context("failed to receive submission response body")?;
+
+      ensure! {
+        status == StatusCode::OK,
+        "submission failed with status code {status}: {text}",
+      }
     }
 
     Ok(Some(Box::new(Output {

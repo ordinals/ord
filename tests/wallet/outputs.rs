@@ -135,24 +135,26 @@ fn outputs_includes_runes_and_inscriptions() {
     .ord(&ord)
     .run_and_deserialize_output::<Vec<Output>>();
 
-  assert!(output.contains(&Output {
-    output: etched.output.rune.clone().unwrap().location.unwrap(),
-    address: etched.output.rune.unwrap().destination,
-    amount: 10000,
-    inscriptions: Some(Vec::new()),
-    runes: Some(
-      vec![(
-        SpacedRune { rune, spacers: 1 },
-        ord::decimal::Decimal {
-          value: 1111,
-          scale: 3,
-        }
-      )]
-      .into_iter()
-      .collect()
-    ),
-    sat_ranges: None,
-  }));
+  assert!(
+    output.contains(&Output {
+      output: etched.output.rune.clone().unwrap().location.unwrap(),
+      address: etched.output.rune.unwrap().destination,
+      amount: 10000,
+      inscriptions: Some(Vec::new()),
+      runes: Some(
+        vec![(
+          SpacedRune { rune, spacers: 1 },
+          ord::decimal::Decimal {
+            value: 1111,
+            scale: 3,
+          }
+        )]
+        .into_iter()
+        .collect()
+      ),
+      sat_ranges: None,
+    })
+  );
 
   assert!(output.contains(&Output {
     output: etched.output.inscriptions[0].location.outpoint,

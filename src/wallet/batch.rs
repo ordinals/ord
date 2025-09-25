@@ -4,7 +4,7 @@ use {
     blockdata::{opcodes, script},
     key::PrivateKey,
     key::{TapTweak, TweakedKeypair, TweakedPublicKey, UntweakedKeypair},
-    secp256k1::{self, constants::SCHNORR_SIGNATURE_SIZE, rand, Secp256k1, XOnlyPublicKey},
+    secp256k1::{self, Secp256k1, XOnlyPublicKey, constants::SCHNORR_SIGNATURE_SIZE, rand},
     sighash::{Prevouts, SighashCache, TapSighashType},
     taproot::Signature,
     taproot::{ControlBlock, LeafVersion, TapLeafHash, TaprootBuilder},
@@ -226,29 +226,31 @@ mod tests {
     let commit_address = change(0);
     let reveal_address = recipient_address();
 
-    assert!(batch::Plan {
-      satpoint,
-      parent_info: Vec::new(),
-      inscriptions: vec![inscription],
-      destinations: vec![reveal_address],
-      commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
-      reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
-      no_limit: false,
-      reinscribe: false,
-      postages: vec![TARGET_POSTAGE],
-      mode: batch::Mode::SharedOutput,
-      ..default()
-    }
-    .create_batch_transactions(
-      inscriptions,
-      Chain::Mainnet,
-      BTreeSet::new(),
-      BTreeSet::new(),
-      utxos.into_iter().collect(),
-      [commit_address, change(1)],
-      change(2),
+    assert!(
+      batch::Plan {
+        satpoint,
+        parent_info: Vec::new(),
+        inscriptions: vec![inscription],
+        destinations: vec![reveal_address],
+        commit_fee_rate: FeeRate::try_from(1.0).unwrap(),
+        reveal_fee_rate: FeeRate::try_from(1.0).unwrap(),
+        no_limit: false,
+        reinscribe: false,
+        postages: vec![TARGET_POSTAGE],
+        mode: batch::Mode::SharedOutput,
+        ..default()
+      }
+      .create_batch_transactions(
+        inscriptions,
+        Chain::Mainnet,
+        BTreeSet::new(),
+        BTreeSet::new(),
+        utxos.into_iter().collect(),
+        [commit_address, change(1)],
+        change(2),
+      )
+      .is_ok()
     )
-    .is_ok())
   }
 
   #[test]
@@ -1063,10 +1065,12 @@ mod tests {
     .unwrap();
 
     assert_eq!(reveal_tx.output.len(), 3);
-    assert!(reveal_tx
-      .output
-      .iter()
-      .all(|output| output.value == TARGET_POSTAGE));
+    assert!(
+      reveal_tx
+        .output
+        .iter()
+        .all(|output| output.value == TARGET_POSTAGE)
+    );
   }
 
   #[test]
