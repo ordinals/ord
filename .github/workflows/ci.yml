@@ -1,0 +1,117 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  RUSTFLAGS: --deny warnings
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain Components
+        uses: actions-rs/toolchain@v1
+        with:
+          override: true
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: peaceiris/actions-mdbook@v2
+        with:
+          mdbook-version: latest
+
+      - name: Install mdbook-i18n-helpers
+        run: cargo install mdbook-i18n-helpers
+
+      - name: Install mdbook-linkcheck
+        run: |
+          mkdir -p mdbook-linkcheck
+          cd mdbook-linkcheck
+          wget https://github.com/Michael-F-Bryan/mdbook-linkcheck/releases/latest/download/mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
+          unzip mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
+          chmod +x mdbook-linkcheck
+          echo "$PWD" >> $GITHUB_PATH
+
+      - name: Build docs
+        run: mdbook build docs -d build
+
+      - name: Build all translations for docs
+        env:
+          LANGUAGES: de fr es pt ru zh ja ko fil ar hi it nl
+        run: |
+          for lang in $LANGUAGES; do
+            echo "::group::Building $lang translation"
+            MDBOOK_BOOK__LANGUAGE=$lang \
+              mdbook build docs -d build/$lang
+            if [ -d docs/build/$lang/html ]; then
+              mkdir -p docs/build/html
+              mv docs/build/$lang/html docs/build/html/$lang
+            fi
+            echo "::endgroup::"
+          done
+
+      - name: Deploy Pages
+        uses: peaceiris/actions-gh-pages@v4
+        if: github.ref == 'refs/heads/master'
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          publish_branch: gh-pages
+          publish_dir: docs/build/html
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain Components
+        uses: actions-rs/toolchain@v1
+        with:
+          components: clippy, rustfmt
+          override: true
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Format
+        run: cargo fmt --all -- --check
+
+      - name: Check for Forbidden Words
+        run: |
+          sudo apt-get update && sudo apt-get install -y ripgrep
+          ./bin/forbid
+
+  test:
+    strategy:
+      matrix:
+        os: [macos-latest, ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust Toolchain Components
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Test
+        run: cargo test --workspace --all-targets --all-features
