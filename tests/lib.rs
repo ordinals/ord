@@ -3,23 +3,23 @@
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bitcoin::{
+    Amount, Network, OutPoint, Psbt, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
     address::{Address, NetworkUnchecked},
     blockdata::locktime::absolute::LockTime,
     opcodes, script,
     transaction::Version,
-    Amount, Network, OutPoint, Psbt, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
   },
   chrono::{DateTime, Utc},
   executable_path::executable_path,
   mockcore::TransactionTemplate,
   ord::{
-    api, base64_decode, base64_encode, chain::Chain, decimal::Decimal, outgoing::Outgoing,
-    subcommand::runes::RuneInfo, templates::InscriptionHtml, wallet::batch,
-    wallet::ListDescriptorsResult, Inscription, InscriptionId, RuneEntry,
+    Inscription, InscriptionId, RuneEntry, api, base64_decode, base64_encode, chain::Chain,
+    decimal::Decimal, outgoing::Outgoing, subcommand::runes::RuneInfo, templates::InscriptionHtml,
+    wallet::ListDescriptorsResult, wallet::batch,
   },
   ordinals::{
-    Artifact, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint, SpacedRune,
-    COIN_VALUE,
+    Artifact, COIN_VALUE, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint,
+    SpacedRune,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
@@ -27,7 +27,7 @@ use {
   serde::de::DeserializeOwned,
   std::sync::Arc,
   std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, BTreeSet},
     ffi::{OsStr, OsString},
     fs,
     io::{BufRead, BufReader, Write},
@@ -86,6 +86,7 @@ type Inscriptions = Vec<ord::subcommand::wallet::inscriptions::Output>;
 type Send = ord::subcommand::wallet::send::Output;
 type Split = ord::subcommand::wallet::split::Output;
 type Supply = ord::subcommand::supply::Output;
+type Sweep = ord::subcommand::wallet::sweep::Output;
 
 fn create_wallet(core: &mockcore::Handle, ord: &TestServer) {
   CommandBuilder::new(format!("--chain {} wallet create", core.network()))

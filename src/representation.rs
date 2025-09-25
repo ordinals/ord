@@ -73,8 +73,10 @@ mod tests {
 
   #[test]
   fn all_patterns_are_anchored() {
-    assert!(PATTERNS
-      .iter()
-      .all(|(_representation, pattern)| pattern.starts_with('^') && pattern.ends_with('$')));
+    assert!(
+      PATTERNS
+        .iter()
+        .all(|(_representation, pattern)| pattern.starts_with('^') && pattern.ends_with('$'))
+    );
   }
 }

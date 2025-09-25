@@ -10,8 +10,6 @@ pub struct Settings {
   bitcoin_rpc_username: Option<String>,
   chain: Option<Chain>,
   commit_interval: Option<usize>,
-  savepoint_interval: Option<usize>,
-  max_savepoints: Option<usize>,
   config: Option<PathBuf>,
   config_dir: Option<PathBuf>,
   cookie_file: Option<PathBuf>,
@@ -26,7 +24,9 @@ pub struct Settings {
   index_sats: bool,
   index_transactions: bool,
   integration_test: bool,
+  max_savepoints: Option<usize>,
   no_index_inscriptions: bool,
+  savepoint_interval: Option<usize>,
   server_password: Option<String>,
   server_url: Option<String>,
   server_username: Option<String>,
@@ -117,8 +117,6 @@ impl Settings {
       bitcoin_rpc_username: self.bitcoin_rpc_username.or(source.bitcoin_rpc_username),
       chain: self.chain.or(source.chain),
       commit_interval: self.commit_interval.or(source.commit_interval),
-      savepoint_interval: self.savepoint_interval.or(source.savepoint_interval),
-      max_savepoints: self.max_savepoints.or(source.max_savepoints),
       config: self.config.or(source.config),
       config_dir: self.config_dir.or(source.config_dir),
       cookie_file: self.cookie_file.or(source.cookie_file),
@@ -141,7 +139,9 @@ impl Settings {
       index_sats: self.index_sats || source.index_sats,
       index_transactions: self.index_transactions || source.index_transactions,
       integration_test: self.integration_test || source.integration_test,
+      max_savepoints: self.max_savepoints.or(source.max_savepoints),
       no_index_inscriptions: self.no_index_inscriptions || source.no_index_inscriptions,
+      savepoint_interval: self.savepoint_interval.or(source.savepoint_interval),
       server_password: self.server_password.or(source.server_password),
       server_url: self.server_url.or(source.server_url),
       server_username: self.server_username.or(source.server_username),
@@ -163,8 +163,6 @@ impl Settings {
         .or(options.testnet4.then_some(Chain::Testnet4))
         .or(options.chain_argument),
       commit_interval: options.commit_interval,
-      savepoint_interval: options.savepoint_interval,
-      max_savepoints: options.max_savepoints,
       config: options.config,
       config_dir: options.config_dir,
       cookie_file: options.cookie_file,
@@ -179,7 +177,9 @@ impl Settings {
       index_sats: options.index_sats,
       index_transactions: options.index_transactions,
       integration_test: options.integration_test,
+      max_savepoints: options.max_savepoints,
       no_index_inscriptions: options.no_index_inscriptions,
+      savepoint_interval: options.savepoint_interval,
       server_password: options.server_password,
       server_url: None,
       server_username: options.server_username,
@@ -253,8 +253,6 @@ impl Settings {
       bitcoin_rpc_username: get_string("BITCOIN_RPC_USERNAME"),
       chain: get_chain("CHAIN")?,
       commit_interval: get_usize("COMMIT_INTERVAL")?,
-      savepoint_interval: get_usize("SAVEPOINT_INTERVAL")?,
-      max_savepoints: get_usize("MAX_SAVEPOINTS")?,
       config: get_path("CONFIG"),
       config_dir: get_path("CONFIG_DIR"),
       cookie_file: get_path("COOKIE_FILE"),
@@ -269,7 +267,9 @@ impl Settings {
       index_sats: get_bool("INDEX_SATS"),
       index_transactions: get_bool("INDEX_TRANSACTIONS"),
       integration_test: get_bool("INTEGRATION_TEST"),
+      max_savepoints: get_usize("MAX_SAVEPOINTS")?,
       no_index_inscriptions: get_bool("NO_INDEX_INSCRIPTIONS"),
+      savepoint_interval: get_usize("SAVEPOINT_INTERVAL")?,
       server_password: get_string("SERVER_PASSWORD"),
       server_url: get_string("SERVER_URL"),
       server_username: get_string("SERVER_USERNAME"),
@@ -279,14 +279,12 @@ impl Settings {
   pub fn for_env(dir: &Path, rpc_url: &str, server_url: &str) -> Self {
     Self {
       bitcoin_data_dir: Some(dir.into()),
+      bitcoin_rpc_limit: None,
       bitcoin_rpc_password: None,
       bitcoin_rpc_url: Some(rpc_url.into()),
       bitcoin_rpc_username: None,
-      bitcoin_rpc_limit: None,
       chain: Some(Chain::Regtest),
       commit_interval: None,
-      savepoint_interval: None,
-      max_savepoints: None,
       config: None,
       config_dir: None,
       cookie_file: None,
@@ -301,7 +299,9 @@ impl Settings {
       index_sats: true,
       index_transactions: false,
       integration_test: false,
+      max_savepoints: None,
       no_index_inscriptions: false,
+      savepoint_interval: None,
       server_password: None,
       server_url: Some(server_url.into()),
       server_username: None,
@@ -354,8 +354,6 @@ impl Settings {
       bitcoin_rpc_username: self.bitcoin_rpc_username,
       chain: Some(chain),
       commit_interval: Some(self.commit_interval.unwrap_or(5000)),
-      savepoint_interval: Some(self.savepoint_interval.unwrap_or(10)),
-      max_savepoints: Some(self.max_savepoints.unwrap_or(2)),
       config: None,
       config_dir: None,
       cookie_file: Some(cookie_file),
@@ -377,7 +375,9 @@ impl Settings {
       index_sats: self.index_sats,
       index_transactions: self.index_transactions,
       integration_test: self.integration_test,
+      max_savepoints: Some(self.max_savepoints.unwrap_or(2)),
       no_index_inscriptions: self.no_index_inscriptions,
+      savepoint_interval: Some(self.savepoint_interval.unwrap_or(10)),
       server_password: self.server_password,
       server_url: self.server_url,
       server_username: self.server_username,
@@ -743,16 +743,18 @@ mod tests {
 
     assert_eq!(settings.bitcoin_rpc_url(None), "127.0.0.1:38332/");
 
-    assert!(settings
-      .cookie_file()
-      .unwrap()
-      .display()
-      .to_string()
-      .ends_with(if cfg!(windows) {
-        r"\signet\.cookie"
-      } else {
-        "/signet/.cookie"
-      }));
+    assert!(
+      settings
+        .cookie_file()
+        .unwrap()
+        .display()
+        .to_string()
+        .ends_with(if cfg!(windows) {
+          r"\signet\.cookie"
+        } else {
+          "/signet/.cookie"
+        })
+    );
   }
 
   #[test]
@@ -1067,23 +1069,23 @@ mod tests {
       ("BITCOIN_RPC_USERNAME", "bitcoin username"),
       ("CHAIN", "signet"),
       ("COMMIT_INTERVAL", "1"),
-      ("SAVEPOINT_INTERVAL", "10"),
-      ("MAX_SAVEPOINTS", "2"),
       ("CONFIG", "config"),
       ("CONFIG_DIR", "config dir"),
       ("COOKIE_FILE", "cookie file"),
       ("DATA_DIR", "/data/dir"),
       ("HEIGHT_LIMIT", "3"),
       ("HIDDEN", "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 703e5f7c49d82aab99e605af306b9a30e991e57d42f982908a962a81ac439832i0"),
-    ("HTTP_PORT", "8080"),
+      ("HTTP_PORT", "8080"),
       ("INDEX", "index"),
-      ("INDEX_CACHE_SIZE", "4"),
       ("INDEX_ADDRESSES", "1"),
+      ("INDEX_CACHE_SIZE", "4"),
       ("INDEX_RUNES", "1"),
       ("INDEX_SATS", "1"),
       ("INDEX_TRANSACTIONS", "1"),
       ("INTEGRATION_TEST", "1"),
+      ("MAX_SAVEPOINTS", "2"),
       ("NO_INDEX_INSCRIPTIONS", "1"),
+      ("SAVEPOINT_INTERVAL", "10"),
       ("SERVER_PASSWORD", "server password"),
       ("SERVER_URL", "server url"),
       ("SERVER_USERNAME", "server username"),

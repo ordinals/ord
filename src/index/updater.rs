@@ -165,25 +165,27 @@ impl Updater<'_> {
 
     let client = index.settings.bitcoin_rpc_client(None)?;
 
-    thread::spawn(move || loop {
-      if let Some(height_limit) = height_limit {
-        if height >= height_limit {
+    thread::spawn(move || {
+      loop {
+        if let Some(height_limit) = height_limit
+          && height >= height_limit
+        {
           break;
         }
-      }
 
-      match Self::get_block_with_retries(&client, height, first_index_height) {
-        Ok(Some(block)) => {
-          if let Err(err) = tx.send(block.into()) {
-            log::info!("Block receiver disconnected: {err}");
+        match Self::get_block_with_retries(&client, height, first_index_height) {
+          Ok(Some(block)) => {
+            if let Err(err) = tx.send(block.into()) {
+              log::info!("Block receiver disconnected: {err}");
+              break;
+            }
+            height += 1;
+          }
+          Ok(None) => break,
+          Err(err) => {
+            log::error!("failed to fetch block {height}: {err}");
             break;
           }
-          height += 1;
-        }
-        Ok(None) => break,
-        Err(err) => {
-          log::error!("failed to fetch block {height}: {err}");
-          break;
         }
       }
     });
@@ -412,7 +414,7 @@ impl Updater<'_> {
     statistic_to_count: &mut Table<'wtx, u64, u64>,
     sat_ranges_written: &mut u64,
     outputs_in_block: &mut u64,
-  ) -> Result<(), Error> {
+  ) -> Result {
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut home_inscriptions = wtx.open_table(HOME_INSCRIPTIONS)?;
     let mut inscription_number_to_sequence_number =
@@ -835,10 +837,10 @@ impl Updater<'_> {
       let mut sequence_number_to_satpoint = wtx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
 
       for (outpoint, mut utxo_entry) in utxo_cache {
-        if Index::is_special_outpoint(outpoint) {
-          if let Some(old_entry) = outpoint_to_utxo_entry.get(&outpoint.store())? {
-            utxo_entry = UtxoEntryBuf::merged(old_entry.value(), &utxo_entry, self.index);
-          }
+        if Index::is_special_outpoint(outpoint)
+          && let Some(old_entry) = outpoint_to_utxo_entry.get(&outpoint.store())?
+        {
+          utxo_entry = UtxoEntryBuf::merged(old_entry.value(), &utxo_entry, self.index);
         }
 
         outpoint_to_utxo_entry.insert(&outpoint.store(), utxo_entry.as_ref())?;

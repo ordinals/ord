@@ -61,16 +61,16 @@ impl RuneEntry {
       return Err(MintError::Unmintable);
     };
 
-    if let Some(start) = self.start() {
-      if height < start {
-        return Err(MintError::Start(start));
-      }
+    if let Some(start) = self.start()
+      && height < start
+    {
+      return Err(MintError::Start(start));
     }
 
-    if let Some(end) = self.end() {
-      if height >= end {
-        return Err(MintError::End(end));
-      }
+    if let Some(end) = self.end()
+      && height >= end
+    {
+      return Err(MintError::End(end));
     }
 
     let cap = terms.cap.unwrap_or_default();

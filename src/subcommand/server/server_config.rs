@@ -2,6 +2,7 @@ use super::*;
 
 #[derive(Default)]
 pub struct ServerConfig {
+  pub accept_offers: bool,
   pub chain: Chain,
   pub csp_origin: Option<String>,
   pub decompress: bool,

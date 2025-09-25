@@ -3,7 +3,7 @@ use {
   anyhow::ensure,
   axum::http::header::HeaderValue,
   bitcoin::blockdata::opcodes,
-  brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
+  brotli::enc::{BrotliEncoderParams, writer::CompressorWriter},
   io::Write,
   std::str,
 };
@@ -456,32 +456,38 @@ mod tests {
 
   #[test]
   fn inscription_with_no_parent_field_has_no_parent() {
-    assert!(Inscription {
-      parents: Vec::new(),
-      ..default()
-    }
-    .parents()
-    .is_empty());
+    assert!(
+      Inscription {
+        parents: Vec::new(),
+        ..default()
+      }
+      .parents()
+      .is_empty()
+    );
   }
 
   #[test]
   fn inscription_with_parent_field_shorter_than_txid_length_has_no_parent() {
-    assert!(Inscription {
-      parents: vec![Vec::new()],
-      ..default()
-    }
-    .parents()
-    .is_empty());
+    assert!(
+      Inscription {
+        parents: vec![Vec::new()],
+        ..default()
+      }
+      .parents()
+      .is_empty()
+    );
   }
 
   #[test]
   fn inscription_with_parent_field_longer_than_txid_and_index_has_no_parent() {
-    assert!(Inscription {
-      parents: vec![vec![1; 37]],
-      ..default()
-    }
-    .parents()
-    .is_empty());
+    assert!(
+      Inscription {
+        parents: vec![vec![1; 37]],
+        ..default()
+      }
+      .parents()
+      .is_empty()
+    );
   }
 
   #[test]
@@ -490,12 +496,14 @@ mod tests {
 
     parent[35] = 0;
 
-    assert!(!Inscription {
-      parents: vec![parent],
-      ..default()
-    }
-    .parents()
-    .is_empty());
+    assert!(
+      !Inscription {
+        parents: vec![parent],
+        ..default()
+      }
+      .parents()
+      .is_empty()
+    );
   }
 
   #[test]
@@ -504,12 +512,14 @@ mod tests {
 
     parent[34] = 0;
 
-    assert!(Inscription {
-      parents: vec![parent],
-      ..default()
-    }
-    .parents()
-    .is_empty());
+    assert!(
+      Inscription {
+        parents: vec![parent],
+        ..default()
+      }
+      .parents()
+      .is_empty()
+    );
   }
 
   #[test]
@@ -929,19 +939,23 @@ mod tests {
       true,
     );
 
-    assert!(Inscription {
-      content_type: Some("text/plain".as_bytes().into()),
-      body: Some(b"{\xc3\x28}".as_slice().into()),
-      ..default()
-    }
-    .hidden());
+    assert!(
+      Inscription {
+        content_type: Some("text/plain".as_bytes().into()),
+        body: Some(b"{\xc3\x28}".as_slice().into()),
+        ..default()
+      }
+      .hidden()
+    );
 
-    assert!(Inscription {
-      content_type: Some("text/html".as_bytes().into()),
-      body: Some("hello".as_bytes().into()),
-      metaprotocol: Some(Vec::new()),
-      ..default()
-    }
-    .hidden());
+    assert!(
+      Inscription {
+        content_type: Some("text/html".as_bytes().into()),
+        body: Some("hello".as_bytes().into()),
+        metaprotocol: Some(Vec::new()),
+        ..default()
+      }
+      .hidden()
+    );
   }
 }

@@ -1,12 +1,12 @@
 use {
   super::*,
   bitcoin::{
-    absolute::LockTime, consensus::Encodable, opcodes, script, transaction::Version, ScriptBuf,
-    Sequence, Transaction, TxIn, TxOut, Witness,
+    ScriptBuf, Sequence, Transaction, TxIn, TxOut, Witness, absolute::LockTime,
+    consensus::Encodable, opcodes, script, transaction::Version,
   },
   ord::{
-    subcommand::decode::{CompactInscription, CompactOutput, RawOutput},
     Envelope, Inscription,
+    subcommand::decode::{CompactInscription, CompactOutput, RawOutput},
   },
 };
 

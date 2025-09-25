@@ -2,7 +2,7 @@ use {
   super::*,
   axum_server::Handle,
   bitcoincore_rpc::{Auth, Client, RpcApi},
-  ord::{parse_ord_server_args, Index},
+  ord::{Index, parse_ord_server_args},
   reqwest::blocking::Response,
   sysinfo::System,
 };

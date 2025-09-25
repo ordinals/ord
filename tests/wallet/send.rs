@@ -983,11 +983,11 @@ fn sending_rune_creates_change_output_for_non_outgoing_runes() {
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 84999960160,
+      cardinal: 84999960000,
       ordinal: 20000,
       runes: Some([(SpacedRune::new(Rune(RUNE + 1), 0), "1000".parse().unwrap())].into()),
       runic: Some(10000),
-      total: 84999990160,
+      total: 84999990000,
     }
   );
 }
@@ -1013,7 +1013,7 @@ fn sending_spaced_rune_works_with_no_change() {
 
   let tx = core.tx_by_id(output.txid);
 
-  assert_eq!(tx.output.len(), 1);
+  assert_eq!(tx.output.len(), 2);
 
   let balances = CommandBuilder::new("--regtest --index-runes balances")
     .core(&core)

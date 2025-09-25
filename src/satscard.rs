@@ -148,13 +148,13 @@ impl Satscard {
     signature: &secp256k1::ecdsa::Signature,
   ) -> Result<Address, Error> {
     use bitcoin::{
+      CompressedPublicKey,
       key::PublicKey,
       secp256k1::{
+        Message,
         ecdsa::{RecoverableSignature, RecoveryId},
         hashes::sha256::Hash,
-        Message,
       },
-      CompressedPublicKey,
     };
 
     let signature_compact = signature.serialize_compact();
@@ -194,7 +194,34 @@ impl Satscard {
 pub(crate) mod tests {
   use super::*;
 
-  pub(crate) const URL: &str = concat!(
+  pub(crate) const ORDINALS_URL: &str = concat!(
+    "https://ordinals.com/satscard",
+    "?u=S",
+    "&o=0",
+    "&r=4w9rytlk",
+    "&n=b37ccaa62aa849e7",
+    "&s=",
+    "f1aab250cc6130e2937802a76bca3b03e8bebc33ba9cb77d72d5d9a0f0029fc7",
+    "0f32f39b6ec52e2c275833aec27986257f18811487a54047d953b412a7836fb1",
+  );
+
+  pub(crate) fn ordinals_query() -> &'static str {
+    ORDINALS_URL.split_once('?').unwrap().1
+  }
+
+  pub(crate) fn ordinals_satscard() -> Satscard {
+    Satscard::from_query_parameters(Chain::Mainnet, ordinals_query()).unwrap()
+  }
+
+  pub(crate) fn ordinals_address() -> Address {
+    "bc1q97v7v0jfe3wm82sm40nxguyj09rjv34w9rytlk"
+      .parse::<Address<NetworkUnchecked>>()
+      .unwrap()
+      .require_network(Network::Bitcoin)
+      .unwrap()
+  }
+
+  pub(crate) const COINKITE_URL: &str = concat!(
     "https://satscard.com/start",
     "#u=S",
     "&o=0",
@@ -205,15 +232,29 @@ pub(crate) mod tests {
     "17cd1b74695a7ffe2d78965535d6fe7f6aafc77f6143912a163cb65862e8fb53",
   );
 
-  pub(crate) fn query_parameters() -> &'static str {
-    URL.split_once('#').unwrap().1
+  #[test]
+  fn query_from_ordinals_url() {
+    assert_eq!(
+      ordinals_satscard(),
+      Satscard {
+        address: ordinals_address(),
+        nonce: [0xb3, 0x7c, 0xca, 0xa6, 0x2a, 0xa8, 0x49, 0xe7],
+        slot: 0,
+        state: State::Sealed,
+        query_parameters: ordinals_query().into(),
+      }
+    );
   }
 
-  pub(crate) fn satscard() -> Satscard {
-    Satscard::from_query_parameters(Chain::Mainnet, query_parameters()).unwrap()
+  pub(crate) fn coinkite_fragment() -> &'static str {
+    COINKITE_URL.split_once('#').unwrap().1
   }
 
-  pub(crate) fn address() -> Address {
+  pub(crate) fn coinkite_satscard() -> Satscard {
+    Satscard::from_query_parameters(Chain::Mainnet, coinkite_fragment()).unwrap()
+  }
+
+  pub(crate) fn coinkite_address() -> Address {
     "bc1ql86vqdwylsgmgkkrae5nrafte8yp43a5x2tplf"
       .parse::<Address<NetworkUnchecked>>()
       .unwrap()
@@ -224,13 +265,13 @@ pub(crate) mod tests {
   #[test]
   fn query_from_coinkite_url() {
     assert_eq!(
-      satscard(),
+      coinkite_satscard(),
       Satscard {
-        address: address(),
+        address: coinkite_address(),
         nonce: [0x76, 0x64, 0x16, 0x8a, 0x4e, 0xf7, 0xb8, 0xe8],
         slot: 0,
         state: State::Sealed,
-        query_parameters: query_parameters().into(),
+        query_parameters: coinkite_fragment().into(),
       }
     );
   }

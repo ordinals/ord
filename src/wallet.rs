@@ -3,7 +3,6 @@ use {
   batch::ParentInfo,
   bitcoin::{
     bip32::{ChildNumber, DerivationPath, Xpriv},
-    psbt::Psbt,
     secp256k1::Secp256k1,
   },
   bitcoincore_rpc::json::ImportDescriptors,
@@ -336,6 +335,16 @@ impl Wallet {
         .bitcoin_client
         .call::<Address<NetworkUnchecked>>("getrawchangeaddress", &["bech32m".into()])
         .context("could not get change addresses from wallet")?
+        .require_network(self.chain().network())?,
+    )
+  }
+
+  pub(crate) fn get_receive_address(&self) -> Result<Address> {
+    Ok(
+      self
+        .bitcoin_client
+        .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))
+        .context("could not get receive addresses from wallet")?
         .require_network(self.chain().network())?,
     )
   }
@@ -881,6 +890,7 @@ impl Wallet {
       self.bitcoin_client(),
       fee_rate,
       &unfunded_transaction,
+      None,
     )?)?;
 
     Ok(unsigned_transaction)
@@ -984,22 +994,22 @@ impl Wallet {
     let mut input_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
 
     for (output, runes) in balances {
-      if let Some(balance) = runes.get(&spaced_rune.rune) {
-        if *balance > 0 {
-          for (rune, balance) in runes {
-            *input_rune_balances.entry(rune).or_default() += balance;
-          }
+      if let Some(balance) = runes.get(&spaced_rune.rune)
+        && *balance > 0
+      {
+        for (rune, balance) in runes {
+          *input_rune_balances.entry(rune).or_default() += balance;
+        }
 
-          inputs.push(output);
+        inputs.push(output);
 
-          if input_rune_balances
-            .get(&spaced_rune.rune)
-            .cloned()
-            .unwrap_or_default()
-            >= amount
-          {
-            break;
-          }
+        if input_rune_balances
+          .get(&spaced_rune.rune)
+          .cloned()
+          .unwrap_or_default()
+          >= amount
+        {
+          break;
         }
       }
     }
@@ -1112,7 +1122,7 @@ impl Wallet {
     };
 
     let unsigned_transaction =
-      fund_raw_transaction(self.bitcoin_client(), fee_rate, &unfunded_transaction)?;
+      fund_raw_transaction(self.bitcoin_client(), fee_rate, &unfunded_transaction, None)?;
 
     let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
 
@@ -1148,5 +1158,13 @@ impl Wallet {
         )?
         .balance_change,
     )
+  }
+
+  pub(crate) fn ord_client(&self) -> reqwest::blocking::Client {
+    self.ord_client.clone()
+  }
+
+  pub(crate) fn rpc_url(&self) -> &Url {
+    &self.rpc_url
   }
 }
