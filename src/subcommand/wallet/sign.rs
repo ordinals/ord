@@ -1,6 +1,6 @@
 use {
   super::*,
-  base64::{engine::general_purpose, Engine},
+  base64::{Engine, engine::general_purpose},
 };
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

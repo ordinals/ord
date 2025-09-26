@@ -994,22 +994,22 @@ impl Wallet {
     let mut input_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
 
     for (output, runes) in balances {
-      if let Some(balance) = runes.get(&spaced_rune.rune) {
-        if *balance > 0 {
-          for (rune, balance) in runes {
-            *input_rune_balances.entry(rune).or_default() += balance;
-          }
+      if let Some(balance) = runes.get(&spaced_rune.rune)
+        && *balance > 0
+      {
+        for (rune, balance) in runes {
+          *input_rune_balances.entry(rune).or_default() += balance;
+        }
 
-          inputs.push(output);
+        inputs.push(output);
 
-          if input_rune_balances
-            .get(&spaced_rune.rune)
-            .cloned()
-            .unwrap_or_default()
-            >= amount
-          {
-            break;
-          }
+        if input_rune_balances
+          .get(&spaced_rune.rune)
+          .cloned()
+          .unwrap_or_default()
+          >= amount
+        {
+          break;
         }
       }
     }

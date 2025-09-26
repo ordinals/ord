@@ -172,39 +172,45 @@ mod tests {
       r".*required arguments.*--delegate <DELEGATE>\|--file <FILE>.*"
     );
 
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "wallet",
-      "inscribe",
-      "--file",
-      "hello.txt",
-      "--fee-rate",
-      "1"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "wallet",
+        "inscribe",
+        "--file",
+        "hello.txt",
+        "--fee-rate",
+        "1"
+      ])
+      .is_ok()
+    );
 
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "wallet",
-      "inscribe",
-      "--delegate",
-      "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00i0",
-      "--fee-rate",
-      "1"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "wallet",
+        "inscribe",
+        "--delegate",
+        "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00i0",
+        "--fee-rate",
+        "1"
+      ])
+      .is_ok()
+    );
 
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "wallet",
-      "inscribe",
-      "--file",
-      "hello.txt",
-      "--delegate",
-      "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00i0",
-      "--fee-rate",
-      "1"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "wallet",
+        "inscribe",
+        "--file",
+        "hello.txt",
+        "--delegate",
+        "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00i0",
+        "--fee-rate",
+        "1"
+      ])
+      .is_ok()
+    );
   }
 }

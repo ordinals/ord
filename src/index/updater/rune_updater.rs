@@ -26,18 +26,18 @@ impl RuneUpdater<'_, '_, '_> {
     let mut allocated: Vec<HashMap<RuneId, Lot>> = vec![HashMap::new(); tx.output.len()];
 
     if let Some(artifact) = &artifact {
-      if let Some(id) = artifact.mint() {
-        if let Some(amount) = self.mint(id)? {
-          *unallocated.entry(id).or_default() += amount;
+      if let Some(id) = artifact.mint()
+        && let Some(amount) = self.mint(id)?
+      {
+        *unallocated.entry(id).or_default() += amount;
 
-          if let Some(sender) = self.event_sender {
-            sender.blocking_send(Event::RuneMinted {
-              block_height: self.height,
-              txid,
-              rune_id: id,
-              amount: amount.n(),
-            })?;
-          }
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(Event::RuneMinted {
+            block_height: self.height,
+            txid,
+            rune_id: id,
+            amount: amount.n(),
+          })?;
         }
       }
 

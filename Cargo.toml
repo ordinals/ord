@@ -21,7 +21,7 @@ members = [".", "crates/*"]
 
 [workspace.package]
 authors = ["The Ord Maintainers"]
-edition = "2021"
+edition = "2024"
 homepage = "https://github.com/ordinals/ord"
 license = "CC0-1.0"
 repository = "https://github.com/ordinals/ord"

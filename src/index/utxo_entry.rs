@@ -1,7 +1,7 @@
 use {
   super::{
-    entry::{Entry, SatRange},
     Index,
+    entry::{Entry, SatRange},
   },
   ordinals::varint,
   redb::TypeName,

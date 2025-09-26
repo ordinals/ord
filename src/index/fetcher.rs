@@ -1,12 +1,12 @@
 use {
   super::*,
   http_body_util::{BodyExt, Full},
-  hyper::{body::Bytes, Method, Request, Uri},
+  hyper::{Method, Request, Uri, body::Bytes},
   hyper_util::{
-    client::legacy::{connect::HttpConnector, Client},
+    client::legacy::{Client, connect::HttpConnector},
     rt::TokioExecutor,
   },
-  serde_json::{json, Value},
+  serde_json::{Value, json},
 };
 
 pub(crate) struct Fetcher {

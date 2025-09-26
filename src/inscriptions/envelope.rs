@@ -105,10 +105,10 @@ impl RawEnvelope {
     let mut envelopes = Vec::new();
 
     for (i, input) in transaction.input.iter().enumerate() {
-      if let Some(tapscript) = unversioned_leaf_script_from_witness(&input.witness) {
-        if let Ok(input_envelopes) = Self::from_tapscript(tapscript, i) {
-          envelopes.extend(input_envelopes);
-        }
+      if let Some(tapscript) = unversioned_leaf_script_from_witness(&input.witness)
+        && let Ok(input_envelopes) = Self::from_tapscript(tapscript, i)
+      {
+        envelopes.extend(input_envelopes);
       }
     }
 

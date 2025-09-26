@@ -1,8 +1,9 @@
 pub(crate) use {
   super::*,
   bitcoin::{
+    WPubkeyHash,
     blockdata::script::{PushBytes, PushBytesBuf},
-    opcodes, WPubkeyHash,
+    opcodes,
   },
   mockcore::TransactionTemplate,
   ordinals::COIN_VALUE,

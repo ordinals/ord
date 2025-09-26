@@ -18,10 +18,10 @@ fn run() {
   let mut child = command.spawn().unwrap();
 
   for attempt in 0.. {
-    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/status")) {
-      if response.status() == 200 {
-        break;
-      }
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/status"))
+      && response.status() == 200
+    {
+      break;
     }
 
     if attempt == 100 {
@@ -727,11 +727,11 @@ fn run_no_sync() {
   core.mine_blocks(1);
 
   for attempt in 0.. {
-    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight")) {
-      if response.status() == 200 {
-        assert_eq!(response.text().unwrap(), "1");
-        break;
-      }
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight"))
+      && response.status() == 200
+    {
+      assert_eq!(response.text().unwrap(), "1");
+      break;
     }
 
     if attempt == 100 {
@@ -757,11 +757,11 @@ fn run_no_sync() {
   core.mine_blocks(2);
 
   for attempt in 0.. {
-    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight")) {
-      if response.status() == 200 {
-        assert_eq!(response.text().unwrap(), "1");
-        break;
-      }
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockheight"))
+      && response.status() == 200
+    {
+      assert_eq!(response.text().unwrap(), "1");
+      break;
     }
 
     if attempt == 100 {
@@ -795,10 +795,10 @@ fn authentication() {
   let mut child = command.spawn().unwrap();
 
   for attempt in 0.. {
-    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}")) {
-      if response.status() == 401 {
-        break;
-      }
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}"))
+      && response.status() == 401
+    {
+      break;
     }
 
     if attempt == 100 {
@@ -846,10 +846,10 @@ fn ctrl_c() {
     .spawn();
 
   for attempt in 0.. {
-    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockcount")) {
-      if response.status() == 200 || response.text().unwrap() == *"3" {
-        break;
-      }
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockcount"))
+      && (response.status() == 200 || response.text().unwrap() == *"3")
+    {
+      break;
     }
 
     if attempt == 100 {
@@ -885,10 +885,10 @@ fn ctrl_c() {
   .spawn();
 
   for attempt in 0.. {
-    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockcount")) {
-      if response.status() == 200 || response.text().unwrap() == *"3" {
-        break;
-      }
+    if let Ok(response) = reqwest::blocking::get(format!("http://localhost:{port}/blockcount"))
+      && (response.status() == 200 || response.text().unwrap() == *"3")
+    {
+      break;
     }
 
     if attempt == 100 {
