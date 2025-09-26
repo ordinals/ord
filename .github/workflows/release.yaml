@@ -3,79 +3,49 @@ name: Release
 on:
   push:
     tags:
-    - '*'
+      - 'v*.*.*'  # Triggers on tags like v1.0.0
 
-defaults:
-  run:
-    shell: bash
+permissions:
+  contents: write  # Needed for GitHub Release
 
 jobs:
   release:
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-        - aarch64-apple-darwin
-        - x86_64-apple-darwin
-        - x86_64-pc-windows-msvc
-        - x86_64-unknown-linux-gnu
-        include:
-        - target: aarch64-apple-darwin
-          os: macos-latest
-          target_rustflags: ''
-        - target: x86_64-apple-darwin
-          os: macos-latest
-          target_rustflags: ''
-        - target: x86_64-pc-windows-msvc
-          os: windows-latest
-          target_rustflags: ''
-        - target: x86_64-unknown-linux-gnu
-          os: ubuntu-latest
-          target_rustflags: ''
-
-    runs-on: ${{matrix.os}}
+    name: Build & Release
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Rust Toolchain Components
-      uses: actions-rs/toolchain@v1
-      with:
-        override: true
-        target: ${{ matrix.target }}
-        toolchain: stable
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
 
-    - name: Install Linux Dependencies
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        sudo apt-get update
-        sudo apt-get install musl-tools libssl-dev pkg-config
+      - name: Cache cargo registry and build
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-    - name: Release Type
-      id: release-type
-      run: |
-        if [[ ${{ github.ref }} =~ ^refs/tags/[0-9]+[.][0-9]+[.][0-9]+$ ]]; then
-            echo ::set-output name=value::release
-        else
-            echo ::set-output name=value::prerelease
-        fi
+      - name: Build release binary
+        run: cargo build --release
 
-    - name: Package
-      id: package
-      env:
-        TARGET: ${{ matrix.target }}
-        REF: ${{ github.ref }}
-        OS: ${{ matrix.os }}
-        TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
-      run: ./bin/package
-      shell: bash
+      - name: Package crate (for crates.io, optional)
+        run: cargo package --allow-dirty
 
-    - name: Publish Archive
-      uses: softprops/action-gh-release@v0.1.15
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      with:
-        draft: false
-        files: ${{ steps.package.outputs.archive }}
-        prerelease: ${{ steps.release-type.outputs.value == 'prerelease' }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload crate as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: crate-package
+          path: |
+            target/package/*.crate
+
+      - name: Upload release binary
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            target/release/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
