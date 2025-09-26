@@ -3,46 +3,45 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'  # Triggers on tags like v1.0.0
+      - 'v*.*.*'
 
 permissions:
-  contents: write  # Needed for GitHub Release
+  contents: write
 
 jobs:
   release:
-    name: Build & Release
+    name: Build & Publish Release
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache cargo registry and build
+      - name: Cache Dependencies
         uses: actions/cache@v3
         with:
           path: |
             ~/.cargo/registry
             ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: release-cache-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Build release binary
+      - name: Build (Release Mode)
         run: cargo build --release
 
-      - name: Package crate (for crates.io, optional)
+      - name: Package Crate
         run: cargo package --allow-dirty
 
-      - name: Upload crate as artifact
+      - name: Upload Crate
         uses: actions/upload-artifact@v4
         with:
-          name: crate-package
-          path: |
-            target/package/*.crate
+          name: codex-crate
+          path: target/package/*.crate
 
-      - name: Upload release binary
+      - name: Upload Binaries to Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
