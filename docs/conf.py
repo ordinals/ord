@@ -1,4 +1,3 @@
-# docs/conf.py
 project = 'Ord'
 author = 'Pray4Love1'
 release = '0.1'

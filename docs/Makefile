@@ -1,5 +1,3 @@
-# Minimal Sphinx Makefile for GitHub Actions
-
 SPHINXBUILD   = sphinx-build
 SOURCEDIR     = .
 BUILDDIR      = build

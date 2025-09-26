@@ -1,0 +1,17 @@
+{
+  "maker": {
+    "inscription_utxo": {
+      "txid": "bbbb...",
+      "vout": 1
+    },
+    "receive_address": "bc1qmakeraddress...",
+    "price_sats": 100000,
+    "signature_type": "SIGHASH_SINGLE|SIGHASH_ANYONECANPAY",
+    "partial_psbt": "cHNidP8BA..."
+  },
+  "metadata": {
+    "inscription_id": "bbbb...i1",
+    "inscription_type": "image/webp",
+    "note": "1 rare sat, compressed"
+  }
+}
