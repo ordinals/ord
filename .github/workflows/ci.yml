@@ -38,3 +38,4 @@ jobs:
 
       - name: Test
         run: cargo test --workspace --all-targets --all-features -- --test-threads=1
+
