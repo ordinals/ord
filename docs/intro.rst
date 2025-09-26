@@ -1,6 +1,3 @@
-docs/intro.rst
---------------
-
 Introduction
 ============
 
