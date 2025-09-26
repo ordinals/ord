@@ -3,11 +3,11 @@
 
 use {
   bitcoin::{
+    Network, OutPoint, ScriptBuf, Transaction,
     consensus::{Decodable, Encodable},
     constants::{DIFFCHANGE_INTERVAL, SUBSIDY_HALVING_INTERVAL},
     opcodes,
     script::{self, Instruction},
-    Network, OutPoint, ScriptBuf, Transaction,
   },
   derive_more::{Display, FromStr},
   serde::{Deserialize, Serialize},

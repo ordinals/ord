@@ -1,10 +1,10 @@
 use {
   super::*,
   bitcoin::{
+    AddressType, CompressedPublicKey, PrivateKey, WPubkeyHash,
     ecdsa::Signature,
     secp256k1::Message,
     sighash::{EcdsaSighashType, SighashCache},
-    AddressType, CompressedPublicKey, PrivateKey, WPubkeyHash,
   },
 };
 

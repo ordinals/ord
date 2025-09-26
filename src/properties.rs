@@ -1,6 +1,6 @@
 use {
   super::*,
-  minicbor::{decode, encode, Decode, Decoder, Encode, Encoder},
+  minicbor::{Decode, Decoder, Encode, Encoder, decode, encode},
 };
 
 #[derive(Debug, Default, PartialEq)]
