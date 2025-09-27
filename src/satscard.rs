@@ -161,23 +161,29 @@ impl Satscard {
 
     let message = Message::from_digest(*Hash::hash(message.as_bytes()).as_ref());
 
-    for i in 0.. {
-      let Ok(id) = RecoveryId::from_i32(i) else {
-        break;
+    for recovery_id in 0..=3 {
+      let Some(id) = RecoveryId::from_i32(recovery_id).ok() else {
+        continue;
       };
 
-      let recoverable_signature =
-        RecoverableSignature::from_compact(&signature_compact, id).unwrap();
+      let Ok(recoverable_signature) = RecoverableSignature::from_compact(&signature_compact, id)
+      else {
+        continue;
+      };
 
       let Ok(public_key) = recoverable_signature.recover(&message) else {
         continue;
       };
 
-      signature.verify(&message, &public_key).unwrap();
+      if signature.verify(&message, &public_key).is_err() {
+        continue;
+      }
 
       let public_key = PublicKey::new(public_key);
 
-      let public_key = CompressedPublicKey::try_from(public_key).unwrap();
+      let Ok(public_key) = CompressedPublicKey::try_from(public_key) else {
+        continue;
+      };
 
       let address = Address::p2wpkh(&public_key, chain.bech32_hrp());
 
