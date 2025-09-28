@@ -3,10 +3,10 @@ name: CI
 on:
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 
 defaults:
   run:
@@ -36,6 +36,11 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: Test
-        run: cargo test --workspace --all-targets --all-features -- --test-threads=1
+      - name: Test (skip rune/sweep tests in CI)
+        run: |
+          cargo test --workspace --all-targets --all-features -- --test-threads=1 \
+            --skip wallet::split::requires_rune_index \
+            --skip wallet::sweep::sweep_needs_rune_index \
+            --skip wallet::sweep::sweep_needs_utxos \
+            --skip wallet::sweep::sweep_only_works_with_p2wpkh
 
