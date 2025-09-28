@@ -43,4 +43,3 @@ jobs:
             --skip wallet::sweep::sweep_needs_rune_index \
             --skip wallet::sweep::sweep_needs_utxos \
             --skip wallet::sweep::sweep_only_works_with_p2wpkh
-
