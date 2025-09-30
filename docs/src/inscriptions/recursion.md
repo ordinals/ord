@@ -1007,6 +1007,7 @@ curl -s \
 
 ```json
 {
+  "blockhash": "00000000000000000000f238f617bd97d3e877108328102d9adcb14a2a92ef00",
   "inscriptions": null,
   "runes": null,
   "sat_ranges": null,
@@ -1023,6 +1024,7 @@ curl -s \
 
 ```json
 {
+  "blockhash": "00000000000000000000f238f617bd97d3e877108328102d9adcb14a2a92ef00",
   "inscriptions": [
     "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
   ],
