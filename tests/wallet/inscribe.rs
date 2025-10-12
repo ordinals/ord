@@ -788,11 +788,13 @@ fn no_metadata_appears_on_inscription_page_if_no_metadata_is_passed() {
 
   core.mine_blocks(1);
 
-  assert!(!ord
-    .request(format!("/inscription/{inscription}"),)
-    .text()
-    .unwrap()
-    .contains("metadata"));
+  assert!(
+    !ord
+      .request(format!("/inscription/{inscription}"),)
+      .text()
+      .unwrap()
+      .contains("metadata")
+  );
 }
 
 #[test]

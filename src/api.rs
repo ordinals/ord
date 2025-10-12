@@ -251,3 +251,8 @@ pub struct AddressInfo {
   pub sat_balance: u64,
   pub runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
 }
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Offers {
+  pub offers: Vec<String>,
+}

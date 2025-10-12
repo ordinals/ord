@@ -789,6 +789,8 @@ fn outputs_address() {
   .stdout_regex(".*")
   .run_and_deserialize_output::<Output>();
 
+  core.mine_blocks(1);
+
   let cardinal_send = CommandBuilder::new(format!(
     "--chain regtest --index-runes wallet send --fee-rate 13.3 {address} 2btc"
   ))
@@ -854,7 +856,7 @@ fn outputs_address() {
     runes_json,
     vec![api::Output {
       address: Some(address.parse().unwrap()),
-      confirmations: 6,
+      confirmations: 7,
       inscriptions: Some(vec![]),
       outpoint: OutPoint {
         txid: rune_send.txid,
@@ -871,7 +873,7 @@ fn outputs_address() {
       ),
       spent: false,
       transaction: rune_send.txid,
-      value: 9901,
+      value: 10000,
     }]
   );
 
@@ -886,7 +888,7 @@ fn outputs_address() {
     inscriptions_json,
     vec![api::Output {
       address: Some(address.parse().unwrap()),
-      confirmations: 14,
+      confirmations: 15,
       inscriptions: Some(vec![InscriptionId {
         txid: reveal,
         index: 0
@@ -927,12 +929,16 @@ fn outputs_address() {
   .unwrap();
 
   assert_eq!(any.len(), 3);
-  assert!(any
-    .iter()
-    .any(|output| output.runes.clone().unwrap_or_default().len() == 1));
-  assert!(any
-    .iter()
-    .any(|output| output.inscriptions.clone().unwrap_or_default().len() == 1));
+  assert!(
+    any
+      .iter()
+      .any(|output| output.runes.clone().unwrap_or_default().len() == 1)
+  );
+  assert!(
+    any
+      .iter()
+      .any(|output| output.inscriptions.clone().unwrap_or_default().len() == 1)
+  );
   assert!(any.iter().any(
     |output| output.inscriptions.clone().unwrap_or_default().is_empty()
       && output.runes.clone().unwrap_or_default().is_empty()

@@ -830,21 +830,23 @@ mod tests {
   fn transactions_are_rbf() {
     let utxos = vec![(outpoint(1), tx_out(5_000, address(0)))];
 
-    assert!(TransactionBuilder::new(
-      satpoint(1, 0),
-      BTreeMap::new(),
-      utxos.into_iter().collect(),
-      BTreeSet::new(),
-      BTreeSet::new(),
-      recipient(),
-      [change(0), change(1)],
-      FeeRate::try_from(1.0).unwrap(),
-      Target::Postage,
-      Network::Testnet,
+    assert!(
+      TransactionBuilder::new(
+        satpoint(1, 0),
+        BTreeMap::new(),
+        utxos.into_iter().collect(),
+        BTreeSet::new(),
+        BTreeSet::new(),
+        recipient(),
+        [change(0), change(1)],
+        FeeRate::try_from(1.0).unwrap(),
+        Target::Postage,
+        Network::Testnet,
+      )
+      .build_transaction()
+      .unwrap()
+      .is_explicitly_rbf()
     )
-    .build_transaction()
-    .unwrap()
-    .is_explicitly_rbf())
   }
 
   #[test]

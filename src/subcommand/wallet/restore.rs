@@ -47,12 +47,8 @@ impl Restore {
       name
     );
 
-    let mut buffer = String::new();
-
     match self.from {
       Source::Descriptor => {
-        io::stdin().read_to_string(&mut buffer)?;
-
         ensure!(
           self.passphrase.is_none(),
           "descriptor does not take a passphrase"
@@ -63,10 +59,14 @@ impl Restore {
           "descriptor does not take a timestamp"
         );
 
+        let mut buffer = String::new();
+        io::stdin().read_to_string(&mut buffer)?;
+
         let wallet_descriptors: ListDescriptorsResult = serde_json::from_str(&buffer)?;
         Wallet::initialize_from_descriptors(name, settings, wallet_descriptors.descriptors)?;
       }
       Source::Mnemonic => {
+        let mut buffer = String::new();
         io::stdin().read_line(&mut buffer)?;
         let mnemonic = Mnemonic::from_str(&buffer)?;
         Wallet::initialize(

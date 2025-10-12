@@ -18,7 +18,7 @@ List all assets of an address. Requires index with `--index-addresses` flag.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
+  http://0.0.0.0/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
 ```
 
 ```json
@@ -99,7 +99,7 @@ Returns info about the specified block.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
+  http://0.0.0.0/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
 ```
 
 ```json
@@ -148,7 +148,7 @@ Returns info about the specified block.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/block/0
+  http://0.0.0.0/block/0
 ```
 
 ```json
@@ -197,7 +197,7 @@ Returns the height of the latest block.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blockcount
+  http://0.0.0.0/blockcount
 ```
 
 ```json
@@ -219,7 +219,7 @@ Returns blockhash for the latest block.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blockhash
+  http://0.0.0.0/blockhash
 ```
 
 ```text
@@ -242,7 +242,7 @@ Returns blockhash of specified block.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blockhash/840000
+  http://0.0.0.0/blockhash/840000
 ```
 
 ```text
@@ -264,7 +264,7 @@ Returns the height of the latest block.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blockheight
+  http://0.0.0.0/blockheight
 ```
 
 ```json
@@ -286,7 +286,7 @@ Returns the height of the latest block, the blockhashes of the last 100 blocks, 
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blocks
+  http://0.0.0.0/blocks
 ```
 
 ```json
@@ -464,7 +464,7 @@ Returns the UNIX timestamp of when the latest block was mined.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/blocktime
+  http://0.0.0.0/blocktime
 ```
 
 ```json
@@ -486,7 +486,7 @@ Decode a transaction, congruent to the `ord decode` command
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799
+  http://0.0.0.0/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799
 ```
 
 ```json
@@ -1336,7 +1336,7 @@ Fetch details about a specific inscription by its ID.
 
 ```bash
 curl -s -H "Accept: application/json" /
-  http://0.0.0.0:80/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
+  http://0.0.0.0/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 ```
 
 ```json
@@ -1381,7 +1381,7 @@ Returns the inscription information for the specified child.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
+  http://0.0.0.0/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
 ```
 
 ```json
@@ -1429,7 +1429,7 @@ curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '["ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi1", "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0"]' \
-  http://0.0.0.0:80/inscriptions
+  http://0.0.0.0/inscriptions
 ```
 
 ```json
@@ -1500,7 +1500,7 @@ Get a list of the latest 100 inscriptions.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/inscriptions
+  http://0.0.0.0/inscriptions
 ```
 
 ```json
@@ -1627,7 +1627,7 @@ Pagination allows you to choose which page of 100 inscriptions to return.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/inscriptions/9
+  http://0.0.0.0/inscriptions/9
 ```
 
 ```json
@@ -1754,7 +1754,7 @@ Get inscriptions for a specific block.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/inscriptions/block/767430
+  http://0.0.0.0/inscriptions/block/767430
 ```
 
 ```json
@@ -1785,6 +1785,44 @@ See [wallet.md](wallet.md#installing-ord)
 
 <details>
  <summary>
+    <code>POST</code>
+    <code><b>/offer</b></code>
+ </summary>
+
+### Description
+
+Submit a PSBT offer. The body of the request is a base64 encoded PSBT.
+
+### Example
+
+```bash
+curl -s -X POST --data-binary @offer.psbt http://0.0.0.0/offer
+```
+</details>
+
+<details>
+ <summary>
+    <code>GET</code>
+    <code><b>/offers</b></code>
+ </summary>
+
+### Description
+
+Get submitted PSBT offers. Returns an array of base64 encoded PSBTs.
+
+### Example
+
+```bash
+curl -s -H "Accept: application/json" http://0.0.0.0/offers
+```
+
+```json
+["bG…gd==","aG…GQ"]
+```
+</details>
+
+<details>
+ <summary>
     <code>GET</code>
     <code><b>/output/&lt;OUTPOINT&gt;</b></code>
  </summary>
@@ -1797,7 +1835,7 @@ Returns information about a UTXO, including inscriptions within it.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
+  http://0.0.0.0/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
 ```
 
 ```json
@@ -1834,7 +1872,7 @@ curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
   -d '["bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0", "bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:1"]' \
-  http://0.0.0.0:80/outputs
+  http://0.0.0.0/outputs
 ```
 
 ```json
@@ -1892,7 +1930,7 @@ Get UTXOs held by `<ADDRESS>`.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  "http://0.0.0.0:80/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
+  "http://0.0.0.0/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
 ```
 
 ```json
@@ -2016,7 +2054,7 @@ Returns details for last 100 inscribed runes.  Requires index with `--index-rune
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/runes
+  http://0.0.0.0/runes
 ```
 
 ```json
@@ -3512,7 +3550,7 @@ Pagination allows you to specify which page of 100 runes you'd like to return.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/runes/0
+  http://0.0.0.0/runes/0
 ```
 
 ```json
@@ -5008,7 +5046,7 @@ Returns details about a specific satoshi. Requires index with `--index-sats` fla
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/sat/2099994106992659
+  http://0.0.0.0/sat/2099994106992659
 ```
 
 ```json
@@ -5046,7 +5084,7 @@ Returns details about the server installation and index.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/status
+  http://0.0.0.0/status
 ```
 
 ```json
@@ -5091,7 +5129,7 @@ Returns details about the specified transaction.
 
 ```bash
 curl -s -H "Accept: application/json" \
-  http://0.0.0.0:80/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
+  http://0.0.0.0/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
 ```
 
 ```json

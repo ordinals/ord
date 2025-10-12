@@ -16,11 +16,7 @@ impl Receive {
     let mut addresses: Vec<Address<NetworkUnchecked>> = Vec::new();
 
     for _ in 0..self.number.unwrap_or(1) {
-      addresses.push(
-        wallet
-          .bitcoin_client()
-          .get_new_address(None, Some(bitcoincore_rpc::json::AddressType::Bech32m))?,
-      );
+      addresses.push(wallet.get_receive_address()?.into_unchecked());
     }
 
     Ok(Some(Box::new(Output { addresses })))
