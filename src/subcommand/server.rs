@@ -4427,6 +4427,7 @@ mod tests {
         },
         AcceptEncoding::default(),
         &ServerConfig::default(),
+        true,
       )
       .unwrap(),
       None
@@ -4443,6 +4444,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4461,6 +4463,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4484,6 +4487,7 @@ mod tests {
         csp_origin: Some("https://ordinals.com".into()),
         ..default()
       },
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4583,6 +4587,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4601,6 +4606,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();

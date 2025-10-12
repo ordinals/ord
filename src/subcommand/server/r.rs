@@ -253,7 +253,7 @@ pub(super) async fn content_inner(
     }
 
     Ok(
-      content_response(inscription, accept_encoding, &server_config, cache)?
+      content_response(inscription, accept_encoding, server_config, cache)?
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
