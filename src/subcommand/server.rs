@@ -6395,22 +6395,37 @@ next
     );
 
     assert_eq!(
-      server.get("/r/sat/5000000000/at/0").headers().get(header::CACHE_CONTROL),
+      server
+        .get("/r/sat/5000000000/at/0")
+        .headers()
+        .get(header::CACHE_CONTROL),
       None,
     );
 
     assert_eq!(
-      server.get("/r/sat/5000000000/at/0/content").headers().get(header::CACHE_CONTROL).unwrap(),
+      server
+        .get("/r/sat/5000000000/at/0/content")
+        .headers()
+        .get(header::CACHE_CONTROL)
+        .unwrap(),
       "public, max-age=1209600, immutable",
     );
 
     assert_eq!(
-      server.get("/r/sat/5000000000/at/-1").headers().get(header::CACHE_CONTROL).unwrap(),
+      server
+        .get("/r/sat/5000000000/at/-1")
+        .headers()
+        .get(header::CACHE_CONTROL)
+        .unwrap(),
       "no-store",
     );
 
     assert_eq!(
-      server.get("/r/sat/5000000000/at/-1/content").headers().get(header::CACHE_CONTROL).unwrap(),
+      server
+        .get("/r/sat/5000000000/at/-1/content")
+        .headers()
+        .get(header::CACHE_CONTROL)
+        .unwrap(),
       "no-store",
     );
   }
