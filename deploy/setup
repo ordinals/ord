@@ -91,11 +91,7 @@ systemctl restart sshd
 
 ufw --force enable
 
-if ! which bitcoind; then
-  ./bin/install-bitcoin-core-linux
-fi
-
-bitcoind --version
+./bin/install-bitcoin-core-linux
 
 rm -f /var/lib/bitcoind/settings.json
 
