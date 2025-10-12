@@ -1539,7 +1539,7 @@ impl Server {
 
       if let Media::Iframe = media {
         return Ok(
-          r::content_response(inscription, accept_encoding, &server_config)?
+          r::content_response(inscription, accept_encoding, &server_config, true)?
             .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
             .into_response(),
         );
@@ -4427,6 +4427,7 @@ mod tests {
         },
         AcceptEncoding::default(),
         &ServerConfig::default(),
+        true,
       )
       .unwrap(),
       None
@@ -4443,6 +4444,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4461,6 +4463,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4484,6 +4487,7 @@ mod tests {
         csp_origin: Some("https://ordinals.com".into()),
         ..default()
       },
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4583,6 +4587,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4601,6 +4606,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -6386,6 +6392,41 @@ next
         .get_json::<api::SatInscription>("/r/sat/5000000000/at/111")
         .id
         .is_none()
+    );
+
+    assert_eq!(
+      server
+        .get("/r/sat/5000000000/at/0")
+        .headers()
+        .get(header::CACHE_CONTROL),
+      None,
+    );
+
+    assert_eq!(
+      server
+        .get("/r/sat/5000000000/at/0/content")
+        .headers()
+        .get(header::CACHE_CONTROL)
+        .unwrap(),
+      "public, max-age=1209600, immutable",
+    );
+
+    assert_eq!(
+      server
+        .get("/r/sat/5000000000/at/-1")
+        .headers()
+        .get(header::CACHE_CONTROL)
+        .unwrap(),
+      "no-store",
+    );
+
+    assert_eq!(
+      server
+        .get("/r/sat/5000000000/at/-1/content")
+        .headers()
+        .get(header::CACHE_CONTROL)
+        .unwrap(),
+      "no-store",
     );
   }
 
