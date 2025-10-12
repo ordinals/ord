@@ -234,60 +234,60 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="ルーン"><a class="header" href="#ルーン">ルーン</a></h1>
-<p>Runes allow Bitcoin transactions to etch, mint, and transfer Bitcoin-native digital commodities.</p>
-<p>Whereas every inscription is unique, every unit of a rune is the same. They are interchangeable tokens, fit for a variety of purposes.</p>
-<h2 id="runestones"><a class="header" href="#runestones">Runestones</a></h2>
-<p>Rune protocol messages, called runestones, are stored in Bitcoin transaction outputs.</p>
-<p>A runestone output's script pubkey begins with an <code>OP_RETURN</code>, followed by <code>OP_13</code>, followed by zero or more data pushes. These data pushes are concatenated and decoded into a sequence of 128-bit integers, and finally parsed into a runestone.</p>
-<p>A transaction may have at most one runestone.</p>
-<p>A runestone may etch a new rune, mint an existing rune, and transfer runes from a transaction's inputs to its outputs.</p>
-<p>A transaction output may hold balances of any number of runes.</p>
-<p>Runes are identified by IDs, which consist of the block in which a rune was etched and the index of the etching transaction within that block, represented in text as <code>BLOCK:TX</code>. For example, the ID of the rune etched in the 20th transaction of the 500th block is <code>500:20</code>.</p>
-<h2 id="etching"><a class="header" href="#etching">Etching</a></h2>
-<p>Runes come into existence by being etched. Etching creates a rune and sets its properties. Once set, these properties are immutable, even to its etcher.</p>
+<p>ルーンはビットコイントランザクションでビットコインネイティブのデジタルコモディティをエッチング、ミント、転送することを可能にします。</p>
+<p>すべての碑文がユニークであるのに対し、ルーンの各単位は同じです。これらは交換可能なトークンであり、様々な目的に適しています。</p>
+<h2 id="ルーンストーン"><a class="header" href="#ルーンストーン">ルーンストーン</a></h2>
+<p>ルーンストーンと呼ばれるルーンプロトコルメッセージは、ビットコイントランザクションアウトプットに格納されます。</p>
+<p>ルーンストーンアウトプットのスクリプト pubkey は <code>OP_RETURN</code> で始まり、続いて <code>OP_13</code>、その後ゼロ個以上のデータプッシュが続きます。これらのデータプッシュは連結され、128ビット整数のシーケンスにデコードされ、最終的にルーンストーンに解析されます。</p>
+<p>トランザクションには最大1つのルーンストーンが含まれる可能性があります。</p>
+<p>ルーンストーンは新しいルーンをエッチング、既存のルーンをミント、またはトランザクションのインプットからアウトプットへルーンを転送することができます。</p>
+<p>トランザクションアウトプットには任意の数のルーンの残高を保持することができます。</p>
+<p>ルーンはIDによって識別されます。IDはルーンがエッチングされたブロックと、そのブロック内でのエッチングトランザクションのインデックスから構成され、テキストでは <code>BLOCK:TX</code> として表現されます。たとえば、500番目のブロックの20番目のトランザクションでエッチングされたルーンのIDは <code>500:20</code> です。</p>
+<h2 id="エッチング"><a class="header" href="#エッチング">エッチング</a></h2>
+<p>ルーンはエッチングされることで存在します。エッチングはルーンを作成し、そのプロパティを設定します。一度設定されたこれらのプロパティは、エッチングした者であっても不変です。</p>
 <h3 id="name"><a class="header" href="#name">Name</a></h3>
-<p>Names consist of the letters A through Z and are between one and twenty-six letters long. For example <code>UNCOMMONGOODS</code> is a rune name.</p>
-<p>Names may contain spacers, represented as bullets, to aid readability. <code>UNCOMMONGOODS</code> might be etched as <code>UNCOMMON•GOODS</code>.</p>
-<p>The uniqueness of a name does not depend on spacers. Thus, a rune may not be etched with the same sequence of letters as an existing rune, even if it has different spacers.</p>
-<p>Spacers can only be placed between two letters. Finally, spacers do not count towards the letter count.</p>
-<h3 id="divisibility"><a class="header" href="#divisibility">Divisibility</a></h3>
-<p>A rune's divisibility is how finely it may be divided into its atomic units. Divisibility is expressed as the number of digits permissible after the decimal point in an amount of runes. A rune with divisibility 0 may not be divided. A unit of a rune with divisibility 1 may be divided into ten sub-units, a rune with divisibility 2 may be divided into a hundred, and so on.</p>
-<h3 id="symbol"><a class="header" href="#symbol">Symbol</a></h3>
-<p>A rune's currency symbol is a single Unicode code point, for example <code>$</code>, <code>⧉</code>, or <code>🧿</code>, displayed after quantities of that rune.</p>
-<p>101 atomic units of a rune with divisibility 2 and symbol <code>🧿</code> would be rendered as <code>1.01 🧿</code>.</p>
-<p>If a rune does not have a symbol, the generic currency sign <code>¤</code>, also called a scarab, should be used.</p>
-<h3 id="premine"><a class="header" href="#premine">Premine</a></h3>
-<p>The etcher of a rune may optionally allocate to themselves units of the rune being etched. This allocation is called a premine.</p>
-<h3 id="terms"><a class="header" href="#terms">Terms</a></h3>
-<p>A rune may have an open mint, allowing anyone to create and allocate units of that rune for themselves. An open mint is subject to terms, which are set upon etching.</p>
-<p>A mint is open while all terms of the mint are satisfied, and closed when any of them are not. For example, a mint may be limited to a starting height, an ending height, and a cap, and will be open between the starting height and ending height, or until the cap is reached, whichever comes first.</p>
-<h4 id="cap"><a class="header" href="#cap">Cap</a></h4>
-<p>The number of times a rune may be minted is its cap. A mint is closed once the cap is reached.</p>
-<h4 id="amount"><a class="header" href="#amount">Amount</a></h4>
-<p>Each mint transaction creates a fixed amount of new units of a rune.</p>
-<h4 id="start-height"><a class="header" href="#start-height">Start Height</a></h4>
-<p>A mint is open starting in the block with the given start height.</p>
-<h4 id="end-height"><a class="header" href="#end-height">End Height</a></h4>
-<p>A rune may not be minted in or after the block with the given end height.</p>
-<h4 id="start-offset"><a class="header" href="#start-offset">Start Offset</a></h4>
-<p>A mint is open starting in the block whose height is equal to the start offset plus the height of the block in which the rune was etched.</p>
-<h4 id="end-offset"><a class="header" href="#end-offset">End Offset</a></h4>
-<p>A rune may not be minted in or after the block whose height is equal to the end offset plus the height of the block in which the rune was etched.</p>
-<h2 id="minting"><a class="header" href="#minting">Minting</a></h2>
-<p>While a rune's mint is open, anyone may create a mint transaction that creates a fixed amount of new units of that rune, subject to the terms of the mint.</p>
-<h2 id="transferring"><a class="header" href="#transferring">Transferring</a></h2>
-<p>When transaction inputs contain runes, or new runes are created by a premine or mint, those runes are transferred to that transaction's outputs. A transaction's runestone may change how input runes transfer to outputs.</p>
-<h3 id="edicts"><a class="header" href="#edicts">Edicts</a></h3>
-<p>A runestone may contain any number of edicts. Edicts consist of a rune ID, an amount, and an output number. Edicts are processed in order, allocating unallocated runes to outputs.</p>
+<p>名前はAからZの文字から構成され、1文字から26文字の長さです。たとえば、<code>UNCOMMONGOODS</code> はルーン名です。</p>
+<p>名前には可読性を高めるために、ブリットで表現されるスペーサーを含めることができます。<code>UNCOMMONGOODS</code> は <code>UNCOMMON•GOODS</code> としてエッチングされる場合があります。</p>
+<p>名前の一意性はスペーサーに依存しません。したがって、別のスペーサーを持つ場合であっても、既存のルーンと同じ文字の配列でルーンをエッチングすることはできません。</p>
+<p>スペーサーは2つの文字の間にのみ配置できます。また、スペーサーは文字数にカウントされません。</p>
+<h3 id="分割可能性"><a class="header" href="#分割可能性">分割可能性</a></h3>
+<p>ルーンの分割可能性とは、そのルーンが原子単位にどれだけ細かく分割できるかを示します。分割可能性は、ルーン量における小数点以下の許可される桁数として表されます。分割可能性が0のルーンは分割できません。分割可能性が1のルーンの単位は10のサブユニットに分割でき、分割可能性が2のルーンは100に分割でき、以下同様に続きます。</p>
+<h3 id="シンボル"><a class="header" href="#シンボル">シンボル</a></h3>
+<p>ルーンの通貨シンボルは単一のUnicodeコードポイントです。例えば<code>$</code>、<code>⧉</code>、または<code>🧿</code>などで、そのルーンの数量の後に表示されます。</p>
+<p>分割可能性が2でシンボルが<code>🧿</code>のルーンの101原子単位は<code>1.01 🧿</code>として表示されます。</p>
+<p>ルーンにシンボルがない場合は、スカラベとも呼ばれる汎用通貨記号<code>¤</code>を使用する必要があります。</p>
+<h3 id="プリマイン"><a class="header" href="#プリマイン">プリマイン</a></h3>
+<p>ルーンのエッチャー（作成者）は、オプションでエッチされるルーンの単位を自分自身に割り当てることができます。この割り当てはプリマインと呼ばれます。</p>
+<h3 id="条件"><a class="header" href="#条件">条件</a></h3>
+<p>ルーンはオープンミントを持つことができ、誰でもそのルーンの単位を自分のために作成し割り当てることができます。オープンミントは、エッチング時に設定される条件に従います。</p>
+<p>ミントは、ミントのすべての条件が満たされている間はオープンし、いずれかが満たされなくなるとクローズします。例えば、ミントは開始ブロック高、終了ブロック高、上限に制限される場合があり、開始ブロック高から終了ブロック高の間、または上限に達するまで、どちらか早い方まで開いています。</p>
+<h4 id="上限"><a class="header" href="#上限">上限</a></h4>
+<p>ルーンがミントできる回数がその上限です。上限に達すると、ミントは閉じられます。</p>
+<h4 id="金額"><a class="header" href="#金額">金額</a></h4>
+<p>各ミントトランザクションは、ルーンの固定量の新しい単位を作成します。</p>
+<h4 id="開始ブロック高"><a class="header" href="#開始ブロック高">開始ブロック高</a></h4>
+<p>指定された開始ブロック高のブロックからミントが開始されます。</p>
+<h4 id="終了ブロック高"><a class="header" href="#終了ブロック高">終了ブロック高</a></h4>
+<p>指定された終了ブロック高のブロック以降では、ルーンをミントすることはできません。</p>
+<h4 id="開始オフセット"><a class="header" href="#開始オフセット">開始オフセット</a></h4>
+<p>ミントは、開始オフセット＋ルーンがエッチされたブロックの高さに等しい高さのブロックから開始されます。</p>
+<h4 id="終了オフセット"><a class="header" href="#終了オフセット">終了オフセット</a></h4>
+<p>ルーンは、終了オフセット＋ルーンがエッチされたブロックの高さに等しい高さのブロック以降ではミントすることはできません。</p>
+<h2 id="ミンティング"><a class="header" href="#ミンティング">ミンティング</a></h2>
+<p>ルーンのミントがオープンしている間、誰でもミントの条件に従って、そのルーンの固定量の新しい単位を作成するミントトランザクションを作成することができます。</p>
+<h2 id="転送"><a class="header" href="#転送">転送</a></h2>
+<p>トランザクションの入力にルーンが含まれるか、プリマインやミントによって新しいルーンが作成される場合、それらのルーンはそのトランザクションの出力に転送されます。トランザクションのルーンストーンは、入力ルーンが出力に転送される方法を変更することがあります。</p>
+<h3 id="命令"><a class="header" href="#命令">命令</a></h3>
+<p>ルーンストーンには任意の数の命令を含めることができます。命令はルーンID、金額、出力番号で構成されます。命令は順番に処理され、未割り当てのルーンを出力に割り当てます。</p>
 <h3 id="ポインタ"><a class="header" href="#ポインタ">ポインタ</a></h3>
-<p>After all edicts are processed, remaining unallocated runes are transferred to the transaction's first non-<code>OP_RETURN</code> output. A runestone may optionally contain a pointer that specifies an alternative default output.</p>
+<p>すべての命令が処理された後、残った未割り当てのルーンは、トランザクションの最初の非<code>OP_RETURN</code>出力に転送されます。ルーンストーンには、オプションで代替のデフォルト出力を指定するポインターを含めることができます。</p>
 <h3 id="バーン"><a class="header" href="#バーン">バーン</a></h3>
-<p>Runes may be burned by transferring them to an <code>OP_RETURN</code> output with an edict or pointer.</p>
-<h2 id="cenotaphs"><a class="header" href="#cenotaphs">Cenotaphs</a></h2>
-<p>Runestones may be malformed for a number of reasons, including non-pushdata opcodes in the runestone <code>OP_RETURN</code>, invalid varints, or unrecognized runestone fields.</p>
-<p>Malformed runestones are termed <a href="https://en.wikipedia.org/wiki/Cenotaph">cenotaphs</a>.</p>
-<p>Runes input to a transaction with a cenotaph are burned. Runes etched in a transaction with a cenotaph are set as unmintable. Mints in a transaction with a cenotaph count towards the mint cap, but the minted runes are burned.</p>
-<p>Cenotaphs are an upgrade mechanism, allowing runestones to be given new semantics that change how runes are created and transferred, while not misleading unupgraded clients as to the location of those runes, as unupgraded clients will see those runes as having been burned.</p>
+<p>ルーンは、命令やポインターで<code>OP_RETURN</code>出力に転送することでバーン（無効化）することができます。</p>
+<h2 id="空墓セノタフ"><a class="header" href="#空墓セノタフ">空墓（セノタフ）</a></h2>
+<p>ルーンストーンは、ルーンストーン<code>OP_RETURN</code>内の非プッシュデータオプコード、無効なvarint、または認識されないルーンストーンフィールドなど、いくつかの理由で形式が不正になることがあります。</p>
+<p>形式不正のルーンストーンは<a href="https://en.wikipedia.org/wiki/Cenotaph">空墓（cenotaphs）</a>と呼ばれます。</p>
+<p>空墓を持つトランザクションに入力されるルーンはバーンされます。空墓を持つトランザクションでエッチされるルーンはミント不可に設定されます。空墓を持つトランザクションのミントはミント上限にカウントされますが、ミントされたルーンはバーンされます。</p>
+<p>空墓はアップグレードメカニズムであり、ルーンストーンにルーンの作成と転送方法を変更する新しいセマンティクスを与えることを可能にします。アップグレードしていないクライアントがそれらのルーンをバーンされたものとして見るため、アップグレードしていないクライアントを惑わせることはありません。</p>
 
                     </main>
 

@@ -235,7 +235,7 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="導入"><a class="header" href="#導入">導入</a></h1>
-<p>このハンドブックはオーディナルズ理論（Ordinals Theory）のガイドです。 オーディナルズはSatoshiに注目し、それぞれに意味を持たせ、転送、追跡可能。にします。</p>
+<p>このハンドブックはオーディナルズ理論（Ordinals Theory）のガイドです。オーディナルズはSatoshiに注目し、それぞれに意味を持たせ、転送、追跡可能にします。</p>
 <p>Satoshiはビットコインネットワークのネイティブ通貨で、原子的な存在です。一つのビットコインは100,000,000 satoshi に分割できますが、これ以上分割することはできません。</p>
 <p>オーディナルズ理論はビットコインブロックチェーン以外のサイドチェーンやトークンは必要とせずビットコインネットワークを何も変更せずに利用することができます。実はすでに動いているものです。</p>
 <p>オーディナルズ理論はSatoshiに貨幣価値を与え、骨董品としてコレクションしたり、取引したりすることを可能とします。</p>
@@ -434,10 +434,10 @@
 </ul>
 <p>デジタル文化財の定義は、その特定の性質からNFTを反映することを目的としています_べき_は何か、時には何か、そして銘文_終始_は何ですか</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="碑文-1"><a class="header" href="#碑文-1">碑文</a></h1>
-<p>銘文には任意の内容が刻まれ、ビットコインネイティブのデジタル人工製品が作られました。通常NFTと呼ばれています。の銘文には側鎖や個別のトークンは必要ありません。</p>
-<p>これらの刻まれたコングは、ビットコイン取引転送を使用してビットコインアドレスに送信され、ビットコインUTXOに保存されます。これらの取引、アドレス、UTXOはすべての点で通常のビットコイン取引、アドレス、UTXOです。は単一の聡を送るために加えて、取引は序数理論に基づいて入力と出力の順序と値を制御しなければなりません</p>
-<p>銘文の内容はワールドワイドウェブ基準に基づいている。銘文はコンテンツタイプ（MI MEタイプとも呼ばれる）とコンテンツ自体（バイト列）で構成されています。これにより、Webサーバーから銘文コンテンツを返すことができ、HTML銘文を作成して使用し、他の銘文コンテンツを再混合するために使用されます。</p>
-<p>銘文の内容は完全にチェーン上にあり、保存されているtaproot script-path spendスクリプト内。のTaprootスクリプトはその内容に対する制限が少なく、証人割引を追加で受けることで、銘文内容の保存が比較的経済的になります。</p>
+<p>碑文は任意のコンテンツをsatoshiに刻み込み、ビットコインネイティブなデジタルアーティファクト（一般的にNFTとして知られる）を作成します。碑文にはサイドチェーンや独立したトークンは必要ありません。</p>
+<p>これらの碑文が刻まれたsatoshiは、ビットコイントランザクションを使用して転送し、ビットコインアドレスに送信し、ビットコインUTXOに保持することができます。これらのトランザクション、アドレス、UTXOは、個々のsatoshiを送信する際にオーディナルズ理論に従ってインプットとアウトプットの順序と価値を制御する必要があることを除いて、すべての点で通常のビットコイントランザクション、アドレス、UTXOです。</p>
+<p>碑文のコンテンツモデルはウェブのものと同じです。碑文はコンテンツタイプ（MIMEタイプとも呼ばれる）とコンテンツ自体（バイト文字列）で構成されます。これにより、碑文のコンテンツをウェブサーバーから返すことができ、他の碑文のコンテンツを使用してリミックスするHTML碑文を作成することができます。</p>
+<p>碑文のコンテンツは完全にオンチェーンで、taprootスクリプトパス支出スクリプトに格納されています。taprootスクリプトはコンテンツに対する制限が非常に少なく、さらにwitness割引を受けることで、碑文のコンテンツ保存を比較的経済的にします。</p>
 <p>taproot script-path spendスクリプトは既存のtaproot出力からしか生成できないため、そのため、は2段階のcommit/revealプロセスを使用して刻印されます。まず、commitでは、銘文の内容を含むスクリプトに提出するtaproot出力を作成します。次に、reveal取引では、commit取引による出力を使用して、チェーン上の銘文の内容を表示します。</p>
 <p>銘文の内容は、実行されていない条件のデータプッシュを使用してシリアル化され "エンベロープ"と呼ばれます。封筒はOP_FALSE OP_IF…OP_ENDIF任意の数のデータプッシュを構成し、ラップします。エンベロープは実際には空の操作なので、それらを含むスクリプトのセマンティクスは変更されません。となり、他のロックスクリプトと組み合わせて使用できます。</p>
 <p>文字列「Hello,world！」を含むのテキスト銘文を以下のようにシリアル化されています：</p>
@@ -457,15 +457,15 @@ OP_ENDIF
 <p>銘文のデータモデルはHTTP応答のデータモデルであり、銘文がウェブサーバによってサービスされ、ウェブブラウザで閲覧することを可能にします。</p>
 <h2 id="フィールド"><a class="header" href="#フィールド">フィールド</a></h2>
 <p>銘文には、オプションの本文の前にフィールドを含めることができます。各フィールドにはの2つのデータプッシュ、1つのラベルと1つの値。</p>
-<p>Currently, there are six defined fields:</p>
+<p>現在、6つの定義されたフィールドがあります：</p>
 <ul>
 <li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
-<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="inscriptions/pointer.html">pointer docs</a>.</li>
-<li><code>parent</code>, with a tag of <code>3</code>, see <a href="inscriptions/provenance.html">provenance</a>.</li>
-<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="inscriptions/metadata.html">metadata</a>.</li>
-<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>ポインタ</code>、タグ<code>2</code>、詳細は<a href="inscriptions/pointer.html">ポインタドキュメント</a>を参照してください。</li>
+<li><code>親</code>、タグ<code>3</code>、詳細は<a href="inscriptions/provenance.html">出所</a>を参照してください。</li>
+<li><code>メタデータ</code>、タグ<code>5</code>、詳細は<a href="inscriptions/metadata.html">メタデータ</a>を参照してください。</li>
+<li><code>メタプロトコル</code>、タグ<code>7</code>、値はメタプロトコル識別子です。</li>
 <li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
-<li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
+<li><code>デリゲート</code>、タグ<code>11</code>、詳細は<a href="inscriptions/delegate.html">デリゲート</a>を参照してください。</li>
 </ul>
 <p>本文の先頭とフィールドの末尾には "空のデータ"でプッシュが表示されます。</p>
 <p>認識できないラベルの解釈は、偶数か奇数かによって異なり、稲妻ネットワーク"は奇数"にすることができるというルールに従います。</p>
@@ -476,7 +476,7 @@ OP_ENDIF
 <p><code>521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0</code></p>
 <p>’i’の先頭部分は、トランザクションID（’txid’）である。<code>i</code>の後の数字はを定義します。新しい銘文は、取引で常に銘記されたインデックスの位置(0から開始)</p>
 <p>銘文は、入力の中の異なる入力の中にあってもよく、同じ入力であってもよく、あるいは両者の組み合わせであってもよい。いずれにしても、パーサーは入力を連続的にチェックし、すべての銘文『封筒を検索するため、順序は明確です</p>
-<div class="table-wrapper"><table><thead><tr><th style="text-align: center">Input</th><th style="text-align: center">Inscription Count</th><th style="text-align: center">Indices</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">インプット</th><th style="text-align: center">碑文数</th><th style="text-align: center">インデックス</th></tr></thead><tbody>
 <tr><td style="text-align: center">0</td><td style="text-align: center">2</td><td style="text-align: center">i0, i1</td></tr>
 <tr><td style="text-align: center">1</td><td style="text-align: center">1</td><td style="text-align: center">i2</td></tr>
 <tr><td style="text-align: center">2</td><td style="text-align: center">3</td><td style="text-align: center">i3, i4, i5</td></tr>
@@ -485,23 +485,23 @@ OP_ENDIF
 </tbody></table>
 </div>
 <h2 id="inscription-numbers"><a class="header" href="#inscription-numbers">Inscription Numbers</a></h2>
-<p>Inscriptions are assigned inscription numbers starting at zero, first by the order reveal transactions appear in blocks, and the order that reveal envelopes appear in those transactions.</p>
-<p>Due to a historical bug in <code>ord</code> which cannot be fixed without changing a great many inscription numbers, inscriptions which are revealed and then immediately spent to fees are numbered as if they appear last in the block in which they are revealed.</p>
-<p>Inscriptions which are cursed are numbered starting at negative one, counting down. Cursed inscriptions on and after the jubilee at block 824544 are vindicated, and are assigned positive inscription numbers.</p>
+<p>碑文には0から始まる碑文番号が割り当てられます。まずブロック内でのリベアルトランザクションの順序、次にそのトランザクション内でのリベアルエンベロープの順序によります。</p>
+<p>多数の碑文番号を変更することなく修正できない<code>ord</code>の歴史的なバグにより、公開されてすぐに手数料として使用された碑文は、公開されたブロック内で最後に表示されたかのように番号付けされます。</p>
+<p>呪われた碑文は-1から始まって下方向にカウントされます。ブロック824544のジュビリー以降の呪われた碑文は名誉回復され、正の碑文番号が割り当てられます。</p>
 <h2 id="サンドボックス化"><a class="header" href="#サンドボックス化">サンドボックス化</a></h2>
 <p>HTML と SVG 銘文はサンドボックス化され、チェーンの下の内容を引用しないようにして、銘文の不変性と独立性を保ちます。</p>
 <p>これは、HTMLとSVGの銘文を <code>iframes</code> にロードし、銘文コンテンツを提供することによって行われる'sandbox'属性です。Content-Security-Policy”ヘッダ。</p>
-<h2 id="self-reference"><a class="header" href="#self-reference">Self-Reference</a></h2>
-<p>The content of the inscription with ID <code>INSCRIPTION_ID</code> must served from the URL path <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<h2 id="自己参照"><a class="header" href="#自己参照">自己参照</a></h2>
+<p>碑文ID <code>INSCRIPTION_ID</code> を持つ碑文のコンテンツは、URLパス <code>/content/&lt;INSCRIPTION_ID&gt;</code> から提供される必要があります。</p>
 <p>This allows inscriptions to retrieve their own inscription ID with:</p>
 <pre><code class="language-js">let inscription_id = window.location.pathname.split("/").pop();
 </code></pre>
-<p>If an inscription with ID X delegates to an inscription with ID Y, that is to say, if inscription X contains a delegate field with value Y, the content of inscription X must be served from the URL path <code>/content/X</code>, <em>not</em> <code>/content/Y</code>.</p>
-<p>This allows delegating inscriptions to use their own inscription ID as a seed for generative delegate content.</p>
-<h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
-<p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
-<p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
-<p>Reinscribe on a sat (requires sat index): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
+<p>ID XのInstcriptionがID YのInscriptionに委譲する場合、つまりInscription Xに値Yを持つ委譲フィールドが含まれている場合、Inscription XのコンテンツはURLパス<code>/content/X</code>から提供されなければならず、<code>/content/Y</code>からではありません。</p>
+<p>これにより、委譲するInscriptionが自身のInscription IDを生成的な委譲コンテンツのシードとして使用することができます。</p>
+<h2 id="再刻印"><a class="header" href="#再刻印">再刻印</a></h2>
+<p>以前に碑文が刻まれたsatは、碑文がウォレットにある場合、<code>--reinscribe</code> コマンドで再刻印することができます。これはsatに碑文を追加するのみで、初期の碑文を変更することはできません。</p>
+<p>satpointでの再刻印: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
+<p>satでの再刻印 (satインデックスが必要): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="バーン"><a class="header" href="#バーン">バーン</a></h1>
 <p>Inscriptions may be burned by constructing a transaction that spends them to a script pubkey beginning with <code>OP_RETURN</code>.</p>
 <p>Sending inscriptions to a so-called "burn address" is not recognized by <code>ord</code>.</p>
@@ -512,15 +512,15 @@ OP_ENDIF
 <p>Data pushes after the first are currently ignored by <code>ord</code>. However, they may be given future meaning by the protocol, and should not be used.</p>
 <p>For example, transaction <a href="https://mempool.space/tx/b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683">b42f0d8a3277ce6a7e564fec8f5579f76bc19cb24f8eff565ebb81a4c2f94683</a> burned inscription <a href="https://ordinals.com/inscription/681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0">681b5373c03e3f819231afd9227f54101395299c9e58356bda278e2f32bef2cdi0</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="デリゲート"><a class="header" href="#デリゲート">デリゲート</a></h1>
-<p>Inscriptions may nominate a delegate inscription. Requests for the content of an inscription with a delegate will instead return the content, content type and content encoding of the delegate. This can be used to cheaply create copies of an inscription.</p>
+<p>碑文はデリゲート碑文を指名することができます。デリゲートを持つ碑文のコンテンツのリクエストは、代わりにデリゲートのコンテンツ、コンテンツタイプ、およびコンテンツエンコーディングを返します。これは碑文のコピーを安価に作成するために使用できます。</p>
 <h3 id="仕様"><a class="header" href="#仕様">仕様</a></h3>
-<p>To create an inscription I with delegate inscription D:</p>
+<p>デリゲート碑文Dを持つ碑文Iを作成するには:</p>
 <ul>
 <li>Create an inscription D. Note that inscription D does not have to exist when making inscription I. It may be inscribed later. Before inscription D is inscribed, requests for the content of inscription I will return a 404.</li>
 <li>Include tag <code>11</code>, i.e. <code>OP_PUSH 11</code>, in I, with the value of the serialized binary inscription ID of D, serialized as the 32-byte <code>TXID</code>, followed by the four-byte little-endian <code>INDEX</code>, with trailing zeroes omitted.</li>
 </ul>
 <p>ビットコイの取引IDのバイトは文の中での表現形式は逆的であり、ですのでシリーズ化の取引IDは逆の順序で呈していることをご注意ください。</p>
-<h3 id="例を挙げます"><a class="header" href="#例を挙げます">例を挙げます</a></h3>
+<h3 id="例"><a class="header" href="#例">例</a></h3>
 <p>An example of an inscription which delegates to <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
 <pre><code>OP_FALSE
 OP_IF
@@ -533,18 +533,18 @@ OP_ENDIF
 <p>The delegate field value uses the same encoding as the parent field. See <a href="inscriptions/provenance.html">provenance</a> for more examples of inscription ID encodings</p>
 <p>See <a href="inscriptions/examples.html#delegate">examples</a> for on-chain examples of inscriptions that feature this functionality.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="メタデータ"><a class="header" href="#メタデータ">メタデータ</a></h1>
-<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> metadata, stored as data pushes in fields with tag <code>5</code>. Since data pushes are limited to 520 bytes, metadata longer than 520 bytes must be split into multiple tag <code>5</code> fields, which will then be concatenated before decoding.</p>
-<p>Metadata is human readable, and all metadata will be displayed to the user with its inscription. Inscribers are encouraged to consider how metadata will be displayed, and make metadata concise and attractive.</p>
-<p>Metadata is rendered to HTML for display as follows:</p>
+<p>Inscriptionには<a href="https://cbor.io/">CBOR</a>メタデータを含めることができ、タグ<code>5</code>のフィールドにデータプッシュとして保存されます。データプッシュは520バイトに制限されているため、520バイトを超えるメタデータは複数のタグ<code>5</code>フィールドに分割し、デコード前に連結される必要があります。</p>
+<p>メタデータは人間が読める形式で、すべてのメタデータはInscriptionとともにユーザーに表示されます。Inscriptionの作成者は、メタデータがどのように表示されるかを考慮し、簡潔で魅力的なメタデータを作成することが推奨されます。</p>
+<p>メタデータは以下のようにHTMLレンダリングされて表示されます：</p>
 <ul>
-<li><code>null</code>, <code>true</code>, <code>false</code>, numbers, floats, and strings are rendered as plain text.</li>
-<li>Byte strings are rendered as uppercase hexadecimal.</li>
-<li>Arrays are rendered as <code>&lt;ul&gt;</code> tags, with every element wrapped in <code>&lt;li&gt;</code> tags.</li>
-<li>Maps are rendered as <code>&lt;dl&gt;</code> tags, with every key wrapped in <code>&lt;dt&gt;</code> tags, and every value wrapped in <code>&lt;dd&gt;</code> tags.</li>
+<li><code>null</code>、<code>true</code>、<code>false</code>、数値、浮動小数点数、文字列はプレーンテキストとしてレンダリングされます。</li>
+<li>バイト文字列は大文字の16進数としてレンダリングされます。</li>
+<li>配列は<code>&lt;ul&gt;</code>タグとしてレンダリングされ、各要素は<code>&lt;li&gt;</code>タグで囲まれます。</li>
+<li>マップは<code>&lt;dl&gt;</code>タグとしてレンダリングされ、各キーは<code>&lt;dt&gt;</code>タグ、各値は<code>&lt;dd&gt;</code>タグで囲まれます。</li>
 <li>Tags are rendered as the tag , enclosed in a <code>&lt;sup&gt;</code> tag, followed by the value.</li>
 </ul>
 <p>CBOR is a complex spec with many different data types, and multiple ways of representing the same data. Exotic data types, such as tags, floats, and bignums, and encoding such as indefinite values, may fail to display correctly or at all. Contributions to <code>ord</code> to remedy this are welcome.</p>
-<h2 id="例を挙げます-1"><a class="header" href="#例を挙げます-1">例を挙げます</a></h2>
+<h2 id="例-1"><a class="header" href="#例-1">例</a></h2>
 <p>Since CBOR is not human readable, in these examples it is represented as JSON. Keep in mind that this is <em>only</em> for these examples, and JSON metadata will <em>not</em> be displayed correctly.</p>
 <p>The metadata <code>{"foo":"bar","baz":[null,true,false,0]}</code> would be included in an inscription as:</p>
 <pre><code>OP_FALSE
@@ -591,7 +591,7 @@ OP_ENDIF
 <p>In order to make an inscription on a sat other than the first of its input, a zero-based integer, called the "pointer", can be provided with tag <code>2</code>, causing the inscription to be made on the sat at the given position in the outputs. If the pointer is equal to or greater than the number of total sats in the outputs of the inscribe transaction, it is ignored, and the inscription is made as usual. The value of the pointer field is a little endian integer, with trailing zeroes ignored.</p>
 <p>An even tag is used, so that old versions of <code>ord</code> consider the inscription to be unbound, instead of assigning it, incorrectly, to the first sat.</p>
 <p>This can be used to create multiple inscriptions in a single transaction on different sats, when otherwise they would be made on the same sat.</p>
-<h2 id="例"><a class="header" href="#例">例</a></h2>
+<h2 id="例-2"><a class="header" href="#例-2">例</a></h2>
 <p>An inscription with pointer 255:</p>
 <pre><code>OP_FALSE
 OP_IF
@@ -628,11 +628,11 @@ OP_IF
   OP_PUSH "Hello, world!"
 OP_ENDIF
 </code></pre>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="properties"><a class="header" href="#properties">Properties</a></h1>
-<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> properties, stored as data pushes in fields with tag <code>17</code>. Since data pushes are limited to 520 bytes, CBOR longer than 520 bytes must be split into multiple tag <code>17</code> fields, which will then be concatenated before decoding.</p>
-<p>Properties are a structured counterpart to <a href="inscriptions/metadata.html">metadata</a>. While metadata may contain arbitrary CBOR which has no protocol-defined meaning and is presented on <code>/inscription</code> as HTML, properties have protocol-defined meaning and must conform to a strict schema.</p>
-<p>Indefinite-length types are not supported. All maps, arrays, byte strings, and text strings must be definite.</p>
-<p>The non-normative <a href="https://datatracker.ietf.org/doc/html/rfc8610">CDDL</a> schema of the properties value is as follows:</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="プロパティ"><a class="header" href="#プロパティ">プロパティ</a></h1>
+<p>Inscriptionには<a href="https://cbor.io/">CBOR</a>プロパティを含めることができ、タグ<code>17</code>のフィールドにデータプッシュとして保存されます。データプッシュは520バイトに制限されているため、520バイトを超えるCBORは複数のタグ<code>17</code>フィールドに分割し、デコード前に連結される必要があります。</p>
+<p>プロパティは<a href="inscriptions/metadata.html">メタデータ</a>の構造化された対応物です。メタデータはプロトコル定義の意味を持たない任意のCBORを含み、<code>/inscription</code>でHTMLとして表示されますが、プロパティはプロトコル定義の意味を持ち、厳密なスキーマに準拠する必要があります。</p>
+<p>不定長型はサポートされていません。すべてのマップ、配列、バイト文字列、テキスト文字列は定長でなければなりません。</p>
+<p>プロパティ値の非規範的な<a href="https://datatracker.ietf.org/doc/html/rfc8610">CDDL</a>スキーマは以下の通りです：</p>
 <pre><code class="language-cddl">Properties = {
   ? 0: [*GalleryItem],
   * any =&gt; any,
@@ -643,14 +643,14 @@ GalleryItem = {
   * any =&gt; any,
 }
 </code></pre>
-<p>The above CDDL schema is provided as a convenience. As always, the ordinals reference implementation <code>ord</code> is the normative specification of inscriptions, and thus the properties field.</p>
-<p>Fields matching the <code>* any =&gt; any</code> wildcard must be ignored, for compatibility with future additions.</p>
-<h1 id="galleries"><a class="header" href="#galleries">Galleries</a></h1>
-<p>Inscriptions whose properties field contains <code>GalleryItem</code>s are galleries.</p>
-<p>Galleries contain <code>GalleryItem</code>s, whose only defined key <code>0</code> contains a serialized inscription ID. Inscription ID <code>TXIDiINDEX</code> is serialized as a byte string containing the 32 byte TXID, concatenated with by the four-byte little-endian <code>INDEX</code>. Trailing zeros may be removed from four-byte <code>INDEX</code>, so IDs ending in <code>i0</code> may be serialized in 32 bytes.</p>
-<p>Gallery items are displayed on the inscriptions <code>/inscription</code> page on the explorer.</p>
-<p>Galleries are similar to children, in that they provide a way to create collections of inscriptions. However, galleries are permissionless. Anyone may create a gallery including any inscriptions. Thus, inclusion in a gallery does not imply provenance. Additionally, because of this, inclusion in a gallery does not create a backlink from the gallery item's <code>/inscription</code> page to the gallery.</p>
-<p>Galleries may be created when batch inscribing with <code>ord wallet batch</code> by including an array of string inscription IDs of under the <code>gallery</code> key of the inscription entry in the batch file, or when using <code>ord wallet inscribe</code> using the <code>--gallery</code> option.</p>
+<p>上記のCDDLスキーマは便宜上提供されています。いつものように、オーディナルズのリファレンス実装である<code>ord</code>がInscriptionの規範的仕様であり、したがってプロパティフィールドの仕様でもあります。</p>
+<p><code>* any =&gt; any</code>ワイルドカードにマッチするフィールドは、将来の追加との互換性のために無視される必要があります。</p>
+<h1 id="ギャラリー"><a class="header" href="#ギャラリー">ギャラリー</a></h1>
+<p>プロパティフィールドに<code>GalleryItem</code>を含むInscriptionはギャラリーです。</p>
+<p>ギャラリーは<code>GalleryItem</code>を含み、その唯一の定義されたキー<code>0</code>にはシリアライズされたInscription IDが含まれます。Inscription ID <code>TXIDiINDEX</code>は、32バイトのTXIDと4バイトのリトルエンディアン<code>INDEX</code>を連結したバイト文字列としてシリアライズされます。4バイトの<code>INDEX</code>から末尾のゼロを削除できるため、<code>i0</code>で終わるIDは32バイトでシリアライズできます。</p>
+<p>ギャラリーアイテムは、エクスプローラーのInscriptionの<code>/inscription</code>ページに表示されます。</p>
+<p>ギャラリーは、Inscriptionのコレクションを作成する方法を提供するという点で子要素に似ています。ただし、ギャラリーはパーミッションレスです。誰でも任意のInscriptionを含むギャラリーを作成できます。したがって、ギャラリーに含まれることは出所を意味しません。さらに、このため、ギャラリーに含まれてもギャラリーアイテムの<code>/inscription</code>ページからギャラリーへのバックリンクは作成されません。</p>
+<p>ギャラリーは、<code>ord wallet batch</code>でバッチInscriptionを行う際に、バッチファイルのInscriptionエントリの<code>gallery</code>キーの下に文字列Inscription IDの配列を含めることで作成できます。また、<code>ord wallet inscribe</code>で<code>--gallery</code>オプションを使用することでも作成できます。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="プロビナンス"><a class="header" href="#プロビナンス">プロビナンス</a></h1>
 <p>銘文の所有者は子銘文を作り上げられ、チェーンの上で自由にこれらの子銘文の'遡源'を作り上げ、父の銘文の所有者から作り上げたことを証明します。集合に用いられて、父の銘文の子銘文は同じ集合のメンバーとなります。</p>
 <p>子銘文も自分の子銘文を作成することができ、様々な階層構造が形成ます。例えば、ある芸術家は自分を代表する銘文を作成して、子銘文は彼らが作成したコレクションを代表し、この銘文のそれぞれのサブプロジェクトはコレクションの中のプロジェクトです。</p>
@@ -662,7 +662,7 @@ GalleryItem = {
 <li><code>Cの中にはラベル'３'が含まれ、</code>OP_PUSH 3<code>ということです。数値はPのシリーズ化のバイナリー銘文IDのシリーズ化は32バイトの</code>TXID<code>です。後は4バイトのスモールエンドの</code>INDEX`で、最後の0が含まれません</li>
 </ul>
 <p>ビットコイの取引IDのバイトは文の中での表現形式は逆的であり、ですのでシリーズ化の取引IDは逆の順序で呈していることをご注意ください。</p>
-<h3 id="例を挙げます-2"><a class="header" href="#例を挙げます-2">例を挙げます</a></h3>
+<h3 id="例-3"><a class="header" href="#例-3">例</a></h3>
 <p>子銘文の例 <code>000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1fi0</code>:</p>
 <pre><code>OP_FALSE
 OP_IF
@@ -699,13 +699,13 @@ OP_ENDIF
 <p>処分された父の銘文を通して、一つの集合を閉じることができます。この集合の中のより多くの発行されない項目を保証しております。</p>
 <p>See <a href="inscriptions/examples.html#provenance">examples</a> for on-chain examples of inscriptions that feature this functionality.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="再帰"><a class="header" href="#再帰">再帰</a></h1>
-<p>An important exception to <a href="inscriptions/../inscriptions.html#sandboxing">sandboxing</a> is recursion. Recursive endpoints are whitelisted endpoints that allow access to on-chain data, including the content of other inscriptions.</p>
-<p>Since changes to recursive endpoints might break inscriptions that rely on them, recursive endpoints have backwards-compatibility guarantees not shared by <code>ord server</code>'s other endpoints. In particular:</p>
+<p><a href="inscriptions/../inscriptions.html#sandboxing">サンドボックス化</a>の重要な例外は再帰です。再帰エンドポイントは オンチェーンデータへのアクセスを許可するホワイトリスト化されたエンドポイントで、他の碑文の コンテンツも含まれます。</p>
+<p>再帰エンドポイントへの変更は、それらに依存する碑文を破壊する可能性があるため、再帰 エンドポイントには <code>ord server</code> の他のエンドポイントと共有されない後方互換性の保証があります。特に：</p>
 <ul>
-<li>Recursive endpoints will not be removed</li>
-<li>Object fields returned by recursive endpoints will not be renamed or change types</li>
+<li>再帰エンドポイントは削除されません</li>
+<li>再帰エンドポイントが返すオブジェクトフィールドは、名前の変更や型の変更は行われません</li>
 </ul>
-<p>However, additional object fields may be added or reordered, so inscriptions must handle additional, unexpected fields, and must not expect fields to be returned in a specific order.</p>
+<p>ただし、追加のオブジェクトフィールドが追加または並び替えされる可能性があるため、碑文は追加の予期しないフィールドを処理する必要があり、フィールドが特定の順序で返されることを期待してはいけません。</p>
 <p>Recursion has a number of interesting use-cases:</p>
 <ul>
 <li>
@@ -721,19 +721,19 @@ OP_ENDIF
 <p>アクセサリーやプロパティを含むプロファイル画像セットを生成し、個別の画像として書き込むか、共有テクスチャマップセットに書き込み、の組み合わせ、コラージュスタイル、複数の銘文の中で独特の組み合わせで。</p>
 </li>
 </ul>
-<h2 id="endpoints"><a class="header" href="#endpoints">Endpoints</a></h2>
+<h2 id="エンドポイント"><a class="header" href="#エンドポイント">エンドポイント</a></h2>
 <details>
   <summary>
     <code>GET</code>
     <code><b>/content/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 <h3 id="description"><a class="header" href="#description">Description</a></h3>
-<p>The content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code>.</p>
-<h3 id="例を挙げます-3"><a class="header" href="#例を挙げます-3">例を挙げます</a></h3>
+<p><code>&lt;INSCRIPTION_ID&gt;</code> の碑文のコンテンツ。</p>
+<h3 id="例-4"><a class="header" href="#例-4">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 &gt; skull.jpg
 </code></pre>
-<p><i>no terminal output, just file creation</i></p>
+<p><i>ターミナル出力なし、ファイルの作成のみ</i></p>
 </details>
 <details>
   <summary>
@@ -742,7 +742,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-1"><a class="header" href="#description-1">Description</a></h3>
 <p>Latest block hash.</p>
-<h3 id="例を挙げます-4"><a class="header" href="#例を挙げます-4">例を挙げます</a></h3>
+<h3 id="例-5"><a class="header" href="#例-5">例</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash
 </code></pre>
@@ -756,7 +756,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-2"><a class="header" href="#description-2">Description</a></h3>
 <p>Block hash at given block height as JSON string.</p>
-<h3 id="例を挙げます-5"><a class="header" href="#例を挙げます-5">例を挙げます</a></h3>
+<h3 id="例-6"><a class="header" href="#例-6">例</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash/840000
 </code></pre>
@@ -770,7 +770,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-3"><a class="header" href="#description-3">Description</a></h3>
 <p>Latest block height.</p>
-<h3 id="例を挙げます-6"><a class="header" href="#例を挙げます-6">例を挙げます</a></h3>
+<h3 id="例-7"><a class="header" href="#例-7">例</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockheight
 </code></pre>
@@ -783,8 +783,8 @@ OP_ENDIF
     <code><b>/r/blockinfo/&lt;QUERY&gt;</b></code>
   </summary>
 <h3 id="description-4"><a class="header" href="#description-4">Description</a></h3>
-<p>Block info. <code>&lt;QUERY&gt;</code> may be a block height or block hash.</p>
-<h3 id="example-blockheight"><a class="header" href="#example-blockheight">Example (blockheight)</a></h3>
+<p>ブロック情報。<code>&lt;QUERY&gt;</code> はブロック高さまたはブロックハッシュです。</p>
+<h3 id="例ブロック高さ"><a class="header" href="#例ブロック高さ">例（ブロック高さ）</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/blockinfo/0
 </code></pre>
@@ -825,7 +825,7 @@ OP_ENDIF
   "version": 1
 }
 </code></pre>
-<h3 id="example-blockhash"><a class="header" href="#example-blockhash">Example (blockhash)</a></h3>
+<h3 id="例ブロックハッシュ"><a class="header" href="#例ブロックハッシュ">例（ブロックハッシュ）</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/blockinfo/0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5
 </code></pre>
@@ -877,7 +877,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-5"><a class="header" href="#description-5">Description</a></h3>
 <p>UNIX time stamp of latest block.</p>
-<h3 id="例を挙げます-7"><a class="header" href="#例を挙げます-7">例を挙げます</a></h3>
+<h3 id="例-8"><a class="header" href="#例-8">例</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blocktime
 </code></pre>
@@ -890,8 +890,8 @@ OP_ENDIF
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 <h3 id="description-6"><a class="header" href="#description-6">Description</a></h3>
-<p>The first 100 child inscription ids.</p>
-<h3 id="例を挙げます-8"><a class="header" href="#例を挙げます-8">例を挙げます</a></h3>
+<p>最初の100件の子碑文ID。</p>
+<h3 id="例-9"><a class="header" href="#例-9">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0
 </code></pre>
@@ -1010,7 +1010,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-7"><a class="header" href="#description-7">Description</a></h3>
 <p>The set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</p>
-<h3 id="例を挙げます-9"><a class="header" href="#例を挙げます-9">例を挙げます</a></h3>
+<h3 id="例-10"><a class="header" href="#例-10">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/9
 </code></pre>
@@ -1129,7 +1129,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-8"><a class="header" href="#description-8">Description</a></h3>
 <p>Details of first 100 child inscriptions of <code>INSCRIPTION_ID</code>.</p>
-<h3 id="例を挙げます-10"><a class="header" href="#例を挙げます-10">例を挙げます</a></h3>
+<h3 id="例-11"><a class="header" href="#例-11">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions
 </code></pre>
@@ -1160,7 +1160,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-9"><a class="header" href="#description-9">Description</a></h3>
 <p>Details of 100 child inscriptions of <code>INSCRIPTION_ID</code> paginated by <code>PAGE</code>.</p>
-<h3 id="例を挙げます-11"><a class="header" href="#例を挙げます-11">例を挙げます</a></h3>
+<h3 id="例-12"><a class="header" href="#例-12">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions/9
 </code></pre>
@@ -1214,7 +1214,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-11"><a class="header" href="#description-11">Description</a></h3>
 <p>Information about an inscription.</p>
-<h3 id="例を挙げます-12"><a class="header" href="#例を挙げます-12">例を挙げます</a></h3>
+<h3 id="例-13"><a class="header" href="#例-13">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/inscriptions/13130e4b299ed361f2a734f6433844ef0f0211cd504e0ca8f4d4ab20f51b8127i0
 </code></pre>
@@ -1245,7 +1245,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-12"><a class="header" href="#description-12">Description</a></h3>
 <p>JSON string containing the hex-encoded CBOR metadata.</p>
-<h3 id="例を挙げます-13"><a class="header" href="#例を挙げます-13">例を挙げます</a></h3>
+<h3 id="例-14"><a class="header" href="#例-14">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/metadata/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
@@ -1259,7 +1259,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-13"><a class="header" href="#description-13">Description</a></h3>
 <p>The first 100 parent inscription ids.</p>
-<h3 id="例を挙げます-14"><a class="header" href="#例を挙げます-14">例を挙げます</a></h3>
+<h3 id="例-15"><a class="header" href="#例-15">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
@@ -1279,7 +1279,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-14"><a class="header" href="#description-14">Description</a></h3>
 <p>The set of 100 parent inscription ids on <code>&lt;PAGE&gt;</code>.</p>
-<h3 id="例を挙げます-15"><a class="header" href="#例を挙げます-15">例を挙げます</a></h3>
+<h3 id="例-16"><a class="header" href="#例-16">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/9
 </code></pre>
@@ -1297,7 +1297,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-15"><a class="header" href="#description-15">Description</a></h3>
 <p>Details of the first 100 parent inscriptions.</p>
-<h3 id="例を挙げます-16"><a class="header" href="#例を挙げます-16">例を挙げます</a></h3>
+<h3 id="例-17"><a class="header" href="#例-17">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/parents/4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019i0/inscriptions
 </code></pre>
@@ -1350,7 +1350,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-16"><a class="header" href="#description-16">Description</a></h3>
 <p>Details of the set of 100 parent inscriptions on &lt;PAGE&gt;.</p>
-<h3 id="例を挙げます-17"><a class="header" href="#例を挙げます-17">例を挙げます</a></h3>
+<h3 id="例-18"><a class="header" href="#例-18">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/parents/4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019i0/inscriptions/1
 </code></pre>
@@ -1403,7 +1403,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
 <p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="例を挙げます-18"><a class="header" href="#例を挙げます-18">例を挙げます</a></h3>
+<h3 id="例-19"><a class="header" href="#例-19">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999
 </code></pre>
@@ -1426,7 +1426,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
 <p>The set of 100 inscription ids on <code>&lt;PAGE&gt;</code>. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="例を挙げます-19"><a class="header" href="#例を挙げます-19">例を挙げます</a></h3>
+<h3 id="例-20"><a class="header" href="#例-20">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/1499676120331756/1
 </code></pre>
@@ -1456,7 +1456,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
 <p>The inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="例を挙げます-20"><a class="header" href="#例を挙げます-20">例を挙げます</a></h3>
+<h3 id="例-21"><a class="header" href="#例-21">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999/at/-1
 </code></pre>
@@ -1472,7 +1472,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
 <p>The content of the inscription at <code>&lt;INDEX&gt;</code> on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="例を挙げます-21"><a class="header" href="#例を挙げます-21">例を挙げます</a></h3>
+<h3 id="例-22"><a class="header" href="#例-22">例</a></h3>
 <p>Fetch the content of the most recently created inscription on sat 289488340427831.</p>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/289488340427831/at/-1/content
@@ -1487,7 +1487,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-21"><a class="header" href="#description-21">Description</a></h3>
 <p>Get hex-encoded transaction with <code>&lt;TRANSACTION_ID&gt;</code>. In the event of a future change to Bitcoin that changes transaction serialization in a backwards-incompatible fashion, such as SegWit, this endpoint is guaranteed to remain backwards compatible.</p>
-<h3 id="例を挙げます-22"><a class="header" href="#例を挙げます-22">例を挙げます</a></h3>
+<h3 id="例-23"><a class="header" href="#例-23">例</a></h3>
 <pre><code class="language-bash">curl -s http://0.0.0.0:80/r/tx/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa
 </code></pre>
 <pre><code class="language-json">"0100000000010183572872dcb32bee57003d53c2b8dbb5bc5819ff6478052599911f7778d1c7bd0000000000fdffffff011027000000000000225120e41e0cba05c6ac797cf543ff9a6c619a91a53813e59146d1e32ea89747b111a603407aa50d93d6fc01265fd52d3edc93af4e009ccc1a704ce1b5cb8ede1412a5df31eba587d080b3dc903ceb9002ed9d921aad323fd44d7b4dc2a1ad2ea12d4360424d20c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326effac0063036f7264010118746578742f706c61696e3b636861727365743d7574662d3800077072696d65730a6821c1c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326eff00000000"
@@ -1500,7 +1500,7 @@ OP_ENDIF
   </summary>
 <h3 id="description-22"><a class="header" href="#description-22">Description</a></h3>
 <p>Get assets held by an unspent transaction output.</p>
-<h3 id="例-1"><a class="header" href="#例-1">例</a></h3>
+<h3 id="例-24"><a class="header" href="#例-24">例</a></h3>
 <p>Unspent transaction output with server without any indices:</p>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/utxo/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
@@ -1606,69 +1606,69 @@ i               # separator
 <li><a href="https://ordinals.com/content/e48af8aebe608656a3739393d1270d88285ab3051fb800743509d82bcf163623i0">This code</a> is called recursively in <a href="https://ordinals.com/inscription/70940369">this inscription</a>, allowing it to function as a pixel art drawing program.</li>
 </ul>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="ルーン"><a class="header" href="#ルーン">ルーン</a></h1>
-<p>Runes allow Bitcoin transactions to etch, mint, and transfer Bitcoin-native digital commodities.</p>
-<p>Whereas every inscription is unique, every unit of a rune is the same. They are interchangeable tokens, fit for a variety of purposes.</p>
-<h2 id="runestones"><a class="header" href="#runestones">Runestones</a></h2>
-<p>Rune protocol messages, called runestones, are stored in Bitcoin transaction outputs.</p>
-<p>A runestone output's script pubkey begins with an <code>OP_RETURN</code>, followed by <code>OP_13</code>, followed by zero or more data pushes. These data pushes are concatenated and decoded into a sequence of 128-bit integers, and finally parsed into a runestone.</p>
-<p>A transaction may have at most one runestone.</p>
-<p>A runestone may etch a new rune, mint an existing rune, and transfer runes from a transaction's inputs to its outputs.</p>
-<p>A transaction output may hold balances of any number of runes.</p>
-<p>Runes are identified by IDs, which consist of the block in which a rune was etched and the index of the etching transaction within that block, represented in text as <code>BLOCK:TX</code>. For example, the ID of the rune etched in the 20th transaction of the 500th block is <code>500:20</code>.</p>
-<h2 id="etching"><a class="header" href="#etching">Etching</a></h2>
-<p>Runes come into existence by being etched. Etching creates a rune and sets its properties. Once set, these properties are immutable, even to its etcher.</p>
+<p>ルーンはビットコイントランザクションでビットコインネイティブのデジタルコモディティをエッチング、ミント、転送することを可能にします。</p>
+<p>すべての碑文がユニークであるのに対し、ルーンの各単位は同じです。これらは交換可能なトークンであり、様々な目的に適しています。</p>
+<h2 id="ルーンストーン"><a class="header" href="#ルーンストーン">ルーンストーン</a></h2>
+<p>ルーンストーンと呼ばれるルーンプロトコルメッセージは、ビットコイントランザクションアウトプットに格納されます。</p>
+<p>ルーンストーンアウトプットのスクリプト pubkey は <code>OP_RETURN</code> で始まり、続いて <code>OP_13</code>、その後ゼロ個以上のデータプッシュが続きます。これらのデータプッシュは連結され、128ビット整数のシーケンスにデコードされ、最終的にルーンストーンに解析されます。</p>
+<p>トランザクションには最大1つのルーンストーンが含まれる可能性があります。</p>
+<p>ルーンストーンは新しいルーンをエッチング、既存のルーンをミント、またはトランザクションのインプットからアウトプットへルーンを転送することができます。</p>
+<p>トランザクションアウトプットには任意の数のルーンの残高を保持することができます。</p>
+<p>ルーンはIDによって識別されます。IDはルーンがエッチングされたブロックと、そのブロック内でのエッチングトランザクションのインデックスから構成され、テキストでは <code>BLOCK:TX</code> として表現されます。たとえば、500番目のブロックの20番目のトランザクションでエッチングされたルーンのIDは <code>500:20</code> です。</p>
+<h2 id="エッチング"><a class="header" href="#エッチング">エッチング</a></h2>
+<p>ルーンはエッチングされることで存在します。エッチングはルーンを作成し、そのプロパティを設定します。一度設定されたこれらのプロパティは、エッチングした者であっても不変です。</p>
 <h3 id="name"><a class="header" href="#name">Name</a></h3>
-<p>Names consist of the letters A through Z and are between one and twenty-six letters long. For example <code>UNCOMMONGOODS</code> is a rune name.</p>
-<p>Names may contain spacers, represented as bullets, to aid readability. <code>UNCOMMONGOODS</code> might be etched as <code>UNCOMMON•GOODS</code>.</p>
-<p>The uniqueness of a name does not depend on spacers. Thus, a rune may not be etched with the same sequence of letters as an existing rune, even if it has different spacers.</p>
-<p>Spacers can only be placed between two letters. Finally, spacers do not count towards the letter count.</p>
-<h3 id="divisibility"><a class="header" href="#divisibility">Divisibility</a></h3>
-<p>A rune's divisibility is how finely it may be divided into its atomic units. Divisibility is expressed as the number of digits permissible after the decimal point in an amount of runes. A rune with divisibility 0 may not be divided. A unit of a rune with divisibility 1 may be divided into ten sub-units, a rune with divisibility 2 may be divided into a hundred, and so on.</p>
-<h3 id="symbol"><a class="header" href="#symbol">Symbol</a></h3>
-<p>A rune's currency symbol is a single Unicode code point, for example <code>$</code>, <code>⧉</code>, or <code>🧿</code>, displayed after quantities of that rune.</p>
-<p>101 atomic units of a rune with divisibility 2 and symbol <code>🧿</code> would be rendered as <code>1.01 🧿</code>.</p>
-<p>If a rune does not have a symbol, the generic currency sign <code>¤</code>, also called a scarab, should be used.</p>
-<h3 id="premine"><a class="header" href="#premine">Premine</a></h3>
-<p>The etcher of a rune may optionally allocate to themselves units of the rune being etched. This allocation is called a premine.</p>
-<h3 id="terms"><a class="header" href="#terms">Terms</a></h3>
-<p>A rune may have an open mint, allowing anyone to create and allocate units of that rune for themselves. An open mint is subject to terms, which are set upon etching.</p>
-<p>A mint is open while all terms of the mint are satisfied, and closed when any of them are not. For example, a mint may be limited to a starting height, an ending height, and a cap, and will be open between the starting height and ending height, or until the cap is reached, whichever comes first.</p>
-<h4 id="cap"><a class="header" href="#cap">Cap</a></h4>
-<p>The number of times a rune may be minted is its cap. A mint is closed once the cap is reached.</p>
-<h4 id="amount"><a class="header" href="#amount">Amount</a></h4>
-<p>Each mint transaction creates a fixed amount of new units of a rune.</p>
-<h4 id="start-height"><a class="header" href="#start-height">Start Height</a></h4>
-<p>A mint is open starting in the block with the given start height.</p>
-<h4 id="end-height"><a class="header" href="#end-height">End Height</a></h4>
-<p>A rune may not be minted in or after the block with the given end height.</p>
-<h4 id="start-offset"><a class="header" href="#start-offset">Start Offset</a></h4>
-<p>A mint is open starting in the block whose height is equal to the start offset plus the height of the block in which the rune was etched.</p>
-<h4 id="end-offset"><a class="header" href="#end-offset">End Offset</a></h4>
-<p>A rune may not be minted in or after the block whose height is equal to the end offset plus the height of the block in which the rune was etched.</p>
-<h2 id="minting"><a class="header" href="#minting">Minting</a></h2>
-<p>While a rune's mint is open, anyone may create a mint transaction that creates a fixed amount of new units of that rune, subject to the terms of the mint.</p>
-<h2 id="transferring"><a class="header" href="#transferring">Transferring</a></h2>
-<p>When transaction inputs contain runes, or new runes are created by a premine or mint, those runes are transferred to that transaction's outputs. A transaction's runestone may change how input runes transfer to outputs.</p>
-<h3 id="edicts"><a class="header" href="#edicts">Edicts</a></h3>
-<p>A runestone may contain any number of edicts. Edicts consist of a rune ID, an amount, and an output number. Edicts are processed in order, allocating unallocated runes to outputs.</p>
+<p>名前はAからZの文字から構成され、1文字から26文字の長さです。たとえば、<code>UNCOMMONGOODS</code> はルーン名です。</p>
+<p>名前には可読性を高めるために、ブリットで表現されるスペーサーを含めることができます。<code>UNCOMMONGOODS</code> は <code>UNCOMMON•GOODS</code> としてエッチングされる場合があります。</p>
+<p>名前の一意性はスペーサーに依存しません。したがって、別のスペーサーを持つ場合であっても、既存のルーンと同じ文字の配列でルーンをエッチングすることはできません。</p>
+<p>スペーサーは2つの文字の間にのみ配置できます。また、スペーサーは文字数にカウントされません。</p>
+<h3 id="分割可能性"><a class="header" href="#分割可能性">分割可能性</a></h3>
+<p>ルーンの分割可能性とは、そのルーンが原子単位にどれだけ細かく分割できるかを示します。分割可能性は、ルーン量における小数点以下の許可される桁数として表されます。分割可能性が0のルーンは分割できません。分割可能性が1のルーンの単位は10のサブユニットに分割でき、分割可能性が2のルーンは100に分割でき、以下同様に続きます。</p>
+<h3 id="シンボル"><a class="header" href="#シンボル">シンボル</a></h3>
+<p>ルーンの通貨シンボルは単一のUnicodeコードポイントです。例えば<code>$</code>、<code>⧉</code>、または<code>🧿</code>などで、そのルーンの数量の後に表示されます。</p>
+<p>分割可能性が2でシンボルが<code>🧿</code>のルーンの101原子単位は<code>1.01 🧿</code>として表示されます。</p>
+<p>ルーンにシンボルがない場合は、スカラベとも呼ばれる汎用通貨記号<code>¤</code>を使用する必要があります。</p>
+<h3 id="プリマイン"><a class="header" href="#プリマイン">プリマイン</a></h3>
+<p>ルーンのエッチャー（作成者）は、オプションでエッチされるルーンの単位を自分自身に割り当てることができます。この割り当てはプリマインと呼ばれます。</p>
+<h3 id="条件"><a class="header" href="#条件">条件</a></h3>
+<p>ルーンはオープンミントを持つことができ、誰でもそのルーンの単位を自分のために作成し割り当てることができます。オープンミントは、エッチング時に設定される条件に従います。</p>
+<p>ミントは、ミントのすべての条件が満たされている間はオープンし、いずれかが満たされなくなるとクローズします。例えば、ミントは開始ブロック高、終了ブロック高、上限に制限される場合があり、開始ブロック高から終了ブロック高の間、または上限に達するまで、どちらか早い方まで開いています。</p>
+<h4 id="上限"><a class="header" href="#上限">上限</a></h4>
+<p>ルーンがミントできる回数がその上限です。上限に達すると、ミントは閉じられます。</p>
+<h4 id="金額"><a class="header" href="#金額">金額</a></h4>
+<p>各ミントトランザクションは、ルーンの固定量の新しい単位を作成します。</p>
+<h4 id="開始ブロック高"><a class="header" href="#開始ブロック高">開始ブロック高</a></h4>
+<p>指定された開始ブロック高のブロックからミントが開始されます。</p>
+<h4 id="終了ブロック高"><a class="header" href="#終了ブロック高">終了ブロック高</a></h4>
+<p>指定された終了ブロック高のブロック以降では、ルーンをミントすることはできません。</p>
+<h4 id="開始オフセット"><a class="header" href="#開始オフセット">開始オフセット</a></h4>
+<p>ミントは、開始オフセット＋ルーンがエッチされたブロックの高さに等しい高さのブロックから開始されます。</p>
+<h4 id="終了オフセット"><a class="header" href="#終了オフセット">終了オフセット</a></h4>
+<p>ルーンは、終了オフセット＋ルーンがエッチされたブロックの高さに等しい高さのブロック以降ではミントすることはできません。</p>
+<h2 id="ミンティング"><a class="header" href="#ミンティング">ミンティング</a></h2>
+<p>ルーンのミントがオープンしている間、誰でもミントの条件に従って、そのルーンの固定量の新しい単位を作成するミントトランザクションを作成することができます。</p>
+<h2 id="転送"><a class="header" href="#転送">転送</a></h2>
+<p>トランザクションの入力にルーンが含まれるか、プリマインやミントによって新しいルーンが作成される場合、それらのルーンはそのトランザクションの出力に転送されます。トランザクションのルーンストーンは、入力ルーンが出力に転送される方法を変更することがあります。</p>
+<h3 id="命令"><a class="header" href="#命令">命令</a></h3>
+<p>ルーンストーンには任意の数の命令を含めることができます。命令はルーンID、金額、出力番号で構成されます。命令は順番に処理され、未割り当てのルーンを出力に割り当てます。</p>
 <h3 id="ポインタ-1"><a class="header" href="#ポインタ-1">ポインタ</a></h3>
-<p>After all edicts are processed, remaining unallocated runes are transferred to the transaction's first non-<code>OP_RETURN</code> output. A runestone may optionally contain a pointer that specifies an alternative default output.</p>
+<p>すべての命令が処理された後、残った未割り当てのルーンは、トランザクションの最初の非<code>OP_RETURN</code>出力に転送されます。ルーンストーンには、オプションで代替のデフォルト出力を指定するポインターを含めることができます。</p>
 <h3 id="バーン-1"><a class="header" href="#バーン-1">バーン</a></h3>
-<p>Runes may be burned by transferring them to an <code>OP_RETURN</code> output with an edict or pointer.</p>
-<h2 id="cenotaphs"><a class="header" href="#cenotaphs">Cenotaphs</a></h2>
-<p>Runestones may be malformed for a number of reasons, including non-pushdata opcodes in the runestone <code>OP_RETURN</code>, invalid varints, or unrecognized runestone fields.</p>
-<p>Malformed runestones are termed <a href="https://en.wikipedia.org/wiki/Cenotaph">cenotaphs</a>.</p>
-<p>Runes input to a transaction with a cenotaph are burned. Runes etched in a transaction with a cenotaph are set as unmintable. Mints in a transaction with a cenotaph count towards the mint cap, but the minted runes are burned.</p>
-<p>Cenotaphs are an upgrade mechanism, allowing runestones to be given new semantics that change how runes are created and transferred, while not misleading unupgraded clients as to the location of those runes, as unupgraded clients will see those runes as having been burned.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="runes-does-not-have-a-specification"><a class="header" href="#runes-does-not-have-a-specification">Runes Does Not Have a Specification</a></h1>
-<p>The Runes reference implementation, <code>ord</code>, is the normative specification of the Runes protocol.</p>
-<p>Nothing you read here or elsewhere, aside from the code of <code>ord</code>, is a specification. This prose description of the runes protocol is provided as a guide to the behavior of <code>ord</code>, and the code of <code>ord</code> itself should always be consulted to confirm the correctness of any prose description.</p>
-<p>If, due to a bug in <code>ord</code>, this document diverges from the actual behavior of <code>ord</code> and it is impractically disruptive to change <code>ord</code>'s behavior, this document will be amended to agree with <code>ord</code>'s actual behavior.</p>
-<p>Users of alternative implementations do so at their own risk, and services wishing to integrate Runes are strongly encouraged to use <code>ord</code> itself to make Runes transactions, and to determine the state of runes, mints, and balances.</p>
-<h2 id="runestones-1"><a class="header" href="#runestones-1">Runestones</a></h2>
-<p>Rune protocol messages are termed "runestones".</p>
-<p>The Runes protocol activates on block 840,000. Runestones in earlier blocks are ignored.</p>
-<p>Abstractly, runestones contain the following fields:</p>
+<p>ルーンは、命令やポインターで<code>OP_RETURN</code>出力に転送することでバーン（無効化）することができます。</p>
+<h2 id="空墓セノタフ"><a class="header" href="#空墓セノタフ">空墓（セノタフ）</a></h2>
+<p>ルーンストーンは、ルーンストーン<code>OP_RETURN</code>内の非プッシュデータオプコード、無効なvarint、または認識されないルーンストーンフィールドなど、いくつかの理由で形式が不正になることがあります。</p>
+<p>形式不正のルーンストーンは<a href="https://en.wikipedia.org/wiki/Cenotaph">空墓（cenotaphs）</a>と呼ばれます。</p>
+<p>空墓を持つトランザクションに入力されるルーンはバーンされます。空墓を持つトランザクションでエッチされるルーンはミント不可に設定されます。空墓を持つトランザクションのミントはミント上限にカウントされますが、ミントされたルーンはバーンされます。</p>
+<p>空墓はアップグレードメカニズムであり、ルーンストーンにルーンの作成と転送方法を変更する新しいセマンティクスを与えることを可能にします。アップグレードしていないクライアントがそれらのルーンをバーンされたものとして見るため、アップグレードしていないクライアントを惑わせることはありません。</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="ルーンには仕様書がありません"><a class="header" href="#ルーンには仕様書がありません">ルーンには仕様書がありません</a></h1>
+<p>ルーンプロトコルのリファレンス実装である <code>ord</code> が、ルーンプロトコルの 規範的仕様です。</p>
+<p><code>ord</code> のコード以外で、ここや他の場所で読んでいるものは仕様ではありません。 このルーンプロトコルの散文記述は <code>ord</code> の動作のガイドとして提供されており、 任意の散文記述の正しさを確認するためには常に <code>ord</code> のコード自体を参照する必要があります。</p>
+<p><code>ord</code> のバグによってこのドキュメントが <code>ord</code> の実際の動作から逸脱し、 <code>ord</code> の動作を変更することが非現実的に破壊的である場合、このドキュメントは <code>ord</code> の実際の動作に合わせて修正されます。</p>
+<p>代替実装のユーザーは自己責任で行い、ルーンの統合を希望するサービスは、 ルーントランザクションを作成し、ルーン、ミント、残高の状態を判定するために <code>ord</code> 自体を使用することを強く推奨します。</p>
+<h2 id="ルーンストーン-1"><a class="header" href="#ルーンストーン-1">ルーンストーン</a></h2>
+<p>ルーンプロトコルメッセージは「ルーンストーン」と呼ばれます。</p>
+<p>ルーンプロトコルはブロック 840,000 で有効化されます。それ以前のブロックの ルーンストーンは無視されます。</p>
+<p>抽象的に、ルーンストーンには以下のフィールドが含まれています：</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Runestone {
@@ -1678,7 +1678,7 @@ i               # separator
   pointer: Option&lt;u32&gt;,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Runes are created by etchings:</p>
+<p>ルーンはエッチングによって作成されます：</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Etching {
@@ -1690,7 +1690,7 @@ i               # separator
   terms: Option&lt;Terms&gt;,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Which may contain mint terms:</p>
+<p>これにはミント条件が含まれる場合があります：</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Terms {
@@ -1700,7 +1700,7 @@ i               # separator
   offset: (Option&lt;u64&gt;, Option&lt;u64&gt;),
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Runes are transferred by edict:</p>
+<p>ルーンは勅令によって転送されます：</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Edict {
@@ -1717,33 +1717,33 @@ i               # separator
   tx: u32,
 }
 <span class="boring">}</span></code></pre></pre>
-<p>Rune IDs are represented in text as <code>BLOCK:TX</code>.</p>
-<p>Rune names are encoded as modified base-26 integers:</p>
+<p>ルーンIDはテキストで <code>BLOCK:TX</code> として表現されます。</p>
+<p>ルーン名は修正されたbase-26整数としてエンコードされます：</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Rune(u128);
 <span class="boring">}</span></code></pre></pre>
-<h3 id="deciphering"><a class="header" href="#deciphering">Deciphering</a></h3>
-<p>Runestones are deciphered from transactions with the following steps:</p>
+<h3 id="解読"><a class="header" href="#解読">解読</a></h3>
+<p>ルーンストーンは、以下の手順でトランザクションから解読されます：</p>
 <ol>
 <li>
-<p>Find the first transaction output whose script pubkey begins with <code>OP_RETURN OP_13</code>.</p>
+<p>スクリプト公開鍵が <code>OP_RETURN OP_13</code> で始まる最初のトランザクション出力を見つけます。</p>
 </li>
 <li>
-<p>Concatenate all following data pushes into a payload buffer.</p>
+<p>以降のすべてのデータプッシュをペイロードバッファに連結します。</p>
 </li>
 <li>
-<p>Decode a sequence 128-bit <a href="https://en.wikipedia.org/wiki/LEB128">LEB128</a> integers from the payload buffer.</p>
+<p>ペイロードバッファから128ビット <a href="https://en.wikipedia.org/wiki/LEB128">LEB128</a> 整数のシーケンスをデコードします。</p>
 </li>
 <li>
-<p>Parse the sequence of integers into an untyped message.</p>
+<p>整数のシーケンスを型付けされていないメッセージにパースします。</p>
 </li>
 <li>
-<p>Parse the untyped message into a runestone.</p>
+<p>型付けされていないメッセージをルーンストーンにパースします。</p>
 </li>
 </ol>
-<p>Deciphering may produce a malformed runestone, termed a <a href="https://en.wikipedia.org/wiki/Cenotaph">cenotaph</a>.</p>
-<h4 id="locating-the-runestone-output"><a class="header" href="#locating-the-runestone-output">Locating the Runestone Output</a></h4>
+<p>解読によって不正形のルーンストーンが生成される場合があり、これは <a href="https://en.wikipedia.org/wiki/Cenotaph">cenotaph</a> と呼ばれます。</p>
+<h4 id="ルーンストーン出力の特定"><a class="header" href="#ルーンストーン出力の特定">ルーンストーン出力の特定</a></h4>
 <p>Outputs are searched for the first script pubkey that beings with <code>OP_RETURN OP_13</code>. If deciphering fails, later matching outputs are not considered.</p>
 <h4 id="assembling-the-payload-buffer"><a class="header" href="#assembling-the-payload-buffer">Assembling the Payload Buffer</a></h4>
 <p>The payload buffer is assembled by concatenating data pushes, after <code>OP_13</code>, in the matching script pubkey.</p>
@@ -1857,11 +1857,11 @@ i               # separator
 <p>If the value of the flags field after removing recognized flags is nonzero, the runestone is a cenotaph.</p>
 <h5 id="rune"><a class="header" href="#rune">Rune</a></h5>
 <p>The <code>Rune</code> field contains the name of the rune being etched. If the <code>Etching</code> flag is set but the <code>Rune</code> field is omitted, a reserved rune name is allocated.</p>
-<h5 id="premine-1"><a class="header" href="#premine-1">Premine</a></h5>
+<h5 id="プリマイン-1"><a class="header" href="#プリマイン-1">プリマイン</a></h5>
 <p>The <code>Premine</code> field contains the amount of premined runes.</p>
-<h5 id="cap-1"><a class="header" href="#cap-1">Cap</a></h5>
+<h5 id="上限-1"><a class="header" href="#上限-1">上限</a></h5>
 <p>The <code>Cap</code> field contains the allowed number of mints.</p>
-<h5 id="amount-1"><a class="header" href="#amount-1">Amount</a></h5>
+<h5 id="金額-1"><a class="header" href="#金額-1">金額</a></h5>
 <p>The <code>Amount</code> field contains the amount of runes each mint transaction receives.</p>
 <h5 id="heightstart-and-heightend"><a class="header" href="#heightstart-and-heightend">HeightStart and HeightEnd</a></h5>
 <p>The <code>HeightStart</code> and <code>HeightEnd</code> fields contain the mint's starting and ending absolute block heights, respectively. The mint is open starting in the block with height <code>HeightStart</code>, and closes in the block with height <code>HeightEnd</code>.</p>
@@ -1873,10 +1873,10 @@ i               # separator
 <p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than the number of outputs, the runestone is a cenotaph.</p>
 <h5 id="cenotaph"><a class="header" href="#cenotaph">Cenotaph</a></h5>
 <p>The <code>Cenotaph</code> field is unrecognized.</p>
-<h5 id="divisibility-1"><a class="header" href="#divisibility-1">Divisibility</a></h5>
+<h5 id="分割可能性-1"><a class="header" href="#分割可能性-1">分割可能性</a></h5>
 <p>The <code>Divisibility</code> field, raised to the power of ten, is the number of subunits in a super unit of runes.</p>
 <p>For example, the amount <code>1234</code> of different runes with divisibility 0 through 3 is displayed as follows:</p>
-<div class="table-wrapper"><table><thead><tr><th>Divisibility</th><th>Display</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>分割可能性</th><th>Display</th></tr></thead><tbody>
 <tr><td>0</td><td>1234</td></tr>
 <tr><td>1</td><td>123.4</td></tr>
 <tr><td>2</td><td>12.34</td></tr>
@@ -1895,12 +1895,12 @@ i               # separator
 </tbody></table>
 </div>
 <p>Trailing spacers are ignored.</p>
-<h5 id="symbol-1"><a class="header" href="#symbol-1">Symbol</a></h5>
+<h5 id="シンボル-1"><a class="header" href="#シンボル-1">シンボル</a></h5>
 <p>The <code>Symbol</code> field is the Unicode codepoint of the Rune's currency symbol, which should be displayed after amounts of that rune. If a rune does not have a currency symbol, the generic currency character <code>¤</code> should be used.</p>
 <p>For example, if the <code>Symbol</code> is <code>#</code> and the divisibility is 2, the amount of <code>1234</code> units should be displayed as <code>12.34 #</code>.</p>
 <h5 id="nop"><a class="header" href="#nop">Nop</a></h5>
 <p>The <code>Nop</code> field is unrecognized.</p>
-<h4 id="cenotaphs-1"><a class="header" href="#cenotaphs-1">Cenotaphs</a></h4>
+<h4 id="空墓セノタフ-1"><a class="header" href="#空墓セノタフ-1">空墓（セノタフ）</a></h4>
 <p>Cenotaphs have the following effects:</p>
 <ul>
 <li>
@@ -1965,12 +1965,12 @@ i               # separator
 <p>To prevent front running an etching that has been broadcast but not mined, if a non-reserved rune name is being etched, the etching transaction must contain a valid commitment to the name being etched.</p>
 <p>A commitment consists of a data push of the rune name, encoded as a little-endian integer with trailing zero bytes elided, present in an input witness tapscript where the output being spent has at least six confirmations.</p>
 <p>If a valid commitment is not present, the etching is ignored.</p>
-<h4 id="minting-1"><a class="header" href="#minting-1">Minting</a></h4>
+<h4 id="ミンティング-1"><a class="header" href="#ミンティング-1">ミンティング</a></h4>
 <p>A runestone may mint a rune by including the rune's ID in the <code>Mint</code> field.</p>
 <p>If the mint is open, the mint amount is added to the unallocated runes in the transaction's inputs. These runes may be transferred using edicts, and will otherwise be transferred to the first non-<code>OP_RETURN</code> output, or the output designated by the <code>Pointer</code> field.</p>
 <p>Mints may be made in any transaction after an etching, including in the same block.</p>
-<h4 id="transferring-1"><a class="header" href="#transferring-1">Transferring</a></h4>
-<p>Runes are transferred by edict:</p>
+<h4 id="転送-1"><a class="header" href="#転送-1">転送</a></h4>
+<p>ルーンは勅令によって転送されます：</p>
 <pre><pre class="playground"><code class="language-rust"><span class="boring">#![allow(unused)]
 </span><span class="boring">fn main() {
 </span>struct Edict {
@@ -1989,52 +1989,52 @@ i               # separator
 <p>An edict with <code>amount</code> zero and <code>output</code> equal to the number of transaction outputs divides all unallocated units of rune <code>id</code> between each non-<code>OP_RETURN</code> output. If the number of unallocated runes is not divisible by the number of non-<code>OP_RETURN</code> outputs, 1 additional rune is assigned to the first <code>R</code> non-<code>OP_RETURN</code> outputs, where <code>R</code> is the remainder after dividing the balance of unallocated units of rune <code>id</code> by the number of non-<code>OP_RETURN</code> outputs.</p>
 <p>If any edict in a runestone has a rune ID with <code>block</code> zero and <code>tx</code> greater than zero, or <code>output</code> greater than the number of transaction outputs, the runestone is a cenotaph.</p>
 <p>Note that edicts in cenotaphs are not processed, and all input runes are burned.</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="security"><a class="header" href="#security">Security</a></h1>
-<p>Anyone can publish inscriptions, including arbitrary HTML, which <code>ord server</code> will serve at <code>/content/&lt;INSCRIPTION_ID&gt;</code>, <code>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</code>, and <code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</code>.</p>
-<p>This creates potential security vulnerabilities, including cross-site scripting and spoofing attacks.</p>
-<p>Without mitigations, a domain hosting an <code>ord server</code> explorer instance should be considered to be completely untrusted.</p>
-<h3 id="cross-site-scripting"><a class="header" href="#cross-site-scripting">Cross-site Scripting</a></h3>
-<p>An attacker performs a cross-site scripting attack by injecting JavaScript into a vulnerable website such that it is later served to a victim, causing the malicious script to run in the victim's own browser with the same permissions as any other script from that website.</p>
-<p>Such a script could access private site resources or perform privileged actions on the user's behalf, since it would be making requests on behalf of the user.</p>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="セキュリティ"><a class="header" href="#セキュリティ">セキュリティ</a></h1>
+<p>誰でも任意のHTMLを含むInscriptionを公開でき、<code>ord server</code>はこれらを<code>/content/&lt;INSCRIPTION_ID&gt;</code>、<code>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</code>、および<code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</code>で提供します。</p>
+<p>これにより、クロスサイトスクリプティングやスプーフィング攻撃を含む潜在的なセキュリティ脆弱性が生まれます。</p>
+<p>軽減策なしでは、<code>ord server</code>エクスプローラーインスタンスをホストするドメインは完全に信頼できないものと考えるべきです。</p>
+<h3 id="クロスサイトスクリプティング"><a class="header" href="#クロスサイトスクリプティング">クロスサイトスクリプティング</a></h3>
+<p>攻撃者は脆弱なウェブサイトにJavaScriptを注入し、後でそれが被害者に提供されることでクロスサイトスクリプティング攻撃を実行し、悪意のあるスクリプトが被害者のブラウザで、そのウェブサイトの他のスクリプトと同じ権限で実行されるようにします。</p>
+<p>このようなスクリプトは、ユーザーの代わりにリクエストを行うため、プライベートなサイトリソースにアクセスしたり、ユーザーに代わって特権的なアクションを実行する可能性があります。</p>
 <p>Cross-site scripting is <em>not</em> a concern for a vanilla <code>ord server</code> instance. <code>ord server</code> does not serve any private resources or allow privileged actions to be taken via the web interface, so although JavaScript can be injected using an inscription, it does not run with any meaningful permissions.</p>
 <p>However, if you serve requests to <code>ord server</code> from a domain which <em>also</em> serves private resources or allow privileged actions, you may be vulnerable to cross-site scripting attacks.</p>
-<h4 id="例を挙げます-23"><a class="header" href="#例を挙げます-23">例を挙げます</a></h4>
+<h4 id="例-25"><a class="header" href="#例-25">例</a></h4>
 <ul>
 <li>
-<p><code>ord server</code> is run under <code>https://example.com/ord</code>.</p>
+<p><code>ord server</code>が<code>https://example.com/ord</code>で実行されています。</p>
 </li>
 <li>
-<p>A bitcoin exchange is run under <code>https://example.com/exchange</code>.</p>
+<p>ビットコイン取引所が<code>https://example.com/exchange</code>で実行されています。</p>
 </li>
 <li>
-<p>Users can send bitcoin at <code>https://example.com/exchange/send</code>, with access controlled by a user's session cookie.</p>
+<p>ユーザーは<code>https://example.com/exchange/send</code>でビットコインを送金でき、アクセスはユーザーのセッションクッキーによって制御されています。</p>
 </li>
 <li>
-<p>An attacker publishes a malicious HTML inscription with ID <code>XYZ</code> which contains JavaScript that accesses <code>https://example.com/exchange/send</code> and sends them to an attacker-controlled address.</p>
+<p>攻撃者がID <code>XYZ</code>の悪意のあるHTML Inscriptionを公開し、<code>https://example.com/exchange/send</code>にアクセスして攻撃者が制御するアドレスに送金するJavaScriptが含まれています。</p>
 </li>
 <li>
-<p>When a user visits <code>https://example.com/ord/XYZ</code>, the malicious JavaScript requests <code>https://example.com/exchange/send</code>. Because the script executes on the user's behalf with the request including the user's session cookie, the server sends the user's bitcoin to the attacker.</p>
+<p>ユーザーが<code>https://example.com/ord/XYZ</code>を訪問すると、悪意のあるJavaScriptが<code>https://example.com/exchange/send</code>にリクエストを送信します。スクリプトがユーザーのセッションクッキーを含むリクエストでユーザーの代わりに実行されるため、サーバーはユーザーのビットコインを攻撃者に送金します。</p>
 </li>
 </ul>
-<p>To prevent this, do not make <code>ord server</code> available on the same domain and port as another web service which is vulnerable to cross-site scripting.</p>
-<h3 id="spoofing"><a class="header" href="#spoofing">Spoofing</a></h3>
-<p>If <code>ord server</code> is run at a well known domain, for example, <code>ordinals.com</code>, an attacker could publish a malicious inscription that attempts to trick users into thinking that it represents the owners of the domain. For example, by publishing a mint page to induce users to send bitcoin. Additionally, the <a href="https://developer.mozilla.org/en-US/docs/Web/API/History_API">History API</a> can be used to change the path without triggering a page reload, so inscription content can appear to the user under URL that suggests it was published by the site owners.</p>
-<h4 id="例を挙げます-24"><a class="header" href="#例を挙げます-24">例を挙げます</a></h4>
+<p>これを防ぐには、クロスサイトスクリプティングに脆弱な他のウェブサービスと同じドメインとポートで<code>ord server</code>を利用可能にしないでください。</p>
+<h3 id="スプーフィング"><a class="header" href="#スプーフィング">スプーフィング</a></h3>
+<p><code>ord server</code>が<code>ordinals.com</code>などの有名なドメインで実行されている場合、攻撃者はそのドメインの所有者を表していると思わせる悪意のあるInscriptionを公開する可能性があります。例えば、ユーザーにビットコインを送金させるためのミントページを公開することが考えられます。さらに、<a href="https://developer.mozilla.org/en-US/docs/Web/API/History_API">History API</a>を使用してページのリロードをトリガーせずにパスを変更できるため、Inscriptionコンテンツがサイト所有者によって公開されたことを示唆するURLでユーザーに表示される可能性があります。</p>
+<h4 id="例-26"><a class="header" href="#例-26">例</a></h4>
 <ul>
 <li>
-<p><code>ord server</code> is run at <code>https://example.com</code>, by popular and well-respected Example Corporation.</p>
+<p><code>ord server</code>が、人気があり高く評価されているExample Corporationによって<code>https://example.com</code>で実行されています。</p>
 </li>
 <li>
-<p>An attacker publishes a malicious HTML inscription with ID <code>XYZ</code> which displays a mint page, and changes the URL path using the History API to <code>/mint</code>.</p>
+<p>攻撃者がID <code>XYZ</code>の悪意のあるHTML Inscriptionを公開し、ミントページを表示し、History APIを使用してURLパスを<code>/mint</code>に変更します。</p>
 </li>
 <li>
-<p>A user clicks a link to <code>https://example.com/inscription/XYZ</code> which displays the attacker's mint page, with the apparent URL of <code>https://example.com/mint</code>.</p>
+<p>ユーザーが<code>https://example.com/inscription/XYZ</code>へのリンクをクリックすると、攻撃者のミントページが表示され、見かけ上のURLは<code>https://example.com/mint</code>になります。</p>
 </li>
 <li>
-<p>The user thinks that this is a potentially lucrative mint run by popular and well-respected Example Corporation and sends bitcoin to the mint address.</p>
+<p>ユーザーは、これが人気があり高く評価されているExample Corporationが実行する潜在的に利益の高いミントだと思い、ミントアドレスにビットコインを送金します。</p>
 </li>
 </ul>
-<p>To prevent this, avoid giving users the impression that a domain hosting an <code>ord</code> explorer can be trusted for anything other than the content of the <code>ord</code> explorer itself.</p>
+<p>これを防ぐには、<code>ord</code>エクスプローラーをホストするドメインが<code>ord</code>エクスプローラー自体のコンテンツ以外の何かで信頼できるという印象をユーザーに与えないようにしてください。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="序数理論のよくある質問"><a class="header" href="#序数理論のよくある質問">序数理論のよくある質問</a></h1>
 <h2 id="序数理論はなんですか"><a class="header" href="#序数理論はなんですか">序数理論はなんですか</a></h2>
 <p>序数理論は、聡（satoshi、以下は「聡」と書きます。ビットコインの最小単位）シリアル番号を割り当てるプロトコル、と取引中にこれらの聡を追跡します。</p>
@@ -2068,7 +2068,7 @@ i               # separator
 <pre><code>[SUBSIDY] [e f] → [SUBSIDY e f]
 </code></pre>
 <h2 id="これらの詳細な情報はどこで見つけることができますか"><a class="header" href="#これらの詳細な情報はどこで見つけることができますか">これらの詳細な情報はどこで見つけることができますか</a></h2>
-<p><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">The BIP!</a></p>
+<p><a href="https://github.com/ordinals/ord/blob/master/bip.mediawiki">BIP仕様書!</a></p>
 <h2 id="なぜ聡の銘文はnftではなくデジタル文化財と呼ばれていますか"><a class="header" href="#なぜ聡の銘文はnftではなくデジタル文化財と呼ばれていますか">なぜ聡の銘文は「NFT」ではなく「デジタル文化財」と呼ばれていますか？</a></h2>
 <p>銘文もNFTの一種です。しかし、その代わりに「デジタル文化財」という用語が使われています。それは簡単で、啓発的で、なじみがあるからです</p>
 <p>"デジタル文化財"（デジタル工作物、デジタル人工物）これらの言葉は強い暗示性を持っている。「これまでこの言葉を聞いたことがない人にとってもそうだ」に比べて、NFTは頭文字の略語で、以前この用語を聞いたことがなければ、意味を説明できません。</p>
@@ -2099,7 +2099,7 @@ i               # separator
 <p><em>銘文は新たな市場を開きました</em></p>
 <p>ビットコインの市場価格と流動性はイーサリアムを大きく上回っている。イーサリアムNFTはこのような流動性の大部分を得ることができません。多くのビットコインユーザーは、シンプルさ、安全性、分散化の観点から、イーサリアムのエコシステムと対話することを望んでいないからです。</p>
 <p>イーサリアムNFTと比較して、そのようなビットコインの支持者は、新しいカテゴリのコレクターをロック解除するために、碑文に興味を持っている可能性があります。</p>
-<p><em>铭文有更丰富的数据模型</em></p>
+<p><em>碑文はより豊富なデータモデルを持っています</em></p>
 <p>銘文はコンテンツタイプ（MI MEタイプとも呼ばれる）とコンテンツ）任意のバイト文字列）で構成される。これは、Webで使用されるデータモデルと同じです。銘文コンテンツをウェブの発展に合わせて発展させ、基盤となるプロトコルを変更することなく、ウェブブラウザがサポートするあらゆる種類のコンテンツをサポートすることを可能に</p>
 <h3 id="rgb-和-taro-資産"><a class="header" href="#rgb-和-taro-資産">RGB 和 Taro 資産？</a></h3>
 <p>RGBとTaroはいずれもビットコインの上に構築された二層資産協定である。銘文に比べて、それらはずっと複雑ですが、より特色があります。</p>
@@ -2113,8 +2113,8 @@ i               # separator
 <h3 id="芸術家になれます"><a class="header" href="#芸術家になれます">芸術家になれます</a></h3>
 <p>_ビットコインの銘文_ビットコインは現在最も地位が高く、長期生存の機会が最も大きいデジタル通貨であります。はあなたの芸術作品が未来に伝わることを保証したいなら、銘文より良い発表方法はありません。</p>
 <p>_チェーン上のストレージはより安価です_ビットコインあたり2万ドルとvbyteあたり1聡の最低中継料金で計算します。碑文の内容を公開するためのコストは100万バイトあたり50ドルです。</p>
-<p><em>铭文还处于项目早期</em> 铭文仍在开发中，尚未在主网上发布（建议更新）。 这使您有机会成为早期采用者，并随着媒体的发展探索它。</p>
-<p><em>铭文很简单</em> 铭文不需要你编写或理解智能合约。</p>
+<p><em>碑文はまだ初期段階です！</em> 碑文はまだ開発中であり、メインネットではまだローンチしていません。これは、あなたが早期採用者になり、メディアが発展するにつれてこの分野を探求する機会を与えます。</p>
+<p><em>碑文はシンプルです</em> 碑文はスマートコントラクトを書いたり理解したりする必要がありません。</p>
 <p>_銘文ロック解除新しい流動性_ビットコインの所有者にとって、銘文はより簡単に入手でき、より魅力的で、新しいコレクションをもたらします。</p>
 <p>_銘文はデジタル文化財のために設計されています_新しいデザインの銘文はNFTをサポートし、より良いデータモデルを持っています,や、世界的にユニークなシンボルや拡張ソースなどの機能です。</p>
 <p>_銘文はチェーン上のロイヤリティを奨励しない_これは良いニュースではないかもしれませんが、それをどう見るかによっても異なります。チェーン上のロイヤリティは常にクリエイターにとっての福音ですしかし、はイーサリアムNFT生態系にも大きな混乱をもたらした。イーサリアムは今この問題を解決しようと努力しています。底をついた競争でもあります。は「オプションのロイヤリティ」の未来を実現する。銘文はチェーン上のロイヤリティをサポートしていません。技術的に不可能だからです。」銘文を作成することを選択した場合、この制限を迴避する方法はたくさんあります。銘文の一部を将来の販売のために残して、将来の上昇から利益を得ます。またはオプションのロイヤリティを尊重するユーザーに追加の手当を提供します。</p>
@@ -2174,17 +2174,17 @@ i               # separator
 <p>ご寄与を感謝いたします！</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="序数理論の指導"><a class="header" href="#序数理論の指導">序数理論の指導</a></h1>
 <p>ガイドの一覧については、カタログを参照してください。これには、ブロックブラウザガイド、スマートフォンガイド、銘文ガイドなどがあります。</p>
-<div style="break-before: page; page-break-before: always;"></div><h1 id="json-api"><a class="header" href="#json-api">JSON-API</a></h1>
-<p>By default, the <code>ord server</code> gives access to endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML.  These endpoints are:</p>
-<h2 id="endpoints-1"><a class="header" href="#endpoints-1">Endpoints</a></h2>
+<div style="break-before: page; page-break-before: always;"></div><h1 id="json-api"><a class="header" href="#json-api">JSON API</a></h1>
+<p>デフォルトでは、<code>ord server</code> は HTTP ヘッダー <code>Accept: application/json</code> を設定すると HTML の代わりに JSON を返すエンドポイントへのアクセスを提供します。これらのオブジェクトの 構造は HTML で表示される内容とほぼ同じです。これらのエンドポイントは以下の通りです：</p>
+<h2 id="エンドポイント-1"><a class="header" href="#エンドポイント-1">エンドポイント</a></h2>
 <details>
   <summary>
     <code>GET</code>
     <code><b>/address/&lt;ADDRESS&gt;</b></code>
   </summary>
 <h3 id="description-23"><a class="header" href="#description-23">Description</a></h3>
-<p>List all assets of an address. Requires index with <code>--index-addresses</code> flag.</p>
-<h3 id="例を挙げます-25"><a class="header" href="#例を挙げます-25">例を挙げます</a></h3>
+<p>アドレスのすべてのアセットを一覧表示します。<code>--index-addresses</code> フラグでのインデックスが必要です。</p>
+<h3 id="例-27"><a class="header" href="#例-27">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
 </code></pre>
@@ -2256,8 +2256,8 @@ i               # separator
     <code><b>/block/&lt;BLOCKHASH&gt;</b></code>
   </summary>
 <h3 id="description-24"><a class="header" href="#description-24">Description</a></h3>
-<p>Returns info about the specified block.</p>
-<h3 id="例を挙げます-26"><a class="header" href="#例を挙げます-26">例を挙げます</a></h3>
+<p>指定されたブロックに関する情報を返します。</p>
+<h3 id="例-28"><a class="header" href="#例-28">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
 </code></pre>
@@ -2297,8 +2297,8 @@ i               # separator
     <code><b>/block/&lt;BLOCKHEIGHT&gt;</b></code>
   </summary>
 <h3 id="description-25"><a class="header" href="#description-25">Description</a></h3>
-<p>Returns info about the specified block.</p>
-<h3 id="例を挙げます-27"><a class="header" href="#例を挙げます-27">例を挙げます</a></h3>
+<p>指定されたブロックに関する情報を返します。</p>
+<h3 id="例-29"><a class="header" href="#例-29">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/block/0
 </code></pre>
@@ -2338,8 +2338,8 @@ i               # separator
     <code><b>/blockcount</b></code>
   </summary>
 <h3 id="description-26"><a class="header" href="#description-26">Description</a></h3>
-<p>Returns the height of the latest block.</p>
-<h3 id="例を挙げます-28"><a class="header" href="#例を挙げます-28">例を挙げます</a></h3>
+<p>最新ブロックの高さを返します。</p>
+<h3 id="例-30"><a class="header" href="#例-30">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blockcount
 </code></pre>
@@ -2352,8 +2352,8 @@ i               # separator
     <code><b>/blockhash</b></code>
   </summary>
 <h3 id="description-27"><a class="header" href="#description-27">Description</a></h3>
-<p>Returns blockhash for the latest block.</p>
-<h3 id="例を挙げます-29"><a class="header" href="#例を挙げます-29">例を挙げます</a></h3>
+<p>最新ブロックのブロックハッシュを返します。</p>
+<h3 id="例-31"><a class="header" href="#例-31">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blockhash
 </code></pre>
@@ -2367,8 +2367,8 @@ i               # separator
     &emsp;&emsp;&emsp;
   </summary>
 <h3 id="description-28"><a class="header" href="#description-28">Description</a></h3>
-<p>Returns blockhash of specified block.</p>
-<h3 id="例を挙げます-30"><a class="header" href="#例を挙げます-30">例を挙げます</a></h3>
+<p>指定されたブロックのブロックハッシュを返します。</p>
+<h3 id="例-32"><a class="header" href="#例-32">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blockhash/840000
 </code></pre>
@@ -2381,8 +2381,8 @@ i               # separator
     <code><b>/blockheight</b></code>
   </summary>
 <h3 id="description-29"><a class="header" href="#description-29">Description</a></h3>
-<p>Returns the height of the latest block.</p>
-<h3 id="例を挙げます-31"><a class="header" href="#例を挙げます-31">例を挙げます</a></h3>
+<p>最新ブロックの高さを返します。</p>
+<h3 id="例-33"><a class="header" href="#例-33">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blockheight
 </code></pre>
@@ -2395,8 +2395,8 @@ i               # separator
     <code><b>/blocks</b></code>
   </summary>
 <h3 id="description-30"><a class="header" href="#description-30">Description</a></h3>
-<p>Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.</p>
-<h3 id="例を挙げます-32"><a class="header" href="#例を挙げます-32">例を挙げます</a></h3>
+<p>最新ブロックの高さ、直近100ブロックのブロックハッシュ、およびそれらからの 注目すべき碑文を返します。</p>
+<h3 id="例-34"><a class="header" href="#例-34">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blocks
 </code></pre>
@@ -2566,7 +2566,7 @@ i               # separator
   </summary>
 <h3 id="description-31"><a class="header" href="#description-31">Description</a></h3>
 <p>Returns the UNIX timestamp of when the latest block was mined.</p>
-<h3 id="例を挙げます-33"><a class="header" href="#例を挙げます-33">例を挙げます</a></h3>
+<h3 id="例-35"><a class="header" href="#例-35">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blocktime
 </code></pre>
@@ -2580,7 +2580,7 @@ i               # separator
   </summary>
 <h3 id="description-32"><a class="header" href="#description-32">Description</a></h3>
 <p>Decode a transaction, congruent to the <code>ord decode</code> command</p>
-<h3 id="例を挙げます-34"><a class="header" href="#例を挙げます-34">例を挙げます</a></h3>
+<h3 id="例-36"><a class="header" href="#例-36">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799
 </code></pre>
@@ -3422,7 +3422,7 @@ i               # separator
   </summary>
 <h3 id="description-33"><a class="header" href="#description-33">Description</a></h3>
 <p>Fetch details about a specific inscription by its ID.</p>
-<h3 id="例を挙げます-35"><a class="header" href="#例を挙げます-35">例を挙げます</a></h3>
+<h3 id="例-37"><a class="header" href="#例-37">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" /
   http://0.0.0.0/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 </code></pre>
@@ -3458,8 +3458,8 @@ i               # separator
     <code><b>/inscription/&lt;INSCRIPTION_ID&gt;/&lt;CHILD&gt;</b></code>
   </summary>
 <h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
-<p>Returns the inscription information for the specified child.</p>
-<h3 id="例を挙げます-36"><a class="header" href="#例を挙げます-36">例を挙げます</a></h3>
+<p>指定された子の碑文情報を返します。</p>
+<h3 id="例-38"><a class="header" href="#例-38">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
 </code></pre>
@@ -3496,7 +3496,7 @@ i               # separator
   </summary>
 <h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
 <p>Fetch details for a list of inscription IDs.</p>
-<h3 id="例を挙げます-37"><a class="header" href="#例を挙げます-37">例を挙げます</a></h3>
+<h3 id="例-39"><a class="header" href="#例-39">例</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -3562,7 +3562,7 @@ i               # separator
   </summary>
 <h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
 <p>Get a list of the latest 100 inscriptions.</p>
-<h3 id="例を挙げます-38"><a class="header" href="#例を挙げます-38">例を挙げます</a></h3>
+<h3 id="例-40"><a class="header" href="#例-40">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscriptions
 </code></pre>
@@ -3681,7 +3681,7 @@ i               # separator
   </summary>
 <h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
 <p>Pagination allows you to choose which page of 100 inscriptions to return.</p>
-<h3 id="例を挙げます-39"><a class="header" href="#例を挙げます-39">例を挙げます</a></h3>
+<h3 id="例-41"><a class="header" href="#例-41">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscriptions/9
 </code></pre>
@@ -3800,7 +3800,7 @@ i               # separator
   </summary>
 <h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
 <p>Get inscriptions for a specific block.</p>
-<h3 id="例を挙げます-40"><a class="header" href="#例を挙げます-40">例を挙げます</a></h3>
+<h3 id="例-42"><a class="header" href="#例-42">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscriptions/block/767430
 </code></pre>
@@ -3820,7 +3820,7 @@ i               # separator
   </summary>
 <h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
 <p>Installs the latest pre-built binary of <code>ord</code></p>
-<h3 id="例を挙げます-41"><a class="header" href="#例を挙げます-41">例を挙げます</a></h3>
+<h3 id="例-43"><a class="header" href="#例-43">例</a></h3>
 <p>See <a href="guides/wallet.html#installing-ord">wallet.md</a></p>
 </details>
 <details>
@@ -3830,7 +3830,7 @@ i               # separator
  </summary>
 <h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
 <p>Submit a PSBT offer. The body of the request is a base64 encoded PSBT.</p>
-<h3 id="例を挙げます-42"><a class="header" href="#例を挙げます-42">例を挙げます</a></h3>
+<h3 id="例-44"><a class="header" href="#例-44">例</a></h3>
 <pre><code class="language-bash">curl -s -X POST --data-binary @offer.psbt http://0.0.0.0/offer
 </code></pre>
 </details>
@@ -3841,7 +3841,7 @@ i               # separator
  </summary>
 <h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
 <p>Get submitted PSBT offers. Returns an array of base64 encoded PSBTs.</p>
-<h3 id="例を挙げます-43"><a class="header" href="#例を挙げます-43">例を挙げます</a></h3>
+<h3 id="例-45"><a class="header" href="#例-45">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" http://0.0.0.0/offers
 </code></pre>
 <pre><code class="language-json">["bG…gd==","aG…GQ"]
@@ -3853,8 +3853,8 @@ i               # separator
     <code><b>/output/&lt;OUTPOINT&gt;</b></code>
  </summary>
 <h3 id="description-42"><a class="header" href="#description-42">Description</a></h3>
-<p>Returns information about a UTXO, including inscriptions within it.</p>
-<h3 id="例を挙げます-44"><a class="header" href="#例を挙げます-44">例を挙げます</a></h3>
+<p>UTXOに関する情報を、その中に含まれる碑文を含めて返します。</p>
+<h3 id="例-46"><a class="header" href="#例-46">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
 </code></pre>
@@ -3880,7 +3880,7 @@ i               # separator
  </summary>
 <h3 id="description-43"><a class="header" href="#description-43">Description</a></h3>
 <p>List information from a list of outputs.</p>
-<h3 id="例を挙げます-45"><a class="header" href="#例を挙げます-45">例を挙げます</a></h3>
+<h3 id="例-47"><a class="header" href="#例-47">例</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -3931,7 +3931,7 @@ i               # separator
 <tr><td><code>runic</code></td><td>return UTXOs containing runes</td></tr>
 </tbody></table>
 </div>
-<h3 id="例を挙げます-46"><a class="header" href="#例を挙げます-46">例を挙げます</a></h3>
+<h3 id="例-48"><a class="header" href="#例-48">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   "http://0.0.0.0/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
 </code></pre>
@@ -3995,8 +3995,8 @@ i               # separator
     <code><b>/rune/&lt;RUNE&gt;</b></code>
   </summary>
 <h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
-<p>Returns details about the specified rune. Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="例を挙げます-47"><a class="header" href="#例を挙げます-47">例を挙げます</a></h3>
+<p>指定されたルーンの詳細を返します。<code>--index-runes</code> フラグでのインデックスが必要です。</p>
+<h3 id="例-49"><a class="header" href="#例-49">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://localhost/rune/UNCOMMONGOODS
 </code></pre>
@@ -4039,7 +4039,7 @@ i               # separator
   </summary>
 <h3 id="description-46"><a class="header" href="#description-46">Description</a></h3>
 <p>Returns details for last 100 inscribed runes.  Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="例を挙げます-48"><a class="header" href="#例を挙げます-48">例を挙げます</a></h3>
+<h3 id="例-50"><a class="header" href="#例-50">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/runes
 </code></pre>
@@ -5527,7 +5527,7 @@ i               # separator
   </summary>
 <h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
 <p>Pagination allows you to specify which page of 100 runes you'd like to return.</p>
-<h3 id="例を挙げます-49"><a class="header" href="#例を挙げます-49">例を挙げます</a></h3>
+<h3 id="例-51"><a class="header" href="#例-51">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/runes/0
 </code></pre>
@@ -7014,8 +7014,8 @@ i               # separator
     <code><b>/sat/&lt;SAT&gt;</b></code>
   </summary>
 <h3 id="description-48"><a class="header" href="#description-48">Description</a></h3>
-<p>Returns details about a specific satoshi. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="例を挙げます-50"><a class="header" href="#例を挙げます-50">例を挙げます</a></h3>
+<p>特定のsatoshiの詳細を返します。<code>--index-sats</code> フラグでのインデックスが必要です。</p>
+<h3 id="例-52"><a class="header" href="#例-52">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/sat/2099994106992659
 </code></pre>
@@ -7044,8 +7044,8 @@ i               # separator
     <code><b>/status</b></code>
   </summary>
 <h3 id="description-49"><a class="header" href="#description-49">Description</a></h3>
-<p>Returns details about the server installation and index.</p>
-<h3 id="例を挙げます-51"><a class="header" href="#例を挙げます-51">例を挙げます</a></h3>
+<p>サーバーのインストールとインデックスに関する詳細を返します。</p>
+<h3 id="例-53"><a class="header" href="#例-53">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/status
 </code></pre>
@@ -7081,8 +7081,8 @@ i               # separator
     <code><b>/tx/&lt;TRANSACTION_ID&gt;</b></code>
   </summary>
 <h3 id="description-50"><a class="header" href="#description-50">Description</a></h3>
-<p>Returns details about the specified transaction.</p>
-<h3 id="例を挙げます-52"><a class="header" href="#例を挙げます-52">例を挙げます</a></h3>
+<p>指定されたトランザクションの詳細を返します。</p>
+<h3 id="例-54"><a class="header" href="#例-54">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
 </code></pre>
@@ -7119,40 +7119,40 @@ i               # separator
 <h2 id="recursive-endpoints"><a class="header" href="#recursive-endpoints">Recursive Endpoints</a></h2>
 <p>See <a href="guides/../inscriptions/recursion.html">Recursion</a>.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="バッチ刻み"><a class="header" href="#バッチ刻み">バッチ刻み</a></h1>
-<p>Multiple inscriptions can be created at the same time using the <a href="guides/./../inscriptions/pointer.html">pointer field</a>. This is especially helpful for collections, or other cases when multiple inscriptions should share the same parent, since the parent can passed into a reveal transaction that creates multiple children.</p>
-<p>To create a batch inscription using a batchfile in <code>batch.yaml</code>, run the following command:</p>
+<p><a href="guides/./../inscriptions/pointer.html">ポインターフィールド</a> を使用して複数の碑文を同時に作成できます。これは特にコレクションや、複数の碑文が同じ親を共有すべき場合に役立ちます。親は複数の子を作成するリビール取引に渡すことができるためです。</p>
+<p><code>batch.yaml</code> のバッチファイルを使用してバッチ碑文を作成するには、次のコマンドを実行してください：</p>
 <pre><code class="language-bash">ord wallet batch --fee-rate 21 --batch batch.yaml
 </code></pre>
-<h2 id="example-batchyaml"><a class="header" href="#example-batchyaml">Example <code>batch.yaml</code></a></h2>
-<pre><code class="language-yaml"># example batch file
+<h2 id="batchyaml-の例"><a class="header" href="#batchyaml-の例"><code>batch.yaml</code> の例</a></h2>
+<pre><code class="language-yaml"># バッチファイルの例
 
-# inscription modes:
-# - `same-sat`: inscribe on the same sat
-# - `satpoints`: inscribe on the first sat of specified satpoint's output
-# - `separate-outputs`: inscribe on separate postage-sized outputs
-# - `shared-output`: inscribe on a single output separated by postage
+# 碑文モード:
+# - `same-sat`: 同じsatに碑文を刻む
+# - `satpoints`: 指定されたsatpointのアウトプットの最初のsatに碑文を刻む
+# - `separate-outputs`: 個別の送料サイズのアウトプットに碑文を刻む
+# - `shared-output`: 送料で区切られた単一のアウトプットに碑文を刻む
 mode: separate-outputs
 
 # parent inscriptions:
 parents:
 - 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
 
-# postage for each inscription:
+# 各碑文の送料：
 postage: 12345
 
-# allow reinscribing
+# 再碑文を許可
 reinscribe: true
 
-# sat to inscribe on, can only be used with `same-sat`:
+# 碑文を刻むsat、`same-sat`でのみ使用可能：
 # sat: 5000000000
 
-# rune to etch (optional)
+# エッチするルーン（オプション）
 etching:
-  # rune name
+  # ルーン名
   rune: THE•BEST•RUNE
-  # allow subdividing super-unit into `10^divisibility` sub-units
+  # スーパーユニットを`10^divisibility`サブユニットに細分化を許可
   divisibility: 2
-  # premine
+  # プレマイン
   premine: 1000.00
   # total supply, must be equal to `premine + terms.cap * terms.amount`
   supply: 10000.00
@@ -7382,7 +7382,7 @@ inscriptions:
 <li>データベースは壊れるかもしれません</li>
 </ol>
 <p><code>ord</code>は 使っているデータベースは <a href="https://github.com/cberner/redb">redb</a>を呼ばれています，索引のために‘index.redb’を指定された黙認ファイル名として、黙認する場合は保存します操作システムによって、このファイルは異なる位置にあります</p>
-<div class="table-wrapper"><table><thead><tr><th>プラットフォーム</th><th>Value</th><th>例を挙げます</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th>プラットフォーム</th><th>Value</th><th>例</th></tr></thead><tbody>
 <tr><td>Linux</td><td><code>$XDG_DATA_HOME</code>/ord or <code>$HOME</code>/.local/share/ord</td><td>/home/alice/.local/share/ord</td></tr>
 <tr><td>macOS</td><td><code>$HOME</code>/Library/Application Support/ord</td><td>/Users/Alice/Library/Application Support/ord</td></tr>
 <tr><td>Windows</td><td><code>{FOLDERID_RoamingAppData}</code>\ord</td><td>C:\Users\Alice\AppData\Roaming\ord</td></tr>
@@ -7395,29 +7395,29 @@ ord index update
 <p>もちろん自分でデータの目録の位置を設置することができます,<code>ord --datadir &lt;DIR&gt; index update</code> または指定された特定のファイル名とパスに‘ord --index <FILENAME>で索引運行します’。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="satハンティング"><a class="header" href="#satハンティング">Satハンティング</a></h1>
 <p>Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare.</p>
-<p>Ordinals are numbers for satoshis. Every satoshi has an ordinal number and every ordinal number has a satoshi.</p>
-<h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
-<p>There are a few things you'll need before you start.</p>
+<p>オーディナルズはsatoshiの番号です。すべてのsatoshiにはオーディナル番号があり、すべてのオーディナル番号にはsatoshiがあります。</p>
+<h2 id="準備"><a class="header" href="#準備">準備</a></h2>
+<p>始める前に必要なものがいくつかあります。</p>
 <ol>
 <li>
-<p>First, you'll need a synced Bitcoin Core node with a transaction index. To turn on transaction indexing, pass <code>-txindex</code> on the command-line:</p>
+<p>まず、トランザクションインデックスを持つ同期されたBitcoin Coreノードが必要です。トランザクションインデックシングを有効にするには、コマンドラインで <code>-txindex</code> を渡してください：</p>
 <pre><code class="language-sh">bitcoind -txindex
 </code></pre>
-<p>Or put the following in your <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">Bitcoin configuration file</a>:</p>
+<p>または、<a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">Bitcoin設定ファイル</a>に以下を追加してください：</p>
 <pre><code>txindex=1
 </code></pre>
-<p>Launch it and wait for it to catch up to the chain tip, at which point the following command should print out the current block height:</p>
+<p>起動してチェーンの最新部分に追いつくまで待ち、その時点で次のコマンドが現在のブロック高を出力するはずです：</p>
 <pre><code class="language-sh">bitcoin-cli getblockcount
 </code></pre>
 </li>
 <li>
-<p>Second, you'll need a synced <code>ord</code> index.</p>
+<p>二番目に、同期された <code>ord</code> インデックスが必要です。</p>
 <ul>
 <li>
-<p>Get a copy of <code>ord</code> from <a href="https://github.com/ordinals/ord/">the repo</a>.</p>
+<p><a href="https://github.com/ordinals/ord/">repo</a> から <code>ord</code> のコピーを取得してください。</p>
 </li>
 <li>
-<p>Run <code>ord --index-sats server</code>. It should connect to your bitcoin core node and start indexing.</p>
+<p><code>ord --index-sats server</code> を実行してください。Bitcoin Coreノードに接続し、インデックシングを開始するはずです。</p>
 </li>
 <li>
 <p>Once it has finished indexing, leave the server running and submit new <code>ord</code> commands in a separate terminal session.</p>
@@ -7568,58 +7568,58 @@ ord index update
 </code></pre>
 <p>You can also use the <code>bitcoin-cli</code> commands <code>createrawtransaction</code>, <code>signrawtransactionwithwallet</code>, and <code>sendrawtransaction</code>, but this method can be complex and is outside the scope of this guide.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="satscard"><a class="header" href="#satscard">Satscard</a></h1>
-<p><a href="https://satscard.com/">Satscards</a> are cards which can be used to store bitcoin, inscriptions, and runes.</p>
-<h2 id="slots"><a class="header" href="#slots">Slots</a></h2>
-<p>Each satscard has ten slots containing private keys with corresponding bitcoin addresses.</p>
-<p>Initially, all slots are sealed and the private keys are stored only the satscard.</p>
-<p>Slots can be unsealed, which allows the corresponding private key to be extracted.</p>
-<p>Unsealing is permanent. If a satscard is sealed, you can have some confidence that private key is not known to anyone. That taking physical ownership of a satscard makes you the sole owner of assets in any sealed slots.</p>
-<h2 id="lifespan"><a class="header" href="#lifespan">Lifespan</a></h2>
-<p>Satscards are expected to have a usable lifetime of ten years. Do not use satscards for long-term storage of valuable assets.</p>
-<h2 id="viewing"><a class="header" href="#viewing">Viewing</a></h2>
-<p>When placed on a smartphone, the satscard transmits a URL, beginning with <code>https://satscard.com/start</code> or <code>https://getsatscard.com/start</code>, depending on when it was manufactured.</p>
-<p>This URL contains a signature which can be used to recover the address of the current slot. This signature is made over a random nonce, so it changes every time the satscard is tapped, and provides some confidence that the satscard contains the private key.</p>
-<p><code>ord</code> supports viewing the contents of a satscard by entering the full URL into the <code>ord</code> explorer search bar, or the input field on the <code>/satscard</code> page.</p>
-<p>For <code>ordinals.com</code>, this is <a href="https://ordinals.com/satscard">ordinals.com/satscard</a>.</p>
-<h2 id="unsealing"><a class="header" href="#unsealing">Unsealing</a></h2>
-<p>Satscard slots can be unsealed and the private keys extracted using the <code>cktap</code> binary, available in the <a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a> repository.</p>
-<p>After a satscard slot is unsealed, all assets should be swept from that slot to another wallet, as the private key can now be read via NFC with the PIN.</p>
-<h2 id="sweeping"><a class="header" href="#sweeping">Sweeping</a></h2>
-<p>First, clone the <a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a> repository and install the <code>cktap</code> binary inside a Python virtual environment:</p>
+<p><a href="https://satscard.com/">Satscard</a>は、ビットコイン、Inscription、Runeを保存するために使用できるカードです。</p>
+<h2 id="スロット"><a class="header" href="#スロット">スロット</a></h2>
+<p>各Satscardには、対応するビットコインアドレスを持つプライベートキーが格納された10個のスロットがあります。</p>
+<p>最初は、すべてのスロットが封印されており、プライベートキーはSatscardにのみ保存されています。</p>
+<p>スロットは開封でき、対応するプライベートキーを抽出できます。</p>
+<p>開封は永続的です。Satscardが封印されている場合、そのプライベートキーは誰にも知られていないという確信を持つことができます。Satscardの物理的な所有権を得ることで、封印されたスロット内のアセットの唯一の所有者になります。</p>
+<h2 id="寿命"><a class="header" href="#寿命">寿命</a></h2>
+<p>Satscardの使用可能な寿命は10年間と予想されます。貴重な資産の長期保存にはSatscardを使用しないでください。</p>
+<h2 id="表示"><a class="header" href="#表示">表示</a></h2>
+<p>スマートフォンに置くと、Satscardは製造時期に応じて<code>https://satscard.com/start</code>または<code>https://getsatscard.com/start</code>で始まるURLを送信します。</p>
+<p>このURLには、現在のスロットのアドレスを復元するために使用できる署名が含まれています。この署名はランダムなナンスで作成されるため、Satscardがタップされるたびに変更され、Satscardにプライベートキーが含まれているという確信をある程度提供します。</p>
+<p><code>ord</code>は、完全なURLを<code>ord</code>エクスプローラーの検索バーまたは<code>/satscard</code>ページの入力フィールドに入力することで、Satscardの内容の表示をサポートしています。</p>
+<p><code>ordinals.com</code>の場合、これは<a href="https://ordinals.com/satscard">ordinals.com/satscard</a>です。</p>
+<h2 id="開封"><a class="header" href="#開封">開封</a></h2>
+<p>Satscardスロットは、<a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a>リポジトリで利用可能な<code>cktap</code>バイナリを使用して開封し、プライベートキーを抽出できます。</p>
+<p>Satscardスロットが開封された後は、PINとNFC経由でプライベートキーが読み取れるようになるため、そのスロットからすべてのアセットを別のウォレットにスイープする必要があります。</p>
+<h2 id="スイープ"><a class="header" href="#スイープ">スイープ</a></h2>
+<p>まず、<a href="https://github.com/coinkite/coinkite-tap-proto">coinkite-tap-proto</a>リポジトリをクローンし、Python仮想環境内で<code>cktap</code>バイナリをインストールします：</p>
 <pre><code class="language-console">$ git clone https://github.com/coinkite/coinkite-tap-proto.git
 $ cd coinkite-tap-proto
 $ python3 -m venv venv
 $ source venv/bin/activate
 $ pip3 install 'coinkite-tap-protocol[cli]'
 </code></pre>
-<p>Unseal the satscard slot:</p>
+<p>Satscardスロットを開封します：</p>
 <pre><code class="language-console">$ cktap unseal
 </code></pre>
-<p>Export the private key:</p>
+<p>プライベートキーをエクスポートします：</p>
 <pre><code class="language-console">$ cktap wif
 </code></pre>
-<p>This will print something like:</p>
+<p>これにより、次のような内容が出力されます：</p>
 <pre><code>Slot #1:
 
 bc1q6e2renlnjyhwnyncd7sgr6s4s2cnkdknvrz40d
 
 p2wpkh:KwVN7HkFnTymkfCh1b4Y5bRGftySuK4jjPQdgBoMURWCi8CjbZPN
 </code></pre>
-<p>Note the address type, in this case <code>p2wpkh</code>, and the private key, in this case <code>KwVN7HkFnTymkfCh1b4Y5bRGftySuK4jjPQdgBoMURWCi8CjbZPN</code>.</p>
-<p>Write the private key to a file. This example will use the filename <code>private-key.wif</code>.</p>
-<p>Now sweep the assets into your <code>ord</code> wallet:</p>
+<p>アドレスタイプ（この場合は<code>p2wpkh</code>）とプライベートキー（この場合は<code>KwVN7HkFnTymkfCh1b4Y5bRGftySuK4jjPQdgBoMURWCi8CjbZPN</code>）をメモしてください。</p>
+<p>プライベートキーをファイルに書き込みます。この例ではファイル名<code>private-key.wif</code>を使用します。</p>
+<p>アセットを<code>ord</code>ウォレットにスイープします：</p>
 <pre><code class="language-console">$ cat private-key.wif | ord wallet sweep --address-type p2wpkh --fee-rate 10
 </code></pre>
-<p>Be careful, and good luck!</p>
+<p>注意深く行い、幸運を！</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="設定"><a class="header" href="#設定">設定</a></h1>
-<p><code>ord</code> can be configured with the command line, environment variables, a configuration file, and default values.</p>
-<p>The command line takes precedence over environment variables, which take precedence over the configuration file, which takes precedence over defaults.</p>
-<p>The path to the configuration file can be given with <code>--config &lt;CONFIG_PATH&gt;</code>. <code>ord</code> will error if <code>&lt;CONFIG_PATH&gt;</code> doesn't exist.</p>
-<p>The path to a directory containing a configuration file name named <code>ord.yaml</code> can be given with <code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code> or <code>--datadir &lt;DATA_DIR_PATH&gt;</code> in which case the config path is <code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code> or <code>&lt;DATA_DIR_PATH&gt;/ord.yaml</code>. It is not an error if it does not exist.</p>
-<p>If none of <code>--config</code>, <code>--config-dir</code>, or <code>--datadir</code> are given, and a file named <code>ord.yaml</code> exists in the default data directory, it will be loaded.</p>
-<p>For a setting named <code>--setting-name</code> on the command line, the environment variable will be named <code>ORD_SETTING_NAME</code>, and the config file field will be named <code>setting_name</code>. For example, the data directory can be configured with <code>--datadir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or <code>data_dir</code> in the config file.</p>
-<p>See <code>ord --help</code> for documentation of all the settings.</p>
-<p><code>ord</code>'s current configuration can be viewed as JSON with the <code>ord settings</code> command.</p>
+<p><code>ord</code>はコマンドライン、環境変数、設定ファイル、デフォルト値で設定できます。</p>
+<p>コマンドラインは環境変数より優先され、環境変数は設定ファイルより優先され、設定ファイルはデフォルト値より優先されます。</p>
+<p>設定ファイルのパスは<code>--config &lt;CONFIG_PATH&gt;</code>で指定できます。<code>&lt;CONFIG_PATH&gt;</code>が存在しない場合、<code>ord</code>はエラーを返します。</p>
+<p><code>ord.yaml</code>という名前の設定ファイルを含むディレクトリのパスは、<code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code>または<code>--datadir &lt;DATA_DIR_PATH&gt;</code>で指定できます。この場合、設定パスは<code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code>または<code>&lt;DATA_DIR_PATH&gt;/ord.yaml</code>になります。ファイルが存在しなくてもエラーではありません。</p>
+<p><code>--config</code>、<code>--config-dir</code>、<code>--datadir</code>のいずれも指定されておらず、デフォルトのデータディレクトリに<code>ord.yaml</code>という名前のファイルが存在する場合、それが読み込まれます。</p>
+<p>コマンドラインで<code>--setting-name</code>という名前の設定について、環境変数は<code>ORD_SETTING_NAME</code>という名前になり、設定ファイルのフィールドは<code>setting_name</code>という名前になります。例えば、データディレクトリはコマンドラインでは<code>--datadir</code>、環境変数では<code>ORD_DATA_DIR</code>、設定ファイルでは<code>data_dir</code>で設定できます。</p>
+<p>すべての設定のドキュメントについては、<code>ord --help</code>を参照してください。</p>
+<p><code>ord</code>の現在の設定は、<code>ord settings</code>コマンドでJSONとして確認できます。</p>
 <h2 id="example-configuration"><a class="header" href="#example-configuration">Example Configuration</a></h2>
 <pre><code class="language-yaml"># example config
 
@@ -7692,7 +7692,7 @@ outputs:
 <p>Teleburn addresses are derived from inscription IDs. They have no corresponding private key, so assets sent to a teleburn address are burned. Currently, only Ethereum teleburn addresses are supported. Pull requests adding teleburn addresses for other chains are welcome.</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>Ethereum teleburn addresses are derived by taking the first 20 bytes of the SHA-256 hash of the inscription ID, serialized as 36 bytes, with the first 32 bytes containing the transaction ID, and the last four bytes containing big-endian inscription index, and interpreting it as an Ethereum address.</p>
-<h2 id="例を挙げます-53"><a class="header" href="#例を挙げます-53">例を挙げます</a></h2>
+<h2 id="例-55"><a class="header" href="#例-55">例</a></h2>
 <p>The ENS domain name <a href="https://app.ens.domains/rodarmor.eth">rodarmor.eth</a>, was teleburned to <a href="https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0">inscription zero</a>.</p>
 <p>The inscription ID of inscription zero is <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
 <p>Passing <code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code> to the teleburn command:</p>
@@ -7733,7 +7733,7 @@ $ord outputs
 </tbody></table>
 </div>
 <p>Regtest doesn't require downloading the blockchain since you create your own private blockchain, so indexing <code>ord</code> is almost instantaneous.</p>
-<h2 id="例を挙げます-54"><a class="header" href="#例を挙げます-54">例を挙げます</a></h2>
+<h2 id="例-56"><a class="header" href="#例-56">例</a></h2>
 <p>Run <code>bitcoind</code> in regtest with:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
@@ -7804,7 +7804,7 @@ $ord outputs
 <p>または,  <code>bitcoind</code> 和 <code>-txindex</code>を運行します:</p>
 <pre><code>bitcoind -txindex
 </code></pre>
-<p>Details on creating or modifying your <code>bitcoin.conf</code> file can be found <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">here</a>.</p>
+<p><code>bitcoin.conf</code> ファイルの作成または変更についての詳細は<a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">こちら</a>で確認できます。</p>
 <h2 id="ビットコインのブロックを同期にします"><a class="header" href="#ビットコインのブロックを同期にします">ビットコインのブロックを同期にします。</a></h2>
 <p>ブロックを同期にして、運行します：</p>
 <pre><code>bitcoind -txindex
@@ -7813,14 +7813,14 @@ $ord outputs
 <pre><code>bitcoin-cli getblockcount
 </code></pre>
 <p>ブロックチェーンブラウザのように[the mempool.space block explorer]（https://mempool.space/)のようにブロックを記述する...<code>ord</code>は'bitcoind'と相互作用するので、'ord'を使用するときは'bitcoind'をバックグラウンドで実行する必要があります。</p>
-<p>The blockchain takes about 600GB of disk space. If you have an external drive you want to store blocks on, use the configuration option <code>blocksdir=&lt;external_drive_path&gt;</code>. This is much simpler than using the <code>datadir</code> option because the cookie file will still be in the default location for <code>bitcoin-cli</code> and <code>ord</code> to find.</p>
+<p>ブロックチェーンは約600GBのディスク容量を必要とします。ブロックを保存したい外付けドライブがある場合は、設定オプション <code>blocksdir=&lt;external_drive_path&gt;</code> を使用してください。これは <code>datadir</code> オプションを使用するよりもはるかに簡単です。クッキーファイルが <code>bitcoin-cli</code> や <code>ord</code> が見つけられるデフォルトの場所にあり続けるためです。</p>
 <h2 id="故障排除-1"><a class="header" href="#故障排除-1">故障排除</a></h2>
-<p>Make sure you can access <code>bitcoind</code> with <code>bitcoin-cli -getinfo</code> and that it is fully synced.</p>
-<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not connect to the server</code>, <code>bitcoind</code> is not running.</p>
-<p>Make sure <code>rpcuser</code>, <code>rpcpassword</code>, or <code>rpcauth</code> are <em>NOT</em> set in your <code>bitcoin.conf</code> file. <code>ord</code> requires using cookie authentication. Make sure there is a file <code>.cookie</code> in your bitcoin data directory.</p>
-<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not locate RPC credentials</code>, then you must specify the cookie file location. If you are using a custom data directory (specifying the <code>datadir</code> option), then you must specify the cookie location like <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. When running <code>ord</code> you must specify the cookie file location with <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
-<p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
-<p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
+<p><code>bitcoin-cli -getinfo</code> で <code>bitcoind</code> にアクセスできることと、完全に同期されていることを確認してください。</p>
+<p><code>bitcoin-cli -getinfo</code> が <code>Could not connect to the server</code> を返す場合、<code>bitcoind</code> が実行されていません。</p>
+<p><code>bitcoin.conf</code> ファイルに <code>rpcuser</code>、<code>rpcpassword</code>、または <code>rpcauth</code> が設定されて_いない_ことを確認してください。<code>ord</code> はクッキー認証の使用が必要です。Bitcoinデータディレクトリに <code>.cookie</code> ファイルがあることを確認してください。</p>
+<p><code>bitcoin-cli -getinfo</code> が <code>Could not locate RPC credentials</code> を返す場合、クッキーファイルの場所を指定する必要があります。カスタムデータディレクトリを使用している場合（<code>datadir</code> オプションを指定）、<code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code> のようにクッキーの場所を指定する必要があります。<code>ord</code> を実行する際は、<code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code> でクッキーファイルの場所を指定する必要があります。</p>
+<p><code>bitcoin.conf</code> ファイルに <code>disablewallet=1</code> が設定されて_いない_ことを確認してください。<code>bitcoin-cli listwallets</code> が <code>Method not found</code> を返す場合、ウォレットが無効になっており、<code>ord</code> を使用できません。</p>
+<p><code>txindex=1</code> が設定されていることを確認してください。<code>bitcoin-cli getindexinfo</code> を実行すると、次のような結果が返されるはずです</p>
 <pre><code class="language-json">{
   "txindex": {
     "synced": true,
@@ -7828,11 +7828,11 @@ $ord outputs
   }
 }
 </code></pre>
-<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>"synced": false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>"synced": true</code> before using <code>ord</code>.</p>
-<p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
+<p><code>{}</code> のみが返される場合、<code>txindex</code> が設定されていません。<code>"synced": false</code> が返される場合、<code>bitcoind</code> がまだ <code>txindex</code> を作成中です。<code>ord</code> を使用する前に <code>"synced": true</code> になるまで待ってください。</p>
+<p><code>maxuploadtarget</code> が設定されている場合、<code>ord</code> インデックス用のブロック取得に干渉する可能性があります。これを削除するか、<code>whitebind=127.0.0.1:8333</code> を設定してください。</p>
 <h2 id="ord取り付けます"><a class="header" href="#ord取り付けます"><code>ord取り付けます。</code></a></h2>
 <p><code>ord</code> プログラムはRust言語で書かれており、<a href="https://github.com/ordinals/ord">ソースコード</a>インストール.事前に作成されたファイルは、<a href="https://github.com/ordinals/ord/releases">バージョンリリースページ</a>)からダウンロードできます。</p>
-<p>コマンドラインで次のコマンドを使用して、最新のファイルをインストールすることもできます。：</p>
+<p>最新のプリビルドバイナリをコマンドラインから次のコマンドでインストールできます：コマンドラインで次のコマンドを使用して、最新のファイルをインストールすることもできます。：</p>
 <pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
 </code></pre>
 <p>'ord'が正常にインストールされた後、あなたは実行することができます :</p>
@@ -7848,24 +7848,24 @@ $ord outputs
 <p>To create a wallet named <code>ord</code>, the default, for use with <code>ord wallet</code>, run:</p>
 <pre><code>ord wallet create
 </code></pre>
-<p>This will print out your seed phrase mnemonic, store it somewhere safe.</p>
+<p>これによりシードフレーズニーモニックが表示されます。安全な場所に保存してください。</p>
 <pre><code>{
   "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal",
   "passphrase": ""
 }
 </code></pre>
-<p>If you want to specify a different name or use an <code>ord server</code> running on a non-default URL you can set these options:</p>
+<p>異なる名前を指定したい場合や、デフォルト以外のURLで動作している <code>ord server</code> を使用したい場合は、以下のオプションを設定できます：</p>
 <pre><code>ord wallet --name foo --server-url http://127.0.0.1:8080 create
 </code></pre>
-<p>To see all available wallet options you can run:</p>
+<p>利用可能なウォレットオプションをすべて確認するには、次のコマンドを実行してください：</p>
 <pre><code>ord wallet help
 </code></pre>
-<h2 id="restoring-and-dumping-wallet"><a class="header" href="#restoring-and-dumping-wallet">Restoring and Dumping Wallet</a></h2>
-<p>The <code>ord</code> wallet uses descriptors, so you can export the output descriptors and import them into another descriptor-based wallet. To export the wallet descriptors, which include your private keys:</p>
+<h2 id="ウォレットの復元とダンプ"><a class="header" href="#ウォレットの復元とダンプ">ウォレットの復元とダンプ</a></h2>
+<p><code>ord</code> ウォレットはディスクリプタを使用しているため、アウトプットディスクリプタをエクスポートして他のディスクリプタベースのウォレットにインポートできます。秘密鍵を含むウォレットディスクリプタをエクスポートするには：</p>
 <pre><code>$ ord wallet dump
 ==========================================
-= THIS STRING CONTAINS YOUR PRIVATE KEYS =
-=        DO NOT SHARE WITH ANYONE        =
+= この文字列には秘密鍵が含まれています =
+=        誰とも共有しないでください        =
 ==========================================
 {
   "wallet_name": "ord",
@@ -7895,17 +7895,17 @@ $ord outputs
   ]
 }
 </code></pre>
-<p>An <code>ord</code> wallet can be restored from a mnemonic:</p>
+<p><code>ord</code> ウォレットはニーモニックから復元できます：</p>
 <pre><code>ord wallet restore --from mnemonic
 </code></pre>
-<p>Type your mnemonic and press return.</p>
-<p>To restore from a descriptor in <code>descriptor.json</code>:</p>
+<p>ニーモニックを入力してEnterキーを押してください。</p>
+<p><code>descriptor.json</code> のディスクリプタから復元するには：</p>
 <pre><code>cat descriptor.json | ord wallet restore --from descriptor
 </code></pre>
-<p>To restore from a descriptor in the clipboard:</p>
+<p>クリップボードのディスクリプタから復元するには：</p>
 <pre><code>ord wallet restore --from descriptor
 </code></pre>
-<p>Paste the descriptor into the terminal and press CTRL-D on unix and CTRL-Z on Windows.</p>
+<p>ディスクリプタをターミナルに貼り付け、UnixではCTRL-D、WindowsではCTRL-Zを押してください。</p>
 <h2 id="聡を取り受けます"><a class="header" href="#聡を取り受けます">聡を取り受けます。</a></h2>
 <p>銘文は、単一のコングに作成され、通常のビットコイン取引のためにコングを使用して料金を支払うので、あなたの財布はいくつかのコング（ビットコイン）を必要とします。</p>
 <p>'ord'ウォレットの新しいアドレスを作成して、実行します::</p>
@@ -7932,12 +7932,12 @@ $ord outputs
 <pre><code>ord wallet inscriptions
 </code></pre>
 <h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent-Child Inscriptions</a></h2>
-<p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="guides/../inscriptions/provenance.html">provenance</a> for more information.</p>
-<p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
+<p>親子関係の碑文は、一般的にコレクションと呼ばれる機能を可能にします。詳しくは <a href="guides/../inscriptions/provenance.html">provenance</a> を参照してください。</p>
+<p>碑文を他の碑文の子にするためには、親碑文が碑文されておりウォレットに存在する必要があります。親を選ぶには <code>ord wallet inscriptions</code> を実行し、碑文ID（<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>）をコピーしてください。</p>
 <p>Now inscribe the child inscription and specify the parent like so:</p>
 <pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
-<p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
+<p>この関係は後から追加することはできません。親は子の作成時に存在している必要があります。</p>
 <h2 id="銘文を発送します"><a class="header" href="#銘文を発送します">銘文を発送します</a></h2>
 <p>銘文受信者は次のコマンドを使って住所を生成する</p>
 <pre><code>ord wallet receive
@@ -7958,7 +7958,7 @@ $ord outputs
 <p>Send the runes by running:</p>
 <pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
 </code></pre>
-<p>Where <code>RUNES_AMOUNT</code> is the number of runes to send, a <code>:</code> character, and the name of the rune. For example if you want to send 1000 of the EXAMPLE rune, you would use <code>1000:EXAMPLE</code>.</p>
+<p><code>RUNES_AMOUNT</code> は送信するルーンの数、<code>:</code> 文字、そしてルーンの名前です。例えば、EXAMPLEルーンを1000個送信したい場合は、<code>1000:EXAMPLE</code> を使用します。</p>
 <pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
 </code></pre>
 <p>できなかった取引状況を検査します：</p>

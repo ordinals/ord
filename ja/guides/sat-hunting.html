@@ -235,29 +235,29 @@
                     <main>
                         <h1 id="satハンティング"><a class="header" href="#satハンティング">Satハンティング</a></h1>
 <p>Ordinal hunting is difficult but rewarding. The feeling of owning a wallet full of UTXOs, redolent with the scent of rare and exotic sats, is beyond compare.</p>
-<p>Ordinals are numbers for satoshis. Every satoshi has an ordinal number and every ordinal number has a satoshi.</p>
-<h2 id="preparation"><a class="header" href="#preparation">Preparation</a></h2>
-<p>There are a few things you'll need before you start.</p>
+<p>オーディナルズはsatoshiの番号です。すべてのsatoshiにはオーディナル番号があり、すべてのオーディナル番号にはsatoshiがあります。</p>
+<h2 id="準備"><a class="header" href="#準備">準備</a></h2>
+<p>始める前に必要なものがいくつかあります。</p>
 <ol>
 <li>
-<p>First, you'll need a synced Bitcoin Core node with a transaction index. To turn on transaction indexing, pass <code>-txindex</code> on the command-line:</p>
+<p>まず、トランザクションインデックスを持つ同期されたBitcoin Coreノードが必要です。トランザクションインデックシングを有効にするには、コマンドラインで <code>-txindex</code> を渡してください：</p>
 <pre><code class="language-sh">bitcoind -txindex
 </code></pre>
-<p>Or put the following in your <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">Bitcoin configuration file</a>:</p>
+<p>または、<a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md#configuration-file-path">Bitcoin設定ファイル</a>に以下を追加してください：</p>
 <pre><code>txindex=1
 </code></pre>
-<p>Launch it and wait for it to catch up to the chain tip, at which point the following command should print out the current block height:</p>
+<p>起動してチェーンの最新部分に追いつくまで待ち、その時点で次のコマンドが現在のブロック高を出力するはずです：</p>
 <pre><code class="language-sh">bitcoin-cli getblockcount
 </code></pre>
 </li>
 <li>
-<p>Second, you'll need a synced <code>ord</code> index.</p>
+<p>二番目に、同期された <code>ord</code> インデックスが必要です。</p>
 <ul>
 <li>
-<p>Get a copy of <code>ord</code> from <a href="https://github.com/ordinals/ord/">the repo</a>.</p>
+<p><a href="https://github.com/ordinals/ord/">repo</a> から <code>ord</code> のコピーを取得してください。</p>
 </li>
 <li>
-<p>Run <code>ord --index-sats server</code>. It should connect to your bitcoin core node and start indexing.</p>
+<p><code>ord --index-sats server</code> を実行してください。Bitcoin Coreノードに接続し、インデックシングを開始するはずです。</p>
 </li>
 <li>
 <p>Once it has finished indexing, leave the server running and submit new <code>ord</code> commands in a separate terminal session.</p>

@@ -234,40 +234,40 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="バッチ刻み"><a class="header" href="#バッチ刻み">バッチ刻み</a></h1>
-<p>Multiple inscriptions can be created at the same time using the <a href="./../inscriptions/pointer.html">pointer field</a>. This is especially helpful for collections, or other cases when multiple inscriptions should share the same parent, since the parent can passed into a reveal transaction that creates multiple children.</p>
-<p>To create a batch inscription using a batchfile in <code>batch.yaml</code>, run the following command:</p>
+<p><a href="./../inscriptions/pointer.html">ポインターフィールド</a> を使用して複数の碑文を同時に作成できます。これは特にコレクションや、複数の碑文が同じ親を共有すべき場合に役立ちます。親は複数の子を作成するリビール取引に渡すことができるためです。</p>
+<p><code>batch.yaml</code> のバッチファイルを使用してバッチ碑文を作成するには、次のコマンドを実行してください：</p>
 <pre><code class="language-bash">ord wallet batch --fee-rate 21 --batch batch.yaml
 </code></pre>
-<h2 id="example-batchyaml"><a class="header" href="#example-batchyaml">Example <code>batch.yaml</code></a></h2>
-<pre><code class="language-yaml"># example batch file
+<h2 id="batchyaml-の例"><a class="header" href="#batchyaml-の例"><code>batch.yaml</code> の例</a></h2>
+<pre><code class="language-yaml"># バッチファイルの例
 
-# inscription modes:
-# - `same-sat`: inscribe on the same sat
-# - `satpoints`: inscribe on the first sat of specified satpoint's output
-# - `separate-outputs`: inscribe on separate postage-sized outputs
-# - `shared-output`: inscribe on a single output separated by postage
+# 碑文モード:
+# - `same-sat`: 同じsatに碑文を刻む
+# - `satpoints`: 指定されたsatpointのアウトプットの最初のsatに碑文を刻む
+# - `separate-outputs`: 個別の送料サイズのアウトプットに碑文を刻む
+# - `shared-output`: 送料で区切られた単一のアウトプットに碑文を刻む
 mode: separate-outputs
 
 # parent inscriptions:
 parents:
 - 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
 
-# postage for each inscription:
+# 各碑文の送料：
 postage: 12345
 
-# allow reinscribing
+# 再碑文を許可
 reinscribe: true
 
-# sat to inscribe on, can only be used with `same-sat`:
+# 碑文を刻むsat、`same-sat`でのみ使用可能：
 # sat: 5000000000
 
-# rune to etch (optional)
+# エッチするルーン（オプション）
 etching:
-  # rune name
+  # ルーン名
   rune: THE•BEST•RUNE
-  # allow subdividing super-unit into `10^divisibility` sub-units
+  # スーパーユニットを`10^divisibility`サブユニットに細分化を許可
   divisibility: 2
-  # premine
+  # プレマイン
   premine: 1000.00
   # total supply, must be equal to `premine + terms.cap * terms.amount`
   supply: 10000.00

@@ -234,10 +234,10 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="碑文"><a class="header" href="#碑文">碑文</a></h1>
-<p>銘文には任意の内容が刻まれ、ビットコインネイティブのデジタル人工製品が作られました。通常NFTと呼ばれています。の銘文には側鎖や個別のトークンは必要ありません。</p>
-<p>これらの刻まれたコングは、ビットコイン取引転送を使用してビットコインアドレスに送信され、ビットコインUTXOに保存されます。これらの取引、アドレス、UTXOはすべての点で通常のビットコイン取引、アドレス、UTXOです。は単一の聡を送るために加えて、取引は序数理論に基づいて入力と出力の順序と値を制御しなければなりません</p>
-<p>銘文の内容はワールドワイドウェブ基準に基づいている。銘文はコンテンツタイプ（MI MEタイプとも呼ばれる）とコンテンツ自体（バイト列）で構成されています。これにより、Webサーバーから銘文コンテンツを返すことができ、HTML銘文を作成して使用し、他の銘文コンテンツを再混合するために使用されます。</p>
-<p>銘文の内容は完全にチェーン上にあり、保存されているtaproot script-path spendスクリプト内。のTaprootスクリプトはその内容に対する制限が少なく、証人割引を追加で受けることで、銘文内容の保存が比較的経済的になります。</p>
+<p>碑文は任意のコンテンツをsatoshiに刻み込み、ビットコインネイティブなデジタルアーティファクト（一般的にNFTとして知られる）を作成します。碑文にはサイドチェーンや独立したトークンは必要ありません。</p>
+<p>これらの碑文が刻まれたsatoshiは、ビットコイントランザクションを使用して転送し、ビットコインアドレスに送信し、ビットコインUTXOに保持することができます。これらのトランザクション、アドレス、UTXOは、個々のsatoshiを送信する際にオーディナルズ理論に従ってインプットとアウトプットの順序と価値を制御する必要があることを除いて、すべての点で通常のビットコイントランザクション、アドレス、UTXOです。</p>
+<p>碑文のコンテンツモデルはウェブのものと同じです。碑文はコンテンツタイプ（MIMEタイプとも呼ばれる）とコンテンツ自体（バイト文字列）で構成されます。これにより、碑文のコンテンツをウェブサーバーから返すことができ、他の碑文のコンテンツを使用してリミックスするHTML碑文を作成することができます。</p>
+<p>碑文のコンテンツは完全にオンチェーンで、taprootスクリプトパス支出スクリプトに格納されています。taprootスクリプトはコンテンツに対する制限が非常に少なく、さらにwitness割引を受けることで、碑文のコンテンツ保存を比較的経済的にします。</p>
 <p>taproot script-path spendスクリプトは既存のtaproot出力からしか生成できないため、そのため、は2段階のcommit/revealプロセスを使用して刻印されます。まず、commitでは、銘文の内容を含むスクリプトに提出するtaproot出力を作成します。次に、reveal取引では、commit取引による出力を使用して、チェーン上の銘文の内容を表示します。</p>
 <p>銘文の内容は、実行されていない条件のデータプッシュを使用してシリアル化され "エンベロープ"と呼ばれます。封筒はOP_FALSE OP_IF…OP_ENDIF任意の数のデータプッシュを構成し、ラップします。エンベロープは実際には空の操作なので、それらを含むスクリプトのセマンティクスは変更されません。となり、他のロックスクリプトと組み合わせて使用できます。</p>
 <p>文字列「Hello,world！」を含むのテキスト銘文を以下のようにシリアル化されています：</p>
@@ -257,15 +257,15 @@ OP_ENDIF
 <p>銘文のデータモデルはHTTP応答のデータモデルであり、銘文がウェブサーバによってサービスされ、ウェブブラウザで閲覧することを可能にします。</p>
 <h2 id="フィールド"><a class="header" href="#フィールド">フィールド</a></h2>
 <p>銘文には、オプションの本文の前にフィールドを含めることができます。各フィールドにはの2つのデータプッシュ、1つのラベルと1つの値。</p>
-<p>Currently, there are six defined fields:</p>
+<p>現在、6つの定義されたフィールドがあります：</p>
 <ul>
 <li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
-<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="inscriptions/pointer.html">pointer docs</a>.</li>
-<li><code>parent</code>, with a tag of <code>3</code>, see <a href="inscriptions/provenance.html">provenance</a>.</li>
-<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="inscriptions/metadata.html">metadata</a>.</li>
-<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
+<li><code>ポインタ</code>、タグ<code>2</code>、詳細は<a href="inscriptions/pointer.html">ポインタドキュメント</a>を参照してください。</li>
+<li><code>親</code>、タグ<code>3</code>、詳細は<a href="inscriptions/provenance.html">出所</a>を参照してください。</li>
+<li><code>メタデータ</code>、タグ<code>5</code>、詳細は<a href="inscriptions/metadata.html">メタデータ</a>を参照してください。</li>
+<li><code>メタプロトコル</code>、タグ<code>7</code>、値はメタプロトコル識別子です。</li>
 <li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
-<li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
+<li><code>デリゲート</code>、タグ<code>11</code>、詳細は<a href="inscriptions/delegate.html">デリゲート</a>を参照してください。</li>
 </ul>
 <p>本文の先頭とフィールドの末尾には "空のデータ"でプッシュが表示されます。</p>
 <p>認識できないラベルの解釈は、偶数か奇数かによって異なり、稲妻ネットワーク"は奇数"にすることができるというルールに従います。</p>
@@ -276,7 +276,7 @@ OP_ENDIF
 <p><code>521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0</code></p>
 <p>’i’の先頭部分は、トランザクションID（’txid’）である。<code>i</code>の後の数字はを定義します。新しい銘文は、取引で常に銘記されたインデックスの位置(0から開始)</p>
 <p>銘文は、入力の中の異なる入力の中にあってもよく、同じ入力であってもよく、あるいは両者の組み合わせであってもよい。いずれにしても、パーサーは入力を連続的にチェックし、すべての銘文『封筒を検索するため、順序は明確です</p>
-<div class="table-wrapper"><table><thead><tr><th style="text-align: center">Input</th><th style="text-align: center">Inscription Count</th><th style="text-align: center">Indices</th></tr></thead><tbody>
+<div class="table-wrapper"><table><thead><tr><th style="text-align: center">インプット</th><th style="text-align: center">碑文数</th><th style="text-align: center">インデックス</th></tr></thead><tbody>
 <tr><td style="text-align: center">0</td><td style="text-align: center">2</td><td style="text-align: center">i0, i1</td></tr>
 <tr><td style="text-align: center">1</td><td style="text-align: center">1</td><td style="text-align: center">i2</td></tr>
 <tr><td style="text-align: center">2</td><td style="text-align: center">3</td><td style="text-align: center">i3, i4, i5</td></tr>
@@ -285,23 +285,23 @@ OP_ENDIF
 </tbody></table>
 </div>
 <h2 id="inscription-numbers"><a class="header" href="#inscription-numbers">Inscription Numbers</a></h2>
-<p>Inscriptions are assigned inscription numbers starting at zero, first by the order reveal transactions appear in blocks, and the order that reveal envelopes appear in those transactions.</p>
-<p>Due to a historical bug in <code>ord</code> which cannot be fixed without changing a great many inscription numbers, inscriptions which are revealed and then immediately spent to fees are numbered as if they appear last in the block in which they are revealed.</p>
-<p>Inscriptions which are cursed are numbered starting at negative one, counting down. Cursed inscriptions on and after the jubilee at block 824544 are vindicated, and are assigned positive inscription numbers.</p>
+<p>碑文には0から始まる碑文番号が割り当てられます。まずブロック内でのリベアルトランザクションの順序、次にそのトランザクション内でのリベアルエンベロープの順序によります。</p>
+<p>多数の碑文番号を変更することなく修正できない<code>ord</code>の歴史的なバグにより、公開されてすぐに手数料として使用された碑文は、公開されたブロック内で最後に表示されたかのように番号付けされます。</p>
+<p>呪われた碑文は-1から始まって下方向にカウントされます。ブロック824544のジュビリー以降の呪われた碑文は名誉回復され、正の碑文番号が割り当てられます。</p>
 <h2 id="サンドボックス化"><a class="header" href="#サンドボックス化">サンドボックス化</a></h2>
 <p>HTML と SVG 銘文はサンドボックス化され、チェーンの下の内容を引用しないようにして、銘文の不変性と独立性を保ちます。</p>
 <p>これは、HTMLとSVGの銘文を <code>iframes</code> にロードし、銘文コンテンツを提供することによって行われる'sandbox'属性です。Content-Security-Policy”ヘッダ。</p>
-<h2 id="self-reference"><a class="header" href="#self-reference">Self-Reference</a></h2>
-<p>The content of the inscription with ID <code>INSCRIPTION_ID</code> must served from the URL path <code>/content/&lt;INSCRIPTION_ID&gt;</code>.</p>
+<h2 id="自己参照"><a class="header" href="#自己参照">自己参照</a></h2>
+<p>碑文ID <code>INSCRIPTION_ID</code> を持つ碑文のコンテンツは、URLパス <code>/content/&lt;INSCRIPTION_ID&gt;</code> から提供される必要があります。</p>
 <p>This allows inscriptions to retrieve their own inscription ID with:</p>
 <pre><code class="language-js">let inscription_id = window.location.pathname.split("/").pop();
 </code></pre>
-<p>If an inscription with ID X delegates to an inscription with ID Y, that is to say, if inscription X contains a delegate field with value Y, the content of inscription X must be served from the URL path <code>/content/X</code>, <em>not</em> <code>/content/Y</code>.</p>
-<p>This allows delegating inscriptions to use their own inscription ID as a seed for generative delegate content.</p>
-<h2 id="reinscriptions"><a class="header" href="#reinscriptions">Reinscriptions</a></h2>
-<p>Previously inscribed sats can be reinscribed with the <code>--reinscribe</code> command if the inscription is present in the wallet. This will only append an inscription to a sat, not change the initial inscription.</p>
-<p>Reinscribe with satpoint: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
-<p>Reinscribe on a sat (requires sat index): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
+<p>ID XのInstcriptionがID YのInscriptionに委譲する場合、つまりInscription Xに値Yを持つ委譲フィールドが含まれている場合、Inscription XのコンテンツはURLパス<code>/content/X</code>から提供されなければならず、<code>/content/Y</code>からではありません。</p>
+<p>これにより、委譲するInscriptionが自身のInscription IDを生成的な委譲コンテンツのシードとして使用することができます。</p>
+<h2 id="再刻印"><a class="header" href="#再刻印">再刻印</a></h2>
+<p>以前に碑文が刻まれたsatは、碑文がウォレットにある場合、<code>--reinscribe</code> コマンドで再刻印することができます。これはsatに碑文を追加するのみで、初期の碑文を変更することはできません。</p>
+<p>satpointでの再刻印: <code>ord wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --satpoint &lt;SATPOINT&gt;</code></p>
+<p>satでの再刻印 (satインデックスが必要): <code>ord --index-sats wallet inscribe --fee-rate &lt;FEE_RATE&gt; --reinscribe --file &lt;FILE&gt; --sat &lt;SAT&gt;</code></p>
 
                     </main>
 

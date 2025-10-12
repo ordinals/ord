@@ -234,18 +234,18 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="メタデータ"><a class="header" href="#メタデータ">メタデータ</a></h1>
-<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> metadata, stored as data pushes in fields with tag <code>5</code>. Since data pushes are limited to 520 bytes, metadata longer than 520 bytes must be split into multiple tag <code>5</code> fields, which will then be concatenated before decoding.</p>
-<p>Metadata is human readable, and all metadata will be displayed to the user with its inscription. Inscribers are encouraged to consider how metadata will be displayed, and make metadata concise and attractive.</p>
-<p>Metadata is rendered to HTML for display as follows:</p>
+<p>Inscriptionには<a href="https://cbor.io/">CBOR</a>メタデータを含めることができ、タグ<code>5</code>のフィールドにデータプッシュとして保存されます。データプッシュは520バイトに制限されているため、520バイトを超えるメタデータは複数のタグ<code>5</code>フィールドに分割し、デコード前に連結される必要があります。</p>
+<p>メタデータは人間が読める形式で、すべてのメタデータはInscriptionとともにユーザーに表示されます。Inscriptionの作成者は、メタデータがどのように表示されるかを考慮し、簡潔で魅力的なメタデータを作成することが推奨されます。</p>
+<p>メタデータは以下のようにHTMLレンダリングされて表示されます：</p>
 <ul>
-<li><code>null</code>, <code>true</code>, <code>false</code>, numbers, floats, and strings are rendered as plain text.</li>
-<li>Byte strings are rendered as uppercase hexadecimal.</li>
-<li>Arrays are rendered as <code>&lt;ul&gt;</code> tags, with every element wrapped in <code>&lt;li&gt;</code> tags.</li>
-<li>Maps are rendered as <code>&lt;dl&gt;</code> tags, with every key wrapped in <code>&lt;dt&gt;</code> tags, and every value wrapped in <code>&lt;dd&gt;</code> tags.</li>
+<li><code>null</code>、<code>true</code>、<code>false</code>、数値、浮動小数点数、文字列はプレーンテキストとしてレンダリングされます。</li>
+<li>バイト文字列は大文字の16進数としてレンダリングされます。</li>
+<li>配列は<code>&lt;ul&gt;</code>タグとしてレンダリングされ、各要素は<code>&lt;li&gt;</code>タグで囲まれます。</li>
+<li>マップは<code>&lt;dl&gt;</code>タグとしてレンダリングされ、各キーは<code>&lt;dt&gt;</code>タグ、各値は<code>&lt;dd&gt;</code>タグで囲まれます。</li>
 <li>Tags are rendered as the tag , enclosed in a <code>&lt;sup&gt;</code> tag, followed by the value.</li>
 </ul>
 <p>CBOR is a complex spec with many different data types, and multiple ways of representing the same data. Exotic data types, such as tags, floats, and bignums, and encoding such as indefinite values, may fail to display correctly or at all. Contributions to <code>ord</code> to remedy this are welcome.</p>
-<h2 id="例を挙げます"><a class="header" href="#例を挙げます">例を挙げます</a></h2>
+<h2 id="例"><a class="header" href="#例">例</a></h2>
 <p>Since CBOR is not human readable, in these examples it is represented as JSON. Keep in mind that this is <em>only</em> for these examples, and JSON metadata will <em>not</em> be displayed correctly.</p>
 <p>The metadata <code>{"foo":"bar","baz":[null,true,false,0]}</code> would be included in an inscription as:</p>
 <pre><code>OP_FALSE

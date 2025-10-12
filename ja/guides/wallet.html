@@ -263,7 +263,7 @@
 <p>または,  <code>bitcoind</code> 和 <code>-txindex</code>を運行します:</p>
 <pre><code>bitcoind -txindex
 </code></pre>
-<p>Details on creating or modifying your <code>bitcoin.conf</code> file can be found <a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">here</a>.</p>
+<p><code>bitcoin.conf</code> ファイルの作成または変更についての詳細は<a href="https://github.com/bitcoin/bitcoin/blob/master/doc/bitcoin-conf.md">こちら</a>で確認できます。</p>
 <h2 id="ビットコインのブロックを同期にします"><a class="header" href="#ビットコインのブロックを同期にします">ビットコインのブロックを同期にします。</a></h2>
 <p>ブロックを同期にして、運行します：</p>
 <pre><code>bitcoind -txindex
@@ -272,14 +272,14 @@
 <pre><code>bitcoin-cli getblockcount
 </code></pre>
 <p>ブロックチェーンブラウザのように[the mempool.space block explorer]（https://mempool.space/)のようにブロックを記述する...<code>ord</code>は'bitcoind'と相互作用するので、'ord'を使用するときは'bitcoind'をバックグラウンドで実行する必要があります。</p>
-<p>The blockchain takes about 600GB of disk space. If you have an external drive you want to store blocks on, use the configuration option <code>blocksdir=&lt;external_drive_path&gt;</code>. This is much simpler than using the <code>datadir</code> option because the cookie file will still be in the default location for <code>bitcoin-cli</code> and <code>ord</code> to find.</p>
+<p>ブロックチェーンは約600GBのディスク容量を必要とします。ブロックを保存したい外付けドライブがある場合は、設定オプション <code>blocksdir=&lt;external_drive_path&gt;</code> を使用してください。これは <code>datadir</code> オプションを使用するよりもはるかに簡単です。クッキーファイルが <code>bitcoin-cli</code> や <code>ord</code> が見つけられるデフォルトの場所にあり続けるためです。</p>
 <h2 id="故障排除"><a class="header" href="#故障排除">故障排除</a></h2>
-<p>Make sure you can access <code>bitcoind</code> with <code>bitcoin-cli -getinfo</code> and that it is fully synced.</p>
-<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not connect to the server</code>, <code>bitcoind</code> is not running.</p>
-<p>Make sure <code>rpcuser</code>, <code>rpcpassword</code>, or <code>rpcauth</code> are <em>NOT</em> set in your <code>bitcoin.conf</code> file. <code>ord</code> requires using cookie authentication. Make sure there is a file <code>.cookie</code> in your bitcoin data directory.</p>
-<p>If <code>bitcoin-cli -getinfo</code> returns <code>Could not locate RPC credentials</code>, then you must specify the cookie file location. If you are using a custom data directory (specifying the <code>datadir</code> option), then you must specify the cookie location like <code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code>. When running <code>ord</code> you must specify the cookie file location with <code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code>.</p>
-<p>Make sure you do <em>NOT</em> have <code>disablewallet=1</code> in your <code>bitcoin.conf</code> file. If <code>bitcoin-cli listwallets</code> returns <code>Method not found</code> then the wallet is disabled and you won't be able to use <code>ord</code>.</p>
-<p>Make sure <code>txindex=1</code> is set. Run <code>bitcoin-cli getindexinfo</code> and it should return something like</p>
+<p><code>bitcoin-cli -getinfo</code> で <code>bitcoind</code> にアクセスできることと、完全に同期されていることを確認してください。</p>
+<p><code>bitcoin-cli -getinfo</code> が <code>Could not connect to the server</code> を返す場合、<code>bitcoind</code> が実行されていません。</p>
+<p><code>bitcoin.conf</code> ファイルに <code>rpcuser</code>、<code>rpcpassword</code>、または <code>rpcauth</code> が設定されて_いない_ことを確認してください。<code>ord</code> はクッキー認証の使用が必要です。Bitcoinデータディレクトリに <code>.cookie</code> ファイルがあることを確認してください。</p>
+<p><code>bitcoin-cli -getinfo</code> が <code>Could not locate RPC credentials</code> を返す場合、クッキーファイルの場所を指定する必要があります。カスタムデータディレクトリを使用している場合（<code>datadir</code> オプションを指定）、<code>bitcoin-cli -rpccookiefile=&lt;your_bitcoin_datadir&gt;/.cookie -getinfo</code> のようにクッキーの場所を指定する必要があります。<code>ord</code> を実行する際は、<code>--cookie-file=&lt;your_bitcoin_datadir&gt;/.cookie</code> でクッキーファイルの場所を指定する必要があります。</p>
+<p><code>bitcoin.conf</code> ファイルに <code>disablewallet=1</code> が設定されて_いない_ことを確認してください。<code>bitcoin-cli listwallets</code> が <code>Method not found</code> を返す場合、ウォレットが無効になっており、<code>ord</code> を使用できません。</p>
+<p><code>txindex=1</code> が設定されていることを確認してください。<code>bitcoin-cli getindexinfo</code> を実行すると、次のような結果が返されるはずです</p>
 <pre><code class="language-json">{
   "txindex": {
     "synced": true,
@@ -287,11 +287,11 @@
   }
 }
 </code></pre>
-<p>If it only returns <code>{}</code>, <code>txindex</code> is not set. If it returns <code>"synced": false</code>, <code>bitcoind</code> is still creating the <code>txindex</code>. Wait until <code>"synced": true</code> before using <code>ord</code>.</p>
-<p>If you have <code>maxuploadtarget</code> set it can interfere with fetching blocks for <code>ord</code> index. Either remove it or set <code>whitebind=127.0.0.1:8333</code>.</p>
+<p><code>{}</code> のみが返される場合、<code>txindex</code> が設定されていません。<code>"synced": false</code> が返される場合、<code>bitcoind</code> がまだ <code>txindex</code> を作成中です。<code>ord</code> を使用する前に <code>"synced": true</code> になるまで待ってください。</p>
+<p><code>maxuploadtarget</code> が設定されている場合、<code>ord</code> インデックス用のブロック取得に干渉する可能性があります。これを削除するか、<code>whitebind=127.0.0.1:8333</code> を設定してください。</p>
 <h2 id="ord取り付けます"><a class="header" href="#ord取り付けます"><code>ord取り付けます。</code></a></h2>
 <p><code>ord</code> プログラムはRust言語で書かれており、<a href="https://github.com/ordinals/ord">ソースコード</a>インストール.事前に作成されたファイルは、<a href="https://github.com/ordinals/ord/releases">バージョンリリースページ</a>)からダウンロードできます。</p>
-<p>コマンドラインで次のコマンドを使用して、最新のファイルをインストールすることもできます。：</p>
+<p>最新のプリビルドバイナリをコマンドラインから次のコマンドでインストールできます：コマンドラインで次のコマンドを使用して、最新のファイルをインストールすることもできます。：</p>
 <pre><code class="language-sh">curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
 </code></pre>
 <p>'ord'が正常にインストールされた後、あなたは実行することができます :</p>
@@ -307,24 +307,24 @@
 <p>To create a wallet named <code>ord</code>, the default, for use with <code>ord wallet</code>, run:</p>
 <pre><code>ord wallet create
 </code></pre>
-<p>This will print out your seed phrase mnemonic, store it somewhere safe.</p>
+<p>これによりシードフレーズニーモニックが表示されます。安全な場所に保存してください。</p>
 <pre><code>{
   "mnemonic": "dignity buddy actor toast talk crisp city annual tourist orient similar federal",
   "passphrase": ""
 }
 </code></pre>
-<p>If you want to specify a different name or use an <code>ord server</code> running on a non-default URL you can set these options:</p>
+<p>異なる名前を指定したい場合や、デフォルト以外のURLで動作している <code>ord server</code> を使用したい場合は、以下のオプションを設定できます：</p>
 <pre><code>ord wallet --name foo --server-url http://127.0.0.1:8080 create
 </code></pre>
-<p>To see all available wallet options you can run:</p>
+<p>利用可能なウォレットオプションをすべて確認するには、次のコマンドを実行してください：</p>
 <pre><code>ord wallet help
 </code></pre>
-<h2 id="restoring-and-dumping-wallet"><a class="header" href="#restoring-and-dumping-wallet">Restoring and Dumping Wallet</a></h2>
-<p>The <code>ord</code> wallet uses descriptors, so you can export the output descriptors and import them into another descriptor-based wallet. To export the wallet descriptors, which include your private keys:</p>
+<h2 id="ウォレットの復元とダンプ"><a class="header" href="#ウォレットの復元とダンプ">ウォレットの復元とダンプ</a></h2>
+<p><code>ord</code> ウォレットはディスクリプタを使用しているため、アウトプットディスクリプタをエクスポートして他のディスクリプタベースのウォレットにインポートできます。秘密鍵を含むウォレットディスクリプタをエクスポートするには：</p>
 <pre><code>$ ord wallet dump
 ==========================================
-= THIS STRING CONTAINS YOUR PRIVATE KEYS =
-=        DO NOT SHARE WITH ANYONE        =
+= この文字列には秘密鍵が含まれています =
+=        誰とも共有しないでください        =
 ==========================================
 {
   "wallet_name": "ord",
@@ -354,17 +354,17 @@
   ]
 }
 </code></pre>
-<p>An <code>ord</code> wallet can be restored from a mnemonic:</p>
+<p><code>ord</code> ウォレットはニーモニックから復元できます：</p>
 <pre><code>ord wallet restore --from mnemonic
 </code></pre>
-<p>Type your mnemonic and press return.</p>
-<p>To restore from a descriptor in <code>descriptor.json</code>:</p>
+<p>ニーモニックを入力してEnterキーを押してください。</p>
+<p><code>descriptor.json</code> のディスクリプタから復元するには：</p>
 <pre><code>cat descriptor.json | ord wallet restore --from descriptor
 </code></pre>
-<p>To restore from a descriptor in the clipboard:</p>
+<p>クリップボードのディスクリプタから復元するには：</p>
 <pre><code>ord wallet restore --from descriptor
 </code></pre>
-<p>Paste the descriptor into the terminal and press CTRL-D on unix and CTRL-Z on Windows.</p>
+<p>ディスクリプタをターミナルに貼り付け、UnixではCTRL-D、WindowsではCTRL-Zを押してください。</p>
 <h2 id="聡を取り受けます"><a class="header" href="#聡を取り受けます">聡を取り受けます。</a></h2>
 <p>銘文は、単一のコングに作成され、通常のビットコイン取引のためにコングを使用して料金を支払うので、あなたの財布はいくつかのコング（ビットコイン）を必要とします。</p>
 <p>'ord'ウォレットの新しいアドレスを作成して、実行します::</p>
@@ -391,12 +391,12 @@
 <pre><code>ord wallet inscriptions
 </code></pre>
 <h2 id="parent-child-inscriptions"><a class="header" href="#parent-child-inscriptions">Parent-Child Inscriptions</a></h2>
-<p>Parent-child inscriptions enable what is colloquially known as collections, see <a href="../inscriptions/provenance.html">provenance</a> for more information.</p>
-<p>To make an inscription a child of another, the parent inscription has to be inscribed and present in the wallet. To choose a parent run <code>ord wallet inscriptions</code> and copy the inscription id (<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>).</p>
+<p>親子関係の碑文は、一般的にコレクションと呼ばれる機能を可能にします。詳しくは <a href="../inscriptions/provenance.html">provenance</a> を参照してください。</p>
+<p>碑文を他の碑文の子にするためには、親碑文が碑文されておりウォレットに存在する必要があります。親を選ぶには <code>ord wallet inscriptions</code> を実行し、碑文ID（<code>&lt;PARENT_INSCRIPTION_ID&gt;</code>）をコピーしてください。</p>
 <p>Now inscribe the child inscription and specify the parent like so:</p>
 <pre><code>ord wallet inscribe --fee-rate FEE_RATE --parent &lt;PARENT_INSCRIPTION_ID&gt; --file CHILD_FILE
 </code></pre>
-<p>This relationship cannot be added retroactively, the parent has to be present at inception of the child.</p>
+<p>この関係は後から追加することはできません。親は子の作成時に存在している必要があります。</p>
 <h2 id="銘文を発送します"><a class="header" href="#銘文を発送します">銘文を発送します</a></h2>
 <p>銘文受信者は次のコマンドを使って住所を生成する</p>
 <pre><code>ord wallet receive
@@ -417,7 +417,7 @@
 <p>Send the runes by running:</p>
 <pre><code>ord wallet send --fee-rate &lt;FEE_RATE&gt; &lt;ADDRESS&gt; &lt;RUNES_AMOUNT&gt;
 </code></pre>
-<p>Where <code>RUNES_AMOUNT</code> is the number of runes to send, a <code>:</code> character, and the name of the rune. For example if you want to send 1000 of the EXAMPLE rune, you would use <code>1000:EXAMPLE</code>.</p>
+<p><code>RUNES_AMOUNT</code> は送信するルーンの数、<code>:</code> 文字、そしてルーンの名前です。例えば、EXAMPLEルーンを1000個送信したい場合は、<code>1000:EXAMPLE</code> を使用します。</p>
 <pre><code>ord wallet send --fee-rate 1 SOME_ADDRESS 1000:EXAMPLE
 </code></pre>
 <p>できなかった取引状況を検査します：</p>

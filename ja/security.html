@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Security - Ordinal Theory Handbook</title>
+        <title>セキュリティ - Ordinal Theory Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -233,52 +233,52 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="security"><a class="header" href="#security">Security</a></h1>
-<p>Anyone can publish inscriptions, including arbitrary HTML, which <code>ord server</code> will serve at <code>/content/&lt;INSCRIPTION_ID&gt;</code>, <code>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</code>, and <code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</code>.</p>
-<p>This creates potential security vulnerabilities, including cross-site scripting and spoofing attacks.</p>
-<p>Without mitigations, a domain hosting an <code>ord server</code> explorer instance should be considered to be completely untrusted.</p>
-<h3 id="cross-site-scripting"><a class="header" href="#cross-site-scripting">Cross-site Scripting</a></h3>
-<p>An attacker performs a cross-site scripting attack by injecting JavaScript into a vulnerable website such that it is later served to a victim, causing the malicious script to run in the victim's own browser with the same permissions as any other script from that website.</p>
-<p>Such a script could access private site resources or perform privileged actions on the user's behalf, since it would be making requests on behalf of the user.</p>
+                        <h1 id="セキュリティ"><a class="header" href="#セキュリティ">セキュリティ</a></h1>
+<p>誰でも任意のHTMLを含むInscriptionを公開でき、<code>ord server</code>はこれらを<code>/content/&lt;INSCRIPTION_ID&gt;</code>、<code>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</code>、および<code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</code>で提供します。</p>
+<p>これにより、クロスサイトスクリプティングやスプーフィング攻撃を含む潜在的なセキュリティ脆弱性が生まれます。</p>
+<p>軽減策なしでは、<code>ord server</code>エクスプローラーインスタンスをホストするドメインは完全に信頼できないものと考えるべきです。</p>
+<h3 id="クロスサイトスクリプティング"><a class="header" href="#クロスサイトスクリプティング">クロスサイトスクリプティング</a></h3>
+<p>攻撃者は脆弱なウェブサイトにJavaScriptを注入し、後でそれが被害者に提供されることでクロスサイトスクリプティング攻撃を実行し、悪意のあるスクリプトが被害者のブラウザで、そのウェブサイトの他のスクリプトと同じ権限で実行されるようにします。</p>
+<p>このようなスクリプトは、ユーザーの代わりにリクエストを行うため、プライベートなサイトリソースにアクセスしたり、ユーザーに代わって特権的なアクションを実行する可能性があります。</p>
 <p>Cross-site scripting is <em>not</em> a concern for a vanilla <code>ord server</code> instance. <code>ord server</code> does not serve any private resources or allow privileged actions to be taken via the web interface, so although JavaScript can be injected using an inscription, it does not run with any meaningful permissions.</p>
 <p>However, if you serve requests to <code>ord server</code> from a domain which <em>also</em> serves private resources or allow privileged actions, you may be vulnerable to cross-site scripting attacks.</p>
-<h4 id="例を挙げます"><a class="header" href="#例を挙げます">例を挙げます</a></h4>
+<h4 id="例"><a class="header" href="#例">例</a></h4>
 <ul>
 <li>
-<p><code>ord server</code> is run under <code>https://example.com/ord</code>.</p>
+<p><code>ord server</code>が<code>https://example.com/ord</code>で実行されています。</p>
 </li>
 <li>
-<p>A bitcoin exchange is run under <code>https://example.com/exchange</code>.</p>
+<p>ビットコイン取引所が<code>https://example.com/exchange</code>で実行されています。</p>
 </li>
 <li>
-<p>Users can send bitcoin at <code>https://example.com/exchange/send</code>, with access controlled by a user's session cookie.</p>
+<p>ユーザーは<code>https://example.com/exchange/send</code>でビットコインを送金でき、アクセスはユーザーのセッションクッキーによって制御されています。</p>
 </li>
 <li>
-<p>An attacker publishes a malicious HTML inscription with ID <code>XYZ</code> which contains JavaScript that accesses <code>https://example.com/exchange/send</code> and sends them to an attacker-controlled address.</p>
+<p>攻撃者がID <code>XYZ</code>の悪意のあるHTML Inscriptionを公開し、<code>https://example.com/exchange/send</code>にアクセスして攻撃者が制御するアドレスに送金するJavaScriptが含まれています。</p>
 </li>
 <li>
-<p>When a user visits <code>https://example.com/ord/XYZ</code>, the malicious JavaScript requests <code>https://example.com/exchange/send</code>. Because the script executes on the user's behalf with the request including the user's session cookie, the server sends the user's bitcoin to the attacker.</p>
+<p>ユーザーが<code>https://example.com/ord/XYZ</code>を訪問すると、悪意のあるJavaScriptが<code>https://example.com/exchange/send</code>にリクエストを送信します。スクリプトがユーザーのセッションクッキーを含むリクエストでユーザーの代わりに実行されるため、サーバーはユーザーのビットコインを攻撃者に送金します。</p>
 </li>
 </ul>
-<p>To prevent this, do not make <code>ord server</code> available on the same domain and port as another web service which is vulnerable to cross-site scripting.</p>
-<h3 id="spoofing"><a class="header" href="#spoofing">Spoofing</a></h3>
-<p>If <code>ord server</code> is run at a well known domain, for example, <code>ordinals.com</code>, an attacker could publish a malicious inscription that attempts to trick users into thinking that it represents the owners of the domain. For example, by publishing a mint page to induce users to send bitcoin. Additionally, the <a href="https://developer.mozilla.org/en-US/docs/Web/API/History_API">History API</a> can be used to change the path without triggering a page reload, so inscription content can appear to the user under URL that suggests it was published by the site owners.</p>
-<h4 id="例を挙げます-1"><a class="header" href="#例を挙げます-1">例を挙げます</a></h4>
+<p>これを防ぐには、クロスサイトスクリプティングに脆弱な他のウェブサービスと同じドメインとポートで<code>ord server</code>を利用可能にしないでください。</p>
+<h3 id="スプーフィング"><a class="header" href="#スプーフィング">スプーフィング</a></h3>
+<p><code>ord server</code>が<code>ordinals.com</code>などの有名なドメインで実行されている場合、攻撃者はそのドメインの所有者を表していると思わせる悪意のあるInscriptionを公開する可能性があります。例えば、ユーザーにビットコインを送金させるためのミントページを公開することが考えられます。さらに、<a href="https://developer.mozilla.org/en-US/docs/Web/API/History_API">History API</a>を使用してページのリロードをトリガーせずにパスを変更できるため、Inscriptionコンテンツがサイト所有者によって公開されたことを示唆するURLでユーザーに表示される可能性があります。</p>
+<h4 id="例-1"><a class="header" href="#例-1">例</a></h4>
 <ul>
 <li>
-<p><code>ord server</code> is run at <code>https://example.com</code>, by popular and well-respected Example Corporation.</p>
+<p><code>ord server</code>が、人気があり高く評価されているExample Corporationによって<code>https://example.com</code>で実行されています。</p>
 </li>
 <li>
-<p>An attacker publishes a malicious HTML inscription with ID <code>XYZ</code> which displays a mint page, and changes the URL path using the History API to <code>/mint</code>.</p>
+<p>攻撃者がID <code>XYZ</code>の悪意のあるHTML Inscriptionを公開し、ミントページを表示し、History APIを使用してURLパスを<code>/mint</code>に変更します。</p>
 </li>
 <li>
-<p>A user clicks a link to <code>https://example.com/inscription/XYZ</code> which displays the attacker's mint page, with the apparent URL of <code>https://example.com/mint</code>.</p>
+<p>ユーザーが<code>https://example.com/inscription/XYZ</code>へのリンクをクリックすると、攻撃者のミントページが表示され、見かけ上のURLは<code>https://example.com/mint</code>になります。</p>
 </li>
 <li>
-<p>The user thinks that this is a potentially lucrative mint run by popular and well-respected Example Corporation and sends bitcoin to the mint address.</p>
+<p>ユーザーは、これが人気があり高く評価されているExample Corporationが実行する潜在的に利益の高いミントだと思い、ミントアドレスにビットコインを送金します。</p>
 </li>
 </ul>
-<p>To prevent this, avoid giving users the impression that a domain hosting an <code>ord</code> explorer can be trusted for anything other than the content of the <code>ord</code> explorer itself.</p>
+<p>これを防ぐには、<code>ord</code>エクスプローラーをホストするドメインが<code>ord</code>エクスプローラー自体のコンテンツ以外の何かで信頼できるという印象をユーザーに与えないようにしてください。</p>
 
                     </main>
 

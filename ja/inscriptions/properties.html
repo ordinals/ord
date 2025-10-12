@@ -3,7 +3,7 @@
     <head>
         <!-- Book generated using mdBook -->
         <meta charset="UTF-8">
-        <title>Properties - Ordinal Theory Handbook</title>
+        <title>プロパティ - Ordinal Theory Handbook</title>
 
 
         <!-- Custom HTML head -->
@@ -233,11 +233,11 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="properties"><a class="header" href="#properties">Properties</a></h1>
-<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> properties, stored as data pushes in fields with tag <code>17</code>. Since data pushes are limited to 520 bytes, CBOR longer than 520 bytes must be split into multiple tag <code>17</code> fields, which will then be concatenated before decoding.</p>
-<p>Properties are a structured counterpart to <a href="metadata.html">metadata</a>. While metadata may contain arbitrary CBOR which has no protocol-defined meaning and is presented on <code>/inscription</code> as HTML, properties have protocol-defined meaning and must conform to a strict schema.</p>
-<p>Indefinite-length types are not supported. All maps, arrays, byte strings, and text strings must be definite.</p>
-<p>The non-normative <a href="https://datatracker.ietf.org/doc/html/rfc8610">CDDL</a> schema of the properties value is as follows:</p>
+                        <h1 id="プロパティ"><a class="header" href="#プロパティ">プロパティ</a></h1>
+<p>Inscriptionには<a href="https://cbor.io/">CBOR</a>プロパティを含めることができ、タグ<code>17</code>のフィールドにデータプッシュとして保存されます。データプッシュは520バイトに制限されているため、520バイトを超えるCBORは複数のタグ<code>17</code>フィールドに分割し、デコード前に連結される必要があります。</p>
+<p>プロパティは<a href="metadata.html">メタデータ</a>の構造化された対応物です。メタデータはプロトコル定義の意味を持たない任意のCBORを含み、<code>/inscription</code>でHTMLとして表示されますが、プロパティはプロトコル定義の意味を持ち、厳密なスキーマに準拠する必要があります。</p>
+<p>不定長型はサポートされていません。すべてのマップ、配列、バイト文字列、テキスト文字列は定長でなければなりません。</p>
+<p>プロパティ値の非規範的な<a href="https://datatracker.ietf.org/doc/html/rfc8610">CDDL</a>スキーマは以下の通りです：</p>
 <pre><code class="language-cddl">Properties = {
   ? 0: [*GalleryItem],
   * any =&gt; any,
@@ -248,14 +248,14 @@ GalleryItem = {
   * any =&gt; any,
 }
 </code></pre>
-<p>The above CDDL schema is provided as a convenience. As always, the ordinals reference implementation <code>ord</code> is the normative specification of inscriptions, and thus the properties field.</p>
-<p>Fields matching the <code>* any =&gt; any</code> wildcard must be ignored, for compatibility with future additions.</p>
-<h1 id="galleries"><a class="header" href="#galleries">Galleries</a></h1>
-<p>Inscriptions whose properties field contains <code>GalleryItem</code>s are galleries.</p>
-<p>Galleries contain <code>GalleryItem</code>s, whose only defined key <code>0</code> contains a serialized inscription ID. Inscription ID <code>TXIDiINDEX</code> is serialized as a byte string containing the 32 byte TXID, concatenated with by the four-byte little-endian <code>INDEX</code>. Trailing zeros may be removed from four-byte <code>INDEX</code>, so IDs ending in <code>i0</code> may be serialized in 32 bytes.</p>
-<p>Gallery items are displayed on the inscriptions <code>/inscription</code> page on the explorer.</p>
-<p>Galleries are similar to children, in that they provide a way to create collections of inscriptions. However, galleries are permissionless. Anyone may create a gallery including any inscriptions. Thus, inclusion in a gallery does not imply provenance. Additionally, because of this, inclusion in a gallery does not create a backlink from the gallery item's <code>/inscription</code> page to the gallery.</p>
-<p>Galleries may be created when batch inscribing with <code>ord wallet batch</code> by including an array of string inscription IDs of under the <code>gallery</code> key of the inscription entry in the batch file, or when using <code>ord wallet inscribe</code> using the <code>--gallery</code> option.</p>
+<p>上記のCDDLスキーマは便宜上提供されています。いつものように、オーディナルズのリファレンス実装である<code>ord</code>がInscriptionの規範的仕様であり、したがってプロパティフィールドの仕様でもあります。</p>
+<p><code>* any =&gt; any</code>ワイルドカードにマッチするフィールドは、将来の追加との互換性のために無視される必要があります。</p>
+<h1 id="ギャラリー"><a class="header" href="#ギャラリー">ギャラリー</a></h1>
+<p>プロパティフィールドに<code>GalleryItem</code>を含むInscriptionはギャラリーです。</p>
+<p>ギャラリーは<code>GalleryItem</code>を含み、その唯一の定義されたキー<code>0</code>にはシリアライズされたInscription IDが含まれます。Inscription ID <code>TXIDiINDEX</code>は、32バイトのTXIDと4バイトのリトルエンディアン<code>INDEX</code>を連結したバイト文字列としてシリアライズされます。4バイトの<code>INDEX</code>から末尾のゼロを削除できるため、<code>i0</code>で終わるIDは32バイトでシリアライズできます。</p>
+<p>ギャラリーアイテムは、エクスプローラーのInscriptionの<code>/inscription</code>ページに表示されます。</p>
+<p>ギャラリーは、Inscriptionのコレクションを作成する方法を提供するという点で子要素に似ています。ただし、ギャラリーはパーミッションレスです。誰でも任意のInscriptionを含むギャラリーを作成できます。したがって、ギャラリーに含まれることは出所を意味しません。さらに、このため、ギャラリーに含まれてもギャラリーアイテムの<code>/inscription</code>ページからギャラリーへのバックリンクは作成されません。</p>
+<p>ギャラリーは、<code>ord wallet batch</code>でバッチInscriptionを行う際に、バッチファイルのInscriptionエントリの<code>gallery</code>キーの下に文字列Inscription IDの配列を含めることで作成できます。また、<code>ord wallet inscribe</code>で<code>--gallery</code>オプションを使用することでも作成できます。</p>
 
                     </main>
 

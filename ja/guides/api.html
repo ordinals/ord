@@ -233,17 +233,17 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="json-api"><a class="header" href="#json-api">JSON-API</a></h1>
-<p>By default, the <code>ord server</code> gives access to endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML.  These endpoints are:</p>
-<h2 id="endpoints"><a class="header" href="#endpoints">Endpoints</a></h2>
+                        <h1 id="json-api"><a class="header" href="#json-api">JSON API</a></h1>
+<p>デフォルトでは、<code>ord server</code> は HTTP ヘッダー <code>Accept: application/json</code> を設定すると HTML の代わりに JSON を返すエンドポイントへのアクセスを提供します。これらのオブジェクトの 構造は HTML で表示される内容とほぼ同じです。これらのエンドポイントは以下の通りです：</p>
+<h2 id="エンドポイント"><a class="header" href="#エンドポイント">エンドポイント</a></h2>
 <details>
   <summary>
     <code>GET</code>
     <code><b>/address/&lt;ADDRESS&gt;</b></code>
   </summary>
 <h3 id="description"><a class="header" href="#description">Description</a></h3>
-<p>List all assets of an address. Requires index with <code>--index-addresses</code> flag.</p>
-<h3 id="例を挙げます"><a class="header" href="#例を挙げます">例を挙げます</a></h3>
+<p>アドレスのすべてのアセットを一覧表示します。<code>--index-addresses</code> フラグでのインデックスが必要です。</p>
+<h3 id="例"><a class="header" href="#例">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/address/bc1pdrm7tcyk4k6c3cdcjwkp49jmfrwmtvt0dvqyy7y4qp79tgks4lmqdpj6rw
 </code></pre>
@@ -315,8 +315,8 @@
     <code><b>/block/&lt;BLOCKHASH&gt;</b></code>
   </summary>
 <h3 id="description-1"><a class="header" href="#description-1">Description</a></h3>
-<p>Returns info about the specified block.</p>
-<h3 id="例を挙げます-1"><a class="header" href="#例を挙げます-1">例を挙げます</a></h3>
+<p>指定されたブロックに関する情報を返します。</p>
+<h3 id="例-1"><a class="header" href="#例-1">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/block/000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f
 </code></pre>
@@ -356,8 +356,8 @@
     <code><b>/block/&lt;BLOCKHEIGHT&gt;</b></code>
   </summary>
 <h3 id="description-2"><a class="header" href="#description-2">Description</a></h3>
-<p>Returns info about the specified block.</p>
-<h3 id="例を挙げます-2"><a class="header" href="#例を挙げます-2">例を挙げます</a></h3>
+<p>指定されたブロックに関する情報を返します。</p>
+<h3 id="例-2"><a class="header" href="#例-2">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/block/0
 </code></pre>
@@ -397,8 +397,8 @@
     <code><b>/blockcount</b></code>
   </summary>
 <h3 id="description-3"><a class="header" href="#description-3">Description</a></h3>
-<p>Returns the height of the latest block.</p>
-<h3 id="例を挙げます-3"><a class="header" href="#例を挙げます-3">例を挙げます</a></h3>
+<p>最新ブロックの高さを返します。</p>
+<h3 id="例-3"><a class="header" href="#例-3">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blockcount
 </code></pre>
@@ -411,8 +411,8 @@
     <code><b>/blockhash</b></code>
   </summary>
 <h3 id="description-4"><a class="header" href="#description-4">Description</a></h3>
-<p>Returns blockhash for the latest block.</p>
-<h3 id="例を挙げます-4"><a class="header" href="#例を挙げます-4">例を挙げます</a></h3>
+<p>最新ブロックのブロックハッシュを返します。</p>
+<h3 id="例-4"><a class="header" href="#例-4">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blockhash
 </code></pre>
@@ -426,8 +426,8 @@
     &emsp;&emsp;&emsp;
   </summary>
 <h3 id="description-5"><a class="header" href="#description-5">Description</a></h3>
-<p>Returns blockhash of specified block.</p>
-<h3 id="例を挙げます-5"><a class="header" href="#例を挙げます-5">例を挙げます</a></h3>
+<p>指定されたブロックのブロックハッシュを返します。</p>
+<h3 id="例-5"><a class="header" href="#例-5">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blockhash/840000
 </code></pre>
@@ -440,8 +440,8 @@
     <code><b>/blockheight</b></code>
   </summary>
 <h3 id="description-6"><a class="header" href="#description-6">Description</a></h3>
-<p>Returns the height of the latest block.</p>
-<h3 id="例を挙げます-6"><a class="header" href="#例を挙げます-6">例を挙げます</a></h3>
+<p>最新ブロックの高さを返します。</p>
+<h3 id="例-6"><a class="header" href="#例-6">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blockheight
 </code></pre>
@@ -454,8 +454,8 @@
     <code><b>/blocks</b></code>
   </summary>
 <h3 id="description-7"><a class="header" href="#description-7">Description</a></h3>
-<p>Returns the height of the latest block, the blockhashes of the last 100 blocks, and featured inscriptions from them.</p>
-<h3 id="例を挙げます-7"><a class="header" href="#例を挙げます-7">例を挙げます</a></h3>
+<p>最新ブロックの高さ、直近100ブロックのブロックハッシュ、およびそれらからの 注目すべき碑文を返します。</p>
+<h3 id="例-7"><a class="header" href="#例-7">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blocks
 </code></pre>
@@ -625,7 +625,7 @@
   </summary>
 <h3 id="description-8"><a class="header" href="#description-8">Description</a></h3>
 <p>Returns the UNIX timestamp of when the latest block was mined.</p>
-<h3 id="例を挙げます-8"><a class="header" href="#例を挙げます-8">例を挙げます</a></h3>
+<h3 id="例-8"><a class="header" href="#例-8">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/blocktime
 </code></pre>
@@ -639,7 +639,7 @@
   </summary>
 <h3 id="description-9"><a class="header" href="#description-9">Description</a></h3>
 <p>Decode a transaction, congruent to the <code>ord decode</code> command</p>
-<h3 id="例を挙げます-9"><a class="header" href="#例を挙げます-9">例を挙げます</a></h3>
+<h3 id="例-9"><a class="header" href="#例-9">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/decode/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799
 </code></pre>
@@ -1481,7 +1481,7 @@
   </summary>
 <h3 id="description-10"><a class="header" href="#description-10">Description</a></h3>
 <p>Fetch details about a specific inscription by its ID.</p>
-<h3 id="例を挙げます-10"><a class="header" href="#例を挙げます-10">例を挙げます</a></h3>
+<h3 id="例-10"><a class="header" href="#例-10">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" /
   http://0.0.0.0/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 </code></pre>
@@ -1517,8 +1517,8 @@
     <code><b>/inscription/&lt;INSCRIPTION_ID&gt;/&lt;CHILD&gt;</b></code>
   </summary>
 <h3 id="description-11"><a class="header" href="#description-11">Description</a></h3>
-<p>Returns the inscription information for the specified child.</p>
-<h3 id="例を挙げます-11"><a class="header" href="#例を挙げます-11">例を挙げます</a></h3>
+<p>指定された子の碑文情報を返します。</p>
+<h3 id="例-11"><a class="header" href="#例-11">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
 </code></pre>
@@ -1555,7 +1555,7 @@
   </summary>
 <h3 id="description-12"><a class="header" href="#description-12">Description</a></h3>
 <p>Fetch details for a list of inscription IDs.</p>
-<h3 id="例を挙げます-12"><a class="header" href="#例を挙げます-12">例を挙げます</a></h3>
+<h3 id="例-12"><a class="header" href="#例-12">例</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -1621,7 +1621,7 @@
   </summary>
 <h3 id="description-13"><a class="header" href="#description-13">Description</a></h3>
 <p>Get a list of the latest 100 inscriptions.</p>
-<h3 id="例を挙げます-13"><a class="header" href="#例を挙げます-13">例を挙げます</a></h3>
+<h3 id="例-13"><a class="header" href="#例-13">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscriptions
 </code></pre>
@@ -1740,7 +1740,7 @@
   </summary>
 <h3 id="description-14"><a class="header" href="#description-14">Description</a></h3>
 <p>Pagination allows you to choose which page of 100 inscriptions to return.</p>
-<h3 id="例を挙げます-14"><a class="header" href="#例を挙げます-14">例を挙げます</a></h3>
+<h3 id="例-14"><a class="header" href="#例-14">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscriptions/9
 </code></pre>
@@ -1859,7 +1859,7 @@
   </summary>
 <h3 id="description-15"><a class="header" href="#description-15">Description</a></h3>
 <p>Get inscriptions for a specific block.</p>
-<h3 id="例を挙げます-15"><a class="header" href="#例を挙げます-15">例を挙げます</a></h3>
+<h3 id="例-15"><a class="header" href="#例-15">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscriptions/block/767430
 </code></pre>
@@ -1879,7 +1879,7 @@
   </summary>
 <h3 id="description-16"><a class="header" href="#description-16">Description</a></h3>
 <p>Installs the latest pre-built binary of <code>ord</code></p>
-<h3 id="例を挙げます-16"><a class="header" href="#例を挙げます-16">例を挙げます</a></h3>
+<h3 id="例-16"><a class="header" href="#例-16">例</a></h3>
 <p>See <a href="wallet.html#installing-ord">wallet.md</a></p>
 </details>
 <details>
@@ -1889,7 +1889,7 @@
  </summary>
 <h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
 <p>Submit a PSBT offer. The body of the request is a base64 encoded PSBT.</p>
-<h3 id="例を挙げます-17"><a class="header" href="#例を挙げます-17">例を挙げます</a></h3>
+<h3 id="例-17"><a class="header" href="#例-17">例</a></h3>
 <pre><code class="language-bash">curl -s -X POST --data-binary @offer.psbt http://0.0.0.0/offer
 </code></pre>
 </details>
@@ -1900,7 +1900,7 @@
  </summary>
 <h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
 <p>Get submitted PSBT offers. Returns an array of base64 encoded PSBTs.</p>
-<h3 id="例を挙げます-18"><a class="header" href="#例を挙げます-18">例を挙げます</a></h3>
+<h3 id="例-18"><a class="header" href="#例-18">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" http://0.0.0.0/offers
 </code></pre>
 <pre><code class="language-json">["bG…gd==","aG…GQ"]
@@ -1912,8 +1912,8 @@
     <code><b>/output/&lt;OUTPOINT&gt;</b></code>
  </summary>
 <h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
-<p>Returns information about a UTXO, including inscriptions within it.</p>
-<h3 id="例を挙げます-19"><a class="header" href="#例を挙げます-19">例を挙げます</a></h3>
+<p>UTXOに関する情報を、その中に含まれる碑文を含めて返します。</p>
+<h3 id="例-19"><a class="header" href="#例-19">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
 </code></pre>
@@ -1939,7 +1939,7 @@
  </summary>
 <h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
 <p>List information from a list of outputs.</p>
-<h3 id="例を挙げます-20"><a class="header" href="#例を挙げます-20">例を挙げます</a></h3>
+<h3 id="例-20"><a class="header" href="#例-20">例</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -1990,7 +1990,7 @@
 <tr><td><code>runic</code></td><td>return UTXOs containing runes</td></tr>
 </tbody></table>
 </div>
-<h3 id="例を挙げます-21"><a class="header" href="#例を挙げます-21">例を挙げます</a></h3>
+<h3 id="例-21"><a class="header" href="#例-21">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   "http://0.0.0.0/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
 </code></pre>
@@ -2054,8 +2054,8 @@
     <code><b>/rune/&lt;RUNE&gt;</b></code>
   </summary>
 <h3 id="description-22"><a class="header" href="#description-22">Description</a></h3>
-<p>Returns details about the specified rune. Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="例を挙げます-22"><a class="header" href="#例を挙げます-22">例を挙げます</a></h3>
+<p>指定されたルーンの詳細を返します。<code>--index-runes</code> フラグでのインデックスが必要です。</p>
+<h3 id="例-22"><a class="header" href="#例-22">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://localhost/rune/UNCOMMONGOODS
 </code></pre>
@@ -2098,7 +2098,7 @@
   </summary>
 <h3 id="description-23"><a class="header" href="#description-23">Description</a></h3>
 <p>Returns details for last 100 inscribed runes.  Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="例を挙げます-23"><a class="header" href="#例を挙げます-23">例を挙げます</a></h3>
+<h3 id="例-23"><a class="header" href="#例-23">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/runes
 </code></pre>
@@ -3586,7 +3586,7 @@
   </summary>
 <h3 id="description-24"><a class="header" href="#description-24">Description</a></h3>
 <p>Pagination allows you to specify which page of 100 runes you'd like to return.</p>
-<h3 id="例を挙げます-24"><a class="header" href="#例を挙げます-24">例を挙げます</a></h3>
+<h3 id="例-24"><a class="header" href="#例-24">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/runes/0
 </code></pre>
@@ -5073,8 +5073,8 @@
     <code><b>/sat/&lt;SAT&gt;</b></code>
   </summary>
 <h3 id="description-25"><a class="header" href="#description-25">Description</a></h3>
-<p>Returns details about a specific satoshi. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="例を挙げます-25"><a class="header" href="#例を挙げます-25">例を挙げます</a></h3>
+<p>特定のsatoshiの詳細を返します。<code>--index-sats</code> フラグでのインデックスが必要です。</p>
+<h3 id="例-25"><a class="header" href="#例-25">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/sat/2099994106992659
 </code></pre>
@@ -5103,8 +5103,8 @@
     <code><b>/status</b></code>
   </summary>
 <h3 id="description-26"><a class="header" href="#description-26">Description</a></h3>
-<p>Returns details about the server installation and index.</p>
-<h3 id="例を挙げます-26"><a class="header" href="#例を挙げます-26">例を挙げます</a></h3>
+<p>サーバーのインストールとインデックスに関する詳細を返します。</p>
+<h3 id="例-26"><a class="header" href="#例-26">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/status
 </code></pre>
@@ -5140,8 +5140,8 @@
     <code><b>/tx/&lt;TRANSACTION_ID&gt;</b></code>
   </summary>
 <h3 id="description-27"><a class="header" href="#description-27">Description</a></h3>
-<p>Returns details about the specified transaction.</p>
-<h3 id="例を挙げます-27"><a class="header" href="#例を挙げます-27">例を挙げます</a></h3>
+<p>指定されたトランザクションの詳細を返します。</p>
+<h3 id="例-27"><a class="header" href="#例-27">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
 </code></pre>

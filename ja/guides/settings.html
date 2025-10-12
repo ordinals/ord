@@ -234,14 +234,14 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="設定"><a class="header" href="#設定">設定</a></h1>
-<p><code>ord</code> can be configured with the command line, environment variables, a configuration file, and default values.</p>
-<p>The command line takes precedence over environment variables, which take precedence over the configuration file, which takes precedence over defaults.</p>
-<p>The path to the configuration file can be given with <code>--config &lt;CONFIG_PATH&gt;</code>. <code>ord</code> will error if <code>&lt;CONFIG_PATH&gt;</code> doesn't exist.</p>
-<p>The path to a directory containing a configuration file name named <code>ord.yaml</code> can be given with <code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code> or <code>--datadir &lt;DATA_DIR_PATH&gt;</code> in which case the config path is <code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code> or <code>&lt;DATA_DIR_PATH&gt;/ord.yaml</code>. It is not an error if it does not exist.</p>
-<p>If none of <code>--config</code>, <code>--config-dir</code>, or <code>--datadir</code> are given, and a file named <code>ord.yaml</code> exists in the default data directory, it will be loaded.</p>
-<p>For a setting named <code>--setting-name</code> on the command line, the environment variable will be named <code>ORD_SETTING_NAME</code>, and the config file field will be named <code>setting_name</code>. For example, the data directory can be configured with <code>--datadir</code> on the command line, the <code>ORD_DATA_DIR</code> environment variable, or <code>data_dir</code> in the config file.</p>
-<p>See <code>ord --help</code> for documentation of all the settings.</p>
-<p><code>ord</code>'s current configuration can be viewed as JSON with the <code>ord settings</code> command.</p>
+<p><code>ord</code>はコマンドライン、環境変数、設定ファイル、デフォルト値で設定できます。</p>
+<p>コマンドラインは環境変数より優先され、環境変数は設定ファイルより優先され、設定ファイルはデフォルト値より優先されます。</p>
+<p>設定ファイルのパスは<code>--config &lt;CONFIG_PATH&gt;</code>で指定できます。<code>&lt;CONFIG_PATH&gt;</code>が存在しない場合、<code>ord</code>はエラーを返します。</p>
+<p><code>ord.yaml</code>という名前の設定ファイルを含むディレクトリのパスは、<code>--config-dir &lt;CONFIG_DIR_PATH&gt;</code>または<code>--datadir &lt;DATA_DIR_PATH&gt;</code>で指定できます。この場合、設定パスは<code>&lt;CONFIG_DIR_PATH&gt;/ord.yaml</code>または<code>&lt;DATA_DIR_PATH&gt;/ord.yaml</code>になります。ファイルが存在しなくてもエラーではありません。</p>
+<p><code>--config</code>、<code>--config-dir</code>、<code>--datadir</code>のいずれも指定されておらず、デフォルトのデータディレクトリに<code>ord.yaml</code>という名前のファイルが存在する場合、それが読み込まれます。</p>
+<p>コマンドラインで<code>--setting-name</code>という名前の設定について、環境変数は<code>ORD_SETTING_NAME</code>という名前になり、設定ファイルのフィールドは<code>setting_name</code>という名前になります。例えば、データディレクトリはコマンドラインでは<code>--datadir</code>、環境変数では<code>ORD_DATA_DIR</code>、設定ファイルでは<code>data_dir</code>で設定できます。</p>
+<p>すべての設定のドキュメントについては、<code>ord --help</code>を参照してください。</p>
+<p><code>ord</code>の現在の設定は、<code>ord settings</code>コマンドでJSONとして確認できます。</p>
 <h2 id="example-configuration"><a class="header" href="#example-configuration">Example Configuration</a></h2>
 <pre><code class="language-yaml"># example config
 

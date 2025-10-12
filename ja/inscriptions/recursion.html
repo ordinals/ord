@@ -234,13 +234,13 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="再帰"><a class="header" href="#再帰">再帰</a></h1>
-<p>An important exception to <a href="../inscriptions.html#sandboxing">sandboxing</a> is recursion. Recursive endpoints are whitelisted endpoints that allow access to on-chain data, including the content of other inscriptions.</p>
-<p>Since changes to recursive endpoints might break inscriptions that rely on them, recursive endpoints have backwards-compatibility guarantees not shared by <code>ord server</code>'s other endpoints. In particular:</p>
+<p><a href="../inscriptions.html#sandboxing">サンドボックス化</a>の重要な例外は再帰です。再帰エンドポイントは オンチェーンデータへのアクセスを許可するホワイトリスト化されたエンドポイントで、他の碑文の コンテンツも含まれます。</p>
+<p>再帰エンドポイントへの変更は、それらに依存する碑文を破壊する可能性があるため、再帰 エンドポイントには <code>ord server</code> の他のエンドポイントと共有されない後方互換性の保証があります。特に：</p>
 <ul>
-<li>Recursive endpoints will not be removed</li>
-<li>Object fields returned by recursive endpoints will not be renamed or change types</li>
+<li>再帰エンドポイントは削除されません</li>
+<li>再帰エンドポイントが返すオブジェクトフィールドは、名前の変更や型の変更は行われません</li>
 </ul>
-<p>However, additional object fields may be added or reordered, so inscriptions must handle additional, unexpected fields, and must not expect fields to be returned in a specific order.</p>
+<p>ただし、追加のオブジェクトフィールドが追加または並び替えされる可能性があるため、碑文は追加の予期しないフィールドを処理する必要があり、フィールドが特定の順序で返されることを期待してはいけません。</p>
 <p>Recursion has a number of interesting use-cases:</p>
 <ul>
 <li>
@@ -256,19 +256,19 @@
 <p>アクセサリーやプロパティを含むプロファイル画像セットを生成し、個別の画像として書き込むか、共有テクスチャマップセットに書き込み、の組み合わせ、コラージュスタイル、複数の銘文の中で独特の組み合わせで。</p>
 </li>
 </ul>
-<h2 id="endpoints"><a class="header" href="#endpoints">Endpoints</a></h2>
+<h2 id="エンドポイント"><a class="header" href="#エンドポイント">エンドポイント</a></h2>
 <details>
   <summary>
     <code>GET</code>
     <code><b>/content/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 <h3 id="description"><a class="header" href="#description">Description</a></h3>
-<p>The content of the inscription with <code>&lt;INSCRIPTION_ID&gt;</code>.</p>
-<h3 id="例を挙げます"><a class="header" href="#例を挙げます">例を挙げます</a></h3>
+<p><code>&lt;INSCRIPTION_ID&gt;</code> の碑文のコンテンツ。</p>
+<h3 id="例"><a class="header" href="#例">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0 &gt; skull.jpg
 </code></pre>
-<p><i>no terminal output, just file creation</i></p>
+<p><i>ターミナル出力なし、ファイルの作成のみ</i></p>
 </details>
 <details>
   <summary>
@@ -277,7 +277,7 @@
   </summary>
 <h3 id="description-1"><a class="header" href="#description-1">Description</a></h3>
 <p>Latest block hash.</p>
-<h3 id="例を挙げます-1"><a class="header" href="#例を挙げます-1">例を挙げます</a></h3>
+<h3 id="例-1"><a class="header" href="#例-1">例</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash
 </code></pre>
@@ -291,7 +291,7 @@
   </summary>
 <h3 id="description-2"><a class="header" href="#description-2">Description</a></h3>
 <p>Block hash at given block height as JSON string.</p>
-<h3 id="例を挙げます-2"><a class="header" href="#例を挙げます-2">例を挙げます</a></h3>
+<h3 id="例-2"><a class="header" href="#例-2">例</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash/840000
 </code></pre>
@@ -305,7 +305,7 @@
   </summary>
 <h3 id="description-3"><a class="header" href="#description-3">Description</a></h3>
 <p>Latest block height.</p>
-<h3 id="例を挙げます-3"><a class="header" href="#例を挙げます-3">例を挙げます</a></h3>
+<h3 id="例-3"><a class="header" href="#例-3">例</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockheight
 </code></pre>
@@ -318,8 +318,8 @@
     <code><b>/r/blockinfo/&lt;QUERY&gt;</b></code>
   </summary>
 <h3 id="description-4"><a class="header" href="#description-4">Description</a></h3>
-<p>Block info. <code>&lt;QUERY&gt;</code> may be a block height or block hash.</p>
-<h3 id="example-blockheight"><a class="header" href="#example-blockheight">Example (blockheight)</a></h3>
+<p>ブロック情報。<code>&lt;QUERY&gt;</code> はブロック高さまたはブロックハッシュです。</p>
+<h3 id="例ブロック高さ"><a class="header" href="#例ブロック高さ">例（ブロック高さ）</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/blockinfo/0
 </code></pre>
@@ -360,7 +360,7 @@
   "version": 1
 }
 </code></pre>
-<h3 id="example-blockhash"><a class="header" href="#example-blockhash">Example (blockhash)</a></h3>
+<h3 id="例ブロックハッシュ"><a class="header" href="#例ブロックハッシュ">例（ブロックハッシュ）</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/blockinfo/0000000000000000000320283a032748cef8227873ff4872689bf23f1cda83a5
 </code></pre>
@@ -412,7 +412,7 @@
   </summary>
 <h3 id="description-5"><a class="header" href="#description-5">Description</a></h3>
 <p>UNIX time stamp of latest block.</p>
-<h3 id="例を挙げます-4"><a class="header" href="#例を挙げます-4">例を挙げます</a></h3>
+<h3 id="例-4"><a class="header" href="#例-4">例</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blocktime
 </code></pre>
@@ -425,8 +425,8 @@
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 <h3 id="description-6"><a class="header" href="#description-6">Description</a></h3>
-<p>The first 100 child inscription ids.</p>
-<h3 id="例を挙げます-5"><a class="header" href="#例を挙げます-5">例を挙げます</a></h3>
+<p>最初の100件の子碑文ID。</p>
+<h3 id="例-5"><a class="header" href="#例-5">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0
 </code></pre>
@@ -545,7 +545,7 @@
   </summary>
 <h3 id="description-7"><a class="header" href="#description-7">Description</a></h3>
 <p>The set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</p>
-<h3 id="例を挙げます-6"><a class="header" href="#例を挙げます-6">例を挙げます</a></h3>
+<h3 id="例-6"><a class="header" href="#例-6">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/9
 </code></pre>
@@ -664,7 +664,7 @@
   </summary>
 <h3 id="description-8"><a class="header" href="#description-8">Description</a></h3>
 <p>Details of first 100 child inscriptions of <code>INSCRIPTION_ID</code>.</p>
-<h3 id="例を挙げます-7"><a class="header" href="#例を挙げます-7">例を挙げます</a></h3>
+<h3 id="例-7"><a class="header" href="#例-7">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions
 </code></pre>
@@ -695,7 +695,7 @@
   </summary>
 <h3 id="description-9"><a class="header" href="#description-9">Description</a></h3>
 <p>Details of 100 child inscriptions of <code>INSCRIPTION_ID</code> paginated by <code>PAGE</code>.</p>
-<h3 id="例を挙げます-8"><a class="header" href="#例を挙げます-8">例を挙げます</a></h3>
+<h3 id="例-8"><a class="header" href="#例-8">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions/9
 </code></pre>
@@ -749,7 +749,7 @@
   </summary>
 <h3 id="description-11"><a class="header" href="#description-11">Description</a></h3>
 <p>Information about an inscription.</p>
-<h3 id="例を挙げます-9"><a class="header" href="#例を挙げます-9">例を挙げます</a></h3>
+<h3 id="例-9"><a class="header" href="#例-9">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/inscriptions/13130e4b299ed361f2a734f6433844ef0f0211cd504e0ca8f4d4ab20f51b8127i0
 </code></pre>
@@ -780,7 +780,7 @@
   </summary>
 <h3 id="description-12"><a class="header" href="#description-12">Description</a></h3>
 <p>JSON string containing the hex-encoded CBOR metadata.</p>
-<h3 id="例を挙げます-10"><a class="header" href="#例を挙げます-10">例を挙げます</a></h3>
+<h3 id="例-10"><a class="header" href="#例-10">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/metadata/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
@@ -794,7 +794,7 @@
   </summary>
 <h3 id="description-13"><a class="header" href="#description-13">Description</a></h3>
 <p>The first 100 parent inscription ids.</p>
-<h3 id="例を挙げます-11"><a class="header" href="#例を挙げます-11">例を挙げます</a></h3>
+<h3 id="例-11"><a class="header" href="#例-11">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
@@ -814,7 +814,7 @@
   </summary>
 <h3 id="description-14"><a class="header" href="#description-14">Description</a></h3>
 <p>The set of 100 parent inscription ids on <code>&lt;PAGE&gt;</code>.</p>
-<h3 id="例を挙げます-12"><a class="header" href="#例を挙げます-12">例を挙げます</a></h3>
+<h3 id="例-12"><a class="header" href="#例-12">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/9
 </code></pre>
@@ -832,7 +832,7 @@
   </summary>
 <h3 id="description-15"><a class="header" href="#description-15">Description</a></h3>
 <p>Details of the first 100 parent inscriptions.</p>
-<h3 id="例を挙げます-13"><a class="header" href="#例を挙げます-13">例を挙げます</a></h3>
+<h3 id="例-13"><a class="header" href="#例-13">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/parents/4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019i0/inscriptions
 </code></pre>
@@ -885,7 +885,7 @@
   </summary>
 <h3 id="description-16"><a class="header" href="#description-16">Description</a></h3>
 <p>Details of the set of 100 parent inscriptions on &lt;PAGE&gt;.</p>
-<h3 id="例を挙げます-14"><a class="header" href="#例を挙げます-14">例を挙げます</a></h3>
+<h3 id="例-14"><a class="header" href="#例-14">例</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/parents/4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019i0/inscriptions/1
 </code></pre>
@@ -938,7 +938,7 @@
   </summary>
 <h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
 <p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="例を挙げます-15"><a class="header" href="#例を挙げます-15">例を挙げます</a></h3>
+<h3 id="例-15"><a class="header" href="#例-15">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999
 </code></pre>
@@ -961,7 +961,7 @@
   </summary>
 <h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
 <p>The set of 100 inscription ids on <code>&lt;PAGE&gt;</code>. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="例を挙げます-16"><a class="header" href="#例を挙げます-16">例を挙げます</a></h3>
+<h3 id="例-16"><a class="header" href="#例-16">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/1499676120331756/1
 </code></pre>
@@ -991,7 +991,7 @@
   </summary>
 <h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
 <p>The inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="例を挙げます-17"><a class="header" href="#例を挙げます-17">例を挙げます</a></h3>
+<h3 id="例-17"><a class="header" href="#例-17">例</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999/at/-1
 </code></pre>
@@ -1007,7 +1007,7 @@
   </summary>
 <h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
 <p>The content of the inscription at <code>&lt;INDEX&gt;</code> on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="例を挙げます-18"><a class="header" href="#例を挙げます-18">例を挙げます</a></h3>
+<h3 id="例-18"><a class="header" href="#例-18">例</a></h3>
 <p>Fetch the content of the most recently created inscription on sat 289488340427831.</p>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/289488340427831/at/-1/content
@@ -1022,7 +1022,7 @@
   </summary>
 <h3 id="description-21"><a class="header" href="#description-21">Description</a></h3>
 <p>Get hex-encoded transaction with <code>&lt;TRANSACTION_ID&gt;</code>. In the event of a future change to Bitcoin that changes transaction serialization in a backwards-incompatible fashion, such as SegWit, this endpoint is guaranteed to remain backwards compatible.</p>
-<h3 id="例を挙げます-19"><a class="header" href="#例を挙げます-19">例を挙げます</a></h3>
+<h3 id="例-19"><a class="header" href="#例-19">例</a></h3>
 <pre><code class="language-bash">curl -s http://0.0.0.0:80/r/tx/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa
 </code></pre>
 <pre><code class="language-json">"0100000000010183572872dcb32bee57003d53c2b8dbb5bc5819ff6478052599911f7778d1c7bd0000000000fdffffff011027000000000000225120e41e0cba05c6ac797cf543ff9a6c619a91a53813e59146d1e32ea89747b111a603407aa50d93d6fc01265fd52d3edc93af4e009ccc1a704ce1b5cb8ede1412a5df31eba587d080b3dc903ceb9002ed9d921aad323fd44d7b4dc2a1ad2ea12d4360424d20c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326effac0063036f7264010118746578742f706c61696e3b636861727365743d7574662d3800077072696d65730a6821c1c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326eff00000000"
@@ -1035,7 +1035,7 @@
   </summary>
 <h3 id="description-22"><a class="header" href="#description-22">Description</a></h3>
 <p>Get assets held by an unspent transaction output.</p>
-<h3 id="例"><a class="header" href="#例">例</a></h3>
+<h3 id="例-20"><a class="header" href="#例-20">例</a></h3>
 <p>Unspent transaction output with server without any indices:</p>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/utxo/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0
