@@ -1539,7 +1539,7 @@ impl Server {
 
       if let Media::Iframe = media {
         return Ok(
-          r::content_response(inscription, accept_encoding, &server_config)?
+          r::content_response(inscription, accept_encoding, &server_config, true)?
             .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
             .into_response(),
         );
