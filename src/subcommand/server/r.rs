@@ -290,12 +290,14 @@ pub(super) fn content_response(
     }
   }
 
-  if cache {
-    headers.insert(
-      header::CACHE_CONTROL,
-      HeaderValue::from_static("public, max-age=1209600, immutable"),
-    );
-  }
+  headers.insert(
+    header::CACHE_CONTROL,
+    HeaderValue::from_static(if cache {
+      "public, max-age=1209600, immutable"
+    } else {
+      "no-store"
+    }),
+  );
 
   headers.insert(
     header::CONTENT_TYPE,
