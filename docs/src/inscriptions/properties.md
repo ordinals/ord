@@ -20,13 +20,42 @@ of the properties value is as follows:
 ```cddl
 Properties = {
   ? 0: [*GalleryItem],
+  ? 1: Attributes,
   * any => any,
 }
 
 GalleryItem = {
-  ? 0: bstr .size (32..36),
+  ? 0: bytes .size (32..36), ; inscription ID
+  ? 1: Attributes,
   * any => any,
 }
+
+Attributes = {
+  ? 0: text, ; title
+  ? 1: text, ; description
+  ? 2: text, ; author
+  ? 3: [+ uri], ; links
+  ? 4: Traits, ; traits
+}
+
+Traits = {
+  * text => Value
+}
+
+Value =
+  Proportion / ; progress bar
+  bool / ; "yes" or "no"
+  bytes / ; hex
+  float / ; decimal
+  integer / ; integer
+  tdate / ; date-time string
+  text / ; text
+  time / ; date-time string from epoch timestamp
+  uri ; <a> tag
+
+Proportion = #6.6582895(float) ; value may be between 0 and 1 inclusive
+InscriptionId = #6.6582896(bytes .size (32..36)) ; links to `/inscription/<id>`
+RuneId = #6.6582897([integer, integer]) ; links to `/rune/<id>`
 ```
 
 The above CDDL schema is provided as a convenience. As always, the ordinals
