@@ -117,7 +117,7 @@ mod tests {
     }
 
     let expected = Properties {
-      gallery: vec![inscription_id(0), inscription_id(1)],
+      gallery: Some(vec![inscription_id(0), inscription_id(1)]),
     };
 
     assert_eq!(expected.to_cbor(), Some(buffer.clone()));
