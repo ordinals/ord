@@ -3,31 +3,15 @@ use {
   minicbor::{Decode, Decoder, Encode, Encoder, decode, encode},
 };
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Decode, Default, Encode, PartialEq)]
 pub struct Properties {
-  pub(crate) gallery: Vec<InscriptionId>,
+  #[n(0)]
+  pub(crate) gallery: Option<Vec<GalleryItem>>,
 }
 
 impl Properties {
   pub(crate) fn from_cbor(cbor: &[u8]) -> Self {
-    let Ok(raw) = decode::<RawProperties>(cbor) else {
-      return Self::default();
-    };
-
-    Self {
-      gallery: raw
-        .gallery
-        .and_then(|gallery| {
-          let mut items = Vec::new();
-
-          for item in gallery {
-            items.push(item.id?);
-          }
-
-          Some(items)
-        })
-        .unwrap_or_default(),
-    }
+    decode(cbor).unwrap_or_default()
   }
 
   pub(crate) fn to_cbor(&self) -> Option<Vec<u8>> {
@@ -35,34 +19,8 @@ impl Properties {
       return None;
     }
 
-    Some(
-      minicbor::to_vec(RawProperties {
-        gallery: Some(
-          self
-            .gallery
-            .iter()
-            .copied()
-            .map(|item| GalleryItem { id: Some(item) })
-            .collect(),
-        ),
-      })
-      .unwrap(),
-    )
+    Some(minicbor::to_vec(self).unwrap())
   }
-}
-
-#[derive(Decode, Encode)]
-#[cbor(map)]
-pub(crate) struct GalleryItem {
-  #[n(0)]
-  pub(crate) id: Option<InscriptionId>,
-}
-
-#[derive(Decode, Encode)]
-#[cbor(map)]
-pub(crate) struct RawProperties {
-  #[n(0)]
-  pub(crate) gallery: Option<Vec<GalleryItem>>,
 }
 
 #[derive(Debug, Snafu)]

@@ -274,12 +274,26 @@ impl Inscription {
   }
 
   pub(crate) fn gallery(&self) -> Vec<InscriptionId> {
-    self
+    let gallery = self
       .properties
       .as_ref()
       .map(|cbor| Properties::from_cbor(cbor))
       .unwrap_or_default()
-      .gallery
+      .gallery;
+
+    let Some(gallery) = gallery else {
+      return Vec::new();
+    };
+
+    let mut ids = Vec::new();
+
+    for item in gallery {
+      let Some(id) = item.id else { return Vec::new() };
+
+      ids.push(id);
+    }
+
+    ids
   }
 }
 
