@@ -90,19 +90,7 @@ impl Inscribe {
         self.parent.into_iter().collect(),
         self.file,
         None,
-        Properties {
-          gallery: if self.gallery.is_empty() {
-            None
-          } else {
-            Some(
-              self
-                .gallery
-                .iter()
-                .map(|item| GalleryItem { id: Some(*item) })
-                .collect(),
-            )
-          },
-        },
+        Properties::new(&self.gallery),
         None,
       )?],
       mode: batch::Mode::SeparateOutputs,

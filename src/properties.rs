@@ -6,12 +6,43 @@ use {
 #[derive(Debug, Decode, Default, Encode, PartialEq)]
 pub struct Properties {
   #[n(0)]
-  pub(crate) gallery: Option<Vec<GalleryItem>>,
+  gallery: Option<Vec<GalleryItem>>,
 }
 
 impl Properties {
   pub(crate) fn from_cbor(cbor: &[u8]) -> Self {
     decode(cbor).unwrap_or_default()
+  }
+
+  pub(crate) fn gallery_items(&self) -> Vec<InscriptionId> {
+    let Some(gallery) = &self.gallery else {
+      return Vec::new();
+    };
+
+    let mut ids = Vec::new();
+
+    for item in gallery {
+      let Some(id) = item.id else { return Vec::new() };
+
+      ids.push(id);
+    }
+
+    ids
+  }
+
+  pub(crate) fn new(gallery: &[InscriptionId]) -> Self {
+    Self {
+      gallery: if gallery.is_empty() {
+        None
+      } else {
+        Some(
+          gallery
+            .iter()
+            .map(|id| GalleryItem { id: Some(*id) })
+            .collect(),
+        )
+      },
+    }
   }
 
   pub(crate) fn to_cbor(&self) -> Option<Vec<u8>> {

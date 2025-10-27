@@ -27,18 +27,6 @@ impl Entry {
   }
 
   pub(crate) fn properties(&self) -> Properties {
-    Properties {
-      gallery: if self.gallery.is_empty() {
-        None
-      } else {
-        Some(
-          self
-            .gallery
-            .iter()
-            .map(|id| GalleryItem { id: Some(*id) })
-            .collect(),
-        )
-      },
-    }
+    Properties::new(&self.gallery)
   }
 }
