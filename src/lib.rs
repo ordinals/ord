@@ -19,7 +19,6 @@ use {
     decimal::Decimal,
     deserialize_from_str::DeserializeFromStr,
     fund_raw_transaction::fund_raw_transaction,
-    gallery_item::GalleryItem,
     index::BitcoinCoreRpcResultExt,
     inscriptions::{
       inscription_id,
@@ -30,7 +29,6 @@ use {
     into_usize::IntoUsize,
     option_ext::OptionExt,
     outgoing::Outgoing,
-    properties::Properties,
     representation::Representation,
     satscard::Satscard,
     settings::Settings,
@@ -104,6 +102,7 @@ pub use self::{
   inscriptions::{Envelope, Inscription, InscriptionId, ParsedEnvelope, RawEnvelope},
   object::Object,
   options::Options,
+  properties::{Attributes, Item, Properties},
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
@@ -123,7 +122,6 @@ mod deserialize_from_str;
 mod error;
 mod fee_rate;
 mod fund_raw_transaction;
-mod gallery_item;
 pub mod index;
 mod inscriptions;
 mod into_u64;

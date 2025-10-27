@@ -12,7 +12,7 @@ pub struct File {
   pub reinscribe: bool,
   pub sat: Option<Sat>,
   pub satpoint: Option<SatPoint>,
-  pub inscriptions: Vec<batch::entry::Entry>,
+  pub inscriptions: Vec<batch::Entry>,
   pub etching: Option<batch::Etching>,
 }
 
@@ -57,8 +57,9 @@ impl File {
 
       for item in &inscription.gallery {
         ensure! {
-          items.insert(item),
-          "duplicate gallery item: {item}",
+          items.insert(item.id),
+          "duplicate gallery item: {}",
+          item.id,
         }
       }
     }
@@ -154,7 +155,10 @@ impl File {
         self.parents.clone(),
         entry.file.clone(),
         Some(pointer),
-        entry.properties(),
+        Properties {
+          gallery: entry.gallery.clone(),
+          attributes: entry.attributes.clone(),
+        },
         self
           .etching
           .and_then(|etch| (i == 0).then_some(etch.rune.rune)),
@@ -461,12 +465,18 @@ inscriptions:
           batch::Entry {
             file: Some("gallery.png".into()),
             gallery: vec![
-              "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0"
-                .parse()
-                .unwrap(),
-              "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3"
-                .parse()
-                .unwrap(),
+              Item {
+                id: "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0"
+                  .parse()
+                  .unwrap(),
+                ..default()
+              },
+              Item {
+                id: "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3"
+                  .parse()
+                  .unwrap(),
+                ..default()
+              },
             ],
             ..default()
           },
@@ -503,8 +513,8 @@ mode: separate-outputs
 inscriptions:
 - file: inscription.txt
   gallery:
-  - 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
-  - 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
+  - id: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
+  - id: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
 "#,
     )
     .unwrap();

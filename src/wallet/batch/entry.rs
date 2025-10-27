@@ -4,11 +4,13 @@ use super::*;
 #[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Entry {
+  #[serde(default, flatten)]
+  pub attributes: Attributes,
   pub delegate: Option<InscriptionId>,
   pub destination: Option<Address<NetworkUnchecked>>,
   pub file: Option<PathBuf>,
   #[serde(default)]
-  pub gallery: Vec<InscriptionId>,
+  pub gallery: Vec<Item>,
   pub metadata: Option<serde_yaml::Value>,
   pub metaprotocol: Option<String>,
   pub satpoint: Option<SatPoint>,
@@ -24,9 +26,5 @@ impl Entry {
         Ok(Some(cbor))
       }
     }
-  }
-
-  pub(crate) fn properties(&self) -> Properties {
-    Properties::new(&self.gallery)
   }
 }

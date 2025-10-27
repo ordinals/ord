@@ -3,6 +3,7 @@ use {super::*, boilerplate::Boilerplate};
 pub(crate) use {
   crate::subcommand::server::ServerConfig,
   address::AddressHtml,
+  attributes::AttributesHtml,
   block::BlockHtml,
   children::ChildrenHtml,
   clock::ClockSvg,
@@ -26,11 +27,12 @@ pub(crate) use {
 };
 
 pub use {
-  blocks::BlocksHtml, inscription::InscriptionHtml, rune::RuneHtml, runes::RunesHtml,
-  status::StatusHtml, transaction::TransactionHtml,
+  blocks::BlocksHtml, inscription::InscriptionHtml, item::ItemHtml, rune::RuneHtml,
+  runes::RunesHtml, status::StatusHtml, transaction::TransactionHtml,
 };
 
 pub mod address;
+mod attributes;
 pub mod block;
 pub mod blocks;
 mod children;
@@ -42,6 +44,7 @@ mod input;
 pub mod inscription;
 pub mod inscriptions;
 mod inscriptions_block;
+mod item;
 mod metadata;
 pub mod output;
 mod parents;

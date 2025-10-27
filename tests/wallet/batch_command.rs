@@ -1,5 +1,7 @@
 use {
-  super::*, ord::decimal::Decimal, ord::subcommand::wallet::send, pretty_assertions::assert_eq,
+  super::*,
+  ord::{Attributes, Item, decimal::Decimal, subcommand::wallet::send, templates::ItemHtml},
+  pretty_assertions::assert_eq,
 };
 
 fn receive(core: &mockcore::Handle, ord: &TestServer) -> Address {
@@ -49,7 +51,14 @@ fn batch_inscribe_can_create_one_inscription() {
     .write("inscription.txt", "Hello World")
     .write(
       "batch.yaml",
-      "mode: shared-output\ninscriptions:\n- file: inscription.txt\n  metadata: 123\n  metaprotocol: foo",
+      "
+mode: shared-output
+inscriptions:
+- file: inscription.txt
+  title: bar
+  metadata: 123
+  metaprotocol: foo
+",
     )
     .core(&core)
     .ord(&ord)
@@ -70,7 +79,7 @@ fn batch_inscribe_can_create_one_inscription() {
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    r".*<dt>metadata</dt>\s*<dd>\n    123\n  </dd>.*<dt>metaprotocol</dt>\s*<dd>foo</dd>.*",
+    r".*<dt>title</dt>\s*<dd>bar</dd>\s*<dt>metadata</dt>\s*<dd>\n    123\n  </dd>.*<dt>metaprotocol</dt>\s*<dd>foo</dd>.*",
   );
 }
 
@@ -2827,8 +2836,10 @@ mode: shared-output
 inscriptions:
 - file: inscription.txt
   gallery:
-  - {id0}
-  - {id1}
+  - id: {id0}
+    title: foo
+  - id: {id1}
+    title: bar
 "
       ),
     )
@@ -2836,9 +2847,11 @@ inscriptions:
     .ord(&ord)
     .run_and_deserialize_output::<Batch>();
 
+  let gallery = output.inscriptions[0].id;
+
   core.mine_blocks(1);
 
-  let request = ord.request(format!("/content/{}", output.inscriptions[0].id));
+  let request = ord.request(format!("/content/{gallery}"));
 
   assert_eq!(request.status(), 200);
   assert_eq!(
@@ -2848,19 +2861,67 @@ inscriptions:
   assert_eq!(request.text().unwrap(), "Hello World");
 
   ord.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[0].id),
+    format!("/inscription/{gallery}"),
     format!(
       r".*
   <dt>gallery</dt>
   <dd>
     <div class=thumbnails>
-      <a href=/inscription/{id0}>.*</a>
-      <a href=/inscription/{id1}>.*</a>
+      <a href=/gallery/{gallery}/0>.*<iframe .* src=/preview/{id0}></iframe></a>
+      <a href=/gallery/{gallery}/1>.*<iframe .* src=/preview/{id1}></iframe></a>
     </div>
   </dd>
 .*"
     ),
   );
+
+  ord.assert_html(
+    format!("/gallery/{gallery}/0"),
+    Chain::Mainnet,
+    ItemHtml {
+      gallery_inscription_number: -1,
+      i: 0,
+      item: Item {
+        id: id0,
+        attributes: Attributes {
+          title: Some("foo".into()),
+        },
+      },
+    },
+  );
+
+  ord.assert_html(
+    format!("/gallery/{gallery}/1"),
+    Chain::Mainnet,
+    ItemHtml {
+      gallery_inscription_number: -1,
+      i: 1,
+      item: Item {
+        id: id1,
+        attributes: Attributes {
+          title: Some("bar".into()),
+        },
+      },
+    },
+  );
+
+  let request = ord.request(format!("/gallery/{gallery}/2"));
+  assert_eq!(request.status(), 404);
+  assert_eq!(
+    request.text().unwrap(),
+    format!("gallery {gallery} item 2 not found"),
+  );
+
+  let request = ord.request(format!("/gallery/100/2"));
+  assert_eq!(request.status(), 404);
+  assert_eq!(
+    request.text().unwrap(),
+    format!("inscription 100 not found"),
+  );
+
+  let request = ord.request(format!("/gallery/hello/2"));
+  assert_eq!(request.status(), 404);
+  assert_eq!(request.text().unwrap(), format!("sat index required"));
 }
 
 #[test]
@@ -2882,7 +2943,7 @@ mode: shared-output
 inscriptions:
 - file: inscription.txt
   gallery:
-  - 0000000000000000000000000000000000000000000000000000000000000000i0
+  - id: 0000000000000000000000000000000000000000000000000000000000000000i0
 ",
     )
     .core(&core)
