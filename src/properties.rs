@@ -14,7 +14,7 @@ impl Properties {
     decode(cbor).unwrap_or_default()
   }
 
-  pub(crate) fn gallery_items(&self) -> Vec<InscriptionId> {
+  pub(crate) fn gallery(&self) -> Vec<InscriptionId> {
     let Some(gallery) = &self.gallery else {
       return Vec::new();
     };
