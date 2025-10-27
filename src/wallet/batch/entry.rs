@@ -27,8 +27,6 @@ impl Entry {
   }
 
   pub(crate) fn properties(&self) -> Properties {
-    Properties {
-      gallery: self.gallery.clone(),
-    }
+    Properties::new(&self.gallery)
   }
 }

@@ -90,9 +90,7 @@ impl Inscribe {
         self.parent.into_iter().collect(),
         self.file,
         None,
-        Properties {
-          gallery: self.gallery,
-        },
+        Properties::new(&self.gallery),
         None,
       )?],
       mode: batch::Mode::SeparateOutputs,

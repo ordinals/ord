@@ -19,6 +19,7 @@ use {
     decimal::Decimal,
     deserialize_from_str::DeserializeFromStr,
     fund_raw_transaction::fund_raw_transaction,
+    gallery_item::GalleryItem,
     index::BitcoinCoreRpcResultExt,
     inscriptions::{
       inscription_id,
@@ -122,6 +123,7 @@ mod deserialize_from_str;
 mod error;
 mod fee_rate;
 mod fund_raw_transaction;
+mod gallery_item;
 pub mod index;
 mod inscriptions;
 mod into_u64;
