@@ -4,6 +4,7 @@ use {
 };
 
 #[derive(Debug, Decode, Default, Encode, PartialEq)]
+#[cbor(map)]
 pub struct Properties {
   #[n(0)]
   gallery: Option<Vec<GalleryItem>>,
