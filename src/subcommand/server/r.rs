@@ -210,11 +210,30 @@ pub(super) async fn children_paginated(
 }
 
 pub(super) async fn content(
-  Extension(index): Extension<Arc<Index>>,
-  Extension(settings): Extension<Arc<Settings>>,
-  Extension(server_config): Extension<Arc<ServerConfig>>,
+  index: Extension<Arc<Index>>,
+  settings: Extension<Arc<Settings>>,
+  server_config: Extension<Arc<ServerConfig>>,
   Path(inscription_id): Path<InscriptionId>,
   accept_encoding: AcceptEncoding,
+) -> ServerResult {
+  content_inner(
+    &index,
+    &settings,
+    &server_config,
+    inscription_id,
+    accept_encoding,
+    true,
+  )
+  .await
+}
+
+pub(super) async fn content_inner(
+  index: &Index,
+  settings: &Settings,
+  server_config: &ServerConfig,
+  inscription_id: InscriptionId,
+  accept_encoding: AcceptEncoding,
+  cache: bool,
 ) -> ServerResult {
   task::block_in_place(|| {
     if settings.is_hidden(inscription_id) {
@@ -234,7 +253,7 @@ pub(super) async fn content(
     }
 
     Ok(
-      content_response(inscription, accept_encoding, &server_config)?
+      content_response(inscription, accept_encoding, server_config, cache)?
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )
@@ -245,6 +264,7 @@ pub(super) fn content_response(
   inscription: Inscription,
   accept_encoding: AcceptEncoding,
   server_config: &ServerConfig,
+  cache: bool,
 ) -> ServerResult<Option<(HeaderMap, Vec<u8>)>> {
   let mut headers = HeaderMap::new();
 
@@ -272,7 +292,11 @@ pub(super) fn content_response(
 
   headers.insert(
     header::CACHE_CONTROL,
-    HeaderValue::from_static("public, max-age=1209600, immutable"),
+    HeaderValue::from_static(if cache {
+      "public, max-age=1209600, immutable"
+    } else {
+      "no-store"
+    }),
   );
 
   headers.insert(
@@ -475,7 +499,7 @@ pub(super) async fn sat(
 pub(super) async fn sat_at_index(
   Extension(index): Extension<Arc<Index>>,
   Path((DeserializeFromStr(sat), inscription_index)): Path<(DeserializeFromStr<Sat>, isize)>,
-) -> ServerResult<Json<api::SatInscription>> {
+) -> ServerResult<(HeaderMap, Json<api::SatInscription>)> {
   task::block_in_place(|| {
     if !index.has_sat_index() {
       return Err(ServerError::NotFound(
@@ -485,7 +509,13 @@ pub(super) async fn sat_at_index(
 
     let id = index.get_inscription_id_by_sat_indexed(sat, inscription_index)?;
 
-    Ok(Json(api::SatInscription { id }))
+    let mut headers = HeaderMap::new();
+
+    if inscription_index < 0 {
+      headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    }
+
+    Ok((headers, Json(api::SatInscription { id })))
   })
 }
 
@@ -521,12 +551,13 @@ pub(super) async fn sat_at_index_content(
       .ok_or_not_found(|| format!("inscription on sat {sat}"))
   })?;
 
-  content(
-    index,
-    settings,
-    server_config,
-    Path(inscription_id),
+  content_inner(
+    &index,
+    &settings,
+    &server_config,
+    inscription_id,
     accept_encoding,
+    inscription_index >= 0,
   )
   .await
 }
@@ -586,7 +617,7 @@ pub(super) async fn undelegated_content(
       .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
 
     Ok(
-      r::content_response(inscription, accept_encoding, &server_config)?
+      r::content_response(inscription, accept_encoding, &server_config, true)?
         .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
         .into_response(),
     )

@@ -3,30 +3,46 @@ use {
   minicbor::{Decode, Decoder, Encode, Encoder, decode, encode},
 };
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Debug, Decode, Default, Encode, PartialEq)]
+#[cbor(map)]
 pub struct Properties {
-  pub(crate) gallery: Vec<InscriptionId>,
+  #[n(0)]
+  gallery: Option<Vec<GalleryItem>>,
 }
 
 impl Properties {
   pub(crate) fn from_cbor(cbor: &[u8]) -> Self {
-    let Ok(raw) = decode::<RawProperties>(cbor) else {
-      return Self::default();
+    decode(cbor).unwrap_or_default()
+  }
+
+  pub(crate) fn gallery(&self) -> Vec<InscriptionId> {
+    let Some(gallery) = &self.gallery else {
+      return Vec::new();
     };
 
+    let mut ids = Vec::new();
+
+    for item in gallery {
+      let Some(id) = item.id else { return Vec::new() };
+
+      ids.push(id);
+    }
+
+    ids
+  }
+
+  pub(crate) fn new(gallery: &[InscriptionId]) -> Self {
     Self {
-      gallery: raw
-        .gallery
-        .and_then(|gallery| {
-          let mut items = Vec::new();
-
-          for item in gallery {
-            items.push(item.id?);
-          }
-
-          Some(items)
-        })
-        .unwrap_or_default(),
+      gallery: if gallery.is_empty() {
+        None
+      } else {
+        Some(
+          gallery
+            .iter()
+            .map(|id| GalleryItem { id: Some(*id) })
+            .collect(),
+        )
+      },
     }
   }
 
@@ -35,34 +51,8 @@ impl Properties {
       return None;
     }
 
-    Some(
-      minicbor::to_vec(RawProperties {
-        gallery: Some(
-          self
-            .gallery
-            .iter()
-            .copied()
-            .map(|item| GalleryItem { id: Some(item) })
-            .collect(),
-        ),
-      })
-      .unwrap(),
-    )
+    Some(minicbor::to_vec(self).unwrap())
   }
-}
-
-#[derive(Decode, Encode)]
-#[cbor(map)]
-pub(crate) struct GalleryItem {
-  #[n(0)]
-  pub(crate) id: Option<InscriptionId>,
-}
-
-#[derive(Decode, Encode)]
-#[cbor(map)]
-pub(crate) struct RawProperties {
-  #[n(0)]
-  pub(crate) gallery: Option<Vec<GalleryItem>>,
 }
 
 #[derive(Debug, Snafu)]
@@ -128,7 +118,14 @@ mod tests {
     }
 
     let expected = Properties {
-      gallery: vec![inscription_id(0), inscription_id(1)],
+      gallery: Some(vec![
+        GalleryItem {
+          id: Some(inscription_id(0)),
+        },
+        GalleryItem {
+          id: Some(inscription_id(1)),
+        },
+      ]),
     };
 
     assert_eq!(expected.to_cbor(), Some(buffer.clone()));

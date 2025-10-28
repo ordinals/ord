@@ -91,11 +91,20 @@ systemctl restart sshd
 
 ufw --force enable
 
-if ! which bitcoind; then
-  ./bin/install-bitcoin-core-linux
-fi
+version=30.0
+if ! bitcoind --version | grep $version; then
+  wget \
+    -O bitcoin.tar.gz \
+    https://bitcoincore.org/bin/bitcoin-core-$version/bitcoin-$version-x86_64-linux-gnu.tar.gz
 
-bitcoind --version
+  tar \
+    -xzvf bitcoin.tar.gz \
+    -C /usr/local/bin \
+    --strip-components 2 \
+    bitcoin-$version/bin/{bitcoin-cli,bitcoind}
+
+  bitcoind --version
+fi
 
 rm -f /var/lib/bitcoind/settings.json
 

@@ -279,7 +279,7 @@ impl Inscription {
       .as_ref()
       .map(|cbor| Properties::from_cbor(cbor))
       .unwrap_or_default()
-      .gallery
+      .gallery()
   }
 }
 
