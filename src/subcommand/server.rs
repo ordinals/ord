@@ -6,12 +6,12 @@ use {
   },
   super::*,
   crate::templates::{
-    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
-    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
-    PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml, SatscardHtml,
-    TransactionHtml,
+    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, GalleryHtml,
+    HomeHtml, InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml,
+    PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
+    PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml,
+    SatscardHtml, TransactionHtml,
   },
   axum::{
     Router,
@@ -215,6 +215,11 @@ impl Server {
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
+        .route("/gallery/{inscription_id}", get(Self::gallery))
+        .route(
+          "/gallery/{inscription_id}/{page}",
+          get(Self::gallery_paginated),
+        )
         .route("/input/{block}/{transaction}/{input}", get(Self::input))
         .route("/inscription/{inscription_query}", get(Self::inscription))
         .route(
@@ -1828,6 +1833,67 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn gallery(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult {
+    Self::gallery_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path((inscription_id, 0)),
+    )
+    .await
+  }
+
+  async fn gallery_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((gallery, page)): Path<(InscriptionId, usize)>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let entry = index
+        .get_inscription_entry(gallery)?
+        .ok_or_not_found(|| format!("inscription {gallery}"))?;
+
+      let gallery_number = entry.inscription_number;
+
+      let inscription = index
+        .get_inscription_by_id(gallery)?
+        .ok_or_not_found(|| format!("inscription {gallery}"))?;
+
+      let gallery_items = inscription.gallery();
+
+      let page_size = 100;
+      let mut gallery_items = gallery_items
+        .into_iter()
+        .skip(page * page_size)
+        .take(page_size.saturating_add(1))
+        .collect::<Vec<InscriptionId>>();
+      let more = gallery_items.len() > page_size;
+
+      if more {
+        gallery_items.pop();
+      }
+
+      let prev_page = page.checked_sub(1);
+
+      let next_page = more.then_some(page + 1);
+
+      Ok(
+        GalleryHtml {
+          gallery,
+          gallery_number,
+          gallery_items,
+          prev_page,
+          next_page,
+        }
+        .page(server_config)
+        .into_response(),
+      )
     })
   }
 
