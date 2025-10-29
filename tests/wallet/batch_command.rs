@@ -2912,14 +2912,14 @@ inscriptions:
     format!("gallery {gallery} item 2 not found"),
   );
 
-  let request = ord.request(format!("/gallery/100/2"));
+  let request = ord.request("/gallery/100/2");
   assert_eq!(request.status(), 404);
   assert_eq!(
     request.text().unwrap(),
     format!("inscription 100 not found"),
   );
 
-  let request = ord.request(format!("/gallery/hello/2"));
+  let request = ord.request("/gallery/hello/2");
   assert_eq!(request.status(), 404);
   assert_eq!(request.text().unwrap(), format!("sat index required"));
 }
