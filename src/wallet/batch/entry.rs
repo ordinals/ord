@@ -16,6 +16,14 @@ pub struct Entry {
   pub satpoint: Option<SatPoint>,
 }
 
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Item {
+  pub id: InscriptionId,
+  #[serde(flatten)]
+  pub attributes: Attributes,
+}
+
 impl Entry {
   pub(crate) fn metadata(&self) -> Result<Option<Vec<u8>>> {
     match &self.metadata {

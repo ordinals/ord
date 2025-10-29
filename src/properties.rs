@@ -30,7 +30,6 @@ impl From<raw::Attributes> for Attributes {
 #[serde(deny_unknown_fields)]
 pub struct Item {
   pub id: InscriptionId,
-  #[serde(flatten)]
   pub attributes: Attributes,
 }
 
