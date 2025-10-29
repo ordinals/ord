@@ -37,8 +37,8 @@ pub struct Item {
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Properties {
-  pub(crate) gallery: Vec<Item>,
-  pub(crate) attributes: Attributes,
+  pub gallery: Vec<Item>,
+  pub attributes: Attributes,
 }
 
 impl Properties {
