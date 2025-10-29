@@ -629,28 +629,37 @@ OP_IF
 OP_ENDIF
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="プロパティ"><a class="header" href="#プロパティ">プロパティ</a></h1>
-<p>Inscriptionには<a href="https://cbor.io/">CBOR</a>プロパティを含めることができ、タグ<code>17</code>のフィールドにデータプッシュとして保存されます。データプッシュは520バイトに制限されているため、520バイトを超えるCBORは複数のタグ<code>17</code>フィールドに分割し、デコード前に連結される必要があります。</p>
-<p>プロパティは<a href="inscriptions/metadata.html">メタデータ</a>の構造化された対応物です。メタデータはプロトコル定義の意味を持たない任意のCBORを含み、<code>/inscription</code>でHTMLとして表示されますが、プロパティはプロトコル定義の意味を持ち、厳密なスキーマに準拠する必要があります。</p>
-<p>不定長型はサポートされていません。すべてのマップ、配列、バイト文字列、テキスト文字列は定長でなければなりません。</p>
+<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> properties, stored as data pushes in fields with tag <code>17</code>. Since data pushes are limited to 520 bytes, CBOR longer than 520 bytes must be split into multiple tag <code>17</code> fields which are then concatenated before decoding.</p>
+<p>Properties are a structured counterpart to <a href="inscriptions/metadata.html">metadata</a>. While metadata may contain arbitrary CBOR which has no protocol-defined meaning, and is presented on <code>/inscription</code> as free-form HTML, properties have protocol-defined meaning and must conform to a strict schema.</p>
+<p>Indefinite-length CBOR types are not supported in properties. All maps, arrays, byte strings, and text strings must be definite.</p>
 <p>プロパティ値の非規範的な<a href="https://datatracker.ietf.org/doc/html/rfc8610">CDDL</a>スキーマは以下の通りです：</p>
 <pre><code class="language-cddl">Properties = {
-  ? 0: [*GalleryItem],
+  ? 0: [*Item],
+  ? 1: Attributes,
   * any =&gt; any,
 }
 
-GalleryItem = {
-  ? 0: bstr .size (32..36),
+Item = {
+  ? 0: bytes .size (32..36),
+  ? 1: Attributes,
+  * any =&gt; any,
+}
+
+Attributes = {
+  ? 0: text, ; title
   * any =&gt; any,
 }
 </code></pre>
 <p>上記のCDDLスキーマは便宜上提供されています。いつものように、オーディナルズのリファレンス実装である<code>ord</code>がInscriptionの規範的仕様であり、したがってプロパティフィールドの仕様でもあります。</p>
-<p><code>* any =&gt; any</code>ワイルドカードにマッチするフィールドは、将来の追加との互換性のために無視される必要があります。</p>
+<p>Fields matching the <code>* any =&gt; any</code> wildcard must be accepted but ignored, for compatibility with future additions.</p>
 <h1 id="ギャラリー"><a class="header" href="#ギャラリー">ギャラリー</a></h1>
-<p>プロパティフィールドに<code>GalleryItem</code>を含むInscriptionはギャラリーです。</p>
-<p>ギャラリーは<code>GalleryItem</code>を含み、その唯一の定義されたキー<code>0</code>にはシリアライズされたInscription IDが含まれます。Inscription ID <code>TXIDiINDEX</code>は、32バイトのTXIDと4バイトのリトルエンディアン<code>INDEX</code>を連結したバイト文字列としてシリアライズされます。4バイトの<code>INDEX</code>から末尾のゼロを削除できるため、<code>i0</code>で終わるIDは32バイトでシリアライズできます。</p>
+<p>Inscriptions whose properties field contains <code>Item</code>s are galleries.</p>
+<p>Galleries contain <code>Item</code>s, whose key <code>0</code> contains a serialized inscription ID. Inscription ID <code>TXIDiINDEX</code> is serialized as a byte string containing the 32 byte <code>TXID</code>, concatenated with by the four-byte little-endian <code>INDEX</code>. Trailing zeros may be removed from four-byte <code>INDEX</code>, so IDs ending in <code>i0</code> may be serialized in 32 bytes.</p>
 <p>ギャラリーアイテムは、エクスプローラーのInscriptionの<code>/inscription</code>ページに表示されます。</p>
 <p>ギャラリーは、Inscriptionのコレクションを作成する方法を提供するという点で子要素に似ています。ただし、ギャラリーはパーミッションレスです。誰でも任意のInscriptionを含むギャラリーを作成できます。したがって、ギャラリーに含まれることは出所を意味しません。さらに、このため、ギャラリーに含まれてもギャラリーアイテムの<code>/inscription</code>ページからギャラリーへのバックリンクは作成されません。</p>
 <p>ギャラリーは、<code>ord wallet batch</code>でバッチInscriptionを行う際に、バッチファイルのInscriptionエントリの<code>gallery</code>キーの下に文字列Inscription IDの配列を含めることで作成できます。また、<code>ord wallet inscribe</code>で<code>--gallery</code>オプションを使用することでも作成できます。</p>
+<h1 id="attributes"><a class="header" href="#attributes">Attributes</a></h1>
+<p>Attributes are structured metadata that may be attached to both inscriptions and gallery items.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="プロビナンス"><a class="header" href="#プロビナンス">プロビナンス</a></h1>
 <p>銘文の所有者は子銘文を作り上げられ、チェーンの上で自由にこれらの子銘文の'遡源'を作り上げ、父の銘文の所有者から作り上げたことを証明します。集合に用いられて、父の銘文の子銘文は同じ集合のメンバーとなります。</p>
 <p>子銘文も自分の子銘文を作成することができ、様々な階層構造が形成ます。例えば、ある芸術家は自分を代表する銘文を作成して、子銘文は彼らが作成したコレクションを代表し、この銘文のそれぞれのサブプロジェクトはコレクションの中のプロジェクトです。</p>
@@ -7188,6 +7197,8 @@ inscriptions:
   delegate: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
   # destination (optional, if no destination is specified a new wallet change address will be used)
   destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
+  # title (optional)
+  title: Delicious Mangos
   # inscription metadata (optional)
   metadata:
     title: Delicious Mangos
@@ -7210,8 +7221,9 @@ inscriptions:
 - file: gallery.png
   # gallery items
   gallery:
-  - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0
-  - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3
+  - id: a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0
+    title: Incredible
+  - id: a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="収集"><a class="header" href="#収集">収集</a></h1>
 <p>現在、<a href="https://github.com/ordinals/ord/">ord</a>はsat-controlとsat-selectionをサポートする唯一のものですの財布、これは希少なsatsと銘文（以下、序数と略称する）を安全に保存して送るために必要です。</p>

@@ -234,28 +234,37 @@
                 <div id="content" class="content">
                     <main>
                         <h1 id="properties"><a class="header" href="#properties">Properties</a></h1>
-<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> properties, stored as data pushes in fields with tag <code>17</code>. Since data pushes are limited to 520 bytes, CBOR longer than 520 bytes must be split into multiple tag <code>17</code> fields, which will then be concatenated before decoding.</p>
-<p>Properties are a structured counterpart to <a href="metadata.html">metadata</a>. While metadata may contain arbitrary CBOR which has no protocol-defined meaning and is presented on <code>/inscription</code> as HTML, properties have protocol-defined meaning and must conform to a strict schema.</p>
-<p>Indefinite-length types are not supported. All maps, arrays, byte strings, and text strings must be definite.</p>
+<p>Inscriptions may include <a href="https://cbor.io/">CBOR</a> properties, stored as data pushes in fields with tag <code>17</code>. Since data pushes are limited to 520 bytes, CBOR longer than 520 bytes must be split into multiple tag <code>17</code> fields which are then concatenated before decoding.</p>
+<p>Properties are a structured counterpart to <a href="metadata.html">metadata</a>. While metadata may contain arbitrary CBOR which has no protocol-defined meaning, and is presented on <code>/inscription</code> as free-form HTML, properties have protocol-defined meaning and must conform to a strict schema.</p>
+<p>Indefinite-length CBOR types are not supported in properties. All maps, arrays, byte strings, and text strings must be definite.</p>
 <p>The non-normative <a href="https://datatracker.ietf.org/doc/html/rfc8610">CDDL</a> schema of the properties value is as follows:</p>
 <pre><code class="language-cddl">Properties = {
-  ? 0: [*GalleryItem],
+  ? 0: [*Item],
+  ? 1: Attributes,
   * any =&gt; any,
 }
 
-GalleryItem = {
-  ? 0: bstr .size (32..36),
+Item = {
+  ? 0: bytes .size (32..36),
+  ? 1: Attributes,
+  * any =&gt; any,
+}
+
+Attributes = {
+  ? 0: text, ; title
   * any =&gt; any,
 }
 </code></pre>
 <p>The above CDDL schema is provided as a convenience. As always, the ordinals reference implementation <code>ord</code> is the normative specification of inscriptions, and thus the properties field.</p>
-<p>Fields matching the <code>* any =&gt; any</code> wildcard must be ignored, for compatibility with future additions.</p>
+<p>Fields matching the <code>* any =&gt; any</code> wildcard must be accepted but ignored, for compatibility with future additions.</p>
 <h1 id="galleries"><a class="header" href="#galleries">Galleries</a></h1>
-<p>Inscriptions whose properties field contains <code>GalleryItem</code>s are galleries.</p>
-<p>Galleries contain <code>GalleryItem</code>s, whose only defined key <code>0</code> contains a serialized inscription ID. Inscription ID <code>TXIDiINDEX</code> is serialized as a byte string containing the 32 byte TXID, concatenated with by the four-byte little-endian <code>INDEX</code>. Trailing zeros may be removed from four-byte <code>INDEX</code>, so IDs ending in <code>i0</code> may be serialized in 32 bytes.</p>
+<p>Inscriptions whose properties field contains <code>Item</code>s are galleries.</p>
+<p>Galleries contain <code>Item</code>s, whose key <code>0</code> contains a serialized inscription ID. Inscription ID <code>TXIDiINDEX</code> is serialized as a byte string containing the 32 byte <code>TXID</code>, concatenated with by the four-byte little-endian <code>INDEX</code>. Trailing zeros may be removed from four-byte <code>INDEX</code>, so IDs ending in <code>i0</code> may be serialized in 32 bytes.</p>
 <p>Gallery items are displayed on the inscriptions <code>/inscription</code> page on the explorer.</p>
 <p>Galleries are similar to children, in that they provide a way to create collections of inscriptions. However, galleries are permissionless. Anyone may create a gallery including any inscriptions. Thus, inclusion in a gallery does not imply provenance. Additionally, because of this, inclusion in a gallery does not create a backlink from the gallery item's <code>/inscription</code> page to the gallery.</p>
 <p>Galleries may be created when batch inscribing with <code>ord wallet batch</code> by including an array of string inscription IDs of under the <code>gallery</code> key of the inscription entry in the batch file, or when using <code>ord wallet inscribe</code> using the <code>--gallery</code> option.</p>
+<h1 id="attributes"><a class="header" href="#attributes">Attributes</a></h1>
+<p>Attributes are structured metadata that may be attached to both inscriptions and gallery items.</p>
 
                     </main>
 
