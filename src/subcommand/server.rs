@@ -7,11 +7,11 @@ use {
   super::*,
   crate::templates::{
     AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
-    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
-    PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml, SatscardHtml,
-    TransactionHtml,
+    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, ItemHtml, OutputHtml,
+    PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
+    PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml,
+    SatscardHtml, TransactionHtml,
   },
   axum::{
     Router,
@@ -215,6 +215,7 @@ impl Server {
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
+        .route("/gallery/{inscription_query}/{item}", get(Self::item))
         .route("/input/{block}/{transaction}/{input}", get(Self::input))
         .route("/inscription/{inscription_query}", get(Self::inscription))
         .route(
@@ -1646,6 +1647,41 @@ impl Server {
     })
   }
 
+  async fn item(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((DeserializeFromStr(query), i)): Path<(DeserializeFromStr<query::Inscription>, usize)>,
+  ) -> ServerResult<PageHtml<ItemHtml>> {
+    task::block_in_place(|| {
+      if let query::Inscription::Sat(_) = query
+        && !index.has_sat_index()
+      {
+        return Err(ServerError::NotFound("sat index required".into()));
+      }
+
+      let (info, _txout, inscription) = index
+        .inscription_info(query, None)?
+        .ok_or_not_found(|| format!("inscription {query}"))?;
+
+      let properties = inscription.properties();
+
+      let item = properties
+        .gallery
+        .get(i)
+        .ok_or_not_found(|| format!("gallery {query} item {i}"))?
+        .clone();
+
+      Ok(
+        ItemHtml {
+          gallery_inscription_number: info.number,
+          i,
+          item,
+        }
+        .page(server_config),
+      )
+    })
+  }
+
   async fn inscription(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -1692,6 +1728,8 @@ impl Server {
         let (info, txout, inscription) =
           inscription_info.ok_or_not_found(|| format!("inscription {query}"))?;
 
+        let properties = inscription.properties();
+
         InscriptionHtml {
           chain: server_config.chain,
           charms: Charm::Vindicated.unset(info.charms.iter().fold(0, |mut acc, charm| {
@@ -1702,13 +1740,14 @@ impl Server {
           children: info.children,
           fee: info.fee,
           height: info.height,
-          inscription,
           id: info.id,
-          number: info.number,
+          inscription,
           next: info.next,
+          number: info.number,
           output: txout,
           parents: info.parents,
           previous: info.previous,
+          properties,
           rune: info.rune,
           sat: info.sat,
           satpoint: info.satpoint,
@@ -4876,6 +4915,47 @@ mod tests {
       format!("/inscription/{}", Sat(5000000000).name()),
       StatusCode::OK,
       ".*<title>Inscription 0</title.*",
+    );
+  }
+
+  #[test]
+  fn gallery_items_can_be_looked_up_by_gallery_sat_name() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    server.mine_blocks(1);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        1,
+        0,
+        0,
+        Inscription {
+          content_type: Some("test/foo".into()),
+          body: Some("foo".into()),
+          properties: Properties {
+            gallery: vec![Item {
+              id: inscription_id(1),
+              ..default()
+            }],
+            ..default()
+          }
+          .to_cbor(),
+          ..default()
+        }
+        .to_witness(),
+      )],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/gallery/{}/0", Sat(5000000000).name()),
+      StatusCode::OK,
+      ".*<title>Gallery 0 item 0</title.*",
     );
   }
 
