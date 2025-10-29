@@ -480,9 +480,7 @@ inscriptions:
                 id: "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3"
                   .parse()
                   .unwrap(),
-                attributes: Attributes {
-                  title: Some("Stupendous".into()),
-                },
+                attributes: Attributes { title: None },
               },
             ],
             ..default()
