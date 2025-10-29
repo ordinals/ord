@@ -441,6 +441,9 @@ inscriptions:
               );
               mapping
             })),
+            attributes: Attributes {
+              title: Some("Delicious Mangos".into()),
+            },
             ..default()
           },
           batch::Entry {
@@ -469,13 +472,17 @@ inscriptions:
                 id: "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0"
                   .parse()
                   .unwrap(),
-                ..default()
+                attributes: Attributes {
+                  title: Some("Incredible".into()),
+                },
               },
               Item {
                 id: "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3"
                   .parse()
                   .unwrap(),
-                ..default()
+                attributes: Attributes {
+                  title: Some("Stupendous".into()),
+                },
               },
             ],
             ..default()
