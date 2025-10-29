@@ -108,16 +108,17 @@ pub struct Inscription {
   pub fee: u64,
   pub height: u32,
   pub id: InscriptionId,
+  pub metaprotocol: Option<String>,
   pub next: Option<InscriptionId>,
   pub number: i32,
   pub parents: Vec<InscriptionId>,
   pub previous: Option<InscriptionId>,
+  pub properties: Properties,
   pub rune: Option<SpacedRune>,
   pub sat: Option<ordinals::Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
   pub value: Option<u64>,
-  pub metaprotocol: Option<String>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

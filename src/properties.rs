@@ -3,6 +3,7 @@ use super::*;
 mod raw;
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Attributes {
   pub title: Option<String>,
 }
@@ -34,7 +35,8 @@ pub struct Item {
   pub attributes: Attributes,
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Properties {
   pub(crate) gallery: Vec<Item>,
   pub(crate) attributes: Attributes,
