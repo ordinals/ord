@@ -26,7 +26,6 @@ impl From<raw::Attributes> for Attributes {
   }
 }
 
-#[serde_with::skip_serializing_none]
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Item {
