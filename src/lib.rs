@@ -29,7 +29,6 @@ use {
     into_usize::IntoUsize,
     option_ext::OptionExt,
     outgoing::Outgoing,
-    properties::Properties,
     representation::Representation,
     satscard::Satscard,
     settings::Settings,
@@ -103,6 +102,7 @@ pub use self::{
   inscriptions::{Envelope, Inscription, InscriptionId, ParsedEnvelope, RawEnvelope},
   object::Object,
   options::Options,
+  properties::{Attributes, Item, Properties},
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 

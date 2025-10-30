@@ -77,7 +77,14 @@ impl WalletConstructor {
         }
       }
 
-      if client.get_wallet_info()?.private_keys_enabled {
+      #[derive(Deserialize)]
+      pub struct WalletInfo {
+        pub private_keys_enabled: bool,
+      }
+
+      let wallet_info = client.call::<WalletInfo>("getwalletinfo", &[])?;
+
+      if wallet_info.private_keys_enabled {
         Wallet::check_descriptors(
           &self.name,
           client

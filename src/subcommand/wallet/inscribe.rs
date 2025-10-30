@@ -27,6 +27,12 @@ pub(crate) struct Inscribe {
   pub(crate) file: Option<PathBuf>,
   #[arg(
     long,
+    help = "Include <INSCRIPTION_ID> in gallery.",
+    value_name = "INSCRIPTION_ID"
+  )]
+  pub(crate) gallery: Vec<InscriptionId>,
+  #[arg(
+    long,
     help = "Include JSON in file at <METADATA> converted to CBOR as inscription metadata",
     conflicts_with = "cbor_metadata"
   )]
@@ -47,12 +53,8 @@ pub(crate) struct Inscribe {
   pub(crate) sat: Option<Sat>,
   #[arg(long, help = "Inscribe <SATPOINT>.", conflicts_with = "sat")]
   pub(crate) satpoint: Option<SatPoint>,
-  #[arg(
-    long,
-    help = "Include <INSCRIPTION_ID> in gallery.",
-    value_name = "INSCRIPTION_ID"
-  )]
-  pub(crate) gallery: Vec<InscriptionId>,
+  #[arg(long, help = "Set `title` property to <TITLE>.")]
+  pub(crate) title: Option<String>,
 }
 
 impl Inscribe {
@@ -91,7 +93,12 @@ impl Inscribe {
         self.file,
         None,
         Properties {
-          gallery: self.gallery,
+          attributes: Attributes { title: self.title },
+          gallery: self
+            .gallery
+            .into_iter()
+            .map(|id| Item { id, ..default() })
+            .collect(),
         },
         None,
       )?],

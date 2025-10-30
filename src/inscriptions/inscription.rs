@@ -273,13 +273,12 @@ impl Inscription {
       || matches!(self.media(), Media::Code(_) | Media::Text | Media::Unknown)
   }
 
-  pub(crate) fn gallery(&self) -> Vec<InscriptionId> {
+  pub(crate) fn properties(&self) -> Properties {
     self
       .properties
       .as_ref()
       .map(|cbor| Properties::from_cbor(cbor))
       .unwrap_or_default()
-      .gallery
   }
 }
 

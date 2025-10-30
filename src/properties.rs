@@ -1,32 +1,63 @@
-use {
-  super::*,
-  minicbor::{Decode, Decoder, Encode, Encoder, decode, encode},
-};
+use super::*;
+
+mod raw;
+
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+pub struct Attributes {
+  pub title: Option<String>,
+}
+
+impl Attributes {
+  fn to_raw(&self) -> Option<raw::Attributes> {
+    if *self == Default::default() {
+      None
+    } else {
+      Some(raw::Attributes {
+        title: self.title.clone(),
+      })
+    }
+  }
+}
+
+impl From<raw::Attributes> for Attributes {
+  fn from(raw: raw::Attributes) -> Self {
+    Self { title: raw.title }
+  }
+}
+
+#[serde_with::skip_serializing_none]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Item {
+  pub id: InscriptionId,
+  #[serde(flatten)]
+  pub attributes: Attributes,
+}
 
 #[derive(Debug, Default, PartialEq)]
 pub struct Properties {
-  pub(crate) gallery: Vec<InscriptionId>,
+  pub(crate) gallery: Vec<Item>,
+  pub(crate) attributes: Attributes,
 }
 
 impl Properties {
   pub(crate) fn from_cbor(cbor: &[u8]) -> Self {
-    let Ok(raw) = decode::<RawProperties>(cbor) else {
-      return Self::default();
-    };
+    let raw::Properties {
+      gallery,
+      attributes,
+    } = minicbor::decode(cbor).unwrap_or_default();
 
     Self {
-      gallery: raw
-        .gallery
-        .and_then(|gallery| {
-          let mut items = Vec::new();
-
-          for item in gallery {
-            items.push(item.id?);
-          }
-
-          Some(items)
+      gallery: gallery
+        .filter(|gallery| gallery.iter().all(|item| item.id.is_some()))
+        .unwrap_or_default()
+        .into_iter()
+        .map(|item| Item {
+          id: item.id.unwrap(),
+          attributes: item.attributes.unwrap_or_default().into(),
         })
-        .unwrap_or_default(),
+        .collect(),
+      attributes: attributes.unwrap_or_default().into(),
     }
   }
 
@@ -36,63 +67,31 @@ impl Properties {
     }
 
     Some(
-      minicbor::to_vec(RawProperties {
-        gallery: Some(
-          self
-            .gallery
-            .iter()
-            .copied()
-            .map(|item| GalleryItem { id: Some(item) })
-            .collect(),
-        ),
+      minicbor::to_vec(raw::Properties {
+        gallery: if self.gallery.is_empty() {
+          None
+        } else {
+          Some(
+            self
+              .gallery
+              .iter()
+              .map(|item| raw::Item {
+                id: Some(item.id),
+                attributes: item.attributes.to_raw(),
+              })
+              .collect(),
+          )
+        },
+        attributes: self.attributes.to_raw(),
       })
       .unwrap(),
     )
   }
 }
 
-#[derive(Decode, Encode)]
-#[cbor(map)]
-pub(crate) struct GalleryItem {
-  #[n(0)]
-  pub(crate) id: Option<InscriptionId>,
-}
-
-#[derive(Decode, Encode)]
-#[cbor(map)]
-pub(crate) struct RawProperties {
-  #[n(0)]
-  pub(crate) gallery: Option<Vec<GalleryItem>>,
-}
-
-#[derive(Debug, Snafu)]
-#[snafu(context(suffix(Error)))]
-enum DecodeError {
-  #[snafu(display("invalid inscription ID length {len}"))]
-  InscriptionId { len: usize },
-}
-
-impl<'a, T> Decode<'a, T> for InscriptionId {
-  fn decode(decoder: &mut Decoder<'a>, _: &mut T) -> Result<Self, decode::Error> {
-    let bytes = decoder.bytes()?;
-
-    Self::from_value(bytes)
-      .ok_or_else(|| decode::Error::custom(InscriptionIdError { len: bytes.len() }.build()))
-  }
-}
-
-impl<T> Encode<T> for InscriptionId {
-  fn encode<W>(&self, encoder: &mut Encoder<W>, _: &mut T) -> Result<(), encode::Error<W::Error>>
-  where
-    W: encode::Write,
-  {
-    encoder.bytes(&self.value()).map(|_| ())
-  }
-}
-
 #[cfg(test)]
 mod tests {
-  use super::*;
+  use {super::*, minicbor::Encoder};
 
   #[test]
   fn decode() {
@@ -107,33 +106,73 @@ mod tests {
 
     {
       Encoder::new(&mut buffer)
-        .map(1)
+        .map(2)
         .unwrap()
         .u8(0)
         .unwrap()
         .array(2)
         .unwrap()
-        .map(1)
+        .map(2)
         .unwrap()
         .u8(0)
         .unwrap()
         .bytes(&inscription_id(0).value())
         .unwrap()
+        .u8(1)
+        .unwrap()
         .map(1)
         .unwrap()
         .u8(0)
         .unwrap()
+        .str("bar")
+        .unwrap()
+        .map(2)
+        .unwrap()
+        .u8(0)
+        .unwrap()
         .bytes(&inscription_id(1).value())
+        .unwrap()
+        .u8(1)
+        .unwrap()
+        .map(1)
+        .unwrap()
+        .u8(0)
+        .unwrap()
+        .str("baz")
+        .unwrap()
+        .u8(1)
+        .unwrap()
+        .map(1)
+        .unwrap()
+        .u8(0)
+        .unwrap()
+        .str("foo")
         .unwrap();
     }
 
     let expected = Properties {
-      gallery: vec![inscription_id(0), inscription_id(1)],
+      gallery: vec![
+        Item {
+          id: inscription_id(0),
+          attributes: Attributes {
+            title: Some("bar".into()),
+          },
+        },
+        Item {
+          id: inscription_id(1),
+          attributes: Attributes {
+            title: Some("baz".into()),
+          },
+        },
+      ],
+      attributes: Attributes {
+        title: Some("foo".into()),
+      },
     };
 
-    assert_eq!(expected.to_cbor(), Some(buffer.clone()));
-
     assert_eq!(Properties::from_cbor(&buffer), expected);
+
+    assert_eq!(expected.to_cbor(), Some(buffer.clone()));
   }
 
   #[test]
