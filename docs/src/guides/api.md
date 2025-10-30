@@ -1360,7 +1360,14 @@ curl -s -H "Accept: application/json" /
   "parents": [],
   "previous": null,
   "properties": {
-    "gallery": [],
+    "gallery": [
+      {
+        "id": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0",
+        "attributes": {
+          "title": "goodbye"
+        }
+      }
+    ],
     "attributes": {
       "title": "hello"
     }
