@@ -451,6 +451,7 @@ inscriptions:
             })),
             attributes: Attributes {
               title: Some("Delicious Mangos".into()),
+              traits: Traits::default(),
             },
             ..default()
           },
@@ -482,13 +483,17 @@ inscriptions:
                   .unwrap(),
                 attributes: Attributes {
                   title: Some("Incredible".into()),
+                  traits: Traits::default(),
                 },
               },
               batch::entry::Item {
                 id: "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3"
                   .parse()
                   .unwrap(),
-                attributes: Attributes { title: None },
+                attributes: Attributes {
+                  title: None,
+                  traits: Traits::default(),
+                },
               },
             ],
             ..default()

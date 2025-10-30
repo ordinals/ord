@@ -93,7 +93,10 @@ impl Inscribe {
         self.file,
         None,
         Properties {
-          attributes: Attributes { title: self.title },
+          attributes: Attributes {
+            title: self.title,
+            traits: Traits::default(),
+          },
           gallery: self
             .gallery
             .into_iter()

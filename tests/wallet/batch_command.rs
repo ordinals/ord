@@ -1,6 +1,9 @@
 use {
   super::*,
-  ord::{Attributes, Item, decimal::Decimal, subcommand::wallet::send, templates::ItemHtml},
+  ord::{
+    Attributes, Item, Trait, Traits, decimal::Decimal, subcommand::wallet::send,
+    templates::ItemHtml,
+  },
   pretty_assertions::assert_eq,
 };
 
@@ -56,6 +59,11 @@ mode: shared-output
 inscriptions:
 - file: inscription.txt
   title: bar
+  traits:
+    foo: true
+    bar: null
+    baz: 67
+    qux: hello
   metadata: 123
   metaprotocol: foo
 ",
@@ -79,7 +87,24 @@ inscriptions:
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    r".*<dt>title</dt>\s*<dd>bar</dd>\s*<dt>metadata</dt>\s*<dd>\n    123\n  </dd>.*<dt>metaprotocol</dt>\s*<dd>foo</dd>.*",
+    concat!(
+      r".*",
+      r"<dt>title</dt>\s*",
+      r"<dd>bar</dd>\s*",
+      r"<dt>traits</dt>\s*",
+      r"<dd>\s*",
+      r"<dl>\s*",
+      r"<dd>foo</dd><dt>true</dt>\s*",
+      r"<dd>bar</dd><dt>null</dt>\s*",
+      r"<dd>baz</dd><dt>67</dt>\s*",
+      r"<dd>qux</dd><dt>hello</dt>\s*",
+      r"</dl>\s*",
+      r"</dd>\s*",
+      r"<dt>metadata</dt>\s*",
+      r"<dd>\n    123\n  </dd>.*",
+      r"<dt>metaprotocol</dt>\s*",
+      r"<dd>foo</dd>.*",
+    ),
   );
 }
 
@@ -2838,8 +2863,12 @@ inscriptions:
   gallery:
   - id: {id0}
     title: foo
+    traits:
+      foo: true
   - id: {id1}
     title: bar
+    traits:
+      bar: false
 "
       ),
     )
@@ -2885,6 +2914,9 @@ inscriptions:
         id: id0,
         attributes: Attributes {
           title: Some("foo".into()),
+          traits: Traits {
+            items: vec![("foo".into(), Trait::Bool(true))],
+          },
         },
       },
     },
@@ -2900,6 +2932,9 @@ inscriptions:
         id: id1,
         attributes: Attributes {
           title: Some("bar".into()),
+          traits: Traits {
+            items: vec![("bar".into(), Trait::Bool(false))],
+          },
         },
       },
     },

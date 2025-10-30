@@ -1,11 +1,29 @@
 use super::*;
 
+pub use raw::{Trait, Traits};
+
 mod raw;
+
+// todo:
+// - test
+//   - cbor representation
+//   - json representation
+// - document
+//
+// later:
+// - add keys, values, indices to batchfile
+// - reconstruct indices, keys, values in API responses
+// - top level indices using ord wallet batch
+// - complain if two few or too many indices are passed
+// - complain if indices are out of bounds
+// - more trait types
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Attributes {
   pub title: Option<String>,
+  #[serde(default)]
+  pub traits: Traits,
 }
 
 impl Attributes {
@@ -15,6 +33,11 @@ impl Attributes {
     } else {
       Some(raw::Attributes {
         title: self.title.clone(),
+        traits: if self.traits.items.is_empty() {
+          None
+        } else {
+          Some(self.traits.clone())
+        },
       })
     }
   }
@@ -22,32 +45,36 @@ impl Attributes {
 
 impl From<raw::Attributes> for Attributes {
   fn from(raw: raw::Attributes) -> Self {
-    Self { title: raw.title }
+    Self {
+      title: raw.title,
+      traits: raw.traits.unwrap_or_default(),
+    }
   }
 }
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Item {
-  pub id: InscriptionId,
   pub attributes: Attributes,
+  pub id: InscriptionId,
 }
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Properties {
-  pub gallery: Vec<Item>,
   pub attributes: Attributes,
+  pub gallery: Vec<Item>,
 }
 
 impl Properties {
   pub(crate) fn from_cbor(cbor: &[u8]) -> Self {
     let raw::Properties {
-      gallery,
       attributes,
+      gallery,
     } = minicbor::decode(cbor).unwrap_or_default();
 
     Self {
+      attributes: attributes.unwrap_or_default().into(),
       gallery: gallery
         .filter(|gallery| gallery.iter().all(|item| item.id.is_some()))
         .unwrap_or_default()
@@ -57,7 +84,6 @@ impl Properties {
           attributes: item.attributes.unwrap_or_default().into(),
         })
         .collect(),
-      attributes: attributes.unwrap_or_default().into(),
     }
   }
 
@@ -156,17 +182,20 @@ mod tests {
           id: inscription_id(0),
           attributes: Attributes {
             title: Some("bar".into()),
+            traits: Traits::default(),
           },
         },
         Item {
           id: inscription_id(1),
           attributes: Attributes {
             title: Some("baz".into()),
+            traits: Traits::default(),
           },
         },
       ],
       attributes: Attributes {
         title: Some("foo".into()),
+        traits: Traits::default(),
       },
     };
 

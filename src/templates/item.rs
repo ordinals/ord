@@ -30,6 +30,7 @@ mod tests {
           id: inscription_id(1),
           attributes: Attributes {
             title: Some("foo".into()),
+            traits: Traits::default(),
           }
         }
       },
@@ -60,6 +61,7 @@ mod tests {
           id: inscription_id(1),
           attributes: Attributes {
             title: Some("foo".into()),
+            traits: Traits::default(),
           }
         }
       }

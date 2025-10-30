@@ -2,3 +2,13 @@
 <dt>title</dt>
 <dd>{{ title }}</dd>
 %% }
+%% if !self.0.traits.items.is_empty() {
+<dt>traits</dt>
+<dd>
+  <dl>
+%% for (name, value) in &self.0.traits.items {
+    <dd>{{name}}</dd><dt>{{value}}</dt>
+%% }
+  </dl>
+</dd>
+%% }
