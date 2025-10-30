@@ -156,7 +156,15 @@ impl File {
         entry.file.clone(),
         Some(pointer),
         Properties {
-          gallery: entry.gallery.clone(),
+          gallery: entry
+            .gallery
+            .clone()
+            .into_iter()
+            .map(|item| Item {
+              id: item.id,
+              attributes: item.attributes,
+            })
+            .collect(),
           attributes: entry.attributes.clone(),
         },
         self
@@ -468,7 +476,7 @@ inscriptions:
           batch::Entry {
             file: Some("gallery.png".into()),
             gallery: vec![
-              Item {
+              batch::entry::Item {
                 id: "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0"
                   .parse()
                   .unwrap(),
@@ -476,7 +484,7 @@ inscriptions:
                   title: Some("Incredible".into()),
                 },
               },
-              Item {
+              batch::entry::Item {
                 id: "a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3"
                   .parse()
                   .unwrap(),

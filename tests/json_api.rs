@@ -1,8 +1,7 @@
 use {
   super::*,
   bitcoin::{BlockHash, ScriptBuf},
-  ord::subcommand::wallet::send::Output,
-  ord::{Envelope, Inscription},
+  ord::{Attributes, Envelope, Inscription, Properties, subcommand::wallet::send::Output},
 };
 
 #[test]
@@ -180,6 +179,7 @@ fn get_inscription() {
       value: Some(10000),
       parents: Vec::new(),
       previous: None,
+      properties: default(),
       rune: None,
       sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap(),
@@ -190,7 +190,7 @@ fn get_inscription() {
 }
 
 #[test]
-fn get_inscription_with_metaprotocol() {
+fn get_inscription_with_metaprotocol_and_properties() {
   let core = mockcore::spawn();
   let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
 
@@ -199,7 +199,7 @@ fn get_inscription_with_metaprotocol() {
   core.mine_blocks(1);
 
   let output = CommandBuilder::new(format!(
-    "--chain {} wallet inscribe --fee-rate 1 --file foo.txt --metaprotocol foo",
+    "--chain {} wallet inscribe --fee-rate 1 --file foo.txt --metaprotocol foo --title bar",
     core.network()
   ))
   .write("foo.txt", "FOO")
@@ -228,7 +228,7 @@ fn get_inscription_with_metaprotocol() {
       content_length: Some(3),
       content_type: Some("text/plain;charset=utf-8".to_string()),
       effective_content_type: Some("text/plain;charset=utf-8".to_string()),
-      fee: 140,
+      fee: 143,
       height: 2,
       id: output.inscriptions[0].id,
       number: 0,
@@ -236,6 +236,12 @@ fn get_inscription_with_metaprotocol() {
       value: Some(10000),
       parents: Vec::new(),
       previous: None,
+      properties: Properties {
+        gallery: Vec::new(),
+        attributes: Attributes {
+          title: Some("bar".into()),
+        },
+      },
       rune: None,
       sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", output.reveal, 0, 0)).unwrap(),
