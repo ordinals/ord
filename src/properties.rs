@@ -3,6 +3,7 @@ use super::*;
 mod raw;
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Attributes {
   pub title: Option<String>,
 }
@@ -25,19 +26,18 @@ impl From<raw::Attributes> for Attributes {
   }
 }
 
-#[serde_with::skip_serializing_none]
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Item {
   pub id: InscriptionId,
-  #[serde(flatten)]
   pub attributes: Attributes,
 }
 
-#[derive(Debug, Default, PartialEq)]
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct Properties {
-  pub(crate) gallery: Vec<Item>,
-  pub(crate) attributes: Attributes,
+  pub gallery: Vec<Item>,
+  pub attributes: Attributes,
 }
 
 impl Properties {
