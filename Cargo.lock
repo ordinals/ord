@@ -2643,7 +2643,6 @@ dependencies = [
  "hyper 1.7.0",
  "hyper-util",
  "indicatif",
- "lazy_static",
  "log",
  "mime",
  "mime_guess",
