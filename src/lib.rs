@@ -84,7 +84,7 @@ use {
     process::{self, Command, Stdio},
     str::FromStr,
     sync::{
-      Arc, Mutex,
+      Arc, LazyLock, Mutex,
       atomic::{self, AtomicBool},
     },
     thread,

@@ -22,6 +22,7 @@ use {
   },
   axum_server::Handle,
   brotli::Decompressor,
+  regex::Regex,
   rust_embed::RustEmbed,
   rustls_acme::{
     AcmeConfig,
@@ -29,7 +30,6 @@ use {
     axum::AxumAcceptor,
     caches::DirCache,
   },
-  regex::Regex,
   std::{
     str,
     sync::{Arc, LazyLock},

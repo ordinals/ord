@@ -1,4 +1,4 @@
-use {super::*, std::sync::LazyLock};
+use super::*;
 
 macro_rules! re {
   ($pat:expr) => {

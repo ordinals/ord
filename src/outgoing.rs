@@ -1,4 +1,4 @@
-use {super::*, regex::Regex, std::sync::LazyLock};
+use super::*;
 
 #[derive(Debug, PartialEq, Clone, DeserializeFromStr, SerializeDisplay)]
 pub enum Outgoing {
