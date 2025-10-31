@@ -29,7 +29,11 @@ use {
     axum::AxumAcceptor,
     caches::DirCache,
   },
-  std::{str, sync::Arc},
+  regex::Regex,
+  std::{
+    str,
+    sync::{Arc, LazyLock},
+  },
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -81,9 +85,8 @@ struct Search {
 #[folder = "static"]
 struct StaticAssets;
 
-lazy_static! {
-  static ref SAT_AT_INDEX_PATH: Regex = Regex::new(r"^/r/sat/[^/]+/at/[^/]+$").unwrap();
-}
+static SAT_AT_INDEX_PATH: LazyLock<Regex> =
+  LazyLock::new(|| Regex::new(r"^/r/sat/[^/]+/at/[^/]+$").unwrap());
 
 #[derive(Debug, Parser, Clone)]
 pub struct Server {

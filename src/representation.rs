@@ -1,4 +1,4 @@
-use {super::*, regex::RegexSet};
+use {super::*, regex::RegexSet, std::sync::LazyLock};
 
 #[derive(Debug, Copy, Clone)]
 pub(crate) enum Representation {
@@ -62,10 +62,8 @@ const PATTERNS: &[(Representation, &str)] = &[
   Representation::SatPoint.pattern(),
 ];
 
-lazy_static! {
-  static ref REGEX_SET: RegexSet =
-    RegexSet::new(PATTERNS.iter().map(|(_representation, pattern)| pattern),).unwrap();
-}
+static REGEX_SET: LazyLock<RegexSet> =
+  LazyLock::new(|| RegexSet::new(PATTERNS.iter().map(|(_representation, pattern)| pattern)).unwrap());
 
 #[cfg(test)]
 mod tests {
