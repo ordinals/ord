@@ -25,6 +25,47 @@ impl FromStr for Outgoing {
   type Err = SnafuError;
 
   fn from_str(input: &str) -> Result<Self, Self::Err> {
+    static AMOUNT: LazyLock<Regex> = LazyLock::new(|| {
+      Regex::new(
+        r"(?x)
+        ^
+        (
+          \d+
+          |
+          \.\d+
+          |
+          \d+\.\d+
+        )
+        \ ?
+        (bit|btc|cbtc|mbtc|msat|nbtc|pbtc|sat|satoshi|ubtc)
+        (s)?
+        $
+        ",
+      )
+      .unwrap()
+    });
+
+    static RUNE: LazyLock<Regex> = LazyLock::new(|| {
+      Regex::new(
+        r"(?x)
+        ^
+        (
+          \d+
+          |
+          \.\d+
+          |
+          \d+\.\d+
+        )
+        \s*:\s*
+        (
+          [A-Z•.]+
+        )
+        $
+        ",
+      )
+      .unwrap()
+    });
+
     if re::SAT_NAME.is_match(input) {
       Ok(Outgoing::Sat(
         input.parse().snafu_context(error::SatParse { input })?,
@@ -60,47 +101,6 @@ impl FromStr for Outgoing {
     }
   }
 }
-
-static AMOUNT: LazyLock<Regex> = LazyLock::new(|| {
-  Regex::new(
-    r"(?x)
-    ^
-    (
-      \d+
-      |
-      \.\d+
-      |
-      \d+\.\d+
-    )
-    \ ?
-    (bit|btc|cbtc|mbtc|msat|nbtc|pbtc|sat|satoshi|ubtc)
-    (s)?
-    $
-    ",
-  )
-  .unwrap()
-});
-
-static RUNE: LazyLock<Regex> = LazyLock::new(|| {
-  Regex::new(
-    r"(?x)
-    ^
-    (
-      \d+
-      |
-      \.\d+
-      |
-      \d+\.\d+
-    )
-    \s*:\s*
-    (
-      [A-Z•.]+
-    )
-    $
-    ",
-  )
-  .unwrap()
-});
 
 #[cfg(test)]
 mod tests {
