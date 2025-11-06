@@ -239,8 +239,8 @@ fn gracefully_shut_down_indexer() {
 }
 
 /// Nota bene: This function extracts the leaf script from a witness if the
-/// witness could represent a taproot script path spend, respecting and
-/// ignoring the taproot script annex, if present. Note that the witness may
+/// witness could represent a taproot script path spend, respecting the
+/// taproot script annex, if present. Note that the witness may
 /// not actually be for a P2TR output, and the leaf script version is ignored.
 /// This means that this function will return scripts for any witness program
 /// version, past and present, as well as for any leaf script version.

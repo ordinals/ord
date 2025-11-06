@@ -8,7 +8,7 @@ where
   Ok(serde_json::to_value(val)?)
 }
 
-/// Shorthand for converting an Option into an Option<serde_json::Value>.
+/// Shorthand for converting an Option into a serde_json::Value.
 fn opt_into_json<T>(opt: Option<T>) -> Result<serde_json::Value>
 where
   T: serde::ser::Serialize,
@@ -66,7 +66,7 @@ struct FundRawTransactionOptions {
   pub lock_unspents: Option<bool>,
   /// The fee rate to pay per kvB. NB. This field is converted to camelCase
   /// when serialized, so it is received by fundrawtransaction as `feeRate`,
-  /// which fee rate per kvB, and *not* `fee_rate`, which is per vB.
+  /// which is fee rate per kvB, and *not* `fee_rate`, which is per vB.
   #[serde(
     with = "bitcoin::amount::serde::as_btc::opt",
     skip_serializing_if = "Option::is_none"
@@ -101,7 +101,7 @@ pub(crate) fn fund_raw_transaction(
   }
 
   let options = Some(&FundRawTransactionOptions {
-    // NB. This is `fundrawtransaction`'s `feeRate`, which is fee per kvB
+    // NB. This is `fundrawtransaction`'s `feeRate`, which is the fee per kvB
     // and *not* fee per vB. So, we multiply the fee rate given by the user
     // by 1000.
     fee_rate: Some(Amount::from_sat((fee_rate.n() * 1000.0).ceil() as u64)),
