@@ -82,3 +82,10 @@ Attributes
 
 Attributes are structured metadata that may be attached to both inscriptions
 and gallery items.
+
+Traits
+------
+
+Traits are a structured counterpart to metadata. While metadata may be
+arbitrary CBOR, traits are ordered maps of string names to values. Names must
+be unique, and values may be booleans, integers, `null`, or strings.
