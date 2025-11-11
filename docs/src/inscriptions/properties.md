@@ -31,9 +31,17 @@ Item = {
 }
 
 Attributes = {
-  ? 0: text, ; title
+  ? 0: text,   ; title
+  ? 1: Traits, ; traits
   * any => any,
 }
+
+; trait names must be unique
+Traits = {
+  text => Trait,
+}
+
+Trait = bool / int / null / text;
 ```
 
 The above CDDL schema is provided as a convenience. As always, the ordinals

@@ -4,9 +4,6 @@ pub use raw::{Trait, Traits};
 
 mod raw;
 
-// todo:
-// - document
-
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
 pub struct Attributes {
