@@ -109,6 +109,39 @@ inscriptions:
 }
 
 #[test]
+fn trait_names_may_not_be_duplicated() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new("wallet batch --fee-rate 2.1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write(
+      "batch.yaml",
+      "
+mode: shared-output
+inscriptions:
+- file: inscription.txt
+  title: bar
+  traits:
+    foo: true
+    foo: null
+  metadata: 123
+  metaprotocol: foo
+",
+    )
+    .core(&core)
+    .ord(&ord)
+    .stderr_regex(r"error: inscriptions\[0\]: duplicate trait foo at line 4 column 3\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
+}
+
+#[test]
 fn batch_inscribe_with_multiple_inscriptions() {
   let core = mockcore::spawn();
 

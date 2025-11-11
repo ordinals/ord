@@ -5,18 +5,7 @@ pub use raw::{Trait, Traits};
 mod raw;
 
 // todo:
-// - test
-//   - cbor representation
-//   - json representation
 // - document
-//
-// later:
-// - add keys, values, indices to batchfile
-// - reconstruct indices, keys, values in API responses
-// - top level indices using ord wallet batch
-// - complain if two few or too many indices are passed
-// - complain if indices are out of bounds
-// - more trait types
 
 #[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
 #[serde(deny_unknown_fields)]
@@ -136,8 +125,10 @@ mod tests {
         .unwrap()
         .u8(0)
         .unwrap()
-        .array(2)
+        .array(3)
         .unwrap()
+
+        // item 0
         .map(2)
         .unwrap()
         .u8(0)
@@ -152,6 +143,8 @@ mod tests {
         .unwrap()
         .str("bar")
         .unwrap()
+
+        // item 1
         .map(2)
         .unwrap()
         .u8(0)
@@ -160,7 +153,7 @@ mod tests {
         .unwrap()
         .u8(1)
         .unwrap()
-        .map(1)
+        .map(2)
         .unwrap()
         .u8(0)
         .unwrap()
@@ -170,9 +163,35 @@ mod tests {
         .unwrap()
         .map(1)
         .unwrap()
+        .str("abc")
+        .unwrap()
+        .str("xyz")
+        .unwrap()
+
+        // item 2
+        .map(1)
+        .unwrap()
+        .u8(0)
+        .unwrap()
+        .bytes(&inscription_id(2).value())
+        .unwrap()
+
+        // attributes
+        .u8(1)
+        .unwrap()
+        .map(2)
+        .unwrap()
         .u8(0)
         .unwrap()
         .str("foo")
+        .unwrap()
+        .u8(1)
+        .unwrap()
+        .map(1)
+        .unwrap()
+        .str("hello")
+        .unwrap()
+        .bool(true)
         .unwrap();
     }
 
@@ -189,19 +208,56 @@ mod tests {
           id: inscription_id(1),
           attributes: Attributes {
             title: Some("baz".into()),
-            traits: Traits::default(),
+            traits: Traits {
+              items: vec![("abc".into(), Trait::String("xyz".into()))],
+            },
           },
+        },
+        Item {
+          id: inscription_id(2),
+          attributes: Attributes::default(),
         },
       ],
       attributes: Attributes {
         title: Some("foo".into()),
-        traits: Traits::default(),
+        traits: Traits {
+          items: vec![("hello".into(), Trait::Bool(true))],
+        },
       },
     };
 
     assert_eq!(Properties::from_cbor(&buffer), expected);
 
     assert_eq!(expected.to_cbor(), Some(buffer.clone()));
+  }
+
+  #[test]
+  fn trait_names_may_not_be_duplicated() {
+    let mut buffer = Vec::new();
+
+    {
+      Encoder::new(&mut buffer)
+        .map(1)
+        .unwrap()
+        .u8(1)
+        .unwrap()
+        .map(1)
+        .unwrap()
+        .u8(1)
+        .unwrap()
+        .map(2)
+        .unwrap()
+        .str("foo")
+        .unwrap()
+        .null()
+        .unwrap()
+        .str("foo")
+        .unwrap()
+        .null()
+        .unwrap();
+    }
+
+    assert_eq!(Properties::from_cbor(&buffer), Properties::default());
   }
 
   #[test]
@@ -231,5 +287,35 @@ mod tests {
     }
 
     assert_eq!(Properties::from_cbor(&buffer), Properties::default());
+  }
+
+  #[test]
+  fn trait_cbor_representation() {
+    #[track_caller]
+    fn case(value: Trait, cbor: &[u8]) {
+      assert_eq!(minicbor::to_vec(value).unwrap(), cbor);
+    }
+
+    case(Trait::Bool(false), &[244]);
+    case(Trait::Bool(true), &[245]);
+    case(Trait::Null, &[246]);
+    case(Trait::Integer(0), &[0]);
+    case(Trait::Integer(1), &[1]);
+    case(Trait::String("foo".into()), b"\x63foo");
+  }
+
+  #[test]
+  fn trait_json_representation() {
+    #[track_caller]
+    fn case(value: Trait, json: &str) {
+      assert_eq!(serde_json::to_string(&value).unwrap(), json);
+    }
+
+    case(Trait::Bool(false), "false");
+    case(Trait::Bool(true), "true");
+    case(Trait::Null, "null");
+    case(Trait::Integer(0), "0");
+    case(Trait::Integer(1), "1");
+    case(Trait::String("foo".into()), "\"foo\"");
   }
 }
