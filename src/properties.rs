@@ -358,7 +358,7 @@ mod tests {
 
     case::<Trait>(
       &[Int(
-        minicbor::data::Int::try_from(i128::from(u64::MAX) * -1).unwrap(),
+        minicbor::data::Int::try_from(-i128::from(u64::MAX)).unwrap(),
       )],
       "integer out of range",
     );
