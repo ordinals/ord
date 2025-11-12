@@ -64,6 +64,10 @@ inscriptions:
   destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
   # title (optional)
   title: Delicious Mangos
+  # traits (optional)
+  traits:
+    color: orange
+    deliciousness: 1000
   # inscription metadata (optional)
   metadata:
     title: Delicious Mangos
@@ -88,4 +92,7 @@ inscriptions:
   gallery:
   - id: a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0
     title: Incredible
+    traits:
+      background: blue
+      cool: true
   - id: a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3

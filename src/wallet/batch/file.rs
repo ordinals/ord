@@ -451,7 +451,12 @@ inscriptions:
             })),
             attributes: Attributes {
               title: Some("Delicious Mangos".into()),
-              traits: Traits::default(),
+              traits: Traits {
+                items: vec![
+                  ("color".into(), Trait::String("orange".into())),
+                  ("deliciousness".into(), Trait::Integer(1000)),
+                ],
+              },
             },
             ..default()
           },
@@ -483,7 +488,12 @@ inscriptions:
                   .unwrap(),
                 attributes: Attributes {
                   title: Some("Incredible".into()),
-                  traits: Traits::default(),
+                  traits: Traits {
+                    items: vec![
+                      ("background".into(), Trait::String("blue".into())),
+                      ("cool".into(), Trait::Bool(true)),
+                    ],
+                  },
                 },
               },
               batch::entry::Item {
