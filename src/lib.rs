@@ -60,7 +60,6 @@ use {
   clap::{ArgGroup, Parser},
   error::{ResultExt, SnafuError},
   html_escaper::{Escape, Trusted},
-  lazy_static::lazy_static,
   ordinals::{
     Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone, Sat,
     SatPoint, SpacedRune, Terms, varint,

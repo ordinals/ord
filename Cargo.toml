@@ -69,7 +69,6 @@ humantime = "2.1.0"
 hyper = { version = "1.5.2", features = ["client", "http2"] }
 hyper-util = { version = "0.1.10", features = ["client", "client-legacy", "http2", "tokio"] }
 indicatif = "0.18.0"
-lazy_static = "1.4.0"
 log = "0.4.14"
 mime = "0.3.16"
 mime_guess = "2.0.4"

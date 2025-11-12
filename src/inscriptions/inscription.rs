@@ -5,7 +5,6 @@ use {
   bitcoin::blockdata::opcodes,
   brotli::enc::{BrotliEncoderParams, writer::CompressorWriter},
   io::Write,
-  std::str,
 };
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
@@ -261,9 +260,8 @@ impl Inscription {
     const BVM_NETWORK: &[u8] = b"<body style=\"background:#F61;color:#fff;\">\
                         <h1 style=\"height:100%\">bvm.network</h1></body>";
 
-    lazy_static! {
-      static ref BRC_420: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
-    }
+    static BRC_420: LazyLock<Regex> =
+      LazyLock::new(|| Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap());
 
     self
       .body()
