@@ -251,9 +251,17 @@ Item = {
 }
 
 Attributes = {
-  ? 0: text, ; title
+  ? 0: text,   ; title
+  ? 1: Traits, ; traits
   * any =&gt; any,
 }
+
+Traits = {
+  ; trait names must be unique
+  text =&gt; Trait,
+}
+
+Trait = bool / int / null / text;
 </code></pre>
 <p>上記のCDDLスキーマは便宜上提供されています。いつものように、オーディナルズのリファレンス実装である<code>ord</code>がInscriptionの規範的仕様であり、したがってプロパティフィールドの仕様でもあります。</p>
 <p>Fields matching the <code>* any =&gt; any</code> wildcard must be accepted but ignored, for compatibility with future additions.</p>
@@ -265,6 +273,8 @@ Attributes = {
 <p>ギャラリーは、<code>ord wallet batch</code>でバッチInscriptionを行う際に、バッチファイルのInscriptionエントリの<code>gallery</code>キーの下に文字列Inscription IDの配列を含めることで作成できます。また、<code>ord wallet inscribe</code>で<code>--gallery</code>オプションを使用することでも作成できます。</p>
 <h1 id="attributes"><a class="header" href="#attributes">Attributes</a></h1>
 <p>Attributes are structured metadata that may be attached to both inscriptions and gallery items.</p>
+<h2 id="traits"><a class="header" href="#traits">Traits</a></h2>
+<p>Traits are a structured counterpart to metadata. While metadata may be arbitrary CBOR, traits are ordered maps of string names to values. Names must be unique, and values may be booleans, integers, <code>null</code>, or strings.</p>
 
                     </main>
 

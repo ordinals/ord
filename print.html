@@ -869,9 +869,17 @@ Item = {
 }
 
 Attributes = {
-  ? 0: text, ; title
+  ? 0: text,   ; title
+  ? 1: Traits, ; traits
   * any =&gt; any,
 }
+
+Traits = {
+  ; trait names must be unique
+  text =&gt; Trait,
+}
+
+Trait = bool / int / null / text;
 </code></pre>
 <p>The above CDDL schema is provided as a convenience. As always, the ordinals
 reference implementation <code>ord</code> is the normative specification of inscriptions,
@@ -900,6 +908,10 @@ the <code>--gallery</code> option.</p>
 <h1 id="attributes"><a class="header" href="#attributes">Attributes</a></h1>
 <p>Attributes are structured metadata that may be attached to both inscriptions
 and gallery items.</p>
+<h2 id="traits"><a class="header" href="#traits">Traits</a></h2>
+<p>Traits are a structured counterpart to metadata. While metadata may be
+arbitrary CBOR, traits are ordered maps of string names to values. Names must
+be unique, and values may be booleans, integers, <code>null</code>, or strings.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="provenance"><a class="header" href="#provenance">Provenance</a></h1>
 <p>The owner of an inscription can create child inscriptions, trustlessly
 establishing the provenance of those children on-chain as having been created
@@ -4133,12 +4145,18 @@ explorer, a guide for sat hunters, and a guide to inscriptions.</p>
       {
         "id": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0",
         "attributes": {
-          "title": "goodbye"
+          "title": "goodbye",
+          "traits": {
+            "amazing": true
+          }
         }
       }
     ],
     "attributes": {
-      "title": "hello"
+      "title": "hello",
+      "traits": {
+        "color": "blue"
+      }
     }
   },
   "rune": null,
@@ -7892,6 +7910,10 @@ inscriptions:
   destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
   # title (optional)
   title: Delicious Mangos
+  # traits (optional)
+  traits:
+    color: orange
+    deliciousness: 1000
   # inscription metadata (optional)
   metadata:
     title: Delicious Mangos
@@ -7916,6 +7938,9 @@ inscriptions:
   gallery:
   - id: a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0
     title: Incredible
+    traits:
+      background: blue
+      cool: true
   - id: a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3
 </code></pre>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="collecting"><a class="header" href="#collecting">Collecting</a></h1>
