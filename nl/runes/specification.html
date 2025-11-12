@@ -443,7 +443,7 @@
 <h5 id="mint"><a class="header" href="#mint">Mint</a></h5>
 <p>Het veld <code>Mint</code> bevat de Rune ID van de rune die in deze transactie gemint moet worden.</p>
 <h5 id="pointer"><a class="header" href="#pointer">Pointer</a></h5>
-<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than the number of outputs, the runestone is a cenotaph.</p>
+<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than or equal to the number of outputs, the runestone is a cenotaph.</p>
 <h5 id="cenotaaf"><a class="header" href="#cenotaaf">Cenotaaf</a></h5>
 <p>Het veld <code>Cenotaph</code> is niet herkend.</p>
 <h5 id="deelbaarheid"><a class="header" href="#deelbaarheid">Deelbaarheid</a></h5>
@@ -486,7 +486,7 @@
 <p>Als de runestone die de cenotaph heeft geproduceerd een mint is, telt de mint mee voor de mint cap en worden de geminte runes verbrand.</p>
 </li>
 </ul>
-<p>Cenotaphs kunnen worden gemaakt als een runestone een niet-herkenbaar even tag bevat, een niet-herkenbaar vlag, een edict met een outputnummer groter dan het aantal inputs, een rune ID met blok nul en een niet-nul transactienummer, een verkeerd geformatteerde varint, een niet-datapush-instructie in het runestone outputscript pubkey, een tag zonder een volgende waarde, of achterblijvende gehele getallen die geen deel uitmaken van een edict.</p>
+<p>Cenotaphs may be created if a runestone contains an unrecognized even tag, an unrecognized flag, an edict with an output number greater than the number of outputs, a rune ID with block zero and nonzero transaction index, a malformed varint, a non-datapush instruction in the runestone output script pubkey, a tag without a following value, trailing integers not part of an edict, or a pointer greater than or equal to the number of outputs.</p>
 <h4 id="uitvoeren-van-de-runestone"><a class="header" href="#uitvoeren-van-de-runestone">Uitvoeren van de Runestone</a></h4>
 <p>Runestones worden uitgevoerd in de volgorde waarin hun transacties in blokken zijn opgenomen.</p>
 <h5 id="etchings"><a class="header" href="#etchings">Etchings</a></h5>

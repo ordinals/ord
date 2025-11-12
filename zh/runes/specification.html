@@ -443,7 +443,7 @@
 <h5 id="铸造"><a class="header" href="#铸造">铸造</a></h5>
 <p>铸造<code>Mint</code>字段包含此交易中将要铸造的符文的符文ID。</p>
 <h5 id="指针"><a class="header" href="#指针">指针</a></h5>
-<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than the number of outputs, the runestone is a cenotaph.</p>
+<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than or equal to the number of outputs, the runestone is a cenotaph.</p>
 <h5 id="纪念碑"><a class="header" href="#纪念碑">纪念碑</a></h5>
 <p>纪念碑<code>Cenotaph</code> 字段无法识别。</p>
 <h5 id="可分性"><a class="header" href="#可分性">可分性</a></h5>
@@ -486,7 +486,7 @@
 <p>如果产生纪念碑的符石是铸币，那么铸币将计入铸币上限，且铸造的符文将被销毁。</p>
 </li>
 </ul>
-<p>如果符石包含无法识别的偶数标签、无法识别的标志、输出编号大于输入数量的法令、区块为零且交易索引非零的符文ID、格式错误的varint、符石输出脚本公钥中的非数据推送指令、没有后续值的标签或不属于法令的尾随整数，则可能创建纪念碑。</p>
+<p>Cenotaphs may be created if a runestone contains an unrecognized even tag, an unrecognized flag, an edict with an output number greater than the number of outputs, a rune ID with block zero and nonzero transaction index, a malformed varint, a non-datapush instruction in the runestone output script pubkey, a tag without a following value, trailing integers not part of an edict, or a pointer greater than or equal to the number of outputs.</p>
 <h4 id="执行符石"><a class="header" href="#执行符石">执行符石</a></h4>
 <p>符石按照其交易被包含在区块中的顺序执行。</p>
 <h5 id="蚀刻"><a class="header" href="#蚀刻">蚀刻</a></h5>

@@ -443,7 +443,7 @@
 <h5 id="mint"><a class="header" href="#mint">Mint</a></h5>
 <p>The <code>Mint</code> field contains the Rune ID of the rune to be minted in this transaction.</p>
 <h5 id="ポインタ"><a class="header" href="#ポインタ">ポインタ</a></h5>
-<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than the number of outputs, the runestone is a cenotaph.</p>
+<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than or equal to the number of outputs, the runestone is a cenotaph.</p>
 <h5 id="cenotaph"><a class="header" href="#cenotaph">Cenotaph</a></h5>
 <p>The <code>Cenotaph</code> field is unrecognized.</p>
 <h5 id="分割可能性"><a class="header" href="#分割可能性">分割可能性</a></h5>
@@ -486,7 +486,7 @@
 <p>If the runestone that produced the cenotaph is a mint, the mint counts against the mint cap and the minted runes are burned.</p>
 </li>
 </ul>
-<p>Cenotaphs may be created if a runestone contains an unrecognized even tag, an unrecognized flag, an edict with an output number greater than the number of inputs, a rune ID with block zero and nonzero transaction index, a malformed varint, a non-datapush instruction in the runestone output script pubkey, a tag without a following value, or trailing integers not part of an edict.</p>
+<p>Cenotaphs may be created if a runestone contains an unrecognized even tag, an unrecognized flag, an edict with an output number greater than the number of outputs, a rune ID with block zero and nonzero transaction index, a malformed varint, a non-datapush instruction in the runestone output script pubkey, a tag without a following value, trailing integers not part of an edict, or a pointer greater than or equal to the number of outputs.</p>
 <h4 id="executing-the-runestone"><a class="header" href="#executing-the-runestone">Executing the Runestone</a></h4>
 <p>Runestones are executed in the order their transactions are included in blocks.</p>
 <h5 id="etchings"><a class="header" href="#etchings">Etchings</a></h5>

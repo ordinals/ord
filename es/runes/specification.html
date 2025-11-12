@@ -443,7 +443,7 @@
 <h5 id="minteo"><a class="header" href="#minteo">Minteo</a></h5>
 <p>El campo <code>Mint</code> especifica el ID de la runa que se minteara en dicha transacción.</p>
 <h5 id="puntero"><a class="header" href="#puntero">Puntero</a></h5>
-<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than the number of outputs, the runestone is a cenotaph.</p>
+<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than or equal to the number of outputs, the runestone is a cenotaph.</p>
 <h5 id="cenotafio"><a class="header" href="#cenotafio">Cenotafio</a></h5>
 <p>El campo <code>Cenotaph</code> no es reconocido.</p>
 <h5 id="divisibilidad"><a class="header" href="#divisibilidad">Divisibilidad</a></h5>
@@ -486,7 +486,7 @@
 <p>Si la piedra rúnica que produjo el cenotafio es un minteo, esta se contabiliza contra el límite de minteos y las runas minteadas se queman.</p>
 </li>
 </ul>
-<p>Los cenotafios pueden generarse si una piedra rúnica contiene una etiqueta par no reconocida, una bandera no reconocida, un edicto con un número de salida mayor al número de entradas, un ID de runa con bloque cero y un índice de transacción distinto a cero, un varint malformado, una instrucción que no es push de datos en el script pubkey de la salida de la piedra rúnica, una etiqueta sin valor posterior o enteros al final que no formen parte de un edicto.</p>
+<p>Cenotaphs may be created if a runestone contains an unrecognized even tag, an unrecognized flag, an edict with an output number greater than the number of outputs, a rune ID with block zero and nonzero transaction index, a malformed varint, a non-datapush instruction in the runestone output script pubkey, a tag without a following value, trailing integers not part of an edict, or a pointer greater than or equal to the number of outputs.</p>
 <h4 id="ejecución-de-la-piedra-rúnica"><a class="header" href="#ejecución-de-la-piedra-rúnica">Ejecución de la Piedra Rúnica</a></h4>
 <p>Las piedras rúnicas se ejecutan en el orden en que sus transacciones se incluyan en los bloques.</p>
 <h5 id="grabados"><a class="header" href="#grabados">Grabados</a></h5>

@@ -443,7 +443,7 @@
 <h5 id="mint"><a class="header" href="#mint">Mint</a></h5>
 <p>O campo <code>Mint</code> contém o ID da rune a ser mintada nesta transação.</p>
 <h5 id="pointer"><a class="header" href="#pointer">Pointer</a></h5>
-<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than the number of outputs, the runestone is a cenotaph.</p>
+<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than or equal to the number of outputs, the runestone is a cenotaph.</p>
 <h5 id="cenotáfio"><a class="header" href="#cenotáfio">Cenotáfio</a></h5>
 <p>O campo do <code>Cenotaph</code> não é reconhecido.</p>
 <h5 id="divisibilidade"><a class="header" href="#divisibilidade">Divisibilidade</a></h5>
@@ -486,7 +486,7 @@
 <p>Se a runestone que produziu o cenotáfio for um mint, o mint conta para o limite de mints e as runes mintadas são queimadas.</p>
 </li>
 </ul>
-<p>Cenotáfios podem ser criados se uma runestone contiver uma tag par não reconhecida, uma flag não reconhecida, um édito com um número de saída maior que o número de entradas, um ID de rune com bloco zero e índice de transação diferente de zero, um varint mal formado, uma instrução non-datapush no script pubkey da saída da runestone, uma tag sem um valor subsequente, ou inteiros finais que não fazem parte de um édito.</p>
+<p>Cenotaphs may be created if a runestone contains an unrecognized even tag, an unrecognized flag, an edict with an output number greater than the number of outputs, a rune ID with block zero and nonzero transaction index, a malformed varint, a non-datapush instruction in the runestone output script pubkey, a tag without a following value, trailing integers not part of an edict, or a pointer greater than or equal to the number of outputs.</p>
 <h4 id="executar-a-runestone"><a class="header" href="#executar-a-runestone">Executar a runestone</a></h4>
 <p>As runestones são executados na ordem em que as suas transações são incluídas nos blocos.</p>
 <h5 id="gravuras"><a class="header" href="#gravuras">Gravuras</a></h5>
