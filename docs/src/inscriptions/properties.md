@@ -36,8 +36,8 @@ Attributes = {
   * any => any,
 }
 
-; trait names must be unique
 Traits = {
+  ; trait names must be unique
   text => Trait,
 }
 
