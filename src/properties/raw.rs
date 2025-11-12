@@ -178,7 +178,7 @@ struct TraitsVisitor;
 impl<'a> Visitor<'a> for TraitsVisitor {
   type Value = Traits;
 
-  fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
+  fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
     f.write_str("map of strings to traits")
   }
 
