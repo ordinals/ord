@@ -1,7 +1,7 @@
 use {
   super::*,
   bitcoin::{BlockHash, ScriptBuf},
-  ord::{Attributes, Envelope, Inscription, Properties, subcommand::wallet::send::Output},
+  ord::{Attributes, Envelope, Inscription, Properties, Traits, subcommand::wallet::send::Output},
 };
 
 #[test]
@@ -240,6 +240,7 @@ fn get_inscription_with_metaprotocol_and_properties() {
         gallery: Vec::new(),
         attributes: Attributes {
           title: Some("bar".into()),
+          traits: Traits::default(),
         },
       },
       rune: None,

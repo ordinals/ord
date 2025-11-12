@@ -1364,12 +1364,18 @@ curl -s -H "Accept: application/json" /
       {
         "id": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0",
         "attributes": {
-          "title": "goodbye"
+          "title": "goodbye",
+          "traits": {
+            "amazing": true
+          }
         }
       }
     ],
     "attributes": {
-      "title": "hello"
+      "title": "hello",
+      "traits": {
+        "color": "blue"
+      }
     }
   },
   "rune": null,

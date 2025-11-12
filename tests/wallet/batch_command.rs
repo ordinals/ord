@@ -1,6 +1,9 @@
 use {
   super::*,
-  ord::{Attributes, Item, decimal::Decimal, subcommand::wallet::send, templates::ItemHtml},
+  ord::{
+    Attributes, Item, Trait, Traits, decimal::Decimal, subcommand::wallet::send,
+    templates::ItemHtml,
+  },
   pretty_assertions::assert_eq,
 };
 
@@ -56,6 +59,11 @@ mode: shared-output
 inscriptions:
 - file: inscription.txt
   title: bar
+  traits:
+    foo: true
+    bar: null
+    baz: 67
+    qux: hello
   metadata: 123
   metaprotocol: foo
 ",
@@ -79,8 +87,58 @@ inscriptions:
 
   ord.assert_response_regex(
     format!("/inscription/{}", output.inscriptions[0].id),
-    r".*<dt>title</dt>\s*<dd>bar</dd>\s*<dt>metadata</dt>\s*<dd>\n    123\n  </dd>.*<dt>metaprotocol</dt>\s*<dd>foo</dd>.*",
+    concat!(
+      r".*",
+      r"<dt>title</dt>\s*",
+      r"<dd>bar</dd>\s*",
+      r"<dt>traits</dt>\s*",
+      r"<dd>\s*",
+      r"<dl>\s*",
+      r"<dd>foo</dd><dt>true</dt>\s*",
+      r"<dd>bar</dd><dt>null</dt>\s*",
+      r"<dd>baz</dd><dt>67</dt>\s*",
+      r"<dd>qux</dd><dt>hello</dt>\s*",
+      r"</dl>\s*",
+      r"</dd>\s*",
+      r"<dt>metadata</dt>\s*",
+      r"<dd>\n    123\n  </dd>.*",
+      r"<dt>metaprotocol</dt>\s*",
+      r"<dd>foo</dd>.*",
+    ),
   );
+}
+
+#[test]
+fn trait_names_may_not_be_duplicated() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new("wallet batch --fee-rate 2.1 --batch batch.yaml")
+    .write("inscription.txt", "Hello World")
+    .write(
+      "batch.yaml",
+      "
+mode: shared-output
+inscriptions:
+- file: inscription.txt
+  title: bar
+  traits:
+    foo: true
+    foo: null
+  metadata: 123
+  metaprotocol: foo
+",
+    )
+    .core(&core)
+    .ord(&ord)
+    .stderr_regex(r"error: inscriptions\[0\]: duplicate trait foo at line 4 column 3\n")
+    .expected_exit_code(1)
+    .run_and_extract_stdout();
 }
 
 #[test]
@@ -2838,8 +2896,12 @@ inscriptions:
   gallery:
   - id: {id0}
     title: foo
+    traits:
+      foo: true
   - id: {id1}
     title: bar
+    traits:
+      bar: false
 "
       ),
     )
@@ -2885,6 +2947,9 @@ inscriptions:
         id: id0,
         attributes: Attributes {
           title: Some("foo".into()),
+          traits: Traits {
+            items: vec![("foo".into(), Trait::Bool(true))],
+          },
         },
       },
     },
@@ -2900,6 +2965,9 @@ inscriptions:
         id: id1,
         attributes: Attributes {
           title: Some("bar".into()),
+          traits: Traits {
+            items: vec![("bar".into(), Trait::Bool(false))],
+          },
         },
       },
     },

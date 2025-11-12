@@ -101,7 +101,7 @@ pub use self::{
   inscriptions::{Envelope, Inscription, InscriptionId, ParsedEnvelope, RawEnvelope},
   object::Object,
   options::Options,
-  properties::{Attributes, Item, Properties},
+  properties::{Attributes, Item, Properties, Trait, Traits},
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
