@@ -177,7 +177,7 @@ impl<'a> Visitor<'a> for TraitsVisitor {
   type Value = Traits;
 
   fn expecting(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-    formatter.write_str("map of strings to traits")
+    f.write_str("map of strings to traits")
   }
 
   fn visit_map<M>(self, mut access: M) -> Result<Self::Value, M::Error>
