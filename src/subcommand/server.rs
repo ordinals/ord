@@ -22,17 +22,12 @@ use {
   },
   axum_server::Handle,
   brotli::Decompressor,
-  regex::Regex,
   rust_embed::RustEmbed,
   rustls_acme::{
     AcmeConfig,
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
     axum::AxumAcceptor,
     caches::DirCache,
-  },
-  std::{
-    str,
-    sync::{Arc, LazyLock},
   },
   tokio_stream::StreamExt,
   tower_http::{

@@ -5,7 +5,6 @@ use {
   bitcoin::blockdata::opcodes,
   brotli::enc::{BrotliEncoderParams, writer::CompressorWriter},
   io::Write,
-  std::{str, sync::LazyLock},
 };
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
