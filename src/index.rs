@@ -29,8 +29,8 @@ use {
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadOnlyTable, ReadableMultimapTable, ReadableTable, ReadableTableMetadata, RepairSession,
-    StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
+    ReadOnlyTable, ReadableDatabase, ReadableMultimapTable, ReadableTable, ReadableTableMetadata,
+    RepairSession, StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
     collections::HashMap,
@@ -310,7 +310,7 @@ impl Index {
 
         let mut tx = database.begin_write()?;
 
-        tx.set_durability(durability);
+        tx.set_durability(durability)?;
         tx.set_quick_repair(true);
 
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
@@ -787,7 +787,7 @@ impl Index {
 
   fn begin_write(&self) -> Result<WriteTransaction> {
     let mut tx = self.database.begin_write()?;
-    tx.set_durability(self.durability);
+    tx.set_durability(self.durability)?;
     tx.set_quick_repair(true);
     Ok(tx)
   }
