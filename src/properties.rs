@@ -315,4 +315,59 @@ mod tests {
     case(Trait::Integer(1), "1");
     case(Trait::String("foo".into()), "\"foo\"");
   }
+
+  #[test]
+  fn cbor_decode_errors() {
+    use {
+      minicbor::data::Token::{self, *},
+      std::error::Error,
+    };
+
+    fn case<T: for<'a> minicbor::Decode<'a, ()>>(tokens: &[Token], error: &str) {
+      let mut encoder = Encoder::new(Vec::new());
+
+      encoder.tokens(tokens).unwrap();
+
+      assert_eq!(
+        minicbor::decode::<T>(&encoder.into_writer())
+          .map(|_| ())
+          .unwrap_err()
+          .source()
+          .unwrap()
+          .to_string(),
+        error,
+      );
+    }
+
+    case::<Traits>(
+      &[Map(2), String("foo"), Null, String("foo"), Null],
+      "duplicate trait `foo`",
+    );
+
+    case::<Traits>(
+      &[BeginMap, String("foo"), Null, Break],
+      "indefinite length types are not allowed: indefinite map",
+    );
+
+    case::<Trait>(
+      &[BeginString, Break],
+      "indefinite length types are not allowed: indefinite string",
+    );
+
+    case::<Trait>(&[Bytes(&[])], "unexpected type: bytes");
+
+    case::<Trait>(
+      &[Int(
+        minicbor::data::Int::try_from(i128::from(u64::MAX) * -1).unwrap(),
+      )],
+      "integer out of range",
+    );
+
+    case::<Trait>(&[Break], "unexpected break");
+
+    case::<raw::Item>(
+      &[Map(1), U8(0), Bytes(&[])],
+      "invalid inscription ID length 0",
+    );
+  }
 }

@@ -122,7 +122,9 @@ pub struct Traits {
 
 impl<'a, C> Decode<'a, C> for Traits {
   fn decode(decoder: &mut Decoder<'a>, _context: &mut C) -> Result<Self, decode::Error> {
-    let len = decoder.map()?.unwrap();
+    let len = decoder.map()?.ok_or_else(|| {
+      decode::Error::custom(DecodeError::IndefiniteLengthType { ty: Type::MapIndef })
+    })?;
 
     let mut items = Vec::new();
 
@@ -221,9 +223,9 @@ enum DecodeError {
   IntegerRange { source: TryFromIntError },
   #[snafu(display("unexpected break"))]
   UnexpectedBreak,
-  #[snafu(display("unexpected type {ty}"))]
+  #[snafu(display("unexpected type: {ty}"))]
   UnexpectedType { ty: Type },
-  #[snafu(display("unknown type {ty:x}"))]
+  #[snafu(display("unknown type: {ty:x}"))]
   UnknownType { ty: u8 },
 }
 
