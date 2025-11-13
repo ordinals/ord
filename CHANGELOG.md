@@ -1,6 +1,12 @@
 Changelog
 =========
 
+[0.24.1](https://github.com/ordinals/ord/releases/tag/0.24.1) - 2025-11-13
+--------------------------------------------------------------------------
+
+### Fixed
+- Bump schema version ([#4436](https://github.com/ordinals/ord/pull/4436) by [casey](https://github.com/casey))
+
 [0.24.0](https://github.com/ordinals/ord/releases/tag/0.23.3) - 2025-11-12
 --------------------------------------------------------------------------
 
