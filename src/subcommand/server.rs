@@ -6979,6 +6979,12 @@ next
       StatusCode::OK,
       r".*<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*",
     );
+
+    server.assert_response_regex(
+      "/inscriptions/block/102/2",
+      StatusCode::OK,
+      r".*<div class=thumbnails>\s*</div>.*",
+    );
   }
 
   #[test]
