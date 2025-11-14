@@ -1936,19 +1936,16 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let page_size = 100;
-
-      let page_index_usize = usize::try_from(page_index).unwrap_or(usize::MAX);
-      let page_size_usize = usize::try_from(page_size).unwrap_or(usize::MAX);
+      const PAGE_SIZE: usize = 100;
 
       let mut inscriptions = index
         .get_inscriptions_in_block(block_height)?
         .into_iter()
-        .skip(page_index_usize.saturating_mul(page_size_usize))
-        .take(page_size_usize.saturating_add(1))
+        .skip(page_index.into_usize().saturating_mul(PAGE_SIZE))
+        .take(PAGE_SIZE.saturating_add(1))
         .collect::<Vec<InscriptionId>>();
 
-      let more = inscriptions.len() > page_size_usize;
+      let more = inscriptions.len() > PAGE_SIZE;
 
       if more {
         inscriptions.pop();
