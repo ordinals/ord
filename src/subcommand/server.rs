@@ -1968,7 +1968,7 @@ impl Server {
           inscriptions,
           more,
           page_index,
-        )?
+        )
         .page(server_config)
         .into_response()
       })
