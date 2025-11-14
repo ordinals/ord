@@ -17,12 +17,8 @@ impl InscriptionsBlockHtml {
     inscriptions: Vec<InscriptionId>,
     more_inscriptions: bool,
     page_index: u32,
-  ) -> Result<Self> {
-    if page_index != 0 && inscriptions.is_empty() {
-      return Err(anyhow!("page index {page_index} exceeds inscription count"));
-    }
-
-    Ok(Self {
+  ) -> Self {
+    Self {
       block,
       inscriptions,
       prev_block: block.checked_sub(1),
@@ -37,7 +33,7 @@ impl InscriptionsBlockHtml {
       } else {
         None
       },
-    })
+    }
   }
 }
 
