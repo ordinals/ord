@@ -304,6 +304,8 @@ impl Index {
       Err(DatabaseError::Storage(StorageError::Io(error)))
         if error.kind() == io::ErrorKind::NotFound =>
       {
+        log::info!("Creating new index");
+
         let database = Database::builder()
           .set_cache_size(index_cache_size)
           .create(&path)?;
