@@ -1,6 +1,16 @@
 Changelog
 =========
 
+[0.24.2](https://github.com/ordinals/ord/releases/tag/0.24.1) - 2025-11-13
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix trait template description list ([#4440](https://github.com/ordinals/ord/pull/4440) by [casey](https://github.com/casey))
+
+### Misc
+- Return empty page if block inscription page request is out of range ([#4439](https://github.com/ordinals/ord/pull/4439) by [casey](https://github.com/casey))
+- Log index creation ([#4438](https://github.com/ordinals/ord/pull/4438) by [casey](https://github.com/casey))
+
 [0.24.1](https://github.com/ordinals/ord/releases/tag/0.24.1) - 2025-11-13
 --------------------------------------------------------------------------
 
