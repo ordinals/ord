@@ -20,7 +20,6 @@ pub struct Inscription {
   pub parents: Vec<Vec<u8>>,
   pub pointer: Option<Vec<u8>>,
   pub properties: Option<Vec<u8>>,
-  pub rune: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
 
@@ -35,7 +34,6 @@ impl Inscription {
     path: Option<PathBuf>,
     pointer: Option<u64>,
     properties: Properties,
-    rune: Option<Rune>,
   ) -> Result<Self, Error> {
     let path = path.as_ref();
 
@@ -102,7 +100,6 @@ impl Inscription {
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
-      rune: rune.map(|rune| rune.commitment()),
       properties: properties.to_cbor(),
       ..default()
     })
@@ -131,7 +128,6 @@ impl Inscription {
     Tag::Delegate.append(&mut builder, &self.delegate);
     Tag::Pointer.append(&mut builder, &self.pointer);
     Tag::Metadata.append(&mut builder, &self.metadata);
-    Tag::Rune.append(&mut builder, &self.rune);
     Tag::Properties.append(&mut builder, &self.properties);
 
     if let Some(body) = &self.body {
@@ -819,7 +815,6 @@ mod tests {
       Some(file.path().to_path_buf()),
       None,
       Properties::default(),
-      None,
     )
     .unwrap();
 
@@ -835,7 +830,6 @@ mod tests {
       Some(file.path().to_path_buf()),
       Some(0),
       Properties::default(),
-      None,
     )
     .unwrap();
 
@@ -851,7 +845,6 @@ mod tests {
       Some(file.path().to_path_buf()),
       Some(1),
       Properties::default(),
-      None,
     )
     .unwrap();
 
@@ -867,7 +860,6 @@ mod tests {
       Some(file.path().to_path_buf()),
       Some(256),
       Properties::default(),
-      None,
     )
     .unwrap();
 

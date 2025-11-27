@@ -30,11 +30,6 @@ pub(crate) struct Sweep {
 
 impl Sweep {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    ensure!(
-      wallet.has_rune_index(),
-      "sweeping private key requires index created with `--index-runes`",
-    );
-
     let secp = Secp256k1::new();
 
     let mut buffer = String::new();
@@ -81,11 +76,6 @@ impl Sweep {
         .context("failed to get output info from ord server")?;
 
       ensure! {
-        output.runes.as_ref().unwrap().is_empty(),
-        "output `{outpoint}` contains runes, sweeping runes is not supported",
-      }
-
-      ensure! {
         output.script_pubkey == script_pubkey,
         "output `{outpoint}` script pubkey doesn't match descriptor",
       }
@@ -129,8 +119,6 @@ impl Sweep {
       input,
       output,
     };
-
-    wallet.lock_non_cardinal_outputs()?;
 
     let input_weights = {
       let mut witness = Witness::new();

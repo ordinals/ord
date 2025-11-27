@@ -21,14 +21,13 @@ pub(crate) use {
     PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml,
   },
   rare::RareTxt,
-  rune_not_found::RuneNotFoundHtml,
   sat::SatHtml,
   satscard::SatscardHtml,
 };
 
 pub use {
-  blocks::BlocksHtml, inscription::InscriptionHtml, item::ItemHtml, rune::RuneHtml,
-  runes::RunesHtml, status::StatusHtml, transaction::TransactionHtml,
+  blocks::BlocksHtml, inscription::InscriptionHtml, item::ItemHtml, status::StatusHtml,
+  transaction::TransactionHtml,
 };
 
 pub mod address;
@@ -41,18 +40,15 @@ pub mod collections;
 mod home;
 mod iframe;
 mod input;
-pub mod inscription;
+mod inscription;
 pub mod inscriptions;
 mod inscriptions_block;
 mod item;
 mod metadata;
-pub mod output;
+mod output;
 mod parents;
 mod preview;
 mod rare;
-pub mod rune;
-pub mod rune_not_found;
-pub mod runes;
 pub mod sat;
 mod satscard;
 pub mod status;

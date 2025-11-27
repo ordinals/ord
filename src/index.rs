@@ -2,17 +2,15 @@ use {
   self::{
     entry::{
       Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
+      OutPointValue, SatPointValue, SatRange, TxidValue,
     },
     event::Event,
-    lot::Lot,
     reorg::Reorg,
     updater::Updater,
     utxo_entry::{ParsedUtxoEntry, UtxoEntry, UtxoEntryBuf},
   },
   super::*,
   crate::{
-    runes::MintError,
     subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
@@ -39,8 +37,6 @@ use {
   },
 };
 
-pub use self::entry::RuneEntry;
-
 pub(crate) mod entry;
 pub mod event;
 mod fetcher;
@@ -64,16 +60,11 @@ define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
 define_table! { NUMBER_TO_OFFER, u64, &[u8] }
-define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_UTXO_ENTRY, &OutPointValue, &UtxoEntry }
-define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
-define_table! { RUNE_TO_RUNE_ID, u128, RuneIdValue }
 define_table! { SAT_TO_SATPOINT, u64, &SatPointValue }
 define_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY, u32, InscriptionEntryValue }
-define_table! { SEQUENCE_NUMBER_TO_RUNE_ID, u32, RuneIdValue }
 define_table! { SEQUENCE_NUMBER_TO_SATPOINT, u32, &SatPointValue }
 define_table! { STATISTIC_TO_COUNT, u64, u64 }
-define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
 
@@ -85,14 +76,11 @@ pub(crate) enum Statistic {
   CursedInscriptions = 3,
   IndexAddresses = 4,
   IndexInscriptions = 5,
-  IndexRunes = 6,
   IndexSats = 7,
   IndexTransactions = 8,
   InitialSyncTime = 9,
   LostSats = 10,
   OutputsTraversed = 11,
-  ReservedRunes = 12,
-  Runes = 13,
   SatRanges = 14,
   UnboundInscriptions = 16,
   LastSavepointHeight = 17,
@@ -205,7 +193,6 @@ pub struct Index {
   height_limit: Option<u32>,
   index_addresses: bool,
   index_inscriptions: bool,
-  index_runes: bool,
   index_sats: bool,
   index_transactions: bool,
   path: PathBuf,
@@ -324,15 +311,10 @@ impl Index {
         tx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
         tx.open_table(NUMBER_TO_OFFER)?;
-        tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         tx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
-        tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-        tx.open_table(RUNE_TO_RUNE_ID)?;
         tx.open_table(SAT_TO_SATPOINT)?;
         tx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
-        tx.open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?;
         tx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
-        tx.open_table(TRANSACTION_ID_TO_RUNE)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
 
         {
@@ -352,12 +334,6 @@ impl Index {
 
           Self::set_statistic(
             &mut statistics,
-            Statistic::IndexRunes,
-            u64::from(settings.index_runes_raw()),
-          )?;
-
-          Self::set_statistic(
-            &mut statistics,
             Statistic::IndexSats,
             u64::from(settings.index_sats_raw()),
           )?;
@@ -371,50 +347,6 @@ impl Index {
           Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
         }
 
-        if settings.index_runes_raw() && settings.chain() == Chain::Mainnet {
-          let rune = Rune(2055900680524219742);
-
-          let id = RuneId { block: 1, tx: 0 };
-          let etching = Txid::all_zeros();
-
-          tx.open_table(RUNE_TO_RUNE_ID)?
-            .insert(rune.store(), id.store())?;
-
-          let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
-
-          Self::set_statistic(&mut statistics, Statistic::Runes, 1)?;
-
-          tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?.insert(
-            id.store(),
-            RuneEntry {
-              block: id.block,
-              burned: 0,
-              divisibility: 0,
-              etching,
-              terms: Some(Terms {
-                amount: Some(1),
-                cap: Some(u128::MAX),
-                height: (
-                  Some((SUBSIDY_HALVING_INTERVAL * 4).into()),
-                  Some((SUBSIDY_HALVING_INTERVAL * 5).into()),
-                ),
-                offset: (None, None),
-              }),
-              mints: 0,
-              number: 0,
-              premine: 0,
-              spaced_rune: SpacedRune { rune, spacers: 128 },
-              symbol: Some('\u{29C9}'),
-              timestamp: 0,
-              turbo: true,
-            }
-            .store(),
-          )?;
-
-          tx.open_table(TRANSACTION_ID_TO_RUNE)?
-            .insert(&etching.store(), rune.store())?;
-        }
-
         tx.commit()?;
 
         database
@@ -423,7 +355,6 @@ impl Index {
     };
 
     let index_addresses;
-    let index_runes;
     let index_sats;
     let index_transactions;
     let index_inscriptions;
@@ -433,7 +364,6 @@ impl Index {
       let statistics = tx.open_table(STATISTIC_TO_COUNT)?;
       index_addresses = Self::is_statistic_set(&statistics, Statistic::IndexAddresses)?;
       index_inscriptions = Self::is_statistic_set(&statistics, Statistic::IndexInscriptions)?;
-      index_runes = Self::is_statistic_set(&statistics, Statistic::IndexRunes)?;
       index_sats = Self::is_statistic_set(&statistics, Statistic::IndexSats)?;
       index_transactions = Self::is_statistic_set(&statistics, Statistic::IndexTransactions)?;
     }
@@ -445,8 +375,6 @@ impl Index {
       0
     } else if index_inscriptions {
       settings.first_inscription_height()
-    } else if index_runes {
-      settings.first_rune_height()
     } else {
       u32::MAX
     };
@@ -461,10 +389,9 @@ impl Index {
       genesis_block_coinbase_transaction,
       height_limit: settings.height_limit(),
       index_addresses,
-      index_runes,
-      index_sats,
       index_transactions,
       index_inscriptions,
+      index_sats,
       settings: settings.clone(),
       path,
       started: Utc::now(),
@@ -514,10 +441,6 @@ impl Index {
     self.index_inscriptions
   }
 
-  pub fn has_rune_index(&self) -> bool {
-    self.index_runes
-  }
-
   pub fn has_sat_index(&self) -> bool {
     self.index_sats
   }
@@ -543,8 +466,6 @@ impl Index {
       .transpose()?
       .map(|(height, _header)| height.value());
 
-    let next_height = height.map(|height| height + 1).unwrap_or(0);
-
     let blessed_inscriptions = statistic(Statistic::BlessedInscriptions)?;
     let cursed_inscriptions = statistic(Statistic::CursedInscriptions)?;
     let initial_sync_time = statistic(Statistic::InitialSyncTime)?;
@@ -560,12 +481,6 @@ impl Index {
       inscriptions: blessed_inscriptions + cursed_inscriptions,
       json_api,
       lost_sats: statistic(Statistic::LostSats)?,
-      minimum_rune_for_next_block: Rune::minimum_at_height(
-        self.settings.chain().network(),
-        Height(next_height),
-      ),
-      rune_index: self.has_rune_index(),
-      runes: statistic(Statistic::Runes)?,
       sat_index: self.has_sat_index(),
       started: self.started,
       transaction_index: statistic(Statistic::IndexTransactions)? != 0,
@@ -943,252 +858,6 @@ impl Index {
     )
   }
 
-  pub fn get_rune_by_id(&self, id: RuneId) -> Result<Option<Rune>> {
-    Ok(
-      self
-        .database
-        .begin_read()?
-        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-        .get(&id.store())?
-        .map(|entry| RuneEntry::load(entry.value()).spaced_rune.rune),
-    )
-  }
-
-  pub fn get_rune_by_number(&self, number: usize) -> Result<Option<Rune>> {
-    match self
-      .database
-      .begin_read()?
-      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-      .iter()?
-      .nth(number)
-    {
-      Some(result) => {
-        let rune_result =
-          result.map(|(_id, entry)| RuneEntry::load(entry.value()).spaced_rune.rune);
-        Ok(rune_result.ok())
-      }
-      None => Ok(None),
-    }
-  }
-
-  pub fn rune(&self, rune: Rune) -> Result<Option<(RuneId, RuneEntry, Option<InscriptionId>)>> {
-    let rtx = self.database.begin_read()?;
-
-    let Some(id) = rtx
-      .open_table(RUNE_TO_RUNE_ID)?
-      .get(rune.0)?
-      .map(|guard| guard.value())
-    else {
-      return Ok(None);
-    };
-
-    let entry = RuneEntry::load(
-      rtx
-        .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-        .get(id)?
-        .unwrap()
-        .value(),
-    );
-
-    let parent = InscriptionId {
-      txid: entry.etching,
-      index: 0,
-    };
-
-    let parent = rtx
-      .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
-      .get(&parent.store())?
-      .is_some()
-      .then_some(parent);
-
-    Ok(Some((RuneId::load(id), entry, parent)))
-  }
-
-  pub fn runes(&self) -> Result<Vec<(RuneId, RuneEntry)>> {
-    let mut entries = Vec::new();
-
-    for result in self
-      .database
-      .begin_read()?
-      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-      .iter()?
-    {
-      let (id, entry) = result?;
-      entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
-    }
-
-    Ok(entries)
-  }
-
-  pub fn runes_paginated(
-    &self,
-    page_size: usize,
-    page_index: usize,
-  ) -> Result<(Vec<(RuneId, RuneEntry)>, bool)> {
-    let mut entries = Vec::new();
-
-    for result in self
-      .database
-      .begin_read()?
-      .open_table(RUNE_ID_TO_RUNE_ENTRY)?
-      .iter()?
-      .rev()
-      .skip(page_index.saturating_mul(page_size))
-      .take(page_size.saturating_add(1))
-    {
-      let (id, entry) = result?;
-      entries.push((RuneId::load(id.value()), RuneEntry::load(entry.value())));
-    }
-
-    let more = entries.len() > page_size;
-
-    Ok((entries, more))
-  }
-
-  pub fn encode_rune_balance(id: RuneId, balance: u128, buffer: &mut Vec<u8>) {
-    varint::encode_to_vec(id.block.into(), buffer);
-    varint::encode_to_vec(id.tx.into(), buffer);
-    varint::encode_to_vec(balance, buffer);
-  }
-
-  pub fn decode_rune_balance(buffer: &[u8]) -> Result<((RuneId, u128), usize)> {
-    let mut len = 0;
-    let (block, block_len) = varint::decode(&buffer[len..])?;
-    len += block_len;
-    let (tx, tx_len) = varint::decode(&buffer[len..])?;
-    len += tx_len;
-    let id = RuneId {
-      block: block.try_into()?,
-      tx: tx.try_into()?,
-    };
-    let (balance, balance_len) = varint::decode(&buffer[len..])?;
-    len += balance_len;
-    Ok(((id, balance), len))
-  }
-
-  pub fn get_rune_balances_for_output(
-    &self,
-    outpoint: OutPoint,
-  ) -> Result<Option<BTreeMap<SpacedRune, Pile>>> {
-    if !self.index_runes {
-      return Ok(None);
-    }
-
-    let rtx = self.database.begin_read()?;
-
-    let outpoint_to_balances = rtx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
-
-    let id_to_rune_entries = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-
-    let Some(balances) = outpoint_to_balances.get(&outpoint.store())? else {
-      return Ok(Some(BTreeMap::new()));
-    };
-
-    let balances_buffer = balances.value();
-
-    let mut balances = BTreeMap::new();
-    let mut i = 0;
-    while i < balances_buffer.len() {
-      let ((id, amount), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
-      i += length;
-
-      let entry = RuneEntry::load(id_to_rune_entries.get(id.store())?.unwrap().value());
-
-      balances.insert(
-        entry.spaced_rune,
-        Pile {
-          amount,
-          divisibility: entry.divisibility,
-          symbol: entry.symbol,
-        },
-      );
-    }
-
-    Ok(Some(balances))
-  }
-
-  pub fn get_rune_balance_map(&self) -> Result<BTreeMap<SpacedRune, BTreeMap<OutPoint, Pile>>> {
-    let outpoint_balances = self.get_rune_balances()?;
-
-    let rtx = self.database.begin_read()?;
-
-    let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-
-    let mut rune_balances_by_id: BTreeMap<RuneId, BTreeMap<OutPoint, u128>> = BTreeMap::new();
-
-    for (outpoint, balances) in outpoint_balances {
-      for (rune_id, amount) in balances {
-        *rune_balances_by_id
-          .entry(rune_id)
-          .or_default()
-          .entry(outpoint)
-          .or_default() += amount;
-      }
-    }
-
-    let mut rune_balances = BTreeMap::new();
-
-    for (rune_id, balances) in rune_balances_by_id {
-      let RuneEntry {
-        divisibility,
-        spaced_rune,
-        symbol,
-        ..
-      } = RuneEntry::load(
-        rune_id_to_rune_entry
-          .get(&rune_id.store())?
-          .unwrap()
-          .value(),
-      );
-
-      rune_balances.insert(
-        spaced_rune,
-        balances
-          .into_iter()
-          .map(|(outpoint, amount)| {
-            (
-              outpoint,
-              Pile {
-                amount,
-                divisibility,
-                symbol,
-              },
-            )
-          })
-          .collect(),
-      );
-    }
-
-    Ok(rune_balances)
-  }
-
-  pub fn get_rune_balances(&self) -> Result<Vec<(OutPoint, Vec<(RuneId, u128)>)>> {
-    let mut result = Vec::new();
-
-    for entry in self
-      .database
-      .begin_read()?
-      .open_table(OUTPOINT_TO_RUNE_BALANCES)?
-      .iter()?
-    {
-      let (outpoint, balances_buffer) = entry?;
-      let outpoint = OutPoint::load(*outpoint.value());
-      let balances_buffer = balances_buffer.value();
-
-      let mut balances = Vec::new();
-      let mut i = 0;
-      while i < balances_buffer.len() {
-        let ((id, balance), length) = Index::decode_rune_balance(&balances_buffer[i..]).unwrap();
-        i += length;
-        balances.push((id, balance));
-      }
-
-      result.push((outpoint, balances));
-    }
-
-    Ok(result)
-  }
-
   pub fn block_header(&self, hash: BlockHash) -> Result<Option<Header>> {
     self.client.get_block_header(&hash).into_option()
   }
@@ -1378,23 +1047,6 @@ impl Index {
     }
 
     Ok((parents, more_parents))
-  }
-
-  pub fn get_etching(&self, txid: Txid) -> Result<Option<SpacedRune>> {
-    let rtx = self.database.begin_read()?;
-
-    let transaction_id_to_rune = rtx.open_table(TRANSACTION_ID_TO_RUNE)?;
-    let Some(rune) = transaction_id_to_rune.get(&txid.store())? else {
-      return Ok(None);
-    };
-
-    let rune_to_rune_id = rtx.open_table(RUNE_TO_RUNE_ID)?;
-    let id = rune_to_rune_id.get(rune.value())?.unwrap();
-
-    let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-    let entry = rune_id_to_rune_entry.get(&id.value())?.unwrap();
-
-    Ok(Some(RuneEntry::load(entry.value()).spaced_rune))
   }
 
   pub fn get_inscription_ids_by_sat(&self, sat: Sat) -> Result<Vec<InscriptionId>> {
@@ -2011,29 +1663,6 @@ impl Index {
       .collect::<Result<Vec<InscriptionId>>>()
   }
 
-  pub fn get_runes_in_block(&self, block_height: u64) -> Result<Vec<SpacedRune>> {
-    let rtx = self.database.begin_read()?;
-
-    let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-
-    let min_id = RuneId {
-      block: block_height,
-      tx: 0,
-    };
-
-    let max_id = RuneId {
-      block: block_height,
-      tx: u32::MAX,
-    };
-
-    let runes = rune_id_to_rune_entry
-      .range(min_id.store()..=max_id.store())?
-      .map(|result| result.map(|(_, entry)| RuneEntry::load(entry.value()).spaced_rune))
-      .collect::<Result<Vec<SpacedRune>, StorageError>>()?;
-
-    Ok(runes)
-  }
-
   pub fn get_highest_paying_inscriptions_in_block(
     &self,
     block_height: u32,
@@ -2219,17 +1848,6 @@ impl Index {
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
 
-    let rune = if let Some(rune_id) = rtx
-      .open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?
-      .get(sequence_number)?
-    {
-      let rune_id_to_rune_entry = rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
-      let entry = rune_id_to_rune_entry.get(&rune_id.value())?.unwrap();
-      Some(RuneEntry::load(entry.value()).spaced_rune)
-    } else {
-      None
-    };
-
     let parents = entry
       .parents
       .iter()
@@ -2290,7 +1908,6 @@ impl Index {
         parents,
         previous,
         properties: inscription.properties(),
-        rune,
         sat: entry.sat,
         satpoint,
         timestamp: timestamp(entry.timestamp.into()).timestamp(),
@@ -2455,42 +2072,6 @@ impl Index {
       .collect()
   }
 
-  pub(crate) fn get_aggregated_rune_balances_for_outputs(
-    &self,
-    outputs: &Vec<OutPoint>,
-  ) -> Result<Option<Vec<(SpacedRune, Decimal, Option<char>)>>> {
-    let mut runes = BTreeMap::new();
-
-    for output in outputs {
-      let Some(rune_balances) = self.get_rune_balances_for_output(*output)? else {
-        return Ok(None);
-      };
-
-      for (spaced_rune, pile) in rune_balances {
-        runes
-          .entry(spaced_rune)
-          .and_modify(|(decimal, _symbol): &mut (Decimal, Option<char>)| {
-            assert_eq!(decimal.scale, pile.divisibility);
-            decimal.value += pile.amount;
-          })
-          .or_insert((
-            Decimal {
-              value: pile.amount,
-              scale: pile.divisibility,
-            },
-            pile.symbol,
-          ));
-      }
-    }
-
-    Ok(Some(
-      runes
-        .into_iter()
-        .map(|(spaced_rune, (decimal, symbol))| (spaced_rune, decimal, symbol))
-        .collect(),
-    ))
-  }
-
   pub(crate) fn get_sat_balances_for_outputs(&self, outputs: &Vec<OutPoint>) -> Result<u64> {
     let outpoint_to_utxo_entry = self
       .database
@@ -2522,7 +2103,6 @@ impl Index {
 
     Ok(Some(api::UtxoRecursive {
       inscriptions: self.get_inscriptions_for_output(outpoint)?,
-      runes: self.get_rune_balances_for_output(outpoint)?,
       sat_ranges: self.list(outpoint)?,
       value: utxo_entry.value().parse(self).total_value(),
     }))
@@ -2582,8 +2162,6 @@ impl Index {
 
     let inscriptions = self.get_inscriptions_for_output(outpoint)?;
 
-    let runes = self.get_rune_balances_for_output(outpoint)?;
-
     Ok(Some((
       api::Output::new(
         self.settings.chain(),
@@ -2592,7 +2170,6 @@ impl Index {
         outpoint,
         txout.clone(),
         indexed,
-        runes,
         sat_ranges,
         spent,
       ),
@@ -6677,243 +6254,6 @@ mod tests {
           offset: 0
         },
         sequence_number: 0,
-      }
-    );
-  }
-
-  #[test]
-  fn rune_event_sender_channel() {
-    const RUNE: u128 = 99246114928149462;
-
-    let (event_sender, mut event_receiver) = tokio::sync::mpsc::channel(1024);
-    let context = Context::builder()
-      .arg("--index-runes")
-      .event_sender(event_sender)
-      .build();
-
-    let (txid0, id) = context.etch(
-      Runestone {
-        etching: Some(Etching {
-          rune: Some(Rune(RUNE)),
-          terms: Some(Terms {
-            amount: Some(1000),
-            cap: Some(100),
-            ..default()
-          }),
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-    );
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          etching: txid0,
-          spaced_rune: SpacedRune {
-            rune: Rune(RUNE),
-            spacers: 0,
-          },
-          timestamp: id.block,
-          mints: 0,
-          terms: Some(Terms {
-            amount: Some(1000),
-            cap: Some(100),
-            ..default()
-          }),
-          ..default()
-        },
-      )],
-      [],
-    );
-
-    assert_eq!(
-      event_receiver.blocking_recv().unwrap(),
-      Event::RuneEtched {
-        block_height: 8,
-        txid: txid0,
-        rune_id: id,
-      }
-    );
-
-    let txid1 = context.core.broadcast_tx(TransactionTemplate {
-      inputs: &[(2, 0, 0, Witness::new())],
-      op_return: Some(
-        Runestone {
-          mint: Some(id),
-          ..default()
-        }
-        .encipher(),
-      ),
-      ..default()
-    });
-
-    context.mine_blocks(1);
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          etching: txid0,
-          terms: Some(Terms {
-            amount: Some(1000),
-            cap: Some(100),
-            ..default()
-          }),
-          mints: 1,
-          spaced_rune: SpacedRune {
-            rune: Rune(RUNE),
-            spacers: 0,
-          },
-          premine: 0,
-          timestamp: id.block,
-          ..default()
-        },
-      )],
-      [(
-        OutPoint {
-          txid: txid1,
-          vout: 0,
-        },
-        vec![(id, 1000)],
-      )],
-    );
-
-    assert_eq!(
-      event_receiver.blocking_recv().unwrap(),
-      Event::RuneMinted {
-        block_height: 9,
-        txid: txid1,
-        rune_id: id,
-        amount: 1000,
-      }
-    );
-
-    let txid2 = context.core.broadcast_tx(TransactionTemplate {
-      inputs: &[(9, 1, 0, Witness::new())],
-      op_return: Some(
-        Runestone {
-          edicts: vec![Edict {
-            id,
-            amount: 1000,
-            output: 0,
-          }],
-          ..Default::default()
-        }
-        .encipher(),
-      ),
-      ..Default::default()
-    });
-
-    context.mine_blocks(1);
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          block: 8,
-          etching: txid0,
-          spaced_rune: SpacedRune {
-            rune: Rune(RUNE),
-            ..default()
-          },
-          terms: Some(Terms {
-            amount: Some(1000),
-            cap: Some(100),
-            ..Default::default()
-          }),
-          timestamp: 8,
-          mints: 1,
-          ..Default::default()
-        },
-      )],
-      [(
-        OutPoint {
-          txid: txid2,
-          vout: 0,
-        },
-        vec![(id, 1000)],
-      )],
-    );
-
-    event_receiver.blocking_recv().unwrap();
-
-    pretty_assert_eq!(
-      event_receiver.blocking_recv().unwrap(),
-      Event::RuneTransferred {
-        block_height: 10,
-        txid: txid2,
-        rune_id: id,
-        amount: 1000,
-        outpoint: OutPoint {
-          txid: txid2,
-          vout: 0,
-        },
-      }
-    );
-
-    let txid3 = context.core.broadcast_tx(TransactionTemplate {
-      inputs: &[(10, 1, 0, Witness::new())],
-      op_return: Some(
-        Runestone {
-          edicts: vec![Edict {
-            id,
-            amount: 111,
-            output: 0,
-          }],
-          ..Default::default()
-        }
-        .encipher(),
-      ),
-      op_return_index: Some(0),
-      ..Default::default()
-    });
-
-    context.mine_blocks(1);
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          block: 8,
-          etching: txid0,
-          spaced_rune: SpacedRune {
-            rune: Rune(RUNE),
-            ..default()
-          },
-          terms: Some(Terms {
-            amount: Some(1000),
-            cap: Some(100),
-            ..Default::default()
-          }),
-          timestamp: 8,
-          mints: 1,
-          burned: 111,
-          ..Default::default()
-        },
-      )],
-      [(
-        OutPoint {
-          txid: txid3,
-          vout: 1,
-        },
-        vec![(id, 889)],
-      )],
-    );
-
-    event_receiver.blocking_recv().unwrap();
-
-    pretty_assert_eq!(
-      event_receiver.blocking_recv().unwrap(),
-      Event::RuneBurned {
-        block_height: 11,
-        txid: txid3,
-        amount: 111,
-        rune_id: id,
       }
     );
   }

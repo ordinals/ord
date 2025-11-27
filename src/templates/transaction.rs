@@ -3,7 +3,6 @@ use super::*;
 #[derive(Boilerplate, Debug, PartialEq, Serialize, Deserialize)]
 pub struct TransactionHtml {
   pub chain: Chain,
-  pub etching: Option<SpacedRune>,
   pub inscription_count: u32,
   pub transaction: Transaction,
   pub txid: Txid,
@@ -47,7 +46,6 @@ mod tests {
     pretty_assert_eq!(
       TransactionHtml {
         chain: Chain::Mainnet,
-        etching: None,
         inscription_count: 0,
         txid: transaction.compute_txid(),
         transaction,

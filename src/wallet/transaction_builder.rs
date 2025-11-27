@@ -123,7 +123,6 @@ pub struct TransactionBuilder {
   outgoing: SatPoint,
   outputs: Vec<TxOut>,
   recipient: ScriptBuf,
-  runic_utxos: BTreeSet<OutPoint>,
   target: Target,
   unused_change_addresses: Vec<Address>,
   utxos: BTreeSet<OutPoint>,
@@ -142,7 +141,6 @@ impl TransactionBuilder {
     inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
     amounts: BTreeMap<OutPoint, TxOut>,
     locked_utxos: BTreeSet<OutPoint>,
-    runic_utxos: BTreeSet<OutPoint>,
     recipient: ScriptBuf,
     change: [Address; 2],
     fee_rate: FeeRate,
@@ -160,7 +158,6 @@ impl TransactionBuilder {
       outgoing,
       outputs: Vec::new(),
       recipient,
-      runic_utxos,
       target,
       unused_change_addresses: change.to_vec(),
       network,
@@ -657,8 +654,8 @@ impl TransactionBuilder {
     panic!("Could not find outgoing sat in inputs");
   }
 
-  /// Cardinal UTXOs are those that are unlocked, contain no inscriptions, and
-  /// contain no runes, can therefore be used to pad transactions and pay fees.
+  /// Cardinal UTXOs are those that are unlocked, contain no inscriptions,
+  /// can therefore be used to pad transactions and pay fees.
   /// Sometimes multiple cardinal UTXOs are needed and depending on the context
   /// we want to select either ones above or under (when trying to consolidate
   /// dust outputs) the target value.
@@ -680,9 +677,7 @@ impl TransactionBuilder {
 
     let mut best_match = None;
     for utxo in &self.utxos {
-      if self.runic_utxos.contains(utxo)
-        || inscribed_utxos.contains(utxo)
-        || self.locked_utxos.contains(utxo)
+      if inscribed_utxos.contains(utxo) || self.locked_utxos.contains(utxo)
       {
         continue;
       }
@@ -749,7 +744,6 @@ mod tests {
       BTreeMap::new(),
       utxos.clone().into_iter().collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -788,7 +782,6 @@ mod tests {
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
       locked_utxos: BTreeSet::new(),
-      runic_utxos: BTreeSet::new(),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
       change_addresses: vec![change(0), change(1)].into_iter().collect(),
@@ -836,7 +829,6 @@ mod tests {
         BTreeMap::new(),
         utxos.into_iter().collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
@@ -858,7 +850,6 @@ mod tests {
         satpoint(1, 0),
         BTreeMap::new(),
         utxos.into_iter().collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -886,7 +877,6 @@ mod tests {
       BTreeMap::new(),
       utxos.into_iter().collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -912,7 +902,6 @@ mod tests {
         satpoint(1, 4_950),
         BTreeMap::new(),
         utxos.into_iter().collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -940,7 +929,6 @@ mod tests {
         BTreeMap::new(),
         utxos.into_iter().collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
@@ -965,7 +953,6 @@ mod tests {
         BTreeMap::new(),
         utxos.into_iter().collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
@@ -989,7 +976,6 @@ mod tests {
         satpoint(1, 4_950),
         BTreeMap::new(),
         utxos.into_iter().collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -1021,7 +1007,6 @@ mod tests {
         .into_iter()
         .collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -1041,7 +1026,6 @@ mod tests {
       vec![(outpoint(1), tx_out(4, address(0)))]
         .into_iter()
         .collect(),
-      BTreeSet::new(),
       BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
@@ -1063,7 +1047,6 @@ mod tests {
         .into_iter()
         .collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -1083,7 +1066,6 @@ mod tests {
       vec![(outpoint(1), tx_out(5, address(0)))]
         .into_iter()
         .collect(),
-      BTreeSet::new(),
       BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
@@ -1113,7 +1095,6 @@ mod tests {
         .into_iter()
         .collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -1137,7 +1118,6 @@ mod tests {
         satpoint(1, 0),
         BTreeMap::new(),
         utxos.into_iter().collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -1168,7 +1148,6 @@ mod tests {
       BTreeMap::new(),
       utxos.into_iter().collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -1190,7 +1169,6 @@ mod tests {
         satpoint(1, 3_333),
         BTreeMap::new(),
         utxos.into_iter().collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -1221,7 +1199,6 @@ mod tests {
         BTreeMap::new(),
         utxos.into_iter().collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
@@ -1250,7 +1227,6 @@ mod tests {
       satpoint(1, 3_333),
       BTreeMap::new(),
       utxos.into_iter().collect(),
-      BTreeSet::new(),
       BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
@@ -1281,7 +1257,6 @@ mod tests {
       BTreeMap::new(),
       utxos.into_iter().collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -1309,7 +1284,6 @@ mod tests {
       BTreeMap::new(),
       utxos.into_iter().collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -1333,7 +1307,6 @@ mod tests {
       satpoint(1, 0),
       BTreeMap::new(),
       utxos.into_iter().collect(),
-      BTreeSet::new(),
       BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
@@ -1361,7 +1334,6 @@ mod tests {
       fee_rate: FeeRate::try_from(1.0).unwrap(),
       utxos: BTreeSet::new(),
       locked_utxos: BTreeSet::new(),
-      runic_utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
       recipient: recipient(),
@@ -1402,7 +1374,6 @@ mod tests {
       fee_rate: FeeRate::try_from(1.0).unwrap(),
       utxos: BTreeSet::new(),
       locked_utxos: BTreeSet::new(),
-      runic_utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
       recipient: recipient(),
@@ -1443,32 +1414,6 @@ mod tests {
         BTreeMap::from([(satpoint(2, 10 * COIN_VALUE), vec![inscription_id(1)])]),
         utxos.into_iter().collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
-        recipient(),
-        [change(0), change(1)],
-        FeeRate::try_from(1.0).unwrap(),
-        Target::Postage,
-        Network::Testnet,
-      )
-      .build_transaction(),
-      Err(Error::NotEnoughCardinalUtxos)
-    )
-  }
-
-  #[test]
-  fn do_not_select_runic_utxos_for_cardinal_utxos() {
-    let utxos = vec![
-      (outpoint(1), tx_out(100, address(0))),
-      (outpoint(2), tx_out(49 * COIN_VALUE, address(0))),
-    ];
-
-    pretty_assert_eq!(
-      TransactionBuilder::new(
-        satpoint(1, 0),
-        BTreeMap::new(),
-        utxos.into_iter().collect(),
-        BTreeSet::new(),
-        vec![outpoint(2)].into_iter().collect(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
@@ -1489,7 +1434,6 @@ mod tests {
         satpoint(1, 0),
         BTreeMap::from([(satpoint(1, 500), vec![inscription_id(1)])]),
         utxos.into_iter().collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -1516,7 +1460,6 @@ mod tests {
       satpoint(1, 0),
       BTreeMap::from([(satpoint(1, 0), vec![inscription_id(1)])]),
       utxos.into_iter().collect(),
-      BTreeSet::new(),
       BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
@@ -1551,7 +1494,6 @@ mod tests {
         BTreeMap::new(),
         utxos.into_iter().collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
@@ -1581,7 +1523,6 @@ mod tests {
         BTreeMap::new(),
         utxos.into_iter().collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
@@ -1607,7 +1548,6 @@ mod tests {
         satpoint(1, 0),
         BTreeMap::from([(satpoint(1, 500), vec![inscription_id(1)])]),
         utxos.into_iter().collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -1636,7 +1576,6 @@ mod tests {
         BTreeMap::new(),
         utxos.into_iter().collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
@@ -1660,7 +1599,6 @@ mod tests {
         satpoint(1, 0),
         BTreeMap::new(),
         utxos.into_iter().collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -1707,7 +1645,6 @@ mod tests {
           .into_iter()
           .collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(1.0).unwrap(),
@@ -1733,7 +1670,6 @@ mod tests {
         vec![(outpoint(1), tx_out(20_099, address(0)))]
           .into_iter()
           .collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -1761,7 +1697,6 @@ mod tests {
           .into_iter()
           .collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(5.0).unwrap(),
@@ -1788,7 +1723,6 @@ mod tests {
           .into_iter()
           .collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
         FeeRate::try_from(6.0).unwrap(),
@@ -1809,7 +1743,6 @@ mod tests {
         vec![(outpoint(1), tx_out(1000, address(0)))]
           .into_iter()
           .collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [recipient_address(), change(1)],
@@ -1832,7 +1765,6 @@ mod tests {
           .into_iter()
           .collect(),
         BTreeSet::new(),
-        BTreeSet::new(),
         recipient(),
         [change(0), change(0)],
         FeeRate::try_from(0.0).unwrap(),
@@ -1853,7 +1785,6 @@ mod tests {
         vec![(outpoint(1), tx_out(2000, address(0)))]
           .into_iter()
           .collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -1880,7 +1811,6 @@ mod tests {
         vec![(outpoint(1), tx_out(45000, address(0)))]
           .into_iter()
           .collect(),
-        BTreeSet::new(),
         BTreeSet::new(),
         recipient(),
         [change(0), change(1)],
@@ -1913,7 +1843,6 @@ mod tests {
       satpoint(1, 0),
       BTreeMap::new(),
       utxos.clone().into_iter().collect(),
-      BTreeSet::new(),
       BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
@@ -1963,7 +1892,6 @@ mod tests {
       satpoint(1, 1),
       BTreeMap::new(),
       utxos.clone().into_iter().collect(),
-      BTreeSet::new(),
       BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
@@ -2024,7 +1952,6 @@ mod tests {
       BTreeMap::new(),
       utxos.into_iter().collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -2081,7 +2008,6 @@ mod tests {
       BTreeMap::from([(satpoint(1, 0), vec![inscription_id(1)])]),
       utxos.into_iter().collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       fee_rate,
@@ -2118,7 +2044,6 @@ mod tests {
       BTreeMap::new(),
       utxos.into_iter().collect(),
       locked_utxos.into_iter().collect(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -2145,7 +2070,6 @@ mod tests {
       BTreeMap::new(),
       utxos.into_iter().collect(),
       locked_utxos.into_iter().collect(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -2171,7 +2095,6 @@ mod tests {
       BTreeMap::new(),
       utxos.into_iter().collect(),
       BTreeSet::new(),
-      BTreeSet::new(),
       recipient(),
       [change(0), change(1)],
       FeeRate::try_from(1.0).unwrap(),
@@ -2196,7 +2119,6 @@ mod tests {
       satpoint(0, 0),
       BTreeMap::new(),
       utxos.into_iter().collect(),
-      BTreeSet::new(),
       BTreeSet::new(),
       recipient(),
       [change(0), change(1)],

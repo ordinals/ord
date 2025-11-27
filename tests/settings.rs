@@ -23,7 +23,6 @@ fn default() {
   "index": ".*index\.redb",
   "index_addresses": false,
   "index_cache_size": \d+,
-  "index_runes": false,
   "index_sats": false,
   "index_transactions": false,
   "integration_test": false,

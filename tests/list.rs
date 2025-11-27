@@ -18,7 +18,6 @@ fn output_found() {
       address: None,
       indexed: true,
       inscriptions: Some(Vec::new()),
-      runes: None,
       sat_ranges: Some(vec![Range {
         end: 50 * COIN_VALUE,
         name: "nvtdijuwxlp".into(),

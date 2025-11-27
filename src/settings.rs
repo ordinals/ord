@@ -20,7 +20,6 @@ pub struct Settings {
   index: Option<PathBuf>,
   index_addresses: bool,
   index_cache_size: Option<usize>,
-  index_runes: bool,
   index_sats: bool,
   index_transactions: bool,
   integration_test: bool,
@@ -135,7 +134,6 @@ impl Settings {
       index: self.index.or(source.index),
       index_addresses: self.index_addresses || source.index_addresses,
       index_cache_size: self.index_cache_size.or(source.index_cache_size),
-      index_runes: self.index_runes || source.index_runes,
       index_sats: self.index_sats || source.index_sats,
       index_transactions: self.index_transactions || source.index_transactions,
       integration_test: self.integration_test || source.integration_test,
@@ -173,7 +171,6 @@ impl Settings {
       index: options.index,
       index_addresses: options.index_addresses,
       index_cache_size: options.index_cache_size,
-      index_runes: options.index_runes,
       index_sats: options.index_sats,
       index_transactions: options.index_transactions,
       integration_test: options.integration_test,
@@ -263,7 +260,6 @@ impl Settings {
       index: get_path("INDEX"),
       index_addresses: get_bool("INDEX_ADDRESSES"),
       index_cache_size: get_usize("INDEX_CACHE_SIZE")?,
-      index_runes: get_bool("INDEX_RUNES"),
       index_sats: get_bool("INDEX_SATS"),
       index_transactions: get_bool("INDEX_TRANSACTIONS"),
       integration_test: get_bool("INTEGRATION_TEST"),
@@ -295,7 +291,6 @@ impl Settings {
       index: None,
       index_addresses: true,
       index_cache_size: None,
-      index_runes: true,
       index_sats: true,
       index_transactions: false,
       integration_test: false,
@@ -371,7 +366,6 @@ impl Settings {
           usize::try_from(sys.total_memory() / 4)?
         }
       }),
-      index_runes: self.index_runes,
       index_sats: self.index_sats,
       index_transactions: self.index_transactions,
       integration_test: self.integration_test,
@@ -532,14 +526,6 @@ impl Settings {
     }
   }
 
-  pub fn first_rune_height(&self) -> u32 {
-    if self.integration_test {
-      0
-    } else {
-      self.chain.unwrap().first_rune_height()
-    }
-  }
-
   pub fn height_limit(&self) -> Option<u32> {
     self.height_limit
   }
@@ -554,10 +540,6 @@ impl Settings {
 
   pub fn index_inscriptions_raw(&self) -> bool {
     !self.no_index_inscriptions
-  }
-
-  pub fn index_runes_raw(&self) -> bool {
-    self.index_runes
   }
 
   pub fn index_cache_size(&self) -> usize {
@@ -971,13 +953,6 @@ mod tests {
   }
 
   #[test]
-  fn index_runes() {
-    assert!(parse(&["--chain=signet", "--index-runes"]).index_runes_raw());
-    assert!(parse(&["--index-runes"]).index_runes_raw());
-    assert!(!parse(&[]).index_runes_raw());
-  }
-
-  #[test]
   fn bitcoin_rpc_and_pass_setting() {
     let config = Settings {
       bitcoin_rpc_username: Some("config_user".into()),
@@ -1079,7 +1054,6 @@ mod tests {
       ("INDEX", "index"),
       ("INDEX_ADDRESSES", "1"),
       ("INDEX_CACHE_SIZE", "4"),
-      ("INDEX_RUNES", "1"),
       ("INDEX_SATS", "1"),
       ("INDEX_TRANSACTIONS", "1"),
       ("INTEGRATION_TEST", "1"),
@@ -1127,7 +1101,6 @@ mod tests {
         index: Some("index".into()),
         index_addresses: true,
         index_cache_size: Some(4),
-        index_runes: true,
         index_sats: true,
         index_transactions: true,
         integration_test: true,
@@ -1161,7 +1134,6 @@ mod tests {
           "--height-limit=3",
           "--index-addresses",
           "--index-cache-size=4",
-          "--index-runes",
           "--index-sats",
           "--index-transactions",
           "--index=index",
@@ -1192,7 +1164,6 @@ mod tests {
         index: Some("index".into()),
         index_addresses: true,
         index_cache_size: Some(4),
-        index_runes: true,
         index_sats: true,
         index_transactions: true,
         integration_test: true,

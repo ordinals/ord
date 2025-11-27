@@ -14,19 +14,14 @@ pub mod dump;
 pub mod inscribe;
 pub mod inscriptions;
 mod label;
-pub mod mint;
 pub mod offer;
 pub mod outputs;
-pub mod pending;
 pub mod receive;
 pub mod restore;
-pub mod resume;
-pub mod runics;
 pub mod sats;
 pub mod send;
 mod shared_args;
 pub mod sign;
-pub mod split;
 pub mod sweep;
 pub mod transactions;
 
@@ -52,7 +47,7 @@ pub(crate) enum Subcommand {
   Addresses,
   #[command(about = "Get wallet balance")]
   Balance,
-  #[command(about = "Create inscriptions and runes")]
+  #[command(about = "Create inscriptions")]
   Batch(batch_command::Batch),
   #[command(about = "Burn an inscription")]
   Burn(burn::Burn),
@@ -68,30 +63,20 @@ pub(crate) enum Subcommand {
   Inscriptions,
   #[command(about = "Export output labels")]
   Label,
-  #[command(about = "Mint a rune")]
-  Mint(mint::Mint),
   #[command(subcommand, about = "Offer commands")]
   Offer(offer::Offer),
   #[command(about = "List all unspent outputs in wallet")]
   Outputs(outputs::Outputs),
-  #[command(about = "List pending etchings")]
-  Pending(pending::Pending),
   #[command(about = "Generate receive address")]
   Receive(receive::Receive),
   #[command(about = "Restore wallet")]
   Restore(restore::Restore),
-  #[command(about = "Resume pending etchings")]
-  Resume(resume::Resume),
-  #[command(about = "List unspent runic outputs in wallet")]
-  Runics,
   #[command(about = "List wallet satoshis")]
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
   Send(send::Send),
   #[command(about = "Sign message")]
   Sign(sign::Sign),
-  #[command(about = "Split outputs")]
-  Split(split::Split),
   #[command(about = "Sweep assets from private key")]
   Sweep(sweep::Sweep),
   #[command(about = "See wallet transactions")]
@@ -131,17 +116,12 @@ impl WalletCommand {
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet),
       Subcommand::Label => label::run(wallet),
-      Subcommand::Mint(mint) => mint.run(wallet),
       Subcommand::Offer(offer) => offer.run(wallet),
       Subcommand::Outputs(outputs) => outputs.run(wallet),
-      Subcommand::Pending(pending) => pending.run(wallet),
       Subcommand::Receive(receive) => receive.run(wallet),
-      Subcommand::Resume(resume) => resume.run(wallet),
-      Subcommand::Runics => runics::run(wallet),
       Subcommand::Sats(sats) => sats.run(wallet),
       Subcommand::Send(send) => send.run(wallet),
       Subcommand::Sign(sign) => sign.run(wallet),
-      Subcommand::Split(split) => split.run(wallet),
       Subcommand::Sweep(sweep) => sweep.run(wallet),
       Subcommand::Transactions(transactions) => transactions.run(wallet),
     }

@@ -1,6 +1,5 @@
 use super::*;
 
-pub mod balances;
 pub mod decode;
 pub mod env;
 pub mod epochs;
@@ -8,7 +7,6 @@ pub mod find;
 pub mod index;
 pub mod list;
 pub mod parse;
-pub mod runes;
 pub mod server;
 mod settings;
 pub mod subsidy;
@@ -21,8 +19,6 @@ pub mod wallets;
 
 #[derive(Debug, Parser)]
 pub(crate) enum Subcommand {
-  #[command(about = "List all rune balances")]
-  Balances,
   #[command(about = "Decode a transaction")]
   Decode(decode::Decode),
   #[command(about = "Start a regtest ord and bitcoind instance")]
@@ -37,8 +33,6 @@ pub(crate) enum Subcommand {
   List(list::List),
   #[command(about = "Parse a satoshi from ordinal notation")]
   Parse(parse::Parse),
-  #[command(about = "List all runes")]
-  Runes,
   #[command(about = "Run the explorer server")]
   Server(server::Server),
   #[command(about = "Display settings")]
@@ -62,7 +56,6 @@ pub(crate) enum Subcommand {
 impl Subcommand {
   pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     match self {
-      Self::Balances => balances::run(settings),
       Self::Decode(decode) => decode.run(settings),
       Self::Env(env) => env.run(),
       Self::Epochs => epochs::run(),
@@ -70,7 +63,6 @@ impl Subcommand {
       Self::Index(index) => index.run(settings),
       Self::List(list) => list.run(settings),
       Self::Parse(parse) => parse.run(),
-      Self::Runes => runes::run(settings),
       Self::Server(server) => {
         let index = Arc::new(Index::open(&settings)?);
         let handle = axum_server::Handle::new();

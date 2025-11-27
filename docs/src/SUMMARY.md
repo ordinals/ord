@@ -15,8 +15,6 @@ Summary
   - [Rendering](inscriptions/rendering.md)
   - [URIs](inscriptions/uris.md)
   - [Examples](inscriptions/examples.md)
-- [Runes](runes.md)
-  - [Specification](runes/specification.md)
 - [Security](security.md)
 - [FAQ](faq.md)
 - [Contributing](contributing.md)

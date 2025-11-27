@@ -7,7 +7,6 @@ pub enum Object {
   InscriptionId(InscriptionId),
   Integer(u128),
   OutPoint(OutPoint),
-  Rune(SpacedRune),
   Sat(Sat),
   SatPoint(SatPoint),
 }
@@ -43,9 +42,6 @@ impl FromStr for Object {
           .parse()
           .snafu_context(error::OutPointParse { input })?,
       )),
-      Rune => Ok(Self::Rune(
-        input.parse().snafu_context(error::RuneParse { input })?,
-      )),
       SatPoint => Ok(Self::SatPoint(
         input
           .parse()
@@ -68,7 +64,6 @@ impl Display for Object {
       Self::InscriptionId(inscription_id) => write!(f, "{inscription_id}"),
       Self::Integer(integer) => write!(f, "{integer}"),
       Self::OutPoint(outpoint) => write!(f, "{outpoint}"),
-      Self::Rune(rune) => write!(f, "{rune}"),
       Self::Sat(sat) => write!(f, "{sat}"),
       Self::SatPoint(satpoint) => write!(f, "{satpoint}"),
     }
@@ -202,20 +197,6 @@ mod tests {
           .parse()
           .unwrap(),
       ),
-    );
-    case(
-      "A",
-      Object::Rune(SpacedRune {
-        rune: Rune(0),
-        spacers: 0,
-      }),
-    );
-    case(
-      "A•A",
-      Object::Rune(SpacedRune {
-        rune: Rune(26),
-        spacers: 1,
-      }),
     );
   }
 }

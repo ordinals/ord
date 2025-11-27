@@ -5,10 +5,7 @@ use {
 
 pub use crate::{
   subcommand::decode::RawOutput as Decode,
-  templates::{
-    BlocksHtml as Blocks, RuneHtml as Rune, RunesHtml as Runes, StatusHtml as Status,
-    TransactionHtml as Transaction,
-  },
+  templates::{BlocksHtml as Blocks, StatusHtml as Status, TransactionHtml as Transaction},
 };
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -17,7 +14,6 @@ pub struct Block {
   pub hash: BlockHash,
   pub height: u32,
   pub inscriptions: Vec<InscriptionId>,
-  pub runes: Vec<SpacedRune>,
   pub target: BlockHash,
   pub transactions: Vec<bitcoin::blockdata::transaction::Transaction>,
 }
@@ -28,7 +24,6 @@ impl Block {
     height: Height,
     best_height: Height,
     inscriptions: Vec<InscriptionId>,
-    runes: Vec<SpacedRune>,
   ) -> Self {
     Self {
       hash: block.header.block_hash(),
@@ -36,7 +31,6 @@ impl Block {
       height: height.0,
       best_height: best_height.0,
       inscriptions,
-      runes,
       transactions: block.txdata,
     }
   }
@@ -114,7 +108,6 @@ pub struct Inscription {
   pub parents: Vec<InscriptionId>,
   pub previous: Option<InscriptionId>,
   pub properties: Properties,
-  pub rune: Option<SpacedRune>,
   pub sat: Option<ordinals::Sat>,
   pub satpoint: SatPoint,
   pub timestamp: i64,
@@ -162,7 +155,6 @@ pub struct Inscriptions {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct UtxoRecursive {
   pub inscriptions: Option<Vec<InscriptionId>>,
-  pub runes: Option<BTreeMap<SpacedRune, Pile>>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub value: u64,
 }
@@ -174,7 +166,6 @@ pub struct Output {
   pub indexed: bool,
   pub inscriptions: Option<Vec<InscriptionId>>,
   pub outpoint: OutPoint,
-  pub runes: Option<BTreeMap<SpacedRune, Pile>>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,
   pub script_pubkey: ScriptBuf,
   pub spent: bool,
@@ -190,7 +181,6 @@ impl Output {
     outpoint: OutPoint,
     tx_out: TxOut,
     indexed: bool,
-    runes: Option<BTreeMap<SpacedRune, Pile>>,
     sat_ranges: Option<Vec<(u64, u64)>>,
     spent: bool,
   ) -> Self {
@@ -203,7 +193,6 @@ impl Output {
       indexed,
       inscriptions,
       outpoint,
-      runes,
       sat_ranges,
       script_pubkey: tx_out.script_pubkey,
       spent,
@@ -250,7 +239,6 @@ pub struct AddressInfo {
   pub outputs: Vec<OutPoint>,
   pub inscriptions: Option<Vec<InscriptionId>>,
   pub sat_balance: u64,
-  pub runes_balances: Option<Vec<(SpacedRune, Decimal, Option<char>)>>,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]

@@ -82,7 +82,6 @@ impl Inscribe {
         None => wallet.get_change_address()?,
       }],
       dry_run: self.shared.dry_run,
-      etching: None,
       inscriptions: vec![Inscription::new(
         chain,
         self.shared.compress,
@@ -103,7 +102,6 @@ impl Inscribe {
             .map(|id| Item { id, ..default() })
             .collect(),
         },
-        None,
       )?],
       mode: batch::Mode::SeparateOutputs,
       no_backup: self.shared.no_backup,
@@ -121,7 +119,6 @@ impl Inscribe {
     }
     .inscribe(
       &wallet.locked_utxos().clone().into_keys().collect(),
-      wallet.get_runic_outputs()?.unwrap_or_default(),
       wallet.utxos(),
       &wallet,
     )

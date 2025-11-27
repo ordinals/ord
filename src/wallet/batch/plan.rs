@@ -4,7 +4,6 @@ pub struct Plan {
   pub(crate) commit_fee_rate: FeeRate,
   pub(crate) destinations: Vec<Address>,
   pub(crate) dry_run: bool,
-  pub(crate) etching: Option<Etching>,
   pub(crate) inscriptions: Vec<Inscription>,
   pub(crate) mode: Mode,
   pub(crate) no_backup: bool,
@@ -23,7 +22,6 @@ impl Default for Plan {
       commit_fee_rate: 1.0.try_into().unwrap(),
       destinations: Vec::new(),
       dry_run: false,
-      etching: None,
       inscriptions: Vec::new(),
       mode: Mode::SharedOutput,
       no_backup: false,
@@ -42,22 +40,19 @@ impl Plan {
   pub(crate) fn inscribe(
     &self,
     locked_utxos: &BTreeSet<OutPoint>,
-    runic_utxos: BTreeSet<OutPoint>,
     utxos: &BTreeMap<OutPoint, TxOut>,
     wallet: &Wallet,
   ) -> SubcommandResult {
     let Transactions {
       commit_tx,
-      commit_vout,
+      commit_vout: _,
       reveal_tx,
       recovery_key_pair,
       total_fees,
-      rune,
     } = self.create_batch_transactions(
       wallet.inscriptions().clone(),
       wallet.chain(),
       locked_utxos.clone(),
-      runic_utxos,
       utxos.clone(),
       [wallet.get_change_address()?, wallet.get_change_address()?],
       wallet.get_change_address()?,
@@ -86,7 +81,6 @@ impl Plan {
         Some(base64_encode(&reveal_psbt.serialize())),
         total_fees,
         self.inscriptions.clone(),
-        rune,
       ))));
     }
 
@@ -129,35 +123,7 @@ impl Plan {
       .bitcoin_client()
       .send_raw_transaction(&signed_commit_tx)?;
 
-    if let Some(ref rune_info) = rune {
-      wallet.bitcoin_client().lock_unspent(&[OutPoint {
-        txid: commit_txid,
-        vout: commit_vout.try_into().unwrap(),
-      }])?;
-
-      let commit = consensus::encode::deserialize::<Transaction>(&signed_commit_tx)?;
-      let reveal = consensus::encode::deserialize::<Transaction>(&signed_reveal_tx)?;
-
-      wallet.save_etching(
-        &rune_info.rune.rune,
-        &commit,
-        &reveal,
-        self.output(
-          commit.compute_txid(),
-          None,
-          reveal.compute_txid(),
-          false,
-          None,
-          total_fees,
-          self.inscriptions.clone(),
-          rune.clone(),
-        ),
-      )?;
-
-      Ok(Some(Box::new(
-        wallet.wait_for_maturation(rune_info.rune.rune)?,
-      )))
-    } else {
+    {
       let reveal = match wallet
         .bitcoin_client()
         .send_raw_transaction(&signed_reveal_tx)
@@ -178,7 +144,6 @@ impl Plan {
         None,
         total_fees,
         self.inscriptions.clone(),
-        rune,
       ))))
     }
   }
@@ -200,7 +165,6 @@ impl Plan {
     reveal_psbt: Option<String>,
     total_fees: u64,
     inscriptions: Vec<Inscription>,
-    rune: Option<RuneInfo>,
   ) -> Output {
     let mut inscriptions_output = Vec::new();
     for i in 0..inscriptions.len() {
@@ -247,7 +211,6 @@ impl Plan {
       reveal,
       reveal_broadcast,
       reveal_psbt,
-      rune,
       total_fees,
     }
   }
@@ -257,10 +220,9 @@ impl Plan {
     wallet_inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
     chain: Chain,
     locked_utxos: BTreeSet<OutPoint>,
-    runic_utxos: BTreeSet<OutPoint>,
     mut utxos: BTreeMap<OutPoint, TxOut>,
     commit_change: [Address; 2],
-    reveal_change: Address,
+    _reveal_change: Address,
   ) -> Result<Transactions> {
     for inscription in &self.inscriptions {
       assert_eq!(
@@ -326,7 +288,6 @@ impl Plan {
           txout.value.to_sat() > 0
             && !inscribed_utxos.contains(outpoint)
             && !locked_utxos.contains(outpoint)
-            && !runic_utxos.contains(outpoint)
         })
         .map(|(outpoint, _amount)| SatPoint {
           outpoint: *outpoint,
@@ -424,84 +385,6 @@ impl Plan {
       });
     }
 
-    let rune;
-    let premine;
-    let runestone;
-
-    if let Some(etching) = self.etching {
-      let vout;
-      let destination;
-      premine = etching.premine.to_integer(etching.divisibility)?;
-
-      if premine > 0 {
-        let output = u32::try_from(reveal_outputs.len()).unwrap();
-        destination = Some(reveal_change.clone());
-
-        reveal_outputs.push(TxOut {
-          script_pubkey: reveal_change.into(),
-          value: TARGET_POSTAGE,
-        });
-
-        vout = Some(output);
-      } else {
-        vout = None;
-        destination = None;
-      }
-
-      let inner = Runestone {
-        edicts: Vec::new(),
-        etching: Some(ordinals::Etching {
-          divisibility: (etching.divisibility > 0).then_some(etching.divisibility),
-          premine: (premine > 0).then_some(premine),
-          rune: Some(etching.rune.rune),
-          spacers: (etching.rune.spacers > 0).then_some(etching.rune.spacers),
-          symbol: Some(etching.symbol),
-          terms: etching
-            .terms
-            .map(|terms| -> Result<ordinals::Terms> {
-              Ok(ordinals::Terms {
-                cap: (terms.cap > 0).then_some(terms.cap),
-                height: (
-                  terms.height.and_then(|range| range.start),
-                  terms.height.and_then(|range| range.end),
-                ),
-                amount: Some(terms.amount.to_integer(etching.divisibility)?),
-                offset: (
-                  terms.offset.and_then(|range| range.start),
-                  terms.offset.and_then(|range| range.end),
-                ),
-              })
-            })
-            .transpose()?,
-          turbo: etching.turbo,
-        }),
-        mint: None,
-        pointer: (premine > 0).then_some((reveal_outputs.len() - 1).try_into().unwrap()),
-      };
-
-      let script_pubkey = inner.encipher();
-
-      runestone = Some(inner);
-
-      ensure!(
-        self.no_limit || script_pubkey.len() <= MAX_STANDARD_OP_RETURN_SIZE,
-        "runestone greater than maximum OP_RETURN size: {} > {}",
-        script_pubkey.len(),
-        MAX_STANDARD_OP_RETURN_SIZE,
-      );
-
-      reveal_outputs.push(TxOut {
-        script_pubkey,
-        value: Amount::from_sat(0),
-      });
-
-      rune = Some((destination, etching.rune, vout));
-    } else {
-      premine = 0;
-      rune = None;
-      runestone = None;
-    }
-
     let commit_input = self.parent_info.len() + self.reveal_satpoints.len();
 
     let (_reveal_tx, reveal_fee) = Self::build_reveal_transaction(
@@ -511,7 +394,6 @@ impl Plan {
       reveal_outputs.clone(),
       reveal_inputs.clone(),
       &reveal_script,
-      rune.is_some(),
     );
 
     let mut target_value = reveal_fee;
@@ -520,16 +402,11 @@ impl Plan {
       target_value += total_postage;
     }
 
-    if premine > 0 {
-      target_value += TARGET_POSTAGE;
-    }
-
     let unsigned_commit_tx = TransactionBuilder::new(
       satpoint,
       wallet_inscriptions,
       utxos.clone(),
       locked_utxos.clone(),
-      runic_utxos,
       commit_tx_address.script_pubkey(),
       commit_change,
       self.commit_fee_rate,
@@ -557,7 +434,6 @@ impl Plan {
       reveal_outputs.clone(),
       reveal_inputs,
       &reveal_script,
-      rune.is_some(),
     );
 
     for output in reveal_tx.output.iter() {
@@ -641,34 +517,11 @@ impl Plan {
     let total_fees =
       Self::calculate_fee(&unsigned_commit_tx, &utxos) + Self::calculate_fee(&reveal_tx, &utxos);
 
-    match (Runestone::decipher(&reveal_tx), runestone) {
-      (Some(actual), Some(expected)) => assert_eq!(
-        actual,
-        Artifact::Runestone(expected),
-        "commit transaction runestone did not match expected runestone"
-      ),
-      (Some(_), None) => panic!("commit transaction contained runestone, but none was expected"),
-      (None, Some(_)) => {
-        panic!("commit transaction did not contain runestone, but one was expected")
-      }
-      (None, None) => {}
-    }
-
-    let rune = rune.map(|(destination, rune, vout)| RuneInfo {
-      destination: destination.map(|destination| uncheck(&destination)),
-      location: vout.map(|vout| OutPoint {
-        txid: reveal_tx.compute_txid(),
-        vout,
-      }),
-      rune,
-    });
-
     Ok(Transactions {
       commit_tx: unsigned_commit_tx,
       commit_vout: vout,
       recovery_key_pair,
       reveal_tx,
-      rune,
       total_fees,
     })
   }
@@ -715,7 +568,6 @@ impl Plan {
     output: Vec<TxOut>,
     input: Vec<OutPoint>,
     script: &Script,
-    etching: bool,
   ) -> (Transaction, Amount) {
     let reveal_tx = Transaction {
       input: input
@@ -724,11 +576,7 @@ impl Plan {
           previous_output,
           script_sig: script::Builder::new().into_script(),
           witness: Witness::new(),
-          sequence: if etching {
-            Sequence::from_height(Runestone::COMMIT_CONFIRMATIONS - 1)
-          } else {
-            Sequence::ENABLE_RBF_NO_LOCKTIME
-          },
+          sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
         })
         .collect(),
       output,

@@ -1008,40 +1008,11 @@ curl -s \
 ```json
 {
   "inscriptions": null,
-  "runes": null,
   "sat_ranges": null,
   "value": 5000000000
 }
 ```
 
-With rune, inscription, and sat index:
-
-```bash
-curl -s \
-  http://0.0.0.0:80/r/utxo/626860df36c1047194866c6812f04c15ab84f3690e7cc06fd600c841f1943e05:0
-```
-
-```json
-{
-  "inscriptions": [
-    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0"
-  ],
-  "runes": {
-    "UNCOMMON•GOODS": {
-      "amount": 6845,
-      "divisibility": 0,
-      "symbol": "⧉"
-    }
-  },
-  "sat_ranges": [
-    [
-      1905800627509113,
-      1905800627509443
-    ]
-  ],
-  "value": 330
-}
-```
 </details>
 
 &nbsp;

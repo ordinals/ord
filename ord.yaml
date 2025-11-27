@@ -19,7 +19,6 @@ hidden:
 index: /var/lib/ord/index.redb
 index_addresses: true
 index_cache_size: 1000000000
-index_runes: true
 index_sats: true
 index_transactions: true
 integration_test: true

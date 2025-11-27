@@ -28,11 +28,6 @@ pub enum SnafuError {
     source: bitcoin::transaction::ParseOutPointError,
     input: String,
   },
-  #[snafu(display("Failed to parse rune `{}`", input))]
-  RuneParse {
-    source: ordinals::spaced_rune::Error,
-    input: String,
-  },
   #[snafu(display("Failed to parse sat `{}`", input))]
   SatParse {
     source: ordinals::sat::Error,
@@ -52,9 +47,7 @@ pub enum SnafuError {
   },
   #[snafu(display("Unrecognized outgoing: `{}`", input))]
   OutgoingParse { input: String },
-  #[snafu(display("Failed to parse decimal: {}", source))]
-  RuneAmountParse { source: error::Error, input: String },
-  #[snafu(display("Invalid chain `{}`", chain))]
+  #[snafu(display("Invalid chain: {}", chain))]
   InvalidChain { chain: String },
   #[snafu(display("Failed to convert script to address: {}", source))]
   AddressConversion {

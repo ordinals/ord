@@ -2,7 +2,7 @@ Satscard
 ========
 
 [Satscards](https://satscard.com/) are cards which can be used to store
-bitcoin, inscriptions, and runes.
+bitcoin and inscriptions.
 
 Slots
 -----

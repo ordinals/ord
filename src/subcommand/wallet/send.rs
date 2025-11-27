@@ -15,10 +15,9 @@ pub(crate) struct Send {
   #[arg(help = "Recipient address")]
   address: Address<NetworkUnchecked>,
   #[arg(
-    help = "Outgoing asset formatted as a bitcoin amount, rune amount, sat name, satpoint, or \
+    help = "Outgoing asset formatted as a bitcoin amount, sat name, satpoint, or \
     inscription ID. Bitcoin amounts are `DECIMAL UNIT` where `UNIT` is one of \
-    `bit btc cbtc mbtc msat nbtc pbtc sat satoshi ubtc`. Rune amounts are `DECIMAL:RUNE` and \
-    respect divisibility"
+    `bit btc cbtc mbtc msat nbtc pbtc sat satoshi ubtc`."
   )]
   asset: Outgoing,
 }
@@ -42,13 +41,6 @@ impl Send {
       Outgoing::Amount(amount) => {
         wallet.create_unsigned_send_amount_transaction(address, amount, self.fee_rate)?
       }
-      Outgoing::Rune { decimal, rune } => wallet.create_unsigned_send_or_burn_runes_transaction(
-        Some(address),
-        rune,
-        decimal,
-        self.postage,
-        self.fee_rate,
-      )?,
       Outgoing::InscriptionId(id) => wallet.create_unsigned_send_satpoint_transaction(
         address,
         wallet

@@ -117,6 +117,7 @@ impl FromStr for Rarity {
 #[cfg(test)]
 mod tests {
   use super::*;
+  use std::collections::HashMap;
 
   #[test]
   fn rarity() {

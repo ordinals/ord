@@ -37,7 +37,7 @@ fn transaction() -> Vec<u8> {
       witness,
     }],
     output: vec![TxOut {
-      script_pubkey: Runestone::default().encipher(),
+      script_pubkey: ScriptBuf::default(),
       value: Amount::from_sat(0),
     }],
   };
@@ -67,7 +67,6 @@ fn from_file() {
         pushnum: false,
         stutter: false,
       }],
-      runestone: Some(Artifact::Runestone(Runestone::default())),
     },
   );
 }
@@ -90,7 +89,6 @@ fn from_stdin() {
         pushnum: false,
         stutter: false,
       }],
-      runestone: Some(Artifact::Runestone(Runestone::default())),
     },
   );
 }
@@ -122,7 +120,6 @@ fn from_core() {
         pushnum: false,
         stutter: false,
       }],
-      runestone: None,
     },
   );
 }
@@ -146,7 +143,6 @@ fn compact() {
         pointer: None,
         unrecognized_even_field: false,
       }],
-      runestone: Some(Artifact::Runestone(Runestone::default())),
     },
   );
 }

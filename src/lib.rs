@@ -16,10 +16,8 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
-    decimal::Decimal,
     deserialize_from_str::DeserializeFromStr,
     fund_raw_transaction::fund_raw_transaction,
-    index::BitcoinCoreRpcResultExt,
     inscriptions::{
       inscription_id,
       media::{self, ImageRendering, Media},
@@ -60,10 +58,7 @@ use {
   clap::{ArgGroup, Parser},
   error::{ResultExt, SnafuError},
   html_escaper::{Escape, Trusted},
-  ordinals::{
-    Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone, Sat,
-    SatPoint, SpacedRune, Terms, varint,
-  },
+  ordinals::{Charm, Epoch, Height, Rarity, Sat, SatPoint},
   regex::Regex,
   reqwest::{StatusCode, Url, header::HeaderMap},
   serde::{Deserialize, Deserializer, Serialize},
@@ -97,7 +92,7 @@ use {
 pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
-  index::{Index, RuneEntry},
+  index::Index,
   inscriptions::{Envelope, Inscription, InscriptionId, ParsedEnvelope, RawEnvelope},
   object::Object,
   options::Options,
@@ -133,7 +128,6 @@ pub mod outgoing;
 mod properties;
 mod re;
 mod representation;
-pub mod runes;
 mod satscard;
 pub mod settings;
 mod signer;

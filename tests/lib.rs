@@ -13,13 +13,12 @@ use {
   executable_path::executable_path,
   mockcore::TransactionTemplate,
   ord::{
-    Inscription, InscriptionId, RuneEntry, api, base64_decode, base64_encode, chain::Chain,
-    decimal::Decimal, outgoing::Outgoing, subcommand::runes::RuneInfo, templates::InscriptionHtml,
+    Inscription, InscriptionId, api, base64_decode, base64_encode, chain::Chain,
+    decimal::Decimal, outgoing::Outgoing, templates::InscriptionHtml,
     wallet::ListDescriptorsResult, wallet::batch,
   },
   ordinals::{
-    Artifact, COIN_VALUE, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint,
-    SpacedRune,
+    COIN_VALUE, Charm, Rarity, Sat, SatPoint,
   },
   pretty_assertions::assert_eq as pretty_assert_eq,
   regex::Regex,
@@ -57,7 +56,6 @@ mod command_builder;
 mod expected;
 mod test_server;
 
-mod balances;
 mod decode;
 mod epochs;
 mod find;
@@ -66,7 +64,6 @@ mod info;
 mod json_api;
 mod list;
 mod parse;
-mod runes;
 mod server;
 mod settings;
 mod subsidy;
@@ -75,8 +72,6 @@ mod traits;
 mod verify;
 mod version;
 mod wallet;
-
-const RUNE: u128 = 99246114928149462;
 
 type Balance = ord::subcommand::wallet::balance::Output;
 type Balances = ord::subcommand::balances::Output;
@@ -142,7 +137,7 @@ fn inscribe(core: &mockcore::Handle, ord: &TestServer) -> (InscriptionId, Txid) 
 }
 
 fn drain(core: &mockcore::Handle, ord: &TestServer) {
-  let balance = CommandBuilder::new("--regtest --index-runes wallet balance")
+  let balance = CommandBuilder::new("--regtest wallet balance")
     .core(core)
     .ord(ord)
     .run_and_deserialize_output::<Balance>();
@@ -150,7 +145,6 @@ fn drain(core: &mockcore::Handle, ord: &TestServer) {
   CommandBuilder::new(format!(
     "
       --chain regtest
-      --index-runes
       wallet send
       --fee-rate 0
       bcrt1pyrmadgg78e38ewfv0an8c6eppk2fttv5vnuvz04yza60qau5va0saknu8k
@@ -164,7 +158,7 @@ fn drain(core: &mockcore::Handle, ord: &TestServer) {
 
   core.mine_blocks_with_subsidy(1, 0);
 
-  let balance = CommandBuilder::new("--regtest --index-runes wallet balance")
+  let balance = CommandBuilder::new("--regtest wallet balance")
     .core(core)
     .ord(ord)
     .run_and_deserialize_output::<Balance>();
@@ -172,39 +166,11 @@ fn drain(core: &mockcore::Handle, ord: &TestServer) {
   pretty_assert_eq!(balance.cardinal, 0);
 }
 
-struct Etched {
-  id: RuneId,
-  output: Batch,
-}
-
-fn etch(core: &mockcore::Handle, ord: &TestServer, rune: Rune) -> Etched {
-  batch(
-    core,
-    ord,
-    batch::File {
-      etching: Some(batch::Etching {
-        supply: "1000".parse().unwrap(),
-        divisibility: 0,
-        terms: None,
-        premine: "1000".parse().unwrap(),
-        rune: SpacedRune { rune, spacers: 0 },
-        symbol: '¢',
-        turbo: false,
-      }),
-      inscriptions: vec![batch::Entry {
-        file: Some("inscription.jpeg".into()),
-        ..default()
-      }],
-      ..default()
-    },
-  )
-}
-
 fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> Etched {
   core.mine_blocks(1);
 
   let mut builder =
-    CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
+    CommandBuilder::new("--regtest wallet batch --fee-rate 0 --batch batch.yaml")
       .write("batch.yaml", serde_yaml::to_string(&batchfile).unwrap())
       .core(core)
       .ord(ord);
@@ -234,18 +200,12 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
 
   let block_height = core.height();
 
-  let id = RuneId {
-    block: block_height,
-    tx: 1,
-  };
-
   let reveal = output.reveal;
   let parent = output.inscriptions[0].id;
 
   let batch::Etching {
     divisibility,
     premine,
-    rune,
     supply,
     symbol,
     terms,
@@ -346,48 +306,6 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   } else {
     mint_definition.push("<dd>no</dd>".into());
   }
-
-  let RuneId { block, tx } = id;
-
-  ord.assert_response_regex(
-    format!("/rune/{rune}"),
-    format!(
-      r".*<dt>id</dt>
-  <dd>{id}</dd>.*
-  <dt>etching block</dt>
-  <dd><a href=/block/{block}>{block}</a></dd>
-  <dt>etching transaction</dt>
-  <dd>{tx}</dd>
-  <dt>mint</dt>
-  {}
-  <dt>supply</dt>
-  <dd>{premine} {symbol}</dd>
-  <dt>premine</dt>
-  <dd>{premine} {symbol}</dd>
-  <dt>premine percentage</dt>
-  <dd>.*</dd>
-  <dt>burned</dt>
-  <dd>0 {symbol}</dd>
-  <dt>divisibility</dt>
-  <dd>{divisibility}</dd>
-  <dt>symbol</dt>
-  <dd>{symbol}</dd>
-  <dt>turbo</dt>
-  <dd>{turbo}</dd>
-  <dt>etching</dt>
-  <dd><a class=collapse href=/tx/{reveal}>{reveal}</a></dd>
-  <dt>parent</dt>
-  <dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>
-.*",
-      mint_definition.join("\\s+"),
-    ),
-  );
-
-  let batch::RuneInfo {
-    destination,
-    location,
-    rune: _,
-  } = output.rune.clone().unwrap();
 
   if premine.to_integer(divisibility).unwrap() > 0 {
     let destination = destination

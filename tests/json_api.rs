@@ -180,7 +180,6 @@ fn get_inscription() {
       parents: Vec::new(),
       previous: None,
       properties: default(),
-      rune: None,
       sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap(),
       timestamp: 2,
@@ -243,7 +242,6 @@ fn get_inscription_with_metaprotocol_and_properties() {
           traits: Traits::default(),
         },
       },
-      rune: None,
       sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", output.reveal, 0, 0)).unwrap(),
       timestamp: 2,
@@ -419,7 +417,6 @@ fn get_output() {
         InscriptionId { txid, index: 2 },
       ]),
       indexed: true,
-      runes: None,
       sat_ranges: Some(vec![
         (5000000000, 10000000000,),
         (10000000000, 15000000000,),
@@ -472,7 +469,6 @@ fn get_block() {
       best_height: 1,
       height: 0,
       inscriptions: Vec::new(),
-      runes: Vec::new(),
       transactions: block_json.transactions.clone(),
     }
   );
@@ -531,7 +527,6 @@ fn get_transaction() {
     serde_json::from_str::<api::Transaction>(&response.text().unwrap()).unwrap(),
     api::Transaction {
       chain: Chain::Mainnet,
-      etching: None,
       inscription_count: 0,
       transaction,
       txid,
@@ -544,7 +539,7 @@ fn get_status() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord =
-    TestServer::spawn_with_server_args(&core, &["--regtest", "--index-sats", "--index-runes"], &[]);
+    TestServer::spawn_with_server_args(&core, &["--regtest", "--index-sats"], &[]);
 
   create_wallet(&core, &ord);
   core.mine_blocks(1);
@@ -580,9 +575,6 @@ fn get_status() {
       inscriptions: 1,
       json_api: true,
       lost_sats: 0,
-      minimum_rune_for_next_block: Rune(99218849511960410),
-      rune_index: true,
-      runes: 0,
       sat_index: true,
       started: dummy_started,
       transaction_index: false,
@@ -593,138 +585,10 @@ fn get_status() {
 }
 
 #[test]
-fn get_runes() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
-
-  create_wallet(&core, &ord);
-
-  core.mine_blocks(3);
-
-  let a = etch(&core, &ord, Rune(RUNE));
-  let b = etch(&core, &ord, Rune(RUNE + 1));
-  let c = etch(&core, &ord, Rune(RUNE + 2));
-
-  core.mine_blocks(1);
-
-  let response = ord.json_request(format!("/rune/{}", a.output.rune.unwrap().rune));
-  assert_eq!(response.status(), StatusCode::OK);
-
-  let rune_json: api::Rune = serde_json::from_str(&response.text().unwrap()).unwrap();
-
-  pretty_assert_eq!(
-    rune_json,
-    api::Rune {
-      entry: RuneEntry {
-        block: a.id.block,
-        burned: 0,
-        terms: None,
-        divisibility: 0,
-        etching: a.output.reveal,
-        mints: 0,
-        number: 0,
-        premine: 1000,
-        spaced_rune: SpacedRune {
-          rune: Rune(RUNE),
-          spacers: 0
-        },
-        symbol: Some('¢'),
-        timestamp: 10,
-        turbo: false,
-      },
-      id: RuneId { block: 10, tx: 1 },
-      mintable: false,
-      parent: Some(InscriptionId {
-        txid: a.output.reveal,
-        index: 0,
-      }),
-    }
-  );
-
-  let response = ord.json_request("/runes");
-
-  assert_eq!(response.status(), StatusCode::OK);
-
-  let runes_json: api::Runes = serde_json::from_str(&response.text().unwrap()).unwrap();
-
-  pretty_assert_eq!(
-    runes_json,
-    api::Runes {
-      entries: vec![
-        (
-          RuneId { block: 24, tx: 1 },
-          RuneEntry {
-            block: c.id.block,
-            burned: 0,
-            terms: None,
-            divisibility: 0,
-            etching: c.output.reveal,
-            mints: 0,
-            number: 2,
-            premine: 1000,
-            spaced_rune: SpacedRune {
-              rune: Rune(RUNE + 2),
-              spacers: 0
-            },
-            symbol: Some('¢'),
-            timestamp: 24,
-            turbo: false,
-          }
-        ),
-        (
-          RuneId { block: 17, tx: 1 },
-          RuneEntry {
-            block: b.id.block,
-            burned: 0,
-            terms: None,
-            divisibility: 0,
-            etching: b.output.reveal,
-            mints: 0,
-            number: 1,
-            premine: 1000,
-            spaced_rune: SpacedRune {
-              rune: Rune(RUNE + 1),
-              spacers: 0
-            },
-            symbol: Some('¢'),
-            timestamp: 17,
-            turbo: false,
-          }
-        ),
-        (
-          RuneId { block: 10, tx: 1 },
-          RuneEntry {
-            block: a.id.block,
-            burned: 0,
-            terms: None,
-            divisibility: 0,
-            etching: a.output.reveal,
-            mints: 0,
-            number: 0,
-            premine: 1000,
-            spaced_rune: SpacedRune {
-              rune: Rune(RUNE),
-              spacers: 0
-            },
-            symbol: Some('¢'),
-            timestamp: 10,
-            turbo: false,
-          }
-        )
-      ],
-      more: false,
-      next: None,
-      prev: None,
-    }
-  );
-}
-
-#[test]
 fn get_decode_tx() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest"], &[]);
 
   create_wallet(&core, &ord);
   core.mine_blocks(3);
@@ -749,7 +613,6 @@ fn get_decode_tx() {
     pushnum: false,
     stutter: false,
   }];
-  let runestone = Runestone::decipher(&transaction);
   let response = ord.json_request(format!("/decode/{txid}"));
 
   assert_eq!(response.status(), StatusCode::OK);
@@ -758,7 +621,6 @@ fn get_decode_tx() {
     serde_json::from_str::<api::Decode>(&response.text().unwrap()).unwrap(),
     api::Decode {
       inscriptions,
-      runestone,
     }
   );
 }
@@ -767,7 +629,7 @@ fn get_decode_tx() {
 fn outputs_address() {
   let core = mockcore::builder().network(Network::Regtest).build();
   let ord =
-    TestServer::spawn_with_args(&core, &["--index-runes", "--index-addresses", "--regtest"]);
+    TestServer::spawn_with_args(&core, &["--index-addresses", "--regtest"]);
 
   create_wallet(&core, &ord);
 
@@ -776,20 +638,7 @@ fn outputs_address() {
   let (inscription_id, reveal) = inscribe(&core, &ord);
 
   let inscription_send = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 1 {address} {inscription_id}",
-  ))
-  .core(&core)
-  .ord(&ord)
-  .stdout_regex(".*")
-  .run_and_deserialize_output::<Output>();
-
-  core.mine_blocks(1);
-
-  etch(&core, &ord, Rune(RUNE));
-
-  let rune_send = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 1 {address} 1000:{}",
-    Rune(RUNE)
+    "--chain regtest wallet send --fee-rate 1 {address} {inscription_id}",
   ))
   .core(&core)
   .ord(&ord)
@@ -799,7 +648,7 @@ fn outputs_address() {
   core.mine_blocks(1);
 
   let cardinal_send = CommandBuilder::new(format!(
-    "--chain regtest --index-runes wallet send --fee-rate 13.3 {address} 2btc"
+    "--chain regtest wallet send --fee-rate 13.3 {address} 2btc"
   ))
   .core(&core)
   .ord(&ord)
@@ -825,7 +674,6 @@ fn outputs_address() {
         vout: 0
       },
       indexed: true,
-      runes: Some(BTreeMap::new()),
       sat_ranges: None,
       script_pubkey: ScriptBuf::from(
         address
@@ -836,51 +684,6 @@ fn outputs_address() {
       spent: false,
       transaction: cardinal_send.txid,
       value: 2 * COIN_VALUE,
-    }]
-  );
-
-  let runes_response = ord.json_request(format!("/outputs/{address}?type=runic"));
-
-  assert_eq!(runes_response.status(), StatusCode::OK);
-
-  let runes_json: Vec<api::Output> = serde_json::from_str(&runes_response.text().unwrap()).unwrap();
-
-  let mut expected_runes = BTreeMap::new();
-
-  expected_runes.insert(
-    SpacedRune {
-      rune: Rune(RUNE),
-      spacers: 0,
-    },
-    Pile {
-      amount: 1000,
-      divisibility: 0,
-      symbol: Some('¢'),
-    },
-  );
-
-  pretty_assert_eq!(
-    runes_json,
-    vec![api::Output {
-      address: Some(address.parse().unwrap()),
-      confirmations: 7,
-      inscriptions: Some(vec![]),
-      outpoint: OutPoint {
-        txid: rune_send.txid,
-        vout: 0
-      },
-      indexed: true,
-      runes: Some(expected_runes),
-      sat_ranges: None,
-      script_pubkey: ScriptBuf::from(
-        address
-          .parse::<Address<NetworkUnchecked>>()
-          .unwrap()
-          .assume_checked()
-      ),
-      spent: false,
-      transaction: rune_send.txid,
-      value: 10000,
     }]
   );
 
@@ -905,7 +708,6 @@ fn outputs_address() {
         vout: 0
       },
       indexed: true,
-      runes: Some(BTreeMap::new()),
       sat_ranges: None,
       script_pubkey: ScriptBuf::from(
         address
@@ -939,17 +741,8 @@ fn outputs_address() {
   assert!(
     any
       .iter()
-      .any(|output| output.runes.clone().unwrap_or_default().len() == 1)
-  );
-  assert!(
-    any
-      .iter()
       .any(|output| output.inscriptions.clone().unwrap_or_default().len() == 1)
   );
-  assert!(any.iter().any(
-    |output| output.inscriptions.clone().unwrap_or_default().is_empty()
-      && output.runes.clone().unwrap_or_default().is_empty()
-  ));
   assert_eq!(any, default);
 }
 
@@ -960,7 +753,6 @@ fn outputs_address_returns_400_for_missing_indices() {
     &core,
     &[
       "--no-index-inscriptions",
-      "--index-runes",
       "--index-addresses",
       "--regtest",
     ],
@@ -970,26 +762,6 @@ fn outputs_address_returns_400_for_missing_indices() {
 
   let inscriptions_response = ord.json_request(format!("/outputs/{address}?type=inscribed"));
   assert_eq!(inscriptions_response.status(), StatusCode::BAD_REQUEST);
-
-  let runes_response = ord.json_request(format!("/outputs/{address}?type=runic"));
-  assert_eq!(runes_response.status(), StatusCode::BAD_REQUEST);
-
-  let cardinal_response = ord.json_request(format!("/outputs/{address}?type=runic"));
-  assert_eq!(cardinal_response.status(), StatusCode::BAD_REQUEST);
-}
-
-#[test]
-fn outputs_address_returns_400_for_missing_rune_index() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-  let ord = TestServer::spawn_with_args(&core, &["--index-addresses", "--regtest"]);
-
-  let address = "bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw";
-
-  let inscriptions_response = ord.json_request(format!("/outputs/{address}?type=inscribed"));
-  assert_eq!(inscriptions_response.status(), StatusCode::BAD_REQUEST);
-
-  let runes_response = ord.json_request(format!("/outputs/{address}?type=runic"));
-  assert_eq!(runes_response.status(), StatusCode::BAD_REQUEST);
 
   let cardinal_response = ord.json_request(format!("/outputs/{address}?type=runic"));
   assert_eq!(cardinal_response.status(), StatusCode::BAD_REQUEST);

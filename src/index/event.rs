@@ -17,28 +17,4 @@ pub enum Event {
     old_location: SatPoint,
     sequence_number: u32,
   },
-  RuneBurned {
-    amount: u128,
-    block_height: u32,
-    rune_id: RuneId,
-    txid: Txid,
-  },
-  RuneEtched {
-    block_height: u32,
-    rune_id: RuneId,
-    txid: Txid,
-  },
-  RuneMinted {
-    amount: u128,
-    block_height: u32,
-    rune_id: RuneId,
-    txid: Txid,
-  },
-  RuneTransferred {
-    amount: u128,
-    block_height: u32,
-    outpoint: OutPoint,
-    rune_id: RuneId,
-    txid: Txid,
-  },
 }

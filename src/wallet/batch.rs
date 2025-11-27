@@ -15,17 +15,13 @@ use {
 
 pub(crate) use transactions::Transactions;
 
-pub use {
-  entry::Entry, etching::Etching, file::File, mode::Mode, plan::Plan, range::Range, terms::Terms,
-};
+pub use {entry::Entry, file::File, mode::Mode, plan::Plan, range::Range};
 
 pub mod entry;
-mod etching;
 pub mod file;
 pub mod mode;
 pub mod plan;
 mod range;
-mod terms;
 mod transactions;
 
 #[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
@@ -37,7 +33,6 @@ pub struct Output {
   pub reveal: Txid,
   pub reveal_broadcast: bool,
   pub reveal_psbt: Option<String>,
-  pub rune: Option<RuneInfo>,
   pub total_fees: u64,
 }
 
@@ -46,13 +41,6 @@ pub struct InscriptionInfo {
   pub destination: Address<NetworkUnchecked>,
   pub id: InscriptionId,
   pub location: SatPoint,
-}
-
-#[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
-pub struct RuneInfo {
-  pub destination: Option<Address<NetworkUnchecked>>,
-  pub location: Option<OutPoint>,
-  pub rune: SpacedRune,
 }
 
 #[derive(Clone, Debug)]

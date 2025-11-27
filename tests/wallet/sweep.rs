@@ -17,7 +17,7 @@ fn sweepable_address(network: Network) -> (Address, String) {
 #[test]
 fn sweep() {
   let core = mockcore::spawn();
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses", "--index-runes"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -61,44 +61,9 @@ fn sweep() {
 }
 
 #[test]
-fn sweep_needs_rune_index() {
-  let core = mockcore::spawn();
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses"], &[]);
-
-  create_wallet(&core, &ord);
-
-  let (inscription, _) = inscribe(&core, &ord);
-
-  let (address, wif_privkey) = sweepable_address(Network::Bitcoin);
-
-  CommandBuilder::new(format!("wallet send --fee-rate 1 {address} {inscription}",))
-    .core(&core)
-    .ord(&ord)
-    .stdout_regex(r".*")
-    .run_and_deserialize_output::<Send>();
-
-  core.mine_blocks(1);
-
-  let output = CommandBuilder::new("wallet inscriptions")
-    .core(&core)
-    .ord(&ord)
-    .run_and_deserialize_output::<Inscriptions>();
-
-  assert!(output.is_empty());
-
-  CommandBuilder::new("wallet sweep --fee-rate 1 --address-type p2wpkh")
-    .stdin(wif_privkey.into())
-    .core(&core)
-    .ord(&ord)
-    .expected_exit_code(1)
-    .expected_stderr("error: sweeping private key requires index created with `--index-runes`\n")
-    .run_and_extract_stdout();
-}
-
-#[test]
 fn sweep_respects_dry_run() {
   let core = mockcore::spawn();
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses", "--index-runes"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -141,7 +106,7 @@ fn sweep_respects_dry_run() {
 #[test]
 fn sweep_only_works_with_p2wpkh() {
   let core = mockcore::spawn();
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses", "--index-runes"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -176,7 +141,7 @@ fn sweep_only_works_with_p2wpkh() {
 #[test]
 fn sweep_multiple() {
   let core = mockcore::spawn();
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses", "--index-runes"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses"], &[]);
 
   create_wallet(&core, &ord);
 
@@ -281,13 +246,12 @@ fn sweep_does_not_select_non_cardinal_utxos() {
   let core = mockcore::builder().network(Network::Regtest).build();
   let ord = TestServer::spawn_with_server_args(
     &core,
-    &["--index-addresses", "--index-runes", "--regtest"],
+    &["--index-addresses", "--regtest"],
     &[],
   );
 
   create_wallet(&core, &ord);
 
-  etch(&core, &ord, Rune(RUNE));
   inscribe(&core, &ord);
 
   let (inscription, _) = inscribe(&core, &ord);
@@ -315,52 +279,9 @@ fn sweep_does_not_select_non_cardinal_utxos() {
 }
 
 #[test]
-fn complain_if_runes_contained_in_any_of_the_inputs() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-  let ord = TestServer::spawn_with_server_args(
-    &core,
-    &["--index-addresses", "--index-runes", "--regtest"],
-    &[],
-  );
-
-  create_wallet(&core, &ord);
-
-  let rune = etch(&core, &ord, Rune(RUNE)).output.rune.unwrap().rune.rune;
-  let (inscription, _) = inscribe(&core, &ord);
-
-  let (address, wif_privkey) = sweepable_address(Network::Regtest);
-
-  CommandBuilder::new(format!(
-    "--regtest wallet send --fee-rate 1 {address} 1:{rune}"
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Send>();
-
-  core.mine_blocks(1);
-
-  CommandBuilder::new(format!(
-    "--regtest wallet send --fee-rate 1 {address} {inscription}",
-  ))
-  .core(&core)
-  .ord(&ord)
-  .run_and_deserialize_output::<Send>();
-
-  core.mine_blocks(1);
-
-  CommandBuilder::new("--regtest wallet sweep --fee-rate 1 --address-type p2wpkh")
-    .stdin(wif_privkey.into())
-    .core(&core)
-    .ord(&ord)
-    .stderr_regex(".*contains runes, sweeping runes is not supported.*")
-    .expected_exit_code(1)
-    .run_and_extract_stdout();
-}
-
-#[test]
 fn sweep_needs_utxos() {
   let core = mockcore::spawn();
-  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses", "--index-runes"], &[]);
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-addresses"], &[]);
 
   create_wallet(&core, &ord);
 

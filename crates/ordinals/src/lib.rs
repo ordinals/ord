@@ -1,4 +1,4 @@
-//! Types for interoperating with ordinals, inscriptions, and runes.
+//! Types for interoperating with ordinals and inscriptions.
 #![allow(clippy::large_enum_variant)]
 
 use {

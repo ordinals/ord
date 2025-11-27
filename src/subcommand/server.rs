@@ -10,8 +10,7 @@ use {
     InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, ItemHtml, OutputHtml,
     PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
     PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml,
-    SatscardHtml, TransactionHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RareTxt, SatHtml, SatscardHtml, TransactionHtml,
   },
   axum::{
     Router,
@@ -68,7 +67,6 @@ pub(crate) enum OutputType {
   Any,
   Cardinal,
   Inscribed,
-  Runic,
 }
 
 #[derive(Deserialize)]
@@ -248,9 +246,6 @@ impl Server {
         )
         .route("/preview/{inscription_id}", get(Self::preview))
         .route("/rare.txt", get(Self::rare_txt))
-        .route("/rune/{rune}", get(Self::rune))
-        .route("/runes", get(Self::runes))
-        .route("/runes/{page}", get(Self::runes_paginated))
         .route("/sat/{sat}", get(Self::sat))
         .route("/satpoint/{satpoint}", get(Self::satpoint))
         .route("/satscard", get(Self::satscard))
@@ -606,8 +601,6 @@ impl Server {
 
       let prefix = if re::INSCRIPTION_ID.is_match(&path) || re::INSCRIPTION_NUMBER.is_match(&path) {
         "inscription"
-      } else if re::RUNE_ID.is_match(&path) || re::SPACED_RUNE.is_match(&path) {
-        "rune"
       } else if re::OUTPOINT.is_match(&path) {
         "output"
       } else if re::SATPOINT.is_match(&path) {
@@ -661,13 +654,11 @@ impl Server {
            outputs,
            inscriptions,
            sat_balance,
-           runes_balances,
          }| AddressHtml {
           address: satscard.address.clone(),
           header: false,
           inscriptions,
           outputs,
-          runes_balances,
           sat_balance,
         },
       );
@@ -784,7 +775,6 @@ impl Server {
           inscriptions: output_info.inscriptions,
           outpoint,
           output: txout,
-          runes: output_info.runes,
           sat_ranges: output_info.sat_ranges,
           spent: output_info.spent,
         }
@@ -867,12 +857,6 @@ impl Server {
       let output_type = query.ty.unwrap_or_default();
 
       if output_type != OutputType::Any {
-        if !index.has_rune_index() {
-          return Err(ServerError::BadRequest(
-            "this server has no runes index".to_string(),
-          ));
-        }
-
         if !index.has_inscription_index() {
           return Err(ServerError::BadRequest(
             "this server has no inscriptions index".to_string(),
@@ -890,22 +874,12 @@ impl Server {
       for output in outputs.into_iter() {
         let include = match output_type {
           OutputType::Any => true,
-          OutputType::Cardinal => {
-            index
-              .get_inscriptions_on_output_with_satpoints(output)?
-              .unwrap_or_default()
-              .is_empty()
-              && index
-                .get_rune_balances_for_output(output)?
-                .unwrap_or_default()
-                .is_empty()
-          }
-          OutputType::Inscribed => !index
+          OutputType::Cardinal => index
             .get_inscriptions_on_output_with_satpoints(output)?
             .unwrap_or_default()
             .is_empty(),
-          OutputType::Runic => !index
-            .get_rune_balances_for_output(output)?
+          OutputType::Inscribed => !index
+            .get_inscriptions_on_output_with_satpoints(output)?
             .unwrap_or_default()
             .is_empty(),
         };
@@ -925,120 +899,6 @@ impl Server {
 
   async fn rare_txt(Extension(index): Extension<Arc<Index>>) -> ServerResult<RareTxt> {
     task::block_in_place(|| Ok(RareTxt(index.rare_sat_satpoints()?)))
-  }
-
-  async fn rune(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-    Path(DeserializeFromStr(rune_query)): Path<DeserializeFromStr<query::Rune>>,
-    AcceptJson(accept_json): AcceptJson,
-  ) -> ServerResult {
-    task::block_in_place(|| {
-      if !index.has_rune_index() {
-        return Err(ServerError::NotFound(
-          "this server has no rune index".to_string(),
-        ));
-      }
-
-      let rune = match rune_query {
-        query::Rune::Spaced(spaced_rune) => spaced_rune.rune,
-        query::Rune::Id(rune_id) => index
-          .get_rune_by_id(rune_id)?
-          .ok_or_not_found(|| format!("rune {rune_id}"))?,
-        query::Rune::Number(number) => index
-          .get_rune_by_number(usize::try_from(number).unwrap())?
-          .ok_or_not_found(|| format!("rune number {number}"))?,
-      };
-
-      let Some((id, entry, parent)) = index.rune(rune)? else {
-        return Ok(if accept_json {
-          StatusCode::NOT_FOUND.into_response()
-        } else {
-          let unlock = if let Some(height) = rune.unlock_height(server_config.chain.network()) {
-            Some((height, index.block_time(height)?))
-          } else {
-            None
-          };
-
-          (
-            StatusCode::NOT_FOUND,
-            RuneNotFoundHtml { rune, unlock }.page(server_config),
-          )
-            .into_response()
-        });
-      };
-
-      let block_height = index.block_height()?.unwrap_or(Height(0));
-
-      let mintable = entry.mintable((block_height.n() + 1).into()).is_ok();
-
-      Ok(if accept_json {
-        Json(api::Rune {
-          entry,
-          id,
-          mintable,
-          parent,
-        })
-        .into_response()
-      } else {
-        RuneHtml {
-          entry,
-          id,
-          mintable,
-          parent,
-        }
-        .page(server_config)
-        .into_response()
-      })
-    })
-  }
-
-  async fn runes(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-    accept_json: AcceptJson,
-  ) -> ServerResult<Response> {
-    Self::runes_paginated(
-      Extension(server_config),
-      Extension(index),
-      Path(0),
-      accept_json,
-    )
-    .await
-  }
-
-  async fn runes_paginated(
-    Extension(server_config): Extension<Arc<ServerConfig>>,
-    Extension(index): Extension<Arc<Index>>,
-    Path(page_index): Path<usize>,
-    AcceptJson(accept_json): AcceptJson,
-  ) -> ServerResult {
-    task::block_in_place(|| {
-      let (entries, more) = index.runes_paginated(50, page_index)?;
-
-      let prev = page_index.checked_sub(1);
-
-      let next = more.then_some(page_index + 1);
-
-      Ok(if accept_json {
-        Json(RunesHtml {
-          entries,
-          more,
-          prev,
-          next,
-        })
-        .into_response()
-      } else {
-        RunesHtml {
-          entries,
-          more,
-          prev,
-          next,
-        }
-        .page(server_config)
-        .into_response()
-      })
-    })
   }
 
   async fn home(
@@ -1154,7 +1014,6 @@ impl Server {
           sat_balance,
           outputs,
           inscriptions,
-          runes_balances,
         } = info;
 
         AddressHtml {
@@ -1162,7 +1021,6 @@ impl Server {
           header: true,
           inscriptions,
           outputs,
-          runes_balances,
           sat_balance,
         }
         .page(server_config)
@@ -1184,13 +1042,10 @@ impl Server {
 
     let inscriptions = index.get_inscriptions_for_outputs(&outputs)?;
 
-    let runes_balances = index.get_aggregated_rune_balances_for_outputs(&outputs)?;
-
     Ok(Some(api::AddressInfo {
       sat_balance,
       outputs,
       inscriptions,
-      runes_balances,
     }))
   }
 
@@ -1222,7 +1077,6 @@ impl Server {
         }
       };
 
-      let runes = index.get_runes_in_block(u64::from(height))?;
       Ok(if accept_json {
         let inscriptions = index.get_inscriptions_in_block(height)?;
         Json(api::Block::new(
@@ -1230,7 +1084,6 @@ impl Server {
           Height(height),
           Self::index_height(&index)?,
           inscriptions,
-          runes,
         ))
         .into_response()
       } else {
@@ -1242,7 +1095,6 @@ impl Server {
           Self::index_height(&index)?,
           total_num,
           featured_inscriptions,
-          runes,
         )
         .page(server_config)
         .into_response()
@@ -1266,7 +1118,6 @@ impl Server {
       Ok(if accept_json {
         Json(api::Transaction {
           chain: server_config.chain,
-          etching: index.get_etching(txid)?,
           inscription_count,
           transaction,
           txid,
@@ -1275,7 +1126,6 @@ impl Server {
       } else {
         TransactionHtml {
           chain: server_config.chain,
-          etching: index.get_etching(txid)?,
           inscription_count,
           transaction,
           txid,
@@ -1297,14 +1147,9 @@ impl Server {
         .ok_or_not_found(|| format!("transaction {txid}"))?;
 
       let inscriptions = ParsedEnvelope::from_transaction(&transaction);
-      let runestone = Runestone::decipher(&transaction);
 
       Ok(if accept_json {
-        Json(api::Decode {
-          inscriptions,
-          runestone,
-        })
-        .into_response()
+        Json(api::Decode { inscriptions }).into_response()
       } else {
         StatusCode::NOT_FOUND.into_response()
       })
@@ -1377,16 +1222,6 @@ impl Server {
         )))
       } else if let Some(captures) = re::ORDINALS_SATSCARD_URL.captures(query) {
         Ok(Redirect::to(&format!("/satscard?{}", &captures["query"])))
-      } else if re::SPACED_RUNE.is_match(query) {
-        Ok(Redirect::to(&format!("/rune/{query}")))
-      } else if re::RUNE_ID.is_match(query) {
-        let id = query
-          .parse::<RuneId>()
-          .map_err(|err| ServerError::BadRequest(err.to_string()))?;
-
-        let rune = index.get_rune_by_id(id)?.ok_or_not_found(|| "rune ID")?;
-
-        Ok(Redirect::to(&format!("/rune/{rune}")))
       } else if re::ADDRESS.is_match(query) {
         Ok(Redirect::to(&format!("/address/{query}")))
       } else if re::SATPOINT.is_match(query) {
@@ -1746,7 +1581,6 @@ impl Server {
           parents: info.parents,
           previous: info.previous,
           properties,
-          rune: info.rune,
           sat: info.sat,
           satpoint: info.satpoint,
           timestamp: Utc.timestamp_opt(info.timestamp, 0).unwrap(),
@@ -2069,8 +1903,6 @@ mod tests {
     tempfile::TempDir,
   };
 
-  const RUNE: u128 = 99246114928149462;
-
   #[derive(Default)]
   struct Builder {
     core: Option<mockcore::Handle>,
@@ -2246,10 +2078,6 @@ mod tests {
       self.ord_flag("--index-addresses")
     }
 
-    fn index_runes(self) -> Self {
-      self.ord_flag("--index-runes")
-    }
-
     fn index_sats(self) -> Self {
       self.ord_flag("--index-sats")
     }
@@ -2275,63 +2103,6 @@ mod tests {
 
     fn new() -> Self {
       Builder::default().build()
-    }
-
-    #[track_caller]
-    pub(crate) fn etch(
-      &self,
-      runestone: Runestone,
-      outputs: usize,
-      witness: Option<Witness>,
-    ) -> (Txid, RuneId) {
-      let block_count = usize::try_from(self.index.block_count().unwrap()).unwrap();
-
-      self.mine_blocks(1);
-
-      self.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(block_count, 0, 0, Default::default())],
-        p2tr: true,
-        ..default()
-      });
-
-      self.mine_blocks((Runestone::COMMIT_CONFIRMATIONS - 1).into());
-
-      let witness = witness.unwrap_or_else(|| {
-        let tapscript = script::Builder::new()
-          .push_slice::<&PushBytes>(
-            runestone
-              .etching
-              .unwrap()
-              .rune
-              .unwrap()
-              .commitment()
-              .as_slice()
-              .try_into()
-              .unwrap(),
-          )
-          .into_script();
-        let mut witness = Witness::default();
-        witness.push(tapscript);
-        witness.push([]);
-        witness
-      });
-
-      let txid = self.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(block_count + 1, 1, 0, witness)],
-        op_return: Some(runestone.encipher()),
-        outputs,
-        ..default()
-      });
-
-      self.mine_blocks(1);
-
-      (
-        txid,
-        RuneId {
-          block: (self.index.block_count().unwrap() - 1).into(),
-          tx: 1,
-        },
-      )
     }
 
     #[track_caller]
@@ -2707,16 +2478,6 @@ mod tests {
   }
 
   #[test]
-  fn search_by_query_returns_rune() {
-    TestServer::new().assert_redirect("/search?query=ABCD", "/rune/ABCD");
-  }
-
-  #[test]
-  fn search_by_query_returns_spaced_rune() {
-    TestServer::new().assert_redirect("/search?query=AB•CD", "/rune/AB•CD");
-  }
-
-  #[test]
   fn search_by_query_returns_satscard() {
     TestServer::new().assert_redirect(
       "/search?query=https://satscard.com/start%23foo",
@@ -2784,58 +2545,6 @@ mod tests {
     TestServer::new().assert_redirect(
       "/search/0000000000000000000000000000000000000000000000000000000000000000i0",
       "/inscription/0000000000000000000000000000000000000000000000000000000000000000i0",
-    );
-  }
-
-  #[test]
-  fn search_by_path_returns_rune() {
-    TestServer::new().assert_redirect("/search/ABCD", "/rune/ABCD");
-  }
-
-  #[test]
-  fn search_by_path_returns_spaced_rune() {
-    TestServer::new().assert_redirect("/search/AB•CD", "/rune/AB•CD");
-  }
-
-  #[test]
-  fn search_by_rune_id_returns_rune() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    let rune = Rune(RUNE);
-
-    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
-
-    server.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(rune),
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-      None,
-    );
-
-    server.mine_blocks(1);
-
-    server.assert_redirect("/search/8:1", "/rune/AAAAAAAAAAAAA");
-    server.assert_redirect("/search?query=8:1", "/rune/AAAAAAAAAAAAA");
-
-    server.assert_response_regex(
-      "/search/100000000000000000000:200000000000000000",
-      StatusCode::BAD_REQUEST,
-      ".*",
     );
   }
 
@@ -2924,10 +2633,6 @@ mod tests {
       "/inscription/521f8eccffa4c41a3a7728dd012ea5a4a02feed81f41159231251ecf1e5c79dai0",
     );
     server.assert_redirect("/-1", "/inscription/-1");
-    server.assert_redirect("/FOO", "/rune/FOO");
-    server.assert_redirect("/FO.O", "/rune/FO.O");
-    server.assert_redirect("/FO•O", "/rune/FO•O");
-    server.assert_redirect("/0:0", "/rune/0:0");
     server.assert_redirect(
       "/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
       "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
@@ -2971,627 +2676,6 @@ mod tests {
       "/%C3%28",
       StatusCode::BAD_REQUEST,
       "invalid utf-8 sequence of 1 bytes from index 0",
-    );
-  }
-
-  #[test]
-  fn runes_can_be_queried_by_rune_id() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    let rune = Rune(RUNE);
-
-    server.assert_response_regex("/rune/9:1", StatusCode::NOT_FOUND, ".*");
-
-    server.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(rune),
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-      None,
-    );
-
-    server.mine_blocks(1);
-
-    server.assert_response_regex(
-      "/rune/8:1",
-      StatusCode::OK,
-      ".*<title>Rune AAAAAAAAAAAAA</title>.*",
-    );
-  }
-
-  #[test]
-  fn runes_can_be_queried_by_rune_number() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    server.assert_response_regex("/rune/0", StatusCode::NOT_FOUND, ".*");
-
-    for i in 0..10 {
-      let rune = Rune(RUNE + i);
-      server.etch(
-        Runestone {
-          edicts: vec![Edict {
-            id: RuneId::default(),
-            amount: u128::MAX,
-            output: 0,
-          }],
-          etching: Some(Etching {
-            rune: Some(rune),
-            ..default()
-          }),
-          ..default()
-        },
-        1,
-        None,
-      );
-
-      server.mine_blocks(1);
-    }
-
-    server.assert_response_regex(
-      "/rune/0",
-      StatusCode::OK,
-      ".*<title>Rune AAAAAAAAAAAAA</title>.*",
-    );
-
-    for i in 1..6 {
-      server.assert_response_regex(
-        format!("/rune/{i}"),
-        StatusCode::OK,
-        ".*<title>Rune AAAAAAAAAAAA.*</title>.*",
-      );
-    }
-
-    server.assert_response_regex(
-      "/rune/9",
-      StatusCode::OK,
-      ".*<title>Rune AAAAAAAAAAAAJ</title>.*",
-    );
-  }
-
-  #[test]
-  fn rune_not_etched_shows_unlock_height() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    server.assert_html_status(
-      "/rune/A",
-      StatusCode::NOT_FOUND,
-      RuneNotFoundHtml {
-        rune: Rune(0),
-        unlock: Some((
-          Height(209999),
-          Blocktime::Expected(DateTime::from_timestamp(125998800, 0).unwrap()),
-        )),
-      },
-    );
-  }
-
-  #[test]
-  fn reserved_rune_not_etched_shows_reserved_status() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    server.assert_html_status(
-      format!("/rune/{}", Rune(Rune::RESERVED)),
-      StatusCode::NOT_FOUND,
-      RuneNotFoundHtml {
-        rune: Rune(Rune::RESERVED),
-        unlock: None,
-      },
-    );
-  }
-
-  #[test]
-  fn runes_are_displayed_on_runes_page() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    server.assert_html(
-      "/runes",
-      RunesHtml {
-        entries: Vec::new(),
-        more: false,
-        prev: None,
-        next: None,
-      },
-    );
-
-    let (txid, id) = server.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(Rune(RUNE)),
-          symbol: Some('%'),
-          premine: Some(u128::MAX),
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-      Default::default(),
-    );
-
-    pretty_assert_eq!(
-      server.index.runes().unwrap(),
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          etching: txid,
-          spaced_rune: SpacedRune {
-            rune: Rune(RUNE),
-            spacers: 0
-          },
-          premine: u128::MAX,
-          timestamp: id.block,
-          symbol: Some('%'),
-          ..default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      server.index.get_rune_balances().unwrap(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])]
-    );
-
-    server.assert_html(
-      "/runes",
-      RunesHtml {
-        entries: vec![(
-          RuneId::default(),
-          RuneEntry {
-            spaced_rune: SpacedRune {
-              rune: Rune(RUNE),
-              spacers: 0,
-            },
-            ..default()
-          },
-        )],
-        more: false,
-        prev: None,
-        next: None,
-      },
-    );
-  }
-
-  #[test]
-  fn runes_are_displayed_on_rune_page() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    let rune = Rune(RUNE);
-
-    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
-
-    let (txid, id) = server.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(rune),
-          symbol: Some('%'),
-          premine: Some(u128::MAX),
-          turbo: true,
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-      Some(
-        Inscription {
-          content_type: Some("text/plain".into()),
-          body: Some("hello".into()),
-          rune: Some(rune.commitment()),
-          ..default()
-        }
-        .to_witness(),
-      ),
-    );
-
-    let entry = RuneEntry {
-      block: id.block,
-      etching: txid,
-      spaced_rune: SpacedRune { rune, spacers: 0 },
-      premine: u128::MAX,
-      symbol: Some('%'),
-      timestamp: id.block,
-      turbo: true,
-      ..default()
-    };
-
-    assert_eq!(server.index.runes().unwrap(), [(id, entry)]);
-
-    assert_eq!(
-      server.index.get_rune_balances().unwrap(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])]
-    );
-
-    let parent = InscriptionId { txid, index: 0 };
-
-    server.assert_html(
-      format!("/rune/{rune}"),
-      RuneHtml {
-        id,
-        entry,
-        mintable: false,
-        parent: Some(parent),
-      },
-    );
-
-    server.assert_response_regex(
-      format!("/inscription/{parent}"),
-      StatusCode::OK,
-      ".*
-<dl>
-  <dt>rune</dt>
-  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
-  .*
-</dl>
-.*",
-    );
-  }
-
-  #[test]
-  fn etched_runes_are_displayed_on_block_page() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    let rune0 = Rune(RUNE);
-
-    let (_txid, id) = server.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(rune0),
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-      None,
-    );
-
-    assert_eq!(
-      server.index.get_runes_in_block(id.block - 1).unwrap().len(),
-      0
-    );
-    assert_eq!(server.index.get_runes_in_block(id.block).unwrap().len(), 1);
-    assert_eq!(
-      server.index.get_runes_in_block(id.block + 1).unwrap().len(),
-      0
-    );
-
-    server.assert_response_regex(
-      format!("/block/{}", id.block),
-      StatusCode::OK,
-      format!(".*<h2>1 Rune</h2>.*<li><a href=/rune/{rune0}>{rune0}</a></li>.*"),
-    );
-  }
-
-  #[test]
-  fn runes_are_spaced() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    let rune = Rune(RUNE);
-
-    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
-
-    let (txid, id) = server.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(rune),
-          symbol: Some('%'),
-          spacers: Some(1),
-          premine: Some(u128::MAX),
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-      Some(
-        Inscription {
-          content_type: Some("text/plain".into()),
-          body: Some("hello".into()),
-          rune: Some(rune.commitment()),
-          ..default()
-        }
-        .to_witness(),
-      ),
-    );
-
-    pretty_assert_eq!(
-      server.index.runes().unwrap(),
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          etching: txid,
-          spaced_rune: SpacedRune { rune, spacers: 1 },
-          premine: u128::MAX,
-          symbol: Some('%'),
-          timestamp: id.block,
-          ..default()
-        }
-      )]
-    );
-
-    assert_eq!(
-      server.index.get_rune_balances().unwrap(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])]
-    );
-
-    server.assert_response_regex(
-      format!("/rune/{rune}"),
-      StatusCode::OK,
-      r".*<title>Rune A•AAAAAAAAAAAA</title>.*<h1>A•AAAAAAAAAAAA</h1>.*",
-    );
-
-    server.assert_response_regex(
-      format!("/inscription/{txid}i0"),
-      StatusCode::OK,
-      ".*<dt>rune</dt>.*<dd><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></dd>.*",
-    );
-
-    server.assert_response_regex(
-      "/runes",
-      StatusCode::OK,
-      ".*<li><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></li>.*",
-    );
-
-    server.assert_response_regex(
-      format!("/tx/{txid}"),
-      StatusCode::OK,
-      ".*
-  <dt>etching</dt>
-  <dd><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></dd>
-.*",
-    );
-
-    server.assert_response_regex(
-      format!("/output/{txid}:0"),
-      StatusCode::OK,
-      ".*<tr>
-        <td><a href=/rune/A•AAAAAAAAAAAA>A•AAAAAAAAAAAA</a></td>
-        <td>340282366920938463463374607431768211455\u{A0}%</td>
-      </tr>.*",
-    );
-  }
-
-  #[test]
-  fn transactions_link_to_etching() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    server.assert_response_regex(
-      "/runes",
-      StatusCode::OK,
-      ".*<title>Runes</title>.*<h1>Runes</h1>\n<ul>\n</ul>.*",
-    );
-
-    let (txid, id) = server.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(Rune(RUNE)),
-          premine: Some(u128::MAX),
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-      None,
-    );
-
-    pretty_assert_eq!(
-      server.index.runes().unwrap(),
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          etching: txid,
-          spaced_rune: SpacedRune {
-            rune: Rune(RUNE),
-            spacers: 0
-          },
-          premine: u128::MAX,
-          timestamp: id.block,
-          ..default()
-        }
-      )]
-    );
-
-    pretty_assert_eq!(
-      server.index.get_rune_balances().unwrap(),
-      [(OutPoint { txid, vout: 0 }, vec![(id, u128::MAX)])]
-    );
-
-    server.assert_response_regex(
-      format!("/tx/{txid}"),
-      StatusCode::OK,
-      ".*
-  <dt>etching</dt>
-  <dd><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></dd>
-.*",
-    );
-  }
-
-  #[test]
-  fn runes_are_displayed_on_output_page() {
-    let server = TestServer::builder()
-      .chain(Chain::Regtest)
-      .index_runes()
-      .build();
-
-    server.mine_blocks(1);
-
-    let rune = Rune(RUNE);
-
-    server.assert_response_regex(format!("/rune/{rune}"), StatusCode::NOT_FOUND, ".*");
-
-    let (txid, id) = server.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          divisibility: Some(1),
-          rune: Some(rune),
-          premine: Some(u128::MAX),
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-      None,
-    );
-
-    pretty_assert_eq!(
-      server.index.runes().unwrap(),
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          divisibility: 1,
-          etching: txid,
-          spaced_rune: SpacedRune { rune, spacers: 0 },
-          premine: u128::MAX,
-          timestamp: id.block,
-          ..default()
-        }
-      )]
-    );
-
-    let output = OutPoint { txid, vout: 0 };
-
-    assert_eq!(
-      server.index.get_rune_balances().unwrap(),
-      [(output, vec![(id, u128::MAX)])]
-    );
-
-    server.assert_response_regex(
-      format!("/output/{output}"),
-      StatusCode::OK,
-      format!(
-        ".*<title>Output {output}</title>.*<h1>Output <span class=monospace>{output}</span></h1>.*
-  <dt>runes</dt>
-  <dd>
-    <table>
-      <tr>
-        <th>rune</th>
-        <th>balance</th>
-      </tr>
-      <tr>
-        <td><a href=/rune/AAAAAAAAAAAAA>AAAAAAAAAAAAA</a></td>
-        <td>34028236692093846346337460743176821145.5\u{A0}¤</td>
-      </tr>
-    </table>
-  </dd>
-.*"
-      ),
-    );
-
-    let address = default_address(Chain::Regtest);
-
-    pretty_assert_eq!(
-      server.get_json::<api::Output>(format!("/output/{output}")),
-      api::Output {
-        value: 5000000000,
-        script_pubkey: address.script_pubkey(),
-        address: Some(uncheck(&address)),
-        confirmations: 1,
-        transaction: txid,
-        sat_ranges: None,
-        indexed: true,
-        inscriptions: Some(Vec::new()),
-        outpoint: output,
-        runes: Some(
-          vec![(
-            SpacedRune {
-              rune: Rune(RUNE),
-              spacers: 0
-            },
-            Pile {
-              amount: 340282366920938463463374607431768211455,
-              divisibility: 1,
-              symbol: None,
-            }
-          )]
-          .into_iter()
-          .collect()
-        ),
-        spent: false,
-      }
     );
   }
 
@@ -3674,15 +2758,11 @@ mod tests {
   <dd>3</dd>
   <dt>cursed inscriptions</dt>
   <dd>0</dd>
-  <dt>runes</dt>
-  <dd><a href=/runes>0</a></dd>
   <dt>lost sats</dt>
   <dd>.*</dd>
   <dt>started</dt>
   <dd>.*</dd>
   <dt>uptime</dt>
-  <dd>.*</dd>
-  <dt>minimum rune for next block</dt>
   <dd>.*</dd>
   <dt>version</dt>
   <dd>.*</dd>
@@ -3692,8 +2772,6 @@ mod tests {
   <dd>false</dd>
   <dt>inscription index</dt>
   <dd>true</dd>
-  <dt>rune index</dt>
-  <dd>false</dd>
   <dt>sat index</dt>
   <dd>false</dd>
   <dt>transaction index</dt>
@@ -6261,57 +5339,7 @@ next
     let server = TestServer::builder()
       .chain(Chain::Regtest)
       .index_sats()
-      .index_runes()
       .build();
-
-    let rune = Rune(RUNE);
-
-    let (txid, id) = server.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          divisibility: Some(1),
-          rune: Some(rune),
-          premine: Some(u128::MAX),
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-      None,
-    );
-
-    pretty_assert_eq!(
-      server.index.runes().unwrap(),
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          divisibility: 1,
-          etching: txid,
-          spaced_rune: SpacedRune { rune, spacers: 0 },
-          premine: u128::MAX,
-          timestamp: id.block,
-          ..default()
-        }
-      )]
-    );
-
-    server.mine_blocks(1);
-
-    // merge rune with two inscriptions
-    let txid = server.core.broadcast_tx(TransactionTemplate {
-      inputs: &[
-        (6, 0, 0, inscription("text/plain", "foo").to_witness()),
-        (7, 0, 0, inscription("text/plain", "bar").to_witness()),
-        (7, 1, 0, Witness::new()),
-      ],
-      ..default()
-    });
 
     server.mine_blocks(1);
 
@@ -6325,18 +5353,6 @@ next
       utxo_recursive,
       api::UtxoRecursive {
         inscriptions: Some(vec![inscription_id, second_inscription_id]),
-        runes: Some(
-          [(
-            SpacedRune { rune, spacers: 0 },
-            Pile {
-              amount: u128::MAX,
-              divisibility: 1,
-              symbol: None
-            }
-          )]
-          .into_iter()
-          .collect()
-        ),
         sat_ranges: Some(vec![
           (6 * 50 * COIN_VALUE, 7 * 50 * COIN_VALUE),
           (7 * 50 * COIN_VALUE, 8 * 50 * COIN_VALUE),
@@ -6369,7 +5385,6 @@ next
       utxo_recursive,
       api::UtxoRecursive {
         inscriptions: Some(vec![inscription_id]),
-        runes: None,
         sat_ranges: None,
         value: 50 * COIN_VALUE,
       }
@@ -7935,7 +6950,6 @@ next
               header: false,
               inscriptions: Some(Vec::new()),
               outputs: Vec::new(),
-              runes_balances: None,
               sat_balance: 0,
             }),
           )),
@@ -7959,7 +6973,6 @@ next
               header: false,
               inscriptions: Some(Vec::new()),
               outputs: Vec::new(),
-              runes_balances: None,
               sat_balance: 0,
             }),
           )),

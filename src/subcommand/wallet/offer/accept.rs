@@ -46,13 +46,6 @@ impl Accept {
       bail!("PSBT contains no inputs owned by wallet");
     };
 
-    if let Some(runes) = wallet.get_runes_balances_in_output(&outgoing)? {
-      ensure! {
-        runes.is_empty(),
-        "outgoing input {} contains runes", outgoing,
-      }
-    }
-
     let Some(inscriptions) = wallet.get_inscriptions_in_output(&outgoing)? else {
       bail! {
         "index must have inscription index to accept PSBT",

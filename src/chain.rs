@@ -53,10 +53,6 @@ impl Chain {
     }
   }
 
-  pub(crate) fn first_rune_height(self) -> u32 {
-    Rune::first_rune_height(self.into())
-  }
-
   pub(crate) fn jubilee_height(self) -> u32 {
     match self {
       Self::Mainnet => 824544,

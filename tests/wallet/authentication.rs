@@ -31,8 +31,6 @@ fn authentication() {
     Output {
       cardinal: 50 * COIN_VALUE,
       ordinal: 0,
-      runic: None,
-      runes: None,
       total: 50 * COIN_VALUE,
     }
   );

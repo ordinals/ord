@@ -13,7 +13,6 @@ pub(crate) enum Tag {
   Metaprotocol = 7,
   ContentEncoding = 9,
   Delegate = 11,
-  Rune = 13,
   #[allow(unused)]
   Note = 15,
   Properties = 17,

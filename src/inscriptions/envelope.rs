@@ -55,7 +55,6 @@ impl From<RawEnvelope> for ParsedEnvelope {
     let parents = Tag::Parent.take_array(&mut fields);
     let pointer = Tag::Pointer.take(&mut fields);
     let properties = Tag::Properties.take(&mut fields);
-    let rune = Tag::Rune.take(&mut fields);
 
     let unrecognized_even_field = fields
       .keys()
@@ -80,7 +79,6 @@ impl From<RawEnvelope> for ParsedEnvelope {
         parents,
         pointer,
         properties,
-        rune,
         unrecognized_even_field,
       },
       input: envelope.input,

@@ -70,8 +70,6 @@ impl Create {
       ],
     };
 
-    wallet.lock_non_cardinal_outputs()?;
-
     let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &tx, None)?;
 
     let tx = consensus::encode::deserialize::<Transaction>(&tx)?;

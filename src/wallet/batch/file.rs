@@ -13,7 +13,6 @@ pub struct File {
   pub sat: Option<Sat>,
   pub satpoint: Option<SatPoint>,
   pub inscriptions: Vec<batch::Entry>,
-  pub etching: Option<batch::Etching>,
 }
 
 impl File {
@@ -167,9 +166,6 @@ impl File {
             .collect(),
           attributes: entry.attributes.clone(),
         },
-        self
-          .etching
-          .and_then(|etch| (i == 0).then_some(etch.rune.rune)),
       )?);
 
       let postage = if self.mode == Mode::SatPoints {
@@ -402,26 +398,6 @@ inscriptions:
         reinscribe: true,
         sat: None,
         satpoint: None,
-        etching: Some(Etching {
-          rune: "THE•BEST•RUNE".parse().unwrap(),
-          divisibility: 2,
-          premine: "1000.00".parse().unwrap(),
-          supply: "10000.00".parse().unwrap(),
-          symbol: '$',
-          terms: Some(batch::Terms {
-            amount: "100.00".parse().unwrap(),
-            cap: 90,
-            height: Some(batch::Range {
-              start: Some(840000),
-              end: Some(850000),
-            }),
-            offset: Some(batch::Range {
-              start: Some(1000),
-              end: Some(9000),
-            }),
-          }),
-          turbo: true,
-        }),
         inscriptions: vec![
           batch::Entry {
             file: Some("mango.avif".into()),

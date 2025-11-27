@@ -80,7 +80,6 @@ mod tests {
       reveal: txid,
       reveal_broadcast: true,
       reveal_psbt: None,
-      rune: None,
       total_fees: 0,
     };
 

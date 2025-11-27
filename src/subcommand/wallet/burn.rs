@@ -94,23 +94,6 @@ impl Burn {
           burn_amount,
         )
       }
-      Outgoing::Rune { decimal, rune } => {
-        ensure!(
-          self.cbor_metadata.is_none() && self.json_metadata.is_none(),
-          "metadata not supported when burning runes"
-        );
-
-        (
-          wallet.create_unsigned_send_or_burn_runes_transaction(
-            None,
-            rune,
-            decimal,
-            None,
-            self.fee_rate,
-          )?,
-          Amount::ZERO,
-        )
-      }
       Outgoing::Amount(_) => bail!("burning bitcoin not supported"),
       Outgoing::Sat(_) => bail!("burning sat not supported"),
       Outgoing::SatPoint(_) => bail!("burning satpoint not supported"),
@@ -144,13 +127,6 @@ impl Burn {
     script_pubkey: ScriptBuf,
     burn_amount: Amount,
   ) -> Result<Transaction> {
-    let runic_outputs = wallet.get_runic_outputs()?.unwrap_or_default();
-
-    ensure!(
-      !runic_outputs.contains(&satpoint.outpoint),
-      "runic outpoints may not be burned"
-    );
-
     let change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
     Ok(
@@ -159,7 +135,6 @@ impl Burn {
         wallet.inscriptions().clone(),
         wallet.utxos().clone(),
         wallet.locked_utxos().clone().into_keys().collect(),
-        runic_outputs,
         script_pubkey,
         change,
         fee_rate,
