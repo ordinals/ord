@@ -53,6 +53,7 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) home_inscriptions: &'a mut Table<'db, 'tx, u32, InscriptionIdValue>,
   pub(super) id_to_sequence_number: &'a mut Table<'db, 'tx, InscriptionIdValue, u32>,
   pub(super) index_transactions: bool,
+  pub(super) inscription_id_to_metaprotocol: &'a mut Table<'db, 'tx, InscriptionIdValue, &'static [u8]>,
   pub(super) inscription_number_to_sequence_number: &'a mut Table<'db, 'tx, i32, u32>,
   pub(super) lost_sats: u64,
   pub(super) next_sequence_number: u32,
@@ -432,7 +433,7 @@ impl InscriptionUpdater<'_, '_, '_> {
           self.block_hash,
         )
         .with_transfer(old_satpoint, index)
-        .publish()?;
+        .publish(Some(index))?;
 
         self
           .satpoint_to_sequence_number
@@ -594,6 +595,32 @@ impl InscriptionUpdater<'_, '_, '_> {
             self.home_inscription_count += 1;
           }
         }
+
+        // Parse and store metaprotocol if inscription has one (e.g., BRC20)
+        // Parse once and reuse to avoid parsing again in enrich_content
+        let parsed_brc20 = if let Some(body) = inscription.body() {
+          use crate::index::updater::inscription_updater::stream::StreamEvent;
+          let content_type = inscription
+            .content_type()
+            .map(|ct| ct.to_string());
+          if StreamEvent::is_text_related(inscription.media(), content_type) {
+            if let Ok(brc20) = serde_json::from_slice::<stream::BRC20>(body) {
+              // Store the protocol string (e.g., "brc-20") for future filtering
+              self.inscription_id_to_metaprotocol.insert(
+                &inscription_id.store(),
+                brc20.p.as_bytes(),
+              )?;
+              Some(brc20)
+            } else {
+              None
+            }
+          } else {
+            None
+          }
+        } else {
+          None
+        };
+
         StreamEvent::new(
           tx,
           tx_block_index,
@@ -615,8 +642,9 @@ impl InscriptionUpdater<'_, '_, '_> {
           inscription,
           parent,
           charms,
+          parsed_brc20,
         )
-        .publish()?;
+        .publish(Some(index))?;
 
         (unbound, sequence_number)
       }

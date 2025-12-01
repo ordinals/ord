@@ -54,7 +54,7 @@ impl StreamClient {
 
 #[derive(Serialize, Deserialize)]
 pub struct BRC20 {
-  p: String,
+  pub p: String,
   op: String,
   tick: String,
   max: Option<String>,
@@ -243,7 +243,7 @@ impl StreamEvent {
     Network::from_str(&env::var("NETWORK").unwrap_or("bitcoin".to_owned())).unwrap()
   }
 
-  fn is_text_related(media: Media, content_type: Option<String>) -> bool {
+  pub(crate) fn is_text_related(media: Media, content_type: Option<String>) -> bool {
     if content_type
       .map(|ct| ct.starts_with("text/"))
       .unwrap_or(false)
@@ -267,7 +267,7 @@ impl StreamEvent {
     }
   }
 
-  fn enrich_content(&mut self, inscription: Inscription) -> &mut Self {
+  fn enrich_content(&mut self, inscription: Inscription, cached_brc20: Option<BRC20>) -> &mut Self {
     self.metaprotocol = inscription.metaprotocol().map(|mp| mp.to_owned());
     self.metadata = inscription.metadata();
     self.pointer = inscription.pointer();
@@ -287,7 +287,8 @@ impl StreamEvent {
         if Self::is_text_related(inscription.media(), self.content_type.clone())
           && body.len() < kafka_body_max_bytes
         {
-          self.brc20 = serde_json::from_slice(body).unwrap_or(None);
+          // Use cached BRC20 if available, otherwise parse
+          self.brc20 = cached_brc20.or_else(|| serde_json::from_slice(body).unwrap_or(None));
           self.domain = Domain::parse(body);
           Some(general_purpose::STANDARD.encode(body))
         } else {
@@ -327,21 +328,7 @@ impl StreamEvent {
         old_owner
       });
 
-    // Temporarily revert it due to enrichment performance issue.
-    // Track brc-20 inscription into a new REDB table, and stop populating their stream events.
-    if *IS_BRC20 {
-      match index
-        .get_inscription_by_id_unsafe(self.inscription_id)
-        .unwrap_or(None)
-      {
-        Some(inscription) => {
-          self.enrich_content(inscription);
-        }
-        None => {
-          warn!("could not find inscription for id {}", self.inscription_id);
-        }
-      }
-    }
+    // No need to enrich content for transfers - we'll check BRC20 flag in publish()
     self
   }
 
@@ -352,8 +339,9 @@ impl StreamEvent {
     inscription: Inscription,
     parent: Option<InscriptionId>,
     charms: u16,
+    cached_brc20: Option<BRC20>,
   ) -> &mut Self {
-    self.enrich_content(inscription);
+    self.enrich_content(inscription, cached_brc20);
     self.sat = sat;
     self.inscription_number = Some(inscription_number);
     self.parent = parent;
@@ -379,20 +367,26 @@ impl StreamEvent {
     self
   }
 
-  pub fn publish(&mut self) -> Result {
+  pub fn publish(&mut self, index: Option<&Index>) -> Result {
     if env::var("KAFKA_TOPIC").is_err() {
       return Ok(());
     }
 
-    // DO NOT send brc20 transfer events
-    if self.old_owner.is_some()
-      && self
+    // DO NOT send brc20 transfer events - check cache flag for fast filtering
+    if self.old_owner.is_some() {
+      if let Some(index) = index {
+        if index.is_brc20(self.inscription_id).unwrap_or(false) {
+          return Ok(());
+        }
+      } else if self
         .brc20
         .as_ref()
         .map(|brc| brc.p == "brc-20")
         .unwrap_or(false)
-    {
-      return Ok(());
+      {
+        // Fallback to parsing if index not available
+        return Ok(());
+      }
     }
 
     let key = self.key();

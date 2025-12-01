@@ -84,6 +84,7 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
+define_table! { INSCRIPTION_ID_TO_METAPROTOCOL, InscriptionIdValue, &[u8] }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
@@ -340,6 +341,7 @@ impl Index {
         tx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
         tx.open_table(TRANSACTION_ID_TO_RUNE)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
+        tx.open_table(INSCRIPTION_ID_TO_METAPROTOCOL)?;
 
         {
           let mut outpoint_to_sat_ranges = tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
@@ -1302,21 +1304,6 @@ impl Index {
     Ok(satpoint)
   }
 
-  pub(crate) fn get_inscription_by_id_unsafe(
-    &self,
-    inscription_id: InscriptionId,
-  ) -> Result<Option<Inscription>> {
-    let tx = self
-      .get_transaction(inscription_id.txid)
-      .unwrap_or(self.get_transaction(inscription_id.txid)?);
-    Ok(tx.and_then(|tx| {
-      ParsedEnvelope::from_transaction(&tx)
-        .into_iter()
-        .nth(inscription_id.index as usize)
-        .map(|envelope| envelope.payload)
-    }))
-  }
-
   pub(crate) fn get_inscription_by_id(
     &self,
     inscription_id: InscriptionId,
@@ -1891,6 +1878,25 @@ impl Index {
       .map(|value| InscriptionEntry::load(value.value()));
 
     Ok(entry)
+  }
+
+  pub(crate) fn get_metaprotocol(&self, inscription_id: InscriptionId) -> Result<Option<String>> {
+    let rtx = self.database.begin_read()?;
+    let metaprotocol_table = rtx.open_table(INSCRIPTION_ID_TO_METAPROTOCOL)?;
+    
+    if let Some(guard) = metaprotocol_table.get(&inscription_id.store())? {
+      if let Ok(s) = std::str::from_utf8(guard.value()) {
+        return Ok(Some(s.to_string()));
+      }
+    }
+    Ok(None)
+  }
+
+  pub(crate) fn is_brc20(&self, inscription_id: InscriptionId) -> Result<bool> {
+    Ok(self
+      .get_metaprotocol(inscription_id)?
+      .map(|p| p == "brc-20")
+      .unwrap_or(false))
   }
 
   #[cfg(test)]
