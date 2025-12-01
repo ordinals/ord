@@ -477,6 +477,7 @@ impl Updater<'_> {
       }
       let mut tx_block_index = 0;
       for (tx_offset, (tx, txid)) in block.txdata.iter().enumerate().skip(1) {
+        let tx_start = Instant::now();
         log::trace!("Indexing transaction {tx_offset}…");
 
         let mut input_sat_ranges = VecDeque::new();
@@ -521,11 +522,20 @@ impl Updater<'_> {
           self.index,
         )?;
 
+        let tx_duration = tx_start.elapsed();
+        log::info!(
+          "Transaction {} (txid: {}) processed in {:?}",
+          tx_offset,
+          txid,
+          tx_duration
+        );
+
         tx_block_index += 1;
         coinbase_inputs.extend(input_sat_ranges);
       }
 
       if let Some((tx, txid)) = block.txdata.first() {
+        let tx_start = Instant::now();
         self.index_transaction_sats(
           tx,
           *txid,
@@ -538,6 +548,12 @@ impl Updater<'_> {
           index_inscriptions,
           self.index,
         )?;
+        let tx_duration = tx_start.elapsed();
+        log::info!(
+          "Coinbase transaction (txid: {}) processed in {:?}",
+          txid,
+          tx_duration
+        );
       }
 
       if !coinbase_inputs.is_empty() {
@@ -573,7 +589,15 @@ impl Updater<'_> {
         .chain(block.txdata.first())
         .enumerate()
       {
+        let tx_start = Instant::now();
         inscription_updater.index_inscriptions(tx, *txid, tx_block_index, None, self.index)?;
+        let tx_duration = tx_start.elapsed();
+        log::info!(
+          "Transaction {} (txid: {}) processed in {:?}",
+          tx_block_index,
+          txid,
+          tx_duration
+        );
       }
     }
 
