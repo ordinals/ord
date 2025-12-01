@@ -327,20 +327,21 @@ impl StreamEvent {
         old_owner
       });
 
-    // Only enrich the inscription if it is a BRC20 transfer
-    // if *IS_BRC20 {
-    match index
-      .get_inscription_by_id_unsafe(self.inscription_id)
-      .unwrap_or(None)
-    {
-      Some(inscription) => {
-        self.enrich_content(inscription);
-      }
-      None => {
-        warn!("could not find inscription for id {}", self.inscription_id);
+    // Temporarily revert it due to enrichment performance issue.
+    // Track brc-20 inscription into a new REDB table, and stop populating their stream events.
+    if *IS_BRC20 {
+      match index
+        .get_inscription_by_id_unsafe(self.inscription_id)
+        .unwrap_or(None)
+      {
+        Some(inscription) => {
+          self.enrich_content(inscription);
+        }
+        None => {
+          warn!("could not find inscription for id {}", self.inscription_id);
+        }
       }
     }
-    // }
     self
   }
 
@@ -378,7 +379,7 @@ impl StreamEvent {
     self
   }
 
-  pub fn publish(&mut self, _transfer_count: u32) -> Result {
+  pub fn publish(&mut self) -> Result {
     if env::var("KAFKA_TOPIC").is_err() {
       return Ok(());
     }

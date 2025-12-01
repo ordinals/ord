@@ -197,7 +197,7 @@ impl Handle {
     format!("http://127.0.0.1:{}", self.port)
   }
 
-  fn state(&self) -> MutexGuard<State> {
+  fn state(&self) -> MutexGuard<'_, State> {
     self.state.lock().unwrap()
   }
 

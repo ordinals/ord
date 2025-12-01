@@ -72,7 +72,6 @@ pub(super) struct InscriptionUpdater<'a, 'db, 'tx> {
   pub(super) value_cache: &'a mut HashMap<OutPoint, u64>,
   pub(super) value_receiver: &'a mut Receiver<u64>,
   pub(super) block_hash: BlockHash,
-  pub(super) inscription_transfer_count: &'a mut Table<'db, 'tx, InscriptionIdValue, u32>,
 }
 
 impl InscriptionUpdater<'_, '_, '_> {
@@ -423,16 +422,6 @@ impl InscriptionUpdater<'_, '_, '_> {
     let inscription_id = flotsam.inscription_id;
     let (unbound, sequence_number) = match flotsam.origin {
       Origin::Old { old_satpoint } => {
-        // get transfer count to filter out BRC20 transfers
-        let transfer_count: u32 = self
-          .inscription_transfer_count
-          .get(&inscription_id.store())?
-          .map(|access_guard| access_guard.value())
-          .unwrap_or(0);
-        // increase transfer count and store to REDB
-        self
-          .inscription_transfer_count
-          .insert(&inscription_id.store(), transfer_count + 1)?;
         StreamEvent::new(
           tx,
           tx_block_index,
@@ -443,7 +432,7 @@ impl InscriptionUpdater<'_, '_, '_> {
           self.block_hash,
         )
         .with_transfer(old_satpoint, index)
-        .publish(transfer_count)?;
+        .publish()?;
 
         self
           .satpoint_to_sequence_number
@@ -627,7 +616,7 @@ impl InscriptionUpdater<'_, '_, '_> {
           parent,
           charms,
         )
-        .publish(0)?;
+        .publish()?;
 
         (unbound, sequence_number)
       }

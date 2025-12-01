@@ -84,9 +84,6 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
-// store how many times an inscription has been transferred, it is used to filter out kafka events of BRC-20 transfer inscriptions.
-// Note: instead of re-indexing to have an accurate count, we can start to count any time cuz it is only for optimzing purpose.
-define_table! { INSCRIPTION_TRANSFER_COUNT, InscriptionIdValue, u32 }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
@@ -343,7 +340,6 @@ impl Index {
         tx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
         tx.open_table(TRANSACTION_ID_TO_RUNE)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
-        tx.open_table(INSCRIPTION_TRANSFER_COUNT)?;
 
         {
           let mut outpoint_to_sat_ranges = tx.open_table(OUTPOINT_TO_SAT_RANGES)?;
@@ -704,11 +700,11 @@ impl Index {
     Ok(())
   }
 
-  fn begin_read(&self) -> Result<rtx::Rtx> {
+  fn begin_read(&self) -> Result<rtx::Rtx<'_>> {
     Ok(rtx::Rtx(self.database.begin_read()?))
   }
 
-  fn begin_write(&self) -> Result<WriteTransaction> {
+  fn begin_write(&self) -> Result<WriteTransaction<'_>> {
     let mut tx = self.database.begin_write()?;
     tx.set_durability(self.durability);
     Ok(tx)
@@ -5317,13 +5313,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       let sat = entry.sat;
 
@@ -5351,13 +5343,9 @@ mod tests {
 
       assert_eq!(entry.inscription_number, 0);
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(sat, entry.sat);
 
@@ -5381,13 +5369,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, -2);
 
@@ -5428,13 +5412,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       let sat = entry.sat;
 
@@ -5460,13 +5440,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, 1);
 
@@ -5492,13 +5468,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, 2);
 

@@ -56,33 +56,6 @@ mod middleware;
 pub(crate) mod query;
 mod rpc;
 
-#[derive(Copy, Clone)]
-pub(crate) enum InscriptionQuery {
-  Id(InscriptionId),
-  Number(i32),
-}
-
-impl FromStr for InscriptionQuery {
-  type Err = Error;
-
-  fn from_str(s: &str) -> Result<Self, Self::Err> {
-    Ok(if s.contains('i') {
-      Self::Id(s.parse()?)
-    } else {
-      Self::Number(s.parse()?)
-    })
-  }
-}
-
-impl Display for InscriptionQuery {
-  fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-    match self {
-      Self::Id(id) => write!(f, "{id}"),
-      Self::Number(number) => write!(f, "{number}"),
-    }
-  }
-}
-
 enum SpawnConfig {
   Https(AxumAcceptor),
   Http,
@@ -1567,11 +1540,8 @@ impl Server {
         for inscription in inscriptions {
           let query = query::Inscription::Id(inscription);
           let info = Index::inscription_info(&index, query);
-          if info.is_ok() {
-            let res = info.unwrap();
-            if let Some(t) = res {
-              response.push(t);
-            }
+          if let Ok(Some(res)) = info {
+            response.push(res);
           }
         }
 
