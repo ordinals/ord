@@ -51,7 +51,7 @@ bip322 = "0.0.10"
 bip39 = "2.0.0"
 bitcoin.workspace = true
 bitcoincore-rpc = "0.19.0"
-boilerplate = { version = "1.0.0", features = ["axum"] }
+boilerplate = { version = "1.0.0", features = ["axum"], path = "../boilerplate" }
 brotli = "8.0.1"
 chrono = { version = "0.4.19", features = ["serde"] }
 ciborium = "0.2.1"
@@ -63,7 +63,6 @@ dirs = "6.0.0"
 env_logger = "0.11.0"
 futures = "0.3.21"
 hex.workspace = true
-html-escaper = "0.2.0"
 http-body-util = "0.1.2"
 humantime = "2.1.0"
 hyper = { version = "1.5.2", features = ["client", "http2"] }
