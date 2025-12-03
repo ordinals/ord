@@ -641,6 +641,8 @@ dependencies = [
 [[package]]
 name = "boilerplate"
 version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "82d9973f1b6f5a83e592dd9ea59565588b415845f9983a25fae1eb19d91ca33b"
 dependencies = [
  "boilerplate-macros",
 ]
@@ -648,6 +650,8 @@ dependencies = [
 [[package]]
 name = "boilerplate-macros"
 version = "0.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08fb5f3da9a7beda1031db19b5b93f9d99d4a682e602df5045b50b8b5b665dbc"
 dependencies = [
  "boilerplate-parser",
  "darling 0.22.0",
@@ -661,6 +665,8 @@ dependencies = [
 [[package]]
 name = "boilerplate-parser"
 version = "0.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7ea04f808c8ddbd69a3f919bb45b32f3f822b52d0c407ce1a1f0666ff9d5c60"
 
 [[package]]
 name = "brotli"
