@@ -55,11 +55,11 @@ use {
     transaction::Version,
   },
   bitcoincore_rpc::{Client, RpcApi},
+  boilerplate::{Escape, Trusted},
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
   error::{ResultExt, SnafuError},
-  html_escaper::{Escape, Trusted},
   ordinals::{
     Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone, Sat,
     SatPoint, SpacedRune, Terms, varint,
