@@ -640,21 +640,21 @@ dependencies = [
 
 [[package]]
 name = "boilerplate"
-version = "1.1.0"
+version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82d9973f1b6f5a83e592dd9ea59565588b415845f9983a25fae1eb19d91ca33b"
+checksum = "4e3b0e30ddbe071ebebe3a1165e7e3bcb0bb30a2fc67fddf68fcb75c792f4326"
 dependencies = [
  "boilerplate-macros",
 ]
 
 [[package]]
 name = "boilerplate-macros"
-version = "0.0.0"
+version = "0.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08fb5f3da9a7beda1031db19b5b93f9d99d4a682e602df5045b50b8b5b665dbc"
+checksum = "dc0c044dd06b51561ddd553ee6454111f161347aadc7726e15bae8e1f115539d"
 dependencies = [
  "boilerplate-parser",
- "darling 0.22.0",
+ "darling 0.23.0",
  "mime",
  "new_mime_guess",
  "proc-macro2",
@@ -1059,12 +1059,12 @@ dependencies = [
 
 [[package]]
 name = "darling"
-version = "0.22.0"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b135438f6316b497313849ebef7e3d1f98d51b54baf5f2c992018e3aeeaf3806"
+checksum = "25ae13da2f202d56bd7f91c25fba009e7717a1e4a1cc98a76d844b65ae912e9d"
 dependencies = [
- "darling_core 0.22.0",
- "darling_macro 0.22.0",
+ "darling_core 0.23.0",
+ "darling_macro 0.23.0",
 ]
 
 [[package]]
@@ -1097,9 +1097,9 @@ dependencies = [
 
 [[package]]
 name = "darling_core"
-version = "0.22.0"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e4bbeee46f0f5a37cd99d6650da4e2d68c7453cb3665b23a3bb1246c8a5c347d"
+checksum = "9865a50f7c335f53564bb694ef660825eb8610e0a53d3e11bf1b0d3df31e03b0"
 dependencies = [
  "ident_case",
  "proc-macro2",
@@ -1132,11 +1132,11 @@ dependencies = [
 
 [[package]]
 name = "darling_macro"
-version = "0.22.0"
+version = "0.23.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57f6b341d8c078f971588c287036da390e48548b439231252922ef08046ed6ef"
+checksum = "ac3984ec7bd6cfa798e62b4a642426a5be0e68f9401cfc2a01e3fa9ea2fcdb8d"
 dependencies = [
- "darling_core 0.22.0",
+ "darling_core 0.23.0",
  "quote",
  "syn 2.0.87",
 ]
