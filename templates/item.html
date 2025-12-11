@@ -1,4 +1,7 @@
 <h1>Gallery {{ self.gallery_inscription_number }} item {{ self.i }}</h1>
+%% if let Some(title) = self.item.attributes.title.as_ref() {
+<p class=title>{{ title }}</p>
+%% }
 <div class=inscription>
 {{ Iframe::main(self.item.id) }}
 </div>

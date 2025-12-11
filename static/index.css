@@ -291,3 +291,8 @@ a.mythic {
   height: 1rem;
   width: 1rem;
 }
+
+p.title {
+  color: var(--light-fg);
+  margin: -1rem 0 0.5rem 0;
+}
