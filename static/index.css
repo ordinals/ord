@@ -291,3 +291,11 @@ a.mythic {
   height: 1rem;
   width: 1rem;
 }
+
+.subtitle {
+  margin-top: 0.25rem;
+}
+
+h1:has(+ .subtitle) {
+  margin-bottom: 0;
+}
