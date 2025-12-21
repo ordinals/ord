@@ -36,7 +36,7 @@ mod tests {
       },
       "
         <h1>Gallery 1 item 2</h1>
-        <p class=title>foo</p>
+        <p class=subtitle>foo</p>
         <div class=inscription>
         <iframe .* src=/preview/1{64}i1></iframe>
         </div>

@@ -292,7 +292,10 @@ a.mythic {
   width: 1rem;
 }
 
-p.title {
-  color: var(--light-fg);
-  margin: -1rem 0 0.5rem 0;
+.subtitle {
+  margin-top: 0.25rem;
+}
+
+h1:has(+ .subtitle) {
+  margin-bottom: 0;
 }
