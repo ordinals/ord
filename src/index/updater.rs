@@ -43,7 +43,7 @@ pub(crate) struct Updater<'index> {
 impl Updater<'_> {
   pub(crate) fn update_index(&mut self, mut wtx: WriteTransaction) -> Result {
     let start = Instant::now();
-    let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
+    let starting_height = u32::try_from(self.index.rpc_block_count()?).unwrap() + 1;
     let starting_index_height = self.height;
 
     wtx
@@ -90,7 +90,7 @@ impl Updater<'_> {
         progress_bar.inc(1);
 
         if progress_bar.position() > progress_bar.length().unwrap() {
-          if let Ok(count) = self.index.client.get_block_count() {
+          if let Ok(count) = self.index.rpc_block_count() {
             progress_bar.set_length(count + 1);
           } else {
             log::warn!("Failed to fetch latest block height");
@@ -367,9 +367,9 @@ impl Updater<'_> {
         event_sender: self.index.event_sender.as_ref(),
         block_time: block.header.time,
         burned: HashMap::new(),
-        client: &self.index.client,
         height: self.height,
         id_to_entry: &mut rune_id_to_rune_entry,
+        index: self.index,
         inscription_id_to_sequence_number: &mut inscription_id_to_sequence_number,
         minimum: Rune::minimum_at_height(
           self.index.settings.chain().network(),

@@ -35,7 +35,7 @@ use {
   std::{
     collections::HashMap,
     io::{BufWriter, Write},
-    sync::Once,
+    sync::{Once, RwLock},
   },
 };
 
@@ -196,7 +196,7 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 }
 
 pub struct Index {
-  pub(crate) client: Client,
+  client: RwLock<Client>,
   database: Database,
   durability: redb::Durability,
   event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
@@ -453,7 +453,7 @@ impl Index {
 
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.compute_txid(),
-      client,
+      client: RwLock::new(client),
       database,
       durability,
       event_sender,
@@ -470,6 +470,55 @@ impl Index {
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
     })
+  }
+
+  fn is_auth_error(error: &bitcoincore_rpc::Error) -> bool {
+    matches!(
+      error,
+      bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Transport(e))
+        if e.to_string().contains("401")
+    )
+  }
+
+  fn refresh_client(&self) -> Result {
+    log::info!("Refreshing Bitcoin Core RPC client due to authentication failure");
+    let new_client = self.settings.bitcoin_rpc_client(None)?;
+    *self.client.write().unwrap() = new_client;
+    Ok(())
+  }
+
+  fn with_retry<T, F>(&self, f: F) -> Result<T>
+  where
+    F: Fn(&Client) -> std::result::Result<T, bitcoincore_rpc::Error>,
+  {
+    let client = self.client.read().unwrap();
+    match f(&client) {
+      Ok(result) => Ok(result),
+      Err(err) if Self::is_auth_error(&err) => {
+        drop(client);
+        self.refresh_client()?;
+        let client = self.client.read().unwrap();
+        Ok(f(&client)?)
+      }
+      Err(err) => Err(err.into()),
+    }
+  }
+
+  fn with_retry_optional<T, F>(&self, f: F) -> Result<Option<T>>
+  where
+    F: Fn(&Client) -> std::result::Result<T, bitcoincore_rpc::Error>,
+  {
+    let client = self.client.read().unwrap();
+    match f(&client) {
+      Ok(result) => Ok(Some(result)),
+      Err(err) if Self::is_auth_error(&err) => {
+        drop(client);
+        self.refresh_client()?;
+        let client = self.client.read().unwrap();
+        f(&client).into_option()
+      }
+      Err(err) => Err::<T, _>(err).into_option(),
+    }
   }
 
   #[cfg(test)]
@@ -493,6 +542,20 @@ impl Index {
   #[cfg(test)]
   fn set_durability(&mut self, durability: redb::Durability) {
     self.durability = durability;
+  }
+
+  pub(crate) fn rpc_block_count(&self) -> Result<u64> {
+    self.with_retry(|client| client.get_block_count())
+  }
+
+  pub(crate) fn rpc_blockchain_info(
+    &self,
+  ) -> Result<bitcoincore_rpc::json::GetBlockchainInfoResult> {
+    self.with_retry(|client| client.get_blockchain_info())
+  }
+
+  pub(crate) fn rpc_block_hash(&self, height: u64) -> Result<Option<BlockHash>> {
+    self.with_retry_optional(|client| client.get_block_hash(height))
   }
 
   pub fn contains_output(&self, output: &OutPoint) -> Result<bool> {
@@ -1190,30 +1253,27 @@ impl Index {
   }
 
   pub fn block_header(&self, hash: BlockHash) -> Result<Option<Header>> {
-    self.client.get_block_header(&hash).into_option()
+    self.with_retry_optional(|client| client.get_block_header(&hash))
   }
 
   pub fn block_header_info(&self, hash: BlockHash) -> Result<Option<GetBlockHeaderResult>> {
-    self.client.get_block_header_info(&hash).into_option()
+    self.with_retry_optional(|client| client.get_block_header_info(&hash))
   }
 
   pub fn block_stats(&self, height: u64) -> Result<Option<GetBlockStatsResult>> {
-    self.client.get_block_stats(height).into_option()
+    self.with_retry_optional(|client| client.get_block_stats(height))
   }
 
   pub fn get_block_by_height(&self, height: u32) -> Result<Option<Block>> {
-    Ok(
-      self
-        .client
-        .get_block_hash(height.into())
-        .into_option()?
-        .map(|hash| self.client.get_block(&hash))
-        .transpose()?,
-    )
+    let hash = self.with_retry_optional(|client| client.get_block_hash(height.into()))?;
+    match hash {
+      Some(hash) => self.with_retry_optional(|client| client.get_block(&hash)),
+      None => Ok(None),
+    }
   }
 
   pub fn get_block_by_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
-    self.client.get_block(&hash).into_option()
+    self.with_retry_optional(|client| client.get_block(&hash))
   }
 
   pub fn get_collections_paginated(
@@ -1670,7 +1730,7 @@ impl Index {
       }));
     }
 
-    Ok(self.client.get_tx_out(txid, vout, Some(true))?)
+    self.with_retry(|client| client.get_tx_out(txid, vout, Some(true)))
   }
 
   pub fn get_transaction_info(&self, txid: &Txid) -> Result<Option<GetRawTransactionResult>> {
@@ -1715,10 +1775,7 @@ impl Index {
       }));
     }
 
-    self
-      .client
-      .get_raw_transaction_info(txid, None)
-      .into_option()
+    self.with_retry_optional(|client| client.get_raw_transaction_info(txid, None))
   }
 
   pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
@@ -1736,7 +1793,7 @@ impl Index {
       return Ok(Some(consensus::encode::deserialize(transaction.value())?));
     }
 
-    self.client.get_raw_transaction(&txid, None).into_option()
+    self.with_retry_optional(|client| client.get_raw_transaction(&txid, None))
   }
 
   pub fn get_transaction_hex_recursive(&self, txid: Txid) -> Result<Option<String>> {
@@ -1746,10 +1803,7 @@ impl Index {
       )));
     }
 
-    self
-      .client
-      .get_raw_transaction_hex(&txid, None)
-      .into_option()
+    self.with_retry_optional(|client| client.get_raw_transaction_hex(&txid, None))
   }
 
   pub fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
@@ -1860,23 +1914,30 @@ impl Index {
   }
 
   pub fn is_output_spent(&self, outpoint: OutPoint) -> Result<bool> {
-    Ok(
-      outpoint != OutPoint::null()
-        && outpoint != self.settings.chain().genesis_coinbase_outpoint()
-        && if self.have_full_utxo_index() {
-          self
-            .database
-            .begin_read()?
-            .open_table(OUTPOINT_TO_UTXO_ENTRY)?
-            .get(&outpoint.store())?
-            .is_none()
-        } else {
-          self
-            .client
-            .get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
-            .is_none()
-        },
-    )
+    if outpoint == OutPoint::null() {
+      return Ok(false);
+    }
+
+    if outpoint == self.settings.chain().genesis_coinbase_outpoint() {
+      return Ok(false);
+    }
+
+    if self.have_full_utxo_index() {
+      Ok(
+        self
+          .database
+          .begin_read()?
+          .open_table(OUTPOINT_TO_UTXO_ENTRY)?
+          .get(&outpoint.store())?
+          .is_none(),
+      )
+    } else {
+      Ok(
+        self
+          .with_retry(|client| client.get_tx_out(&outpoint.txid, outpoint.vout, Some(true)))?
+          .is_none(),
+      )
+    }
   }
 
   pub fn is_output_in_active_chain(&self, outpoint: OutPoint) -> Result<bool> {
@@ -1888,10 +1949,8 @@ impl Index {
       return Ok(true);
     }
 
-    let Some(info) = self
-      .client
-      .get_raw_transaction_info(&outpoint.txid, None)
-      .into_option()?
+    let Some(info) =
+      self.with_retry_optional(|client| client.get_raw_transaction_info(&outpoint.txid, None))?
     else {
       return Ok(false);
     };

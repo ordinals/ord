@@ -7,11 +7,13 @@ use {
     rt::TokioExecutor,
   },
   serde_json::{Value, json},
+  std::sync::RwLock,
 };
 
 pub(crate) struct Fetcher {
-  auth: String,
+  auth: RwLock<String>,
   client: Client<HttpConnector, Full<Bytes>>,
+  settings: Settings,
   url: Uri,
 }
 
@@ -40,10 +42,30 @@ impl Fetcher {
 
     let url = Uri::try_from(&url).map_err(|e| anyhow!("Invalid rpc url {url}: {e}"))?;
 
+    let auth = Self::get_auth(settings)?;
+    Ok(Fetcher {
+      auth: RwLock::new(auth),
+      client,
+      settings: settings.clone(),
+      url,
+    })
+  }
+
+  fn get_auth(settings: &Settings) -> Result<String> {
     let (user, password) = settings.bitcoin_credentials()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
-    let auth = format!("Basic {}", &base64_encode(auth.as_bytes()));
-    Ok(Fetcher { client, url, auth })
+    Ok(format!("Basic {}", &base64_encode(auth.as_bytes())))
+  }
+
+  fn refresh_auth(&self) -> Result<()> {
+    log::info!("Refreshing Bitcoin Core RPC credentials for Fetcher due to authentication failure");
+    let new_auth = Self::get_auth(&self.settings)?;
+    *self.auth.write().unwrap() = new_auth;
+    Ok(())
+  }
+
+  fn is_auth_error(error: &anyhow::Error) -> bool {
+    error.to_string().contains("401")
   }
 
   pub(crate) async fn get_transactions(&self, txids: Vec<Txid>) -> Result<Vec<Transaction>> {
@@ -66,11 +88,22 @@ impl Fetcher {
 
     let mut results: Vec<JsonResponse<String>>;
     let mut retries = 0;
+    let mut auth_refreshed = false;
 
     loop {
       results = match self.try_get_transactions(body.clone()).await {
         Ok(results) => results,
         Err(error) => {
+          // On auth error, try refreshing credentials once
+          if Self::is_auth_error(&error) && !auth_refreshed {
+            if let Err(refresh_err) = self.refresh_auth() {
+              log::warn!("Failed to refresh auth credentials: {refresh_err}");
+            } else {
+              auth_refreshed = true;
+              continue;
+            }
+          }
+
           if retries >= 5 {
             return Err(anyhow!(
               "failed to fetch raw transactions after 5 retries: {}",
@@ -121,10 +154,11 @@ impl Fetcher {
   }
 
   async fn try_get_transactions(&self, body: String) -> Result<Vec<JsonResponse<String>>> {
+    let auth = self.auth.read().unwrap().clone();
     let req = Request::builder()
       .method(Method::POST)
       .uri(&self.url)
-      .header(hyper::header::AUTHORIZATION, &self.auth)
+      .header(hyper::header::AUTHORIZATION, auth)
       .header(hyper::header::CONTENT_TYPE, "application/json")
       .body(Full::new(Bytes::from(body)))?;
 
