@@ -161,6 +161,7 @@ pub struct Inscriptions {
 
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct UtxoRecursive {
+  pub blockhash: BlockHash,
   pub inscriptions: Option<Vec<InscriptionId>>,
   pub runes: Option<BTreeMap<SpacedRune, Pile>>,
   pub sat_ranges: Option<Vec<(u64, u64)>>,

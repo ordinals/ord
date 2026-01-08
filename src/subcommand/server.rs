@@ -6313,7 +6313,7 @@ next
       ..default()
     });
 
-    server.mine_blocks(1);
+    let block = &server.mine_blocks(1)[0];
 
     let inscription_id = InscriptionId { txid, index: 0 };
     let second_inscription_id = InscriptionId { txid, index: 1 };
@@ -6324,6 +6324,7 @@ next
     pretty_assert_eq!(
       utxo_recursive,
       api::UtxoRecursive {
+        blockhash: block.header.block_hash(),
         inscriptions: Some(vec![inscription_id, second_inscription_id]),
         runes: Some(
           [(
@@ -6358,7 +6359,7 @@ next
       ..default()
     });
 
-    server.mine_blocks(1);
+    let block = &server.mine_blocks(1)[0];
 
     let inscription_id = InscriptionId { txid, index: 0 };
     let outpoint: OutPoint = OutPoint { txid, vout: 0 };
@@ -6372,6 +6373,7 @@ next
         runes: None,
         sat_ranges: None,
         value: 50 * COIN_VALUE,
+        blockhash: block.header.block_hash(),
       }
     );
   }
