@@ -697,17 +697,30 @@ fn burning_rune_creates_change_output_for_non_burnt_runes() {
       runes: [
         (
           SpacedRune::new(Rune(RUNE), 0),
-          [(
-            OutPoint {
-              txid: output.txid,
-              vout: 1
-            },
-            Pile {
-              amount: 500,
-              divisibility: 0,
-              symbol: Some('¢')
-            },
-          )]
+          [
+            (
+              OutPoint {
+                txid: output.txid,
+                vout: 0
+              },
+              Pile {
+                amount: 500,
+                divisibility: 0,
+                symbol: Some('¢')
+              },
+            ),
+            (
+              OutPoint {
+                txid: output.txid,
+                vout: 1
+              },
+              Pile {
+                amount: 500,
+                divisibility: 0,
+                symbol: Some('¢')
+              },
+            )
+          ]
           .into()
         ),
         (
