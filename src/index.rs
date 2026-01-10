@@ -2599,11 +2599,55 @@ impl Index {
       txout,
     )))
   }
+
+  #[cfg(test)]
+  pub(crate) fn list_all_spks(&self) -> Result<Vec<ScriptBuf>> {
+    let rtx = self.database.begin_read()?;
+    let mut spks = Vec::new();
+
+    for entry in rtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?.iter()? {
+      let (_outpoint, utxo_entry) = entry?;
+
+      spks.push(ScriptBuf::from_bytes(
+        utxo_entry.value().parse(self).script_pubkey().to_vec(),
+      ));
+    }
+
+    Ok(spks)
+  }
 }
 
 #[cfg(test)]
 mod tests {
   use {super::*, crate::index::testing::Context};
+
+  #[test]
+  fn list_all_spks() {
+    let context = Context::builder().build();
+
+    context.mine_blocks(2);
+
+    let tx_1 = TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      fee: 0,
+      recipient: Some(address(0)),
+      ..default()
+    };
+
+    let tx_2 = TransactionTemplate {
+      inputs: &[(2, 0, 0, Default::default())],
+      fee: 0,
+      recipient: Some(address(1)),
+      ..default()
+    };
+
+    context.core.broadcast_tx(tx_1);
+    context.core.broadcast_tx(tx_2);
+
+    context.mine_blocks(1);
+
+    assert_eq!(context.index.list_all_spks().unwrap().len(), 4);
+  }
 
   #[test]
   fn height_limit() {
