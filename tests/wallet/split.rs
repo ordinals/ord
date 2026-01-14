@@ -206,7 +206,7 @@ outputs:
 }
 
 #[test]
-fn oversize_op_returns_are_allowed_with_flag() {
+fn large_runestones_are_allowed_by_default() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
@@ -248,20 +248,13 @@ fn oversize_op_returns_are_allowed_with_flag() {
     );
   }
 
-  CommandBuilder::new("--regtest wallet split --fee-rate 0 --splits splits.yaml")
+  // With Bitcoin Core 30's increased datacarriersize (100,000 bytes),
+  // 85-byte runestones are now allowed by default
+  let output = CommandBuilder::new("--regtest wallet split --fee-rate 0 --splits splits.yaml")
     .core(&core)
     .ord(&ord)
     .write("splits.yaml", &splitfile)
-    .expected_stderr("error: runestone size 85 over maximum standard OP_RETURN size 83\n")
-    .expected_exit_code(1)
-    .run_and_extract_stdout();
-
-  let output =
-    CommandBuilder::new("--regtest wallet split --fee-rate 0 --splits splits.yaml --no-limit")
-      .core(&core)
-      .ord(&ord)
-      .write("splits.yaml", &splitfile)
-      .run_and_deserialize_output::<Split>();
+    .run_and_deserialize_output::<Split>();
 
   core.mine_blocks(1);
 

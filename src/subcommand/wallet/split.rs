@@ -80,9 +80,9 @@ pub(crate) struct Split {
   #[arg(
     long,
     alias = "nolimit",
-    help = "Allow OP_RETURN greater than 83 bytes. Transactions over this limit are nonstandard \
-    and will not be relayed by bitcoind in its default configuration. Do not use this flag unless \
-    you understand the implications."
+    help = "Allow OP_RETURN greater than 100,000 bytes. Transactions over this limit are \
+    nonstandard and will not be relayed by bitcoind in its default configuration. Do not use \
+    this flag unless you understand the implications."
   )]
   pub(crate) no_limit: bool,
 }
@@ -1322,8 +1322,10 @@ mod tests {
     );
   }
 
+  // With Bitcoin Core 30's increased datacarriersize (100,000 bytes),
+  // 85-byte runestones are now allowed by default
   #[test]
-  fn oversize_op_return_is_an_error() {
+  fn large_runestones_are_allowed_by_default() {
     let balances = [(outpoint(0), [(Rune(0), 10_000_000_000)].into())].into();
 
     let splits = Splitfile {
@@ -1349,41 +1351,9 @@ mod tests {
       .into(),
     };
 
-    assert_eq!(
-      Split::build_transaction(false, balances, &change(0), None, &splits).unwrap_err(),
-      Error::RunestoneSize { size: 85 },
-    );
-  }
-
-  #[test]
-  fn oversize_op_return_is_allowed_with_flag() {
-    let balances = [(outpoint(0), [(Rune(0), 10_000_000_000)].into())].into();
-
-    let splits = Splitfile {
-      outputs: (0..10)
-        .map(|i| splitfile::Output {
-          address: address(i).clone(),
-          runes: [(Rune(0), 1_000_000_000)].into(),
-          value: None,
-        })
-        .collect(),
-      rune_info: [(
-        Rune(0),
-        RuneInfo {
-          id: rune_id(0),
-          divisibility: 0,
-          symbol: None,
-          spaced_rune: SpacedRune {
-            rune: Rune(0),
-            spacers: 0,
-          },
-        },
-      )]
-      .into(),
-    };
-
+    // 85-byte runestone that was previously rejected is now allowed
     pretty_assert_eq!(
-      Split::build_transaction(true, balances, &change(0), None, &splits).unwrap(),
+      Split::build_transaction(false, balances, &change(0), None, &splits).unwrap(),
       Transaction {
         version: Version(2),
         lock_time: LockTime::ZERO,

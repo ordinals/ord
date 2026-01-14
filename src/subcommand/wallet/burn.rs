@@ -23,9 +23,9 @@ pub struct Burn {
   #[arg(
     long,
     alias = "nolimit",
-    help = "Allow OP_RETURN greater than 83 bytes. Transactions over this limit are nonstandard \
-    and will not be relayed by bitcoind in its default configuration. Do not use this flag unless \
-    you understand the implications."
+    help = "Allow OP_RETURN greater than 100,000 bytes. Transactions over this limit are \
+    nonstandard and will not be relayed by bitcoind in its default configuration. Do not use \
+    this flag unless you understand the implications."
   )]
   no_limit: bool,
   asset: Outgoing,
