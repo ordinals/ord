@@ -503,7 +503,6 @@ impl InscriptionUpdater<'_, '_> {
           })
           .collect::<Result<Vec<u32>>>()?;
 
-        // Index gallery items
         for gallery_item in &gallery {
           if let Ok(Some(gallery_item_sequence_number)) = self
             .id_to_sequence_number

@@ -5306,7 +5306,6 @@ next
 
     let mut gallery_item_ids = Vec::new();
 
-    // Create gallery item inscriptions first
     for i in 0..15 {
       server.mine_blocks(1);
 
@@ -5324,11 +5323,9 @@ next
       });
     }
 
-    // Create 101 gallery inscriptions to test pagination
     for i in 0..101 {
       server.mine_blocks(1);
 
-      // Use 3 gallery items per gallery to ensure they have content
       let gallery_items = gallery_item_ids
         .iter()
         .cycle()
@@ -5396,7 +5393,6 @@ next
         .unindent(),
     );
 
-    // Test navigation includes correct gallery icon
     server.assert_response_regex(
       "/galleries",
       StatusCode::OK,
