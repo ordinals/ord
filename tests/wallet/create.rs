@@ -175,3 +175,28 @@ because:
 
   assert!(signet_database.try_exists().unwrap());
 }
+
+#[test]
+fn create_creates_watch_only_bitcoincore_wallet_with_matching_descriptors() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  CommandBuilder::new("wallet create")
+    .temp_dir(ord.tempdir().clone())
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Output>();
+
+  let bdk_descriptors = CommandBuilder::new("wallet descriptors")
+    .temp_dir(ord.tempdir().clone())
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Descriptors>();
+
+  let core_descriptors = core.descriptors();
+
+  assert_eq!(core_descriptors.len(), 2);
+
+  assert!(core_descriptors.contains(&bdk_descriptors.external.to_string()));
+  assert!(core_descriptors.contains(&bdk_descriptors.internal.to_string()));
+}

@@ -12,6 +12,7 @@ use {
     bip32::{ChildNumber, DerivationPath, Xpriv},
     secp256k1::Secp256k1,
   },
+  bitcoincore_rpc::json::ImportDescriptors,
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   index::entry::Entry,
@@ -88,8 +89,6 @@ impl Wallet {
       bail!("failed to create data dir `{}`: {err}", dir.display());
     }
 
-    let database = Database::builder().create(&path)?;
-
     let network = settings.chain().network();
 
     let master_private_key = Xpriv::new_master(network, &seed)?;
@@ -97,6 +96,10 @@ impl Wallet {
     let external = Wallet::derive_descriptor(network, master_private_key, KeychainKind::External)?;
 
     let internal = Wallet::derive_descriptor(network, master_private_key, KeychainKind::Internal)?;
+
+    Self::create_watch_only_bitcoincore_wallet(name, settings, &external.0, &internal.0)?;
+
+    let database = Database::builder().create(&path)?;
 
     let mut tx = database.begin_write()?;
 
@@ -273,6 +276,72 @@ impl Wallet {
       .wallet
       .persist(&mut DatabasePersister(self.database.clone()))?;
     Ok(())
+  }
+
+  fn create_watch_only_bitcoincore_wallet(
+    name: &str,
+    settings: &Settings,
+    external: &Descriptor<DescriptorPublicKey>,
+    internal: &Descriptor<DescriptorPublicKey>,
+  ) -> Result {
+    Self::check_version(settings.bitcoin_rpc_client(None)?)?.create_wallet(
+      name,
+      Some(true),
+      Some(true),
+      None,
+      None,
+    )?;
+
+    let descriptors = vec![
+      ImportDescriptors {
+        descriptor: external.to_string(),
+        timestamp: bitcoincore_rpc::json::Timestamp::Now,
+        active: Some(true),
+        range: None,
+        next_index: None,
+        internal: Some(false),
+        label: None,
+      },
+      ImportDescriptors {
+        descriptor: internal.to_string(),
+        timestamp: bitcoincore_rpc::json::Timestamp::Now,
+        active: Some(true),
+        range: None,
+        next_index: None,
+        internal: Some(true),
+        label: None,
+      },
+    ];
+
+    settings
+      .bitcoin_rpc_client(Some(name.to_string()))?
+      .call::<serde_json::Value>("importdescriptors", &[serde_json::to_value(descriptors)?])?;
+
+    Ok(())
+  }
+
+  pub(crate) fn check_version(client: Client) -> Result<Client> {
+    const MIN_VERSION: usize = 280000;
+
+    let bitcoin_version = client.version()?;
+    if bitcoin_version < MIN_VERSION {
+      bail!(
+        "Bitcoin Core {} or newer required, current version is {}",
+        Self::format_bitcoin_core_version(MIN_VERSION),
+        Self::format_bitcoin_core_version(bitcoin_version),
+      );
+    } else {
+      Ok(client)
+    }
+  }
+
+  fn format_bitcoin_core_version(version: usize) -> String {
+    format!(
+      "{}.{}.{}",
+      version / 10000,
+      version % 10000 / 100,
+      version % 100
+    )
   }
 
   pub(crate) fn get_wallet_sat_ranges(&self) -> Result<Vec<(OutPoint, Vec<(u64, u64)>)>> {

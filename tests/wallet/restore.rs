@@ -97,17 +97,17 @@ fn restore_generates_same_descriptors_with_passphrase() {
 
 #[test]
 fn restore_to_existing_wallet_fails() {
-  let tempdir = Arc::new(TempDir::new().unwrap());
-
-  let create::Output { mnemonic, .. } = CommandBuilder::new("wallet create")
-    .temp_dir(tempdir.clone())
-    .run_and_deserialize_output();
-
   let core = mockcore::spawn();
   let ord = TestServer::spawn(&core);
 
+  let create::Output { mnemonic, .. } = CommandBuilder::new("wallet create")
+    .temp_dir(ord.tempdir().clone())
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output();
+
   CommandBuilder::new("wallet restore")
-    .temp_dir(tempdir)
+    .temp_dir(ord.tempdir().clone())
     .stdin(mnemonic.to_string().into())
     .core(&core)
     .ord(&ord)
