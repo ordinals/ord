@@ -202,6 +202,36 @@ impl Wallet {
     Ok(database)
   }
 
+  pub(crate) fn get_descriptor(
+    &self,
+    kind: KeychainKind,
+  ) -> Result<Descriptor<DescriptorPublicKey>> {
+    let tx = self.database.begin_read()?;
+
+    let master_private_key = tx
+      .open_table(XPRIV)?
+      .get(())?
+      .map(|xpriv| Xpriv::decode(xpriv.value().as_slice()))
+      .transpose()?
+      .ok_or(anyhow!("couldn't load master private key from database"))?;
+
+    let (descriptor, _keymap) =
+      Wallet::derive_descriptor(self.settings.chain().network(), master_private_key, kind)?;
+
+    Ok(descriptor)
+  }
+
+  pub(crate) fn get_receive_addresses(&mut self, n: usize) -> Vec<Address> {
+    (0..n)
+      .map(|_| {
+        self
+          .wallet
+          .reveal_next_address(KeychainKind::External)
+          .address
+      })
+      .collect()
+  }
+
   pub(crate) fn derive_descriptor(
     network: Network,
     master_private_key: Xpriv,
@@ -246,36 +276,6 @@ impl Wallet {
       .wallet
       .persist(&mut DatabasePersister(self.database.clone()))?;
     Ok(())
-  }
-
-  pub(crate) fn get_descriptor(
-    &self,
-    kind: KeychainKind,
-  ) -> Result<Descriptor<DescriptorPublicKey>> {
-    let tx = self.database.begin_read()?;
-
-    let master_private_key = tx
-      .open_table(XPRIV)?
-      .get(())?
-      .map(|xpriv| Xpriv::decode(xpriv.value().as_slice()))
-      .transpose()?
-      .ok_or(anyhow!("couldn't load master private key from database"))?;
-
-    let (descriptor, _keymap) =
-      Wallet::derive_descriptor(self.settings.chain().network(), master_private_key, kind)?;
-
-    Ok(descriptor)
-  }
-
-  pub(crate) fn get_receive_addresses(&mut self, n: usize) -> Vec<Address> {
-    (0..n)
-      .map(|_| {
-        self
-          .wallet
-          .reveal_next_address(KeychainKind::External)
-          .address
-      })
-      .collect()
   }
 
   fn create_watch_only_bitcoincore_wallet(

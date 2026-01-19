@@ -195,10 +195,8 @@ fn create_creates_watch_only_bitcoincore_wallet_with_matching_descriptors() {
 
   let core_descriptors = core.descriptors();
 
-  // Should have external and internal descriptors
   assert_eq!(core_descriptors.len(), 2);
 
-  // Descriptor::to_string() includes the checksum (BIP-380)
   assert!(core_descriptors.contains(&bdk_descriptors.external.to_string()));
   assert!(core_descriptors.contains(&bdk_descriptors.internal.to_string()));
 }
