@@ -244,7 +244,6 @@ wallet::split::simple_split
 wallet::split::unrecognized_fields_are_forbidden
 wallet::transactions::transactions
 wallet::transactions::transactions_with_limit
-wallet::restore::restore_to_existing_wallet_fails
 json_api::get_inscription_with_metaprotocol_and_properties
 wallet::batch_command::trait_names_may_not_be_duplicated
 wallet::inscribe::title_appears_on_inscription_page
