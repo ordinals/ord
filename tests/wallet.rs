@@ -7,7 +7,6 @@ mod batch_command;
 mod burn;
 mod cardinals;
 mod create;
-mod dump;
 mod inscribe;
 mod inscriptions;
 mod label;

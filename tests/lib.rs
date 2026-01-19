@@ -15,7 +15,7 @@ use {
   ord::{
     Inscription, InscriptionId, RuneEntry, api, base64_decode, base64_encode, chain::Chain,
     decimal::Decimal, outgoing::Outgoing, subcommand::runes::RuneInfo, templates::InscriptionHtml,
-    wallet::ListDescriptorsResult, wallet::batch,
+    wallet::batch,
   },
   ordinals::{
     Artifact, COIN_VALUE, Charm, Edict, Pile, Rarity, Rune, RuneId, Runestone, Sat, SatPoint,
@@ -92,8 +92,7 @@ fn create_wallet(core: &mockcore::Handle, ord: &TestServer) {
   CommandBuilder::new(format!("--chain {} wallet create", core.network()))
     .core(core)
     .ord(ord)
-    .stdout_regex(".*")
-    .run_and_extract_stdout();
+    .run_and_deserialize_output::<ord::subcommand::wallet::create::Output>();
 }
 
 fn sats(
