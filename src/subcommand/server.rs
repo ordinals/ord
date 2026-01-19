@@ -1817,31 +1817,46 @@ impl Server {
   async fn galleries(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
+    accept_json: AcceptJson,
   ) -> ServerResult {
-    Self::galleries_paginated(Extension(server_config), Extension(index), Path(0)).await
+    Self::galleries_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path(0),
+      accept_json,
+    )
+    .await
   }
 
   async fn galleries_paginated(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(page_index): Path<usize>,
+    Path(page_index): Path<u32>,
+    AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let (galleries, more_galleries) = index.get_galleries_paginated(100, page_index)?;
+      let (galleries, more) = index.get_galleries_paginated(100, page_index)?;
 
       let prev = page_index.checked_sub(1);
 
-      let next = more_galleries.then_some(page_index + 1);
+      let next = more.then_some(page_index + 1);
 
-      Ok(
+      Ok(if accept_json {
+        Json(api::Inscriptions {
+          ids: galleries,
+          page_index,
+          more,
+        })
+        .into_response()
+      } else {
         GalleriesHtml {
           inscriptions: galleries,
           prev,
           next,
         }
         .page(server_config)
-        .into_response(),
-      )
+        .into_response()
+      })
     })
   }
 
