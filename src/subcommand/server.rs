@@ -5334,7 +5334,10 @@ next
         .cycle()
         .skip((i * 3) % gallery_item_ids.len())
         .take(3)
-        .cloned()
+        .map(|&id| properties::Item {
+          id,
+          attributes: Attributes::default(),
+        })
         .collect::<Vec<_>>();
 
       let properties = Properties {
