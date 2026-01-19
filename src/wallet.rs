@@ -292,7 +292,6 @@ impl Wallet {
       None,
     )?;
 
-    // Descriptor::to_string() includes the checksum (BIP-380)
     let descriptors = vec![
       ImportDescriptors {
         descriptor: external.to_string(),
