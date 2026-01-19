@@ -73,6 +73,31 @@ fn metaprotocol_appears_on_inscription_page() {
 }
 
 #[test]
+fn title_appears_on_inscription_page() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  create_wallet(&core, &ord);
+
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
+
+  let inscribe = CommandBuilder::new(format!(
+    "wallet inscribe --file foo.txt --title foo --satpoint {txid}:0:0 --fee-rate 10"
+  ))
+  .write("foo.txt", [0; 350_000])
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", inscribe.inscriptions[0].id),
+    r".*<dt>title</dt>\s*<dd>foo</dd>.*",
+  );
+}
+
+#[test]
 fn inscribe_fails_if_bitcoin_core_is_too_old() {
   let core = mockcore::builder().version(240000).build();
   let ord = TestServer::spawn(&core);
@@ -788,11 +813,13 @@ fn no_metadata_appears_on_inscription_page_if_no_metadata_is_passed() {
 
   core.mine_blocks(1);
 
-  assert!(!ord
-    .request(format!("/inscription/{inscription}"),)
-    .text()
-    .unwrap()
-    .contains("metadata"));
+  assert!(
+    !ord
+      .request(format!("/inscription/{inscription}"),)
+      .text()
+      .unwrap()
+      .contains("metadata")
+  );
 }
 
 #[test]
@@ -1282,7 +1309,9 @@ fn inscribe_can_include_gallery_items() {
 
   core.mine_blocks(1);
 
-  let request = ord.request(format!("/content/{}", output.inscriptions[0].id));
+  let gallery = output.inscriptions[0].id;
+
+  let request = ord.request(format!("/content/{}", gallery));
 
   assert_eq!(request.status(), 200);
   assert_eq!(
@@ -1292,14 +1321,14 @@ fn inscribe_can_include_gallery_items() {
   assert_eq!(request.text().unwrap(), "Hello World");
 
   ord.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[0].id),
+    format!("/inscription/{}", gallery),
     format!(
       r".*
   <dt>gallery</dt>
   <dd>
     <div class=thumbnails>
-      <a href=/inscription/{id0}>.*</a>
-      <a href=/inscription/{id1}>.*</a>
+      <a href=/gallery/{gallery}/0>.*</a>
+      <a href=/gallery/{gallery}/1>.*</a>
     </div>
   </dd>
 .*"

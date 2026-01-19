@@ -19,10 +19,10 @@ impl Batch {
     let batchfile = batch::File::load(&self.batch)?;
 
     for inscription in &batchfile.inscriptions {
-      for inscription_id in &inscription.gallery {
+      for item in &inscription.gallery {
         ensure! {
-          wallet.inscription_exists(*inscription_id)?,
-          "gallery item does not exist: {inscription_id}",
+          wallet.inscription_exists(item.id)?,
+          "gallery item does not exist: {}", item.id,
         }
       }
     }
@@ -271,9 +271,11 @@ inscriptions:
     )
     .unwrap();
 
-    assert!(batch::File::load(&batch_path)
-      .unwrap_err()
-      .to_string()
-      .contains("unknown field `unknown`"));
+    assert!(
+      batch::File::load(&batch_path)
+        .unwrap_err()
+        .to_string()
+        .contains("unknown field `unknown`")
+    );
   }
 }

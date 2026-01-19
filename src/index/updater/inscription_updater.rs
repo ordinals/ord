@@ -200,7 +200,13 @@ impl InscriptionUpdater<'_, '_> {
           origin: Origin::New {
             cursed: curse.is_some() && !jubilant,
             fee: 0,
-            gallery: inscription.payload.gallery(),
+            gallery: inscription
+              .payload
+              .properties()
+              .gallery
+              .iter()
+              .map(|item| item.id)
+              .collect(),
             hidden: inscription.payload.hidden(),
             parents: inscription.payload.parents(),
             reinscription: inscribed_offsets.contains_key(&offset),

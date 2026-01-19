@@ -11,8 +11,11 @@ use {
   index::entry::Entry,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
-  miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
-  redb::{Database, DatabaseError, ReadableTable, RepairSession, StorageError, TableDefinition},
+  miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, KeyMap, Wildcard},
+  redb::{
+    Database, DatabaseError, ReadableDatabase, ReadableTable, RepairSession, StorageError,
+    TableDefinition,
+  },
   std::sync::Once,
   transaction_builder::TransactionBuilder,
 };
@@ -574,10 +577,8 @@ impl Wallet {
         wildcard: Wildcard::Unhardened,
       });
 
-      let public_key = secret_key.to_public(&secp)?;
-
-      let mut key_map = BTreeMap::new();
-      key_map.insert(public_key.clone(), secret_key);
+      let mut key_map = KeyMap::new();
+      let public_key = key_map.insert(&secp, secret_key)?;
 
       let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
 
@@ -994,22 +995,22 @@ impl Wallet {
     let mut input_rune_balances: BTreeMap<Rune, u128> = BTreeMap::new();
 
     for (output, runes) in balances {
-      if let Some(balance) = runes.get(&spaced_rune.rune) {
-        if *balance > 0 {
-          for (rune, balance) in runes {
-            *input_rune_balances.entry(rune).or_default() += balance;
-          }
+      if let Some(balance) = runes.get(&spaced_rune.rune)
+        && *balance > 0
+      {
+        for (rune, balance) in runes {
+          *input_rune_balances.entry(rune).or_default() += balance;
+        }
 
-          inputs.push(output);
+        inputs.push(output);
 
-          if input_rune_balances
-            .get(&spaced_rune.rune)
-            .cloned()
-            .unwrap_or_default()
-            >= amount
-          {
-            break;
-          }
+        if input_rune_balances
+          .get(&spaced_rune.rune)
+          .cloned()
+          .unwrap_or_default()
+          >= amount
+        {
+          break;
         }
       }
     }

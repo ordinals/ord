@@ -7,29 +7,28 @@ use {
   super::*,
   crate::templates::{
     AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, GalleriesHtml,
-    HomeHtml, InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml,
-    PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
-    PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml,
-    SatscardHtml, TransactionHtml,
+    HomeHtml, InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, ItemHtml,
+    OutputHtml, PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml,
+    PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
+    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml,
+    RunesHtml, SatHtml, SatscardHtml, TransactionHtml,
   },
   axum::{
+    Router,
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
-    http::{self, header, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri},
+    http::{self, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri, header},
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
-    Router,
   },
   axum_server::Handle,
   brotli::Decompressor,
   rust_embed::RustEmbed,
   rustls_acme::{
+    AcmeConfig,
     acme::{LETS_ENCRYPT_PRODUCTION_DIRECTORY, LETS_ENCRYPT_STAGING_DIRECTORY},
     axum::AxumAcceptor,
     caches::DirCache,
-    AcmeConfig,
   },
-  std::{str, sync::Arc},
   tokio_stream::StreamExt,
   tower_http::{
     compression::CompressionLayer,
@@ -81,9 +80,8 @@ struct Search {
 #[folder = "static"]
 struct StaticAssets;
 
-lazy_static! {
-  static ref SAT_AT_INDEX_PATH: Regex = Regex::new(r"^/r/sat/[^/]+/at/[^/]+$").unwrap();
-}
+static SAT_AT_INDEX_PATH: LazyLock<Regex> =
+  LazyLock::new(|| Regex::new(r"^/r/sat/[^/]+/at/[^/]+$").unwrap());
 
 #[derive(Debug, Parser, Clone)]
 pub struct Server {
@@ -153,22 +151,24 @@ impl Server {
       let index_clone = index.clone();
       let integration_test = settings.integration_test();
 
-      let index_thread = thread::spawn(move || loop {
-        if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-          break;
-        }
+      let index_thread = thread::spawn(move || {
+        loop {
+          if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+            break;
+          }
 
-        if !self.no_sync {
-          if let Err(error) = index_clone.update() {
+          if !self.no_sync
+            && let Err(error) = index_clone.update()
+          {
             log::warn!("Updating index: {error}");
           }
-        }
 
-        thread::sleep(if integration_test {
-          Duration::from_millis(100)
-        } else {
-          self.polling_interval.into()
-        });
+          thread::sleep(if integration_test {
+            Duration::from_millis(100)
+          } else {
+            self.polling_interval.into()
+          });
+        }
       });
 
       INDEXER.lock().unwrap().replace(index_thread);
@@ -215,6 +215,7 @@ impl Server {
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
+        .route("/gallery/{inscription_query}/{item}", get(Self::item))
         .route("/input/{block}/{transaction}/{input}", get(Self::input))
         .route("/inscription/{inscription_query}", get(Self::inscription))
         .route(
@@ -478,7 +479,7 @@ impl Server {
       Ok(self.acme_domain.clone())
     } else {
       Ok(vec![
-        System::host_name().ok_or(anyhow!("no hostname found"))?
+        System::host_name().ok_or(anyhow!("no hostname found"))?,
       ])
     }
   }
@@ -1539,7 +1540,7 @@ impl Server {
 
       if let Media::Iframe = media {
         return Ok(
-          r::content_response(inscription, accept_encoding, &server_config)?
+          r::content_response(inscription, accept_encoding, &server_config, true)?
             .ok_or_not_found(|| format!("inscription {inscription_id} content"))?
             .into_response(),
         );
@@ -1646,6 +1647,41 @@ impl Server {
     })
   }
 
+  async fn item(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((DeserializeFromStr(query), i)): Path<(DeserializeFromStr<query::Inscription>, usize)>,
+  ) -> ServerResult<PageHtml<ItemHtml>> {
+    task::block_in_place(|| {
+      if let query::Inscription::Sat(_) = query
+        && !index.has_sat_index()
+      {
+        return Err(ServerError::NotFound("sat index required".into()));
+      }
+
+      let (info, _txout, inscription) = index
+        .inscription_info(query, None)?
+        .ok_or_not_found(|| format!("inscription {query}"))?;
+
+      let properties = inscription.properties();
+
+      let item = properties
+        .gallery
+        .get(i)
+        .ok_or_not_found(|| format!("gallery {query} item {i}"))?
+        .clone();
+
+      Ok(
+        ItemHtml {
+          gallery_inscription_number: info.number,
+          i,
+          item,
+        }
+        .page(server_config),
+      )
+    })
+  }
+
   async fn inscription(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -1672,10 +1708,10 @@ impl Server {
     child: Option<usize>,
   ) -> ServerResult {
     task::block_in_place(|| {
-      if let query::Inscription::Sat(_) = query {
-        if !index.has_sat_index() {
-          return Err(ServerError::NotFound("sat index required".into()));
-        }
+      if let query::Inscription::Sat(_) = query
+        && !index.has_sat_index()
+      {
+        return Err(ServerError::NotFound("sat index required".into()));
       }
 
       let inscription_info = index.inscription_info(query, child)?;
@@ -1692,6 +1728,8 @@ impl Server {
         let (info, txout, inscription) =
           inscription_info.ok_or_not_found(|| format!("inscription {query}"))?;
 
+        let properties = inscription.properties();
+
         InscriptionHtml {
           chain: server_config.chain,
           charms: Charm::Vindicated.unset(info.charms.iter().fold(0, |mut acc, charm| {
@@ -1702,13 +1740,14 @@ impl Server {
           children: info.children,
           fee: info.fee,
           height: info.height,
-          inscription,
           id: info.id,
-          number: info.number,
+          inscription,
           next: info.next,
+          number: info.number,
           output: txout,
           parents: info.parents,
           previous: info.previous,
+          properties,
           rune: info.rune,
           sat: info.sat,
           satpoint: info.satpoint,
@@ -1930,19 +1969,16 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let page_size = 100;
-
-      let page_index_usize = usize::try_from(page_index).unwrap_or(usize::MAX);
-      let page_size_usize = usize::try_from(page_size).unwrap_or(usize::MAX);
+      const PAGE_SIZE: usize = 100;
 
       let mut inscriptions = index
         .get_inscriptions_in_block(block_height)?
         .into_iter()
-        .skip(page_index_usize.saturating_mul(page_size_usize))
-        .take(page_size_usize.saturating_add(1))
+        .skip(page_index.into_usize().saturating_mul(PAGE_SIZE))
+        .take(PAGE_SIZE.saturating_add(1))
         .collect::<Vec<InscriptionId>>();
 
-      let more = inscriptions.len() > page_size_usize;
+      let more = inscriptions.len() > PAGE_SIZE;
 
       if more {
         inscriptions.pop();
@@ -1962,7 +1998,7 @@ impl Server {
           inscriptions,
           more,
           page_index,
-        )?
+        )
         .page(server_config)
         .into_response()
       })
@@ -2058,8 +2094,8 @@ mod tests {
   use {
     super::*,
     reqwest::{
-      header::{self, HeaderMap},
       StatusCode, Url,
+      header::{self, HeaderMap},
     },
     serde::de::DeserializeOwned,
     std::net::TcpListener,
@@ -2594,36 +2630,40 @@ mod tests {
 
   #[test]
   fn acme_contact_accepts_multiple_values() {
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "server",
-      "--address",
-      "127.0.0.1",
-      "--http-port",
-      "0",
-      "--acme-contact",
-      "foo",
-      "--acme-contact",
-      "bar"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "server",
+        "--address",
+        "127.0.0.1",
+        "--http-port",
+        "0",
+        "--acme-contact",
+        "foo",
+        "--acme-contact",
+        "bar"
+      ])
+      .is_ok()
+    );
   }
 
   #[test]
   fn acme_domain_accepts_multiple_values() {
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "server",
-      "--address",
-      "127.0.0.1",
-      "--http-port",
-      "0",
-      "--acme-domain",
-      "foo",
-      "--acme-domain",
-      "bar"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "server",
+        "--address",
+        "127.0.0.1",
+        "--http-port",
+        "0",
+        "--acme-domain",
+        "foo",
+        "--acme-domain",
+        "bar"
+      ])
+      .is_ok()
+    );
   }
 
   #[test]
@@ -2926,6 +2966,10 @@ mod tests {
       "/output/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0",
     );
     server.assert_redirect(
+      "/4273262611454246626680278280877079635139930168289368354696278617:0",
+      "/output/4273262611454246626680278280877079635139930168289368354696278617:0",
+    );
+    server.assert_redirect(
       "/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0",
       "/satpoint/4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b:0:0",
     );
@@ -2936,6 +2980,10 @@ mod tests {
     server.assert_redirect(
       "/000000000000000000000000000000000000000000000000000000000000000f",
       "/tx/000000000000000000000000000000000000000000000000000000000000000f",
+    );
+    server.assert_redirect(
+      "/4273262611454246626680278280877079635139930168289368354696278617",
+      "/tx/4273262611454246626680278280877079635139930168289368354696278617",
     );
     server.assert_redirect(
       "/bc1p5d7rjq7g6rdk2yhzks9smlaqtedr4dekq08ge8ztwac72sfr9rusxg3297",
@@ -4454,6 +4502,7 @@ mod tests {
         },
         AcceptEncoding::default(),
         &ServerConfig::default(),
+        true,
       )
       .unwrap(),
       None
@@ -4470,6 +4519,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4488,6 +4538,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4511,6 +4562,7 @@ mod tests {
         csp_origin: Some("https://ordinals.com".into()),
         ..default()
       },
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4610,6 +4662,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4628,6 +4681,7 @@ mod tests {
       },
       AcceptEncoding::default(),
       &ServerConfig::default(),
+      true,
     )
     .unwrap()
     .unwrap();
@@ -4897,6 +4951,47 @@ mod tests {
       format!("/inscription/{}", Sat(5000000000).name()),
       StatusCode::OK,
       ".*<title>Inscription 0</title.*",
+    );
+  }
+
+  #[test]
+  fn gallery_items_can_be_looked_up_by_gallery_sat_name() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    server.mine_blocks(1);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        1,
+        0,
+        0,
+        Inscription {
+          content_type: Some("test/foo".into()),
+          body: Some("foo".into()),
+          properties: Properties {
+            gallery: vec![Item {
+              id: inscription_id(1),
+              ..default()
+            }],
+            ..default()
+          }
+          .to_cbor(),
+          ..default()
+        }
+        .to_witness(),
+      )],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      format!("/gallery/{}/0", Sat(5000000000).name()),
+      StatusCode::OK,
+      ".*<title>Gallery 0 item 0</title.*",
     );
   }
 
@@ -5243,6 +5338,7 @@ next
         .collect::<Vec<_>>();
 
       let properties = Properties {
+        attributes: Attributes::default(),
         gallery: gallery_items,
       };
 
@@ -6511,10 +6607,47 @@ next
       Some(ids[110])
     );
 
-    assert!(server
-      .get_json::<api::SatInscription>("/r/sat/5000000000/at/111")
-      .id
-      .is_none());
+    assert!(
+      server
+        .get_json::<api::SatInscription>("/r/sat/5000000000/at/111")
+        .id
+        .is_none()
+    );
+
+    assert_eq!(
+      server
+        .get("/r/sat/5000000000/at/0")
+        .headers()
+        .get(header::CACHE_CONTROL),
+      None,
+    );
+
+    assert_eq!(
+      server
+        .get("/r/sat/5000000000/at/0/content")
+        .headers()
+        .get(header::CACHE_CONTROL)
+        .unwrap(),
+      "public, max-age=1209600, immutable",
+    );
+
+    assert_eq!(
+      server
+        .get("/r/sat/5000000000/at/-1")
+        .headers()
+        .get(header::CACHE_CONTROL)
+        .unwrap(),
+      "no-store",
+    );
+
+    assert_eq!(
+      server
+        .get("/r/sat/5000000000/at/-1/content")
+        .headers()
+        .get(header::CACHE_CONTROL)
+        .unwrap(),
+      "no-store",
+    );
   }
 
   #[test]
@@ -6982,6 +7115,12 @@ next
       "/inscriptions/block/102/1",
       StatusCode::OK,
       r".*<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>.*",
+    );
+
+    server.assert_response_regex(
+      "/inscriptions/block/102/2",
+      StatusCode::OK,
+      r".*<div class=thumbnails>\s*</div>.*",
     );
   }
 
@@ -7643,15 +7782,17 @@ next
   fn authentication_requires_username_and_password() {
     assert!(Arguments::try_parse_from(["ord", "--server-username", "server", "foo"]).is_err());
     assert!(Arguments::try_parse_from(["ord", "--server-password", "server", "bar"]).is_err());
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "--server-username",
-      "foo",
-      "--server-password",
-      "bar",
-      "server"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "--server-username",
+        "foo",
+        "--server-password",
+        "bar",
+        "server"
+      ])
+      .is_ok()
+    );
   }
 
   #[test]

@@ -18,19 +18,19 @@ use {
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{
+    Client,
     json::{
       GetBlockHeaderResult, GetBlockStatsResult, GetRawTransactionResult,
       GetRawTransactionResultVout, GetRawTransactionResultVoutScriptPubKey, GetTxOutResult,
     },
-    Client,
   },
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadOnlyTable, ReadableMultimapTable, ReadableTable, ReadableTableMetadata, RepairSession,
-    StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
+    ReadOnlyTable, ReadableDatabase, ReadableMultimapTable, ReadableTable, ReadableTableMetadata,
+    RepairSession, StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
     collections::HashMap,
@@ -305,13 +305,15 @@ impl Index {
       Err(DatabaseError::Storage(StorageError::Io(error)))
         if error.kind() == io::ErrorKind::NotFound =>
       {
+        log::info!("Creating new index");
+
         let database = Database::builder()
           .set_cache_size(index_cache_size)
           .create(&path)?;
 
         let mut tx = database.begin_write()?;
 
-        tx.set_durability(durability);
+        tx.set_durability(durability)?;
         tx.set_quick_repair(true);
 
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
@@ -788,7 +790,7 @@ impl Index {
 
   fn begin_write(&self) -> Result<WriteTransaction> {
     let mut tx = self.database.begin_write()?;
-    tx.set_durability(self.durability);
+    tx.set_durability(self.durability)?;
     tx.set_quick_repair(true);
     Ok(tx)
   }
@@ -1761,15 +1763,14 @@ impl Index {
       return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
     }
 
-    if self.index_transactions {
-      if let Some(transaction) = self
+    if self.index_transactions
+      && let Some(transaction) = self
         .database
         .begin_read()?
         .open_table(TRANSACTION_ID_TO_TRANSACTION)?
         .get(&txid.store())?
-      {
-        return Ok(Some(consensus::encode::deserialize(transaction.value())?));
-      }
+    {
+      return Ok(Some(consensus::encode::deserialize(transaction.value())?));
     }
 
     self.client.get_raw_transaction(&txid, None).into_option()
@@ -2325,6 +2326,7 @@ impl Index {
         number: entry.inscription_number,
         parents,
         previous,
+        properties: inscription.properties(),
         rune,
         sat: entry.sat,
         satpoint,
@@ -2409,12 +2411,14 @@ impl Index {
           // unbound inscriptions should not be assigned to a sat
           assert_ne!(satpoint.outpoint, unbound_outpoint());
 
-          assert!(rtx
-            .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)
-            .unwrap()
-            .get(&sat)
-            .unwrap()
-            .any(|entry| entry.unwrap().value() == sequence_number));
+          assert!(
+            rtx
+              .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)
+              .unwrap()
+              .get(&sat)
+              .unwrap()
+              .any(|entry| entry.unwrap().value() == sequence_number)
+          );
 
           // we do not track common sats (only the sat ranges)
           if !Sat(sat).common() {
@@ -3848,23 +3852,27 @@ mod tests {
         Some(50 * COIN_VALUE),
       );
 
-      assert!(context
-        .index
-        .get_inscription_by_id(InscriptionId {
-          txid: second,
-          index: 0
-        })
-        .unwrap()
-        .is_some());
+      assert!(
+        context
+          .index
+          .get_inscription_by_id(InscriptionId {
+            txid: second,
+            index: 0
+          })
+          .unwrap()
+          .is_some()
+      );
 
-      assert!(context
-        .index
-        .get_inscription_by_id(InscriptionId {
-          txid: second,
-          index: 0
-        })
-        .unwrap()
-        .is_some());
+      assert!(
+        context
+          .index
+          .get_inscription_by_id(InscriptionId {
+            txid: second,
+            index: 0
+          })
+          .unwrap()
+          .is_some()
+      );
     }
   }
 
@@ -5004,13 +5012,15 @@ mod tests {
 
       let inscription_id = InscriptionId { txid, index: 0 };
 
-      assert!(context
-        .index
-        .get_inscription_entry(inscription_id)
-        .unwrap()
-        .unwrap()
-        .parents
-        .is_empty());
+      assert!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .parents
+          .is_empty()
+      );
     }
   }
 
@@ -5051,13 +5061,15 @@ mod tests {
 
       let inscription_id = InscriptionId { txid, index: 0 };
 
-      assert!(context
-        .index
-        .get_inscription_entry(inscription_id)
-        .unwrap()
-        .unwrap()
-        .parents
-        .is_empty());
+      assert!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .parents
+          .is_empty()
+      );
     }
   }
 
@@ -5609,11 +5621,13 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parents: vec![parent_inscription_id
-              .value()
-              .into_iter()
-              .chain(iter::once(0))
-              .collect()],
+            parents: vec![
+              parent_inscription_id
+                .value()
+                .into_iter()
+                .chain(iter::once(0))
+                .collect(),
+            ],
             ..default()
           }
           .to_witness(),
@@ -5625,13 +5639,15 @@ mod tests {
 
       let inscription_id = InscriptionId { txid, index: 0 };
 
-      assert!(context
-        .index
-        .get_inscription_entry(inscription_id)
-        .unwrap()
-        .unwrap()
-        .parents
-        .is_empty());
+      assert!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .parents
+          .is_empty()
+      );
     }
   }
 
@@ -6438,20 +6454,24 @@ mod tests {
     let context = Context::builder().build();
 
     assert!(!context.index.is_output_spent(OutPoint::null()).unwrap());
-    assert!(!context
-      .index
-      .is_output_spent(Chain::Mainnet.genesis_coinbase_outpoint())
-      .unwrap());
+    assert!(
+      !context
+        .index
+        .is_output_spent(Chain::Mainnet.genesis_coinbase_outpoint())
+        .unwrap()
+    );
 
     context.mine_blocks(1);
 
-    assert!(!context
-      .index
-      .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).compute_txid(),
-        vout: 0,
-      })
-      .unwrap());
+    assert!(
+      !context
+        .index
+        .is_output_spent(OutPoint {
+          txid: context.core.tx(1, 0).compute_txid(),
+          vout: 0,
+        })
+        .unwrap()
+    );
 
     context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Default::default())],
@@ -6460,54 +6480,66 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert!(context
-      .index
-      .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).compute_txid(),
-        vout: 0,
-      })
-      .unwrap());
+    assert!(
+      context
+        .index
+        .is_output_spent(OutPoint {
+          txid: context.core.tx(1, 0).compute_txid(),
+          vout: 0,
+        })
+        .unwrap()
+    );
   }
 
   #[test]
   fn is_output_in_active_chain() {
     let context = Context::builder().build();
 
-    assert!(context
-      .index
-      .is_output_in_active_chain(OutPoint::null())
-      .unwrap());
+    assert!(
+      context
+        .index
+        .is_output_in_active_chain(OutPoint::null())
+        .unwrap()
+    );
 
-    assert!(context
-      .index
-      .is_output_in_active_chain(Chain::Mainnet.genesis_coinbase_outpoint())
-      .unwrap());
+    assert!(
+      context
+        .index
+        .is_output_in_active_chain(Chain::Mainnet.genesis_coinbase_outpoint())
+        .unwrap()
+    );
 
     context.mine_blocks(1);
 
-    assert!(context
-      .index
-      .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).compute_txid(),
-        vout: 0,
-      })
-      .unwrap());
+    assert!(
+      context
+        .index
+        .is_output_in_active_chain(OutPoint {
+          txid: context.core.tx(1, 0).compute_txid(),
+          vout: 0,
+        })
+        .unwrap()
+    );
 
-    assert!(!context
-      .index
-      .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).compute_txid(),
-        vout: 1,
-      })
-      .unwrap());
+    assert!(
+      !context
+        .index
+        .is_output_in_active_chain(OutPoint {
+          txid: context.core.tx(1, 0).compute_txid(),
+          vout: 1,
+        })
+        .unwrap()
+    );
 
-    assert!(!context
-      .index
-      .is_output_in_active_chain(OutPoint {
-        txid: Txid::all_zeros(),
-        vout: 0,
-      })
-      .unwrap());
+    assert!(
+      !context
+        .index
+        .is_output_in_active_chain(OutPoint {
+          txid: Txid::all_zeros(),
+          vout: 0,
+        })
+        .unwrap()
+    );
   }
 
   #[test]

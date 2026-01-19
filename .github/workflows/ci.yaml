@@ -19,7 +19,7 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Install Rust Toolchain Components
       uses: actions-rs/toolchain@v1
@@ -29,21 +29,14 @@ jobs:
 
     - uses: Swatinem/rust-cache@v2
 
-    - uses: peaceiris/actions-mdbook@v2
-      with:
-        mdbook-version: latest
+    - name: Install `mdbook`
+      run: cargo install mdbook@0.4.52
 
-    - name: Install mdbook-i18n-helpers
-      run: cargo install mdbook-i18n-helpers
+    - name: Install `mdbook-i18n-helpers`
+      run: cargo install mdbook-i18n-helpers@0.3.6
 
-    - name: Install mdbook-linkcheck
-      run: |
-        mkdir -p mdbook-linkcheck
-        cd mdbook-linkcheck
-        wget https://github.com/Michael-F-Bryan/mdbook-linkcheck/releases/latest/download/mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
-        unzip mdbook-linkcheck.x86_64-unknown-linux-gnu.zip
-        chmod +x mdbook-linkcheck
-        pwd >> $GITHUB_PATH
+    - name: Install `mdbook-linkcheck`
+      run: cargo install mdbook-linkcheck@0.7.7
 
     - name: Build docs
       run: mdbook build docs -d build
@@ -72,7 +65,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Install Rust Toolchain Components
       uses: actions-rs/toolchain@v1
@@ -105,7 +98,7 @@ jobs:
     runs-on: ${{matrix.os}}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
 
     - name: Install Rust Toolchain Components
       uses: actions-rs/toolchain@v1

@@ -3,9 +3,8 @@ use {
   anyhow::ensure,
   axum::http::header::HeaderValue,
   bitcoin::blockdata::opcodes,
-  brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
+  brotli::enc::{BrotliEncoderParams, writer::CompressorWriter},
   io::Write,
-  std::str,
 };
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
@@ -261,9 +260,8 @@ impl Inscription {
     const BVM_NETWORK: &[u8] = b"<body style=\"background:#F61;color:#fff;\">\
                         <h1 style=\"height:100%\">bvm.network</h1></body>";
 
-    lazy_static! {
-      static ref BRC_420: Regex = Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap();
-    }
+    static BRC_420: LazyLock<Regex> =
+      LazyLock::new(|| Regex::new(r"^\s*/content/[[:xdigit:]]{64}i\d+\s*$").unwrap());
 
     self
       .body()
@@ -273,13 +271,12 @@ impl Inscription {
       || matches!(self.media(), Media::Code(_) | Media::Text | Media::Unknown)
   }
 
-  pub(crate) fn gallery(&self) -> Vec<InscriptionId> {
+  pub(crate) fn properties(&self) -> Properties {
     self
       .properties
       .as_ref()
       .map(|cbor| Properties::from_cbor(cbor))
       .unwrap_or_default()
-      .gallery
   }
 }
 
@@ -456,32 +453,38 @@ mod tests {
 
   #[test]
   fn inscription_with_no_parent_field_has_no_parent() {
-    assert!(Inscription {
-      parents: Vec::new(),
-      ..default()
-    }
-    .parents()
-    .is_empty());
+    assert!(
+      Inscription {
+        parents: Vec::new(),
+        ..default()
+      }
+      .parents()
+      .is_empty()
+    );
   }
 
   #[test]
   fn inscription_with_parent_field_shorter_than_txid_length_has_no_parent() {
-    assert!(Inscription {
-      parents: vec![Vec::new()],
-      ..default()
-    }
-    .parents()
-    .is_empty());
+    assert!(
+      Inscription {
+        parents: vec![Vec::new()],
+        ..default()
+      }
+      .parents()
+      .is_empty()
+    );
   }
 
   #[test]
   fn inscription_with_parent_field_longer_than_txid_and_index_has_no_parent() {
-    assert!(Inscription {
-      parents: vec![vec![1; 37]],
-      ..default()
-    }
-    .parents()
-    .is_empty());
+    assert!(
+      Inscription {
+        parents: vec![vec![1; 37]],
+        ..default()
+      }
+      .parents()
+      .is_empty()
+    );
   }
 
   #[test]
@@ -490,12 +493,14 @@ mod tests {
 
     parent[35] = 0;
 
-    assert!(!Inscription {
-      parents: vec![parent],
-      ..default()
-    }
-    .parents()
-    .is_empty());
+    assert!(
+      !Inscription {
+        parents: vec![parent],
+        ..default()
+      }
+      .parents()
+      .is_empty()
+    );
   }
 
   #[test]
@@ -504,12 +509,14 @@ mod tests {
 
     parent[34] = 0;
 
-    assert!(Inscription {
-      parents: vec![parent],
-      ..default()
-    }
-    .parents()
-    .is_empty());
+    assert!(
+      Inscription {
+        parents: vec![parent],
+        ..default()
+      }
+      .parents()
+      .is_empty()
+    );
   }
 
   #[test]
@@ -929,19 +936,23 @@ mod tests {
       true,
     );
 
-    assert!(Inscription {
-      content_type: Some("text/plain".as_bytes().into()),
-      body: Some(b"{\xc3\x28}".as_slice().into()),
-      ..default()
-    }
-    .hidden());
+    assert!(
+      Inscription {
+        content_type: Some("text/plain".as_bytes().into()),
+        body: Some(b"{\xc3\x28}".as_slice().into()),
+        ..default()
+      }
+      .hidden()
+    );
 
-    assert!(Inscription {
-      content_type: Some("text/html".as_bytes().into()),
-      body: Some("hello".as_bytes().into()),
-      metaprotocol: Some(Vec::new()),
-      ..default()
-    }
-    .hidden());
+    assert!(
+      Inscription {
+        content_type: Some("text/html".as_bytes().into()),
+        body: Some("hello".as_bytes().into()),
+        metaprotocol: Some(Vec::new()),
+        ..default()
+      }
+      .hidden()
+    );
   }
 }

@@ -178,6 +178,11 @@ serve-docs: build-docs
 open-docs:
   open http://127.0.0.1:8080
 
+install-mdbook:
+  cargo install mdbook@0.4.52
+  cargo install mdbook-i18n-helpers@0.3.6
+  cargo install mdbook-linkcheck@0.7.7
+
 build-docs:
   #!/usr/bin/env bash
   mdbook build docs -d build

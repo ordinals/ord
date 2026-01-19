@@ -322,7 +322,7 @@ transaction.
 The `Pointer` field contains the index of the output to which runes unallocated
 by edicts should be transferred. If the `Pointer` field is absent, unallocated
 runes are transferred to the first non-`OP_RETURN` output. If the pointer is
-greater than the number of outputs, the runestone is a cenotaph.
+greater than or equal to the number of outputs, the runestone is a cenotaph.
 
 ##### Cenotaph
 
@@ -390,9 +390,10 @@ Cenotaphs have the following effects:
 
 Cenotaphs may be created if a runestone contains an unrecognized even tag, an
 unrecognized flag, an edict with an output number greater than the number of
-inputs, a rune ID with block zero and nonzero transaction index, a malformed
+outputs, a rune ID with block zero and nonzero transaction index, a malformed
 varint, a non-datapush instruction in the runestone output script pubkey, a tag
-without a following value, or trailing integers not part of an edict.
+without a following value, trailing integers not part of an edict, or a pointer
+greater than or equal to the number of outputs.
 
 #### Executing the Runestone
 

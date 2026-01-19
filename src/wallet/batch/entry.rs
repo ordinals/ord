@@ -4,14 +4,24 @@ use super::*;
 #[derive(Serialize, Deserialize, Default, PartialEq, Debug, Clone)]
 #[serde(deny_unknown_fields)]
 pub struct Entry {
+  #[serde(default, flatten)]
+  pub attributes: Attributes,
   pub delegate: Option<InscriptionId>,
   pub destination: Option<Address<NetworkUnchecked>>,
   pub file: Option<PathBuf>,
   #[serde(default)]
-  pub gallery: Vec<InscriptionId>,
+  pub gallery: Vec<Item>,
   pub metadata: Option<serde_yaml::Value>,
   pub metaprotocol: Option<String>,
   pub satpoint: Option<SatPoint>,
+}
+
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Serialize)]
+#[serde(deny_unknown_fields)]
+pub struct Item {
+  pub id: InscriptionId,
+  #[serde(flatten)]
+  pub attributes: Attributes,
 }
 
 impl Entry {
@@ -23,12 +33,6 @@ impl Entry {
         ciborium::into_writer(&metadata, &mut cbor)?;
         Ok(Some(cbor))
       }
-    }
-  }
-
-  pub(crate) fn properties(&self) -> Properties {
-    Properties {
-      gallery: self.gallery.clone(),
     }
   }
 }

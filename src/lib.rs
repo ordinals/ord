@@ -29,7 +29,6 @@ use {
     into_usize::IntoUsize,
     option_ext::OptionExt,
     outgoing::Outgoing,
-    properties::Properties,
     representation::Representation,
     satscard::Satscard,
     settings::Settings,
@@ -37,9 +36,11 @@ use {
     subcommand::{OutputFormat, Subcommand, SubcommandResult},
     tally::Tally,
   },
-  anyhow::{anyhow, bail, ensure, Context, Error},
+  anyhow::{Context, Error, anyhow, bail, ensure},
   bip39::Mnemonic,
   bitcoin::{
+    Amount, Block, KnownHrp, Network, OutPoint, Psbt, Script, ScriptBuf, Sequence, SignedAmount,
+    Transaction, TxIn, TxOut, Txid, Witness,
     address::{Address, NetworkUnchecked},
     blockdata::{
       constants::{DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL},
@@ -52,22 +53,19 @@ use {
     script,
     secp256k1::{self, Secp256k1},
     transaction::Version,
-    Amount, Block, KnownHrp, Network, OutPoint, Psbt, Script, ScriptBuf, Sequence, SignedAmount,
-    Transaction, TxIn, TxOut, Txid, Witness,
   },
   bitcoincore_rpc::{Client, RpcApi},
+  boilerplate::{Escape, Trusted},
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
   error::{ResultExt, SnafuError},
-  html_escaper::{Escape, Trusted},
-  lazy_static::lazy_static,
   ordinals::{
-    varint, Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone,
-    Sat, SatPoint, SpacedRune, Terms,
+    Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone, Sat,
+    SatPoint, SpacedRune, Terms, varint,
   },
   regex::Regex,
-  reqwest::{header::HeaderMap, StatusCode, Url},
+  reqwest::{StatusCode, Url, header::HeaderMap},
   serde::{Deserialize, Deserializer, Serialize},
   serde_with::{DeserializeFromStr, SerializeDisplay},
   snafu::{Backtrace, ErrorCompat, Snafu},
@@ -86,8 +84,8 @@ use {
     process::{self, Command, Stdio},
     str::FromStr,
     sync::{
-      atomic::{self, AtomicBool},
       Arc, LazyLock, Mutex,
+      atomic::{self, AtomicBool},
     },
     thread,
     time::{Duration, Instant, SystemTime},
@@ -103,6 +101,7 @@ pub use self::{
   inscriptions::{Envelope, Inscription, InscriptionId, ParsedEnvelope, RawEnvelope},
   object::Object,
   options::Options,
+  properties::{Attributes, Item, Properties, Trait, Traits},
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
@@ -303,11 +302,11 @@ pub fn main() {
           eprintln!("- {err}");
         }
 
-        if let Some(backtrace) = err.backtrace() {
-          if backtrace.status() == BacktraceStatus::Captured {
-            eprintln!("backtrace:");
-            eprintln!("{backtrace}");
-          }
+        if let Some(backtrace) = err.backtrace()
+          && backtrace.status() == BacktraceStatus::Captured
+        {
+          eprintln!("backtrace:");
+          eprintln!("{backtrace}");
         }
       }
 
