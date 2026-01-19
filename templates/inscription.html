@@ -1,4 +1,7 @@
 <h1>Inscription {{ self.number }}</h1>
+%% if let Some(title) = &self.properties.attributes.title {
+<p class=subtitle>{{ title }}</p>
+%% }
 <div class=inscription>
 %% if let Some(previous) = self.previous {
 <a class=prev href=/inscription/{{previous}}>❮</a>
@@ -39,6 +42,16 @@
     </div>
   </dd>
 %% }
+%% if !self.properties.gallery.is_empty() {
+  <dt>gallery</dt>
+  <dd>
+    <div class=thumbnails>
+%% for (i, item) in self.properties.gallery.iter().enumerate() {
+      {{ Iframe::item(self.id, i, item.id) }}
+%% }
+    </div>
+  </dd>
+%% }
 %% if let Some(rune) = self.rune {
   <dt>rune</dt>
   <dd><a href=/rune/{{ rune }}>{{ rune }}</a></dd>
@@ -54,6 +67,9 @@
 %%   }
 %% }
   </dd>
+%% }
+%% if self.properties.attributes != Attributes::default() {
+{{ Trusted(AttributesHtml(&self.properties.attributes)) }}
 %% }
 %% if let Some(metadata) = self.inscription.metadata() {
   <dt>metadata</dt>
@@ -121,14 +137,6 @@
   <dd><a class=collapse href=/output/{{ self.satpoint.outpoint }}>{{ self.satpoint.outpoint }}</a></dd>
   <dt>offset</dt>
   <dd>{{ self.satpoint.offset }}</dd>
-  <dt>details</dt>
-  <dd>
-    <details>
-      <summary>...</summary>
-      <dl>
-        <dt>ethereum teleburn address</dt>
-        <dd class=collapse>{{ teleburn::Ethereum::from(self.id) }}</dd>
-      </dl>
-    </details>
-  </dd>
+  <dt>ethereum teleburn address</dt>
+  <dd class=collapse>{{ teleburn::Ethereum::from(self.id) }}</dd>
 </dl>

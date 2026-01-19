@@ -27,6 +27,12 @@ pub(crate) struct Inscribe {
   pub(crate) file: Option<PathBuf>,
   #[arg(
     long,
+    help = "Include <INSCRIPTION_ID> in gallery.",
+    value_name = "INSCRIPTION_ID"
+  )]
+  pub(crate) gallery: Vec<InscriptionId>,
+  #[arg(
+    long,
     help = "Include JSON in file at <METADATA> converted to CBOR as inscription metadata",
     conflicts_with = "cbor_metadata"
   )]
@@ -47,6 +53,8 @@ pub(crate) struct Inscribe {
   pub(crate) sat: Option<Sat>,
   #[arg(long, help = "Inscribe <SATPOINT>.", conflicts_with = "sat")]
   pub(crate) satpoint: Option<SatPoint>,
+  #[arg(long, help = "Set `title` property to <TITLE>.")]
+  pub(crate) title: Option<String>,
 }
 
 impl Inscribe {
@@ -57,6 +65,13 @@ impl Inscribe {
       ensure! {
         wallet.inscription_exists(delegate)?,
         "delegate {delegate} does not exist"
+      }
+    }
+
+    for inscription_id in &self.gallery {
+      ensure! {
+        wallet.inscription_exists(*inscription_id)?,
+        "gallery item does not exist: {inscription_id}",
       }
     }
 
@@ -77,6 +92,17 @@ impl Inscribe {
         self.parent.into_iter().collect(),
         self.file,
         None,
+        Properties {
+          attributes: Attributes {
+            title: self.title,
+            traits: Traits::default(),
+          },
+          gallery: self
+            .gallery
+            .into_iter()
+            .map(|id| Item { id, ..default() })
+            .collect(),
+        },
         None,
       )?],
       mode: batch::Mode::SeparateOutputs,
@@ -156,39 +182,45 @@ mod tests {
       r".*required arguments.*--delegate <DELEGATE>\|--file <FILE>.*"
     );
 
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "wallet",
-      "inscribe",
-      "--file",
-      "hello.txt",
-      "--fee-rate",
-      "1"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "wallet",
+        "inscribe",
+        "--file",
+        "hello.txt",
+        "--fee-rate",
+        "1"
+      ])
+      .is_ok()
+    );
 
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "wallet",
-      "inscribe",
-      "--delegate",
-      "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00i0",
-      "--fee-rate",
-      "1"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "wallet",
+        "inscribe",
+        "--delegate",
+        "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00i0",
+        "--fee-rate",
+        "1"
+      ])
+      .is_ok()
+    );
 
-    assert!(Arguments::try_parse_from([
-      "ord",
-      "wallet",
-      "inscribe",
-      "--file",
-      "hello.txt",
-      "--delegate",
-      "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00i0",
-      "--fee-rate",
-      "1"
-    ])
-    .is_ok());
+    assert!(
+      Arguments::try_parse_from([
+        "ord",
+        "wallet",
+        "inscribe",
+        "--file",
+        "hello.txt",
+        "--delegate",
+        "038112028c55f3f77cc0b8b413df51f70675f66be443212da0642b7636f68a00i0",
+        "--fee-rate",
+        "1"
+      ])
+      .is_ok()
+    );
   }
 }

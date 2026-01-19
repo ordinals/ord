@@ -73,6 +73,31 @@ fn metaprotocol_appears_on_inscription_page() {
 }
 
 #[test]
+fn title_appears_on_inscription_page() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  create_wallet(&core, &ord);
+
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
+
+  let inscribe = CommandBuilder::new(format!(
+    "wallet inscribe --file foo.txt --title foo --satpoint {txid}:0:0 --fee-rate 10"
+  ))
+  .write("foo.txt", [0; 350_000])
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", inscribe.inscriptions[0].id),
+    r".*<dt>title</dt>\s*<dd>foo</dd>.*",
+  );
+}
+
+#[test]
 fn inscribe_fails_if_bitcoin_core_is_too_old() {
   let core = mockcore::builder().version(240000).build();
   let ord = TestServer::spawn(&core);
@@ -522,7 +547,7 @@ fn inscribe_with_no_limit() {
 
   core.mine_blocks(1);
 
-  let one_megger = std::iter::repeat(0).take(1_000_000).collect::<Vec<u8>>();
+  let one_megger = std::iter::repeat_n(0, 1_000_000).collect::<Vec<u8>>();
   CommandBuilder::new("wallet inscribe --no-limit --file degenerate.png --fee-rate 1")
     .write("degenerate.png", one_megger)
     .core(&core)
@@ -788,11 +813,13 @@ fn no_metadata_appears_on_inscription_page_if_no_metadata_is_passed() {
 
   core.mine_blocks(1);
 
-  assert!(!ord
-    .request(format!("/inscription/{inscription}"),)
-    .text()
-    .unwrap()
-    .contains("metadata"));
+  assert!(
+    !ord
+      .request(format!("/inscription/{inscription}"),)
+      .text()
+      .unwrap()
+      .contains("metadata")
+  );
 }
 
 #[test]
@@ -1223,7 +1250,7 @@ fn inscription_with_delegate_returns_effective_content_type() {
   core.mine_blocks(1);
 
   let inscription_id = inscribe.inscriptions[0].id;
-  let json_response = ord.json_request(format!("/inscription/{}", inscription_id));
+  let json_response = ord.json_request(format!("/inscription/{inscription_id}"));
 
   let inscription_json: api::Inscription =
     serde_json::from_str(&json_response.text().unwrap()).unwrap();
@@ -1255,6 +1282,81 @@ fn file_inscribe_with_non_existent_delegate_inscription() {
   .core(&core)
   .ord(&ord)
   .expected_stderr(format!("error: delegate {delegate} does not exist\n"))
+  .expected_exit_code(1)
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn inscribe_can_include_gallery_items() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (id0, _) = inscribe(&core, &ord);
+  let (id1, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!(
+    "wallet inscribe --file foo.txt --fee-rate 1 --gallery {id0} --gallery {id1}"
+  ))
+  .write("foo.txt", "Hello World")
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let gallery = output.inscriptions[0].id;
+
+  let request = ord.request(format!("/content/{}", gallery));
+
+  assert_eq!(request.status(), 200);
+  assert_eq!(
+    request.headers().get("content-type").unwrap(),
+    "text/plain;charset=utf-8"
+  );
+  assert_eq!(request.text().unwrap(), "Hello World");
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", gallery),
+    format!(
+      r".*
+  <dt>gallery</dt>
+  <dd>
+    <div class=thumbnails>
+      <a href=/gallery/{gallery}/0>.*</a>
+      <a href=/gallery/{gallery}/1>.*</a>
+    </div>
+  </dd>
+.*"
+    ),
+  );
+}
+
+#[test]
+fn inscribe_fails_if_gallery_inscription_does_not_exist() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  CommandBuilder::new(
+    "wallet inscribe --file foo.txt --fee-rate 1 --gallery \
+    0000000000000000000000000000000000000000000000000000000000000000i0",
+  )
+  .write("foo.txt", "Hello World")
+  .core(&core)
+  .ord(&ord)
+  .expected_stderr(
+    "error: gallery item does not exist: \
+      0000000000000000000000000000000000000000000000000000000000000000i0\n",
+  )
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }

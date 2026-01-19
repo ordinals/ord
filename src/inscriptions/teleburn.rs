@@ -24,9 +24,11 @@ impl Display for Ethereum {
 /// checksum as per https://eips.ethereum.org/EIPS/eip-55
 fn create_address_with_checksum(address: &str) -> String {
   assert_eq!(address.len(), 40);
-  assert!(address
-    .chars()
-    .all(|c| c.is_ascii_hexdigit() && (!c.is_alphabetic() || c.is_lowercase())));
+  assert!(
+    address
+      .chars()
+      .all(|c| c.is_ascii_hexdigit() && (!c.is_alphabetic() || c.is_lowercase()))
+  );
 
   let hash = hex::encode(&Keccak256::digest(address.as_bytes())[..20]);
   assert_eq!(hash.len(), 40);

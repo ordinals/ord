@@ -1,12 +1,12 @@
 use {
   super::*,
   http_body_util::{BodyExt, Full},
-  hyper::{body::Bytes, Method, Request, Uri},
+  hyper::{Method, Request, Uri, body::Bytes},
   hyper_util::{
-    client::legacy::{connect::HttpConnector, Client},
+    client::legacy::{Client, connect::HttpConnector},
     rt::TokioExecutor,
   },
-  serde_json::{json, Value},
+  serde_json::{Value, json},
 };
 
 pub(crate) struct Fetcher {
@@ -78,7 +78,7 @@ impl Fetcher {
             ));
           }
 
-          log::info!("failed to fetch raw transactions, retrying: {}", error);
+          log::info!("failed to fetch raw transactions, retrying: {error}");
 
           tokio::time::sleep(Duration::from_millis(100 * u64::pow(2, retries))).await;
           retries += 1;
@@ -139,7 +139,7 @@ impl Fetcher {
           "failed to parse JSON-RPC response: {e}. response: {response}",
           e = e,
           response = String::from_utf8_lossy(&buf)
-        ))
+        ));
       }
     };
 

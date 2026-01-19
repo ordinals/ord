@@ -1,6 +1,172 @@
 Changelog
 =========
 
+[0.24.2](https://github.com/ordinals/ord/releases/tag/0.24.1) - 2025-11-13
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix trait template description list ([#4440](https://github.com/ordinals/ord/pull/4440) by [casey](https://github.com/casey))
+
+### Misc
+- Return empty page if block inscription page request is out of range ([#4439](https://github.com/ordinals/ord/pull/4439) by [casey](https://github.com/casey))
+- Log index creation ([#4438](https://github.com/ordinals/ord/pull/4438) by [casey](https://github.com/casey))
+
+[0.24.1](https://github.com/ordinals/ord/releases/tag/0.24.1) - 2025-11-13
+--------------------------------------------------------------------------
+
+### Fixed
+- Bump schema version ([#4436](https://github.com/ordinals/ord/pull/4436) by [casey](https://github.com/casey))
+
+[0.24.0](https://github.com/ordinals/ord/releases/tag/0.23.3) - 2025-11-12
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix redirects for outpoints and TXIDs consisting only of decimal digits ([#4421](https://github.com/ordinals/ord/pull/4421) by [gmart7t2](https://github.com/gmart7t2))
+- Don't cache negative sat index responses ([#4418](https://github.com/ordinals/ord/pull/4418) by [casey](https://github.com/casey))
+
+### Added
+- Add traits ([#4433](https://github.com/ordinals/ord/pull/4433) by [casey](https://github.com/casey))
+- Return properties from inscription JSON API ([#4425](https://github.com/ordinals/ord/pull/4425) by [casey](https://github.com/casey))
+- Add attributes to inscriptions and gallery items ([#4424](https://github.com/ordinals/ord/pull/4424) by [casey](https://github.com/casey))
+
+### Misc
+- Replace `lazy_static` with `LazyLock` ([#4429](https://github.com/ordinals/ord/pull/4429) by [terror](https://github.com/terror))
+- Fix rune specification ([#4430](https://github.com/ordinals/ord/pull/4430) by [gmart7t2](https://github.com/gmart7t2))
+- Add properties and metaprotocol to API docs ([#4426](https://github.com/ordinals/ord/pull/4426) by [casey](https://github.com/casey))
+- Use single properties struct ([#4423](https://github.com/ordinals/ord/pull/4423) by [casey](https://github.com/casey))
+- Fix typo in src/fund_raw_transaction.rs ([#4420](https://github.com/ordinals/ord/pull/4420) by [stemlaud](https://github.com/stemlaud))
+- Add complete Japanese translation ([#4406](https://github.com/ordinals/ord/pull/4406) by [SatoshiRoppongi](https://github.com/SatoshiRoppongi))
+- Update install script to use Bitcoin Core 30 ([#4417](https://github.com/ordinals/ord/pull/4417) by [casey](https://github.com/casey))
+- Upgrade checkout to v5 ([#4392](https://github.com/ordinals/ord/pull/4392) by [rejected-l](https://github.com/rejected-l))
+- Update to Rust 2024 ([#4412](https://github.com/ordinals/ord/pull/4412) by [casey](https://github.com/casey))
+
+[0.23.3](https://github.com/ordinals/ord/releases/tag/0.23.3) - 2025-09-19
+--------------------------------------------------------------------------
+
+### Added
+- Support ordinals.com satscards ([#4410](https://github.com/ordinals/ord/pull/4410) by [casey](https://github.com/casey))
+- Allow submitting offers created with wallet ([#4409](https://github.com/ordinals/ord/pull/4409) by [casey](https://github.com/casey))
+- Add PSBT offer submission ([#4408](https://github.com/ordinals/ord/pull/4408) by [casey](https://github.com/casey))
+- Add wallet sweep command ([#4394](https://github.com/ordinals/ord/pull/4394) by [raphjaph](https://github.com/raphjaph))
+
+### Changed
+- Enable json response on `/children` routes ([#4281](https://github.com/ordinals/ord/pull/4281) by [felipelincoln](https://github.com/felipelincoln))
+
+### Misc
+- Fix new Rust lints ([#4396](https://github.com/ordinals/ord/pull/4396) by [casey](https://github.com/casey))
+- Update deps and fmt ([#4385](https://github.com/ordinals/ord/pull/4385) by [raphjaph](https://github.com/raphjaph))
+- Update api.md ([#4381](https://github.com/ordinals/ord/pull/4381) by [Galoretka](https://github.com/Galoretka))
+- Allow inscribing with backup and Core v29 ([#4371](https://github.com/ordinals/ord/pull/4371) by [gmart7t2](https://github.com/gmart7t2))
+- Update minimum Rust version to 1.85.0 ([#4356](https://github.com/ordinals/ord/pull/4356) by [blieb](https://github.com/blieb))
+- Fix clippy lints ([#4373](https://github.com/ordinals/ord/pull/4373) by [raphjaph](https://github.com/raphjaph))
+- Use `unversioned_leaf_script_from_witness()` ([#4355](https://github.com/ordinals/ord/pull/4355) by [casey](https://github.com/casey))
+
+[0.23.2](https://github.com/ordinals/ord/releases/tag/0.23.2) - 2025-05-20
+--------------------------------------------------------------------------
+
+### Added
+- Allow inscribing JPEG XL ([#4326](https://github.com/ordinals/ord/pull/4326) by [casey](https://github.com/casey))
+
+### Fixed
+- Don't display `(expected)` when rune has already unlocked ([#4323](https://github.com/ordinals/ord/pull/4323) by [casey](https://github.com/casey))
+
+### Misc
+- Bump minimum required Rust version to 1.81.0 ([#4353](https://github.com/ordinals/ord/pull/4353) by [casey](https://github.com/casey))
+- Fix typo in recursion.md ([#4348](https://github.com/ordinals/ord/pull/4348) by [furo-tests-in-prod](https://github.com/furo-tests-in-prod))
+- Fix typo in faq.md ([#4347](https://github.com/ordinals/ord/pull/4347) by [furo-tests-in-prod](https://github.com/furo-tests-in-prod))
+- Fix clippy errors ([#4350](https://github.com/ordinals/ord/pull/4350) by [raphjaph](https://github.com/raphjaph))
+- Fix minor typos ([#4337](https://github.com/ordinals/ord/pull/4337) by [GarmashAlex](https://github.com/GarmashAlex))
+- Fix grammatical errors ([#4328](https://github.com/ordinals/ord/pull/4328) by [VolodymyrBg](https://github.com/VolodymyrBg))
+- Fix moderation.md typo ([#4327](https://github.com/ordinals/ord/pull/4327) by [0xbasar](https://github.com/0xbasar))
+- Update sparrow-wallet.md ([#4332](https://github.com/ordinals/ord/pull/4332) by [gap-editor](https://github.com/gap-editor))
+- Bump actions/checkout to v4 ([#4330](https://github.com/ordinals/ord/pull/4330) by [dizer-ti](https://github.com/dizer-ti))
+- Retry RPC client ([#4329](https://github.com/ordinals/ord/pull/4329) by [SmarakNayak](https://github.com/SmarakNayak))
+- Move ethereum teleburn address out of details ([#4325](https://github.com/ordinals/ord/pull/4325) by [casey](https://github.com/casey))
+- Update sparrow-wallet.md ([#4324](https://github.com/ordinals/ord/pull/4324) by [owenzimmew06](https://github.com/owenzimmew06))
+- Fix typos in documentation and comments ([#4322](https://github.com/ordinals/ord/pull/4322) by [leopardracer](https://github.com/leopardracer))
+
+[0.23.1](https://github.com/ordinals/ord/releases/tag/0.23.1) - 2025-04-01
+--------------------------------------------------------------------------
+
+### Fixed
+- Don't wrap iframe media types in preview page ([#4315](https://github.com/ordinals/ord/pull/4315) by [casey](https://github.com/casey))
+
+### Misc
+- Add security section to handbook ([#4314](https://github.com/ordinals/ord/pull/4314) by [casey](https://github.com/casey))
+
+[0.23.0](https://github.com/ordinals/ord/releases/tag/0.23.0) - 2025-03-31
+--------------------------------------------------------------------------
+
+### Changed
+- Differentiate previews and thumbnails ([#4295](https://github.com/ordinals/ord/pull/4295) by [casey](https://github.com/casey))
+- Render borders around thumbnails ([#4292](https://github.com/ordinals/ord/pull/4292) by [casey](https://github.com/casey))
+- Wrap iframe media types in preview page ([#4258](https://github.com/ordinals/ord/pull/4258) by [casey](https://github.com/casey))
+
+### Fixed
+- Recognize inscriptions with content type `audio/ogg` as audio ([#4288](https://github.com/ordinals/ord/pull/4288) by [casey](https://github.com/casey))
+
+### Added
+- Add confirmations and fix spent in output page and API ([#4257](https://github.com/ordinals/ord/pull/4257) by [raphjaph](https://github.com/raphjaph))
+- Proxy `/r/sat/{sat}/at/{index}` endpoint ([#4022](https://github.com/ordinals/ord/pull/4022) by [arik-so](https://github.com/arik-so))
+- Add `/r/parents/:inscription_id/inscriptions` endpoint ([#4088](https://github.com/ordinals/ord/pull/4088) by [gmart7t2](https://github.com/gmart7t2))
+- Add inscription galleries ([#4212](https://github.com/ordinals/ord/pull/4212) by [casey](https://github.com/casey))
+- Proxy recursive sat_at_index_content endpoint ([#4205](https://github.com/ordinals/ord/pull/4205) by [arik-so](https://github.com/arik-so))
+
+### Misc
+- Delete testnet instances ([#4294](https://github.com/ordinals/ord/pull/4294) by [raphjaph](https://github.com/raphjaph))
+- Better preview titles ([#4272](https://github.com/ordinals/ord/pull/4272) by [jtraub91](https://github.com/jtraub91))
+- Fix degree notation examples ([#4289](https://github.com/ordinals/ord/pull/4289) by [casey](https://github.com/casey))
+- Move /r/utxo to recursive module ([#4287](https://github.com/ordinals/ord/pull/4287) by [raphjaph](https://github.com/raphjaph))
+- Make ParsedEnvelope and Envelope public ([#4249](https://github.com/ordinals/ord/pull/4249) by [NCrashed](https://github.com/NCrashed))
+- Add badges to readme ([#4253](https://github.com/ordinals/ord/pull/4253) by [casey](https://github.com/casey))
+- Move LANGUAGES variable into job ([#4250](https://github.com/ordinals/ord/pull/4250) by [casey](https://github.com/casey))
+- Fix bounty typo ([#4248](https://github.com/ordinals/ord/pull/4248) by [oxbau](https://github.com/oxbau))
+- Fix audit-content-security-policy binary ([#4242](https://github.com/ordinals/ord/pull/4242) by [casey](https://github.com/casey))
+- Fix wrong title link in metadata docs ([#4240](https://github.com/ordinals/ord/pull/4240) by [costcould](https://github.com/costcould))
+- Allow empty query parameters on /satscard route ([#4238](https://github.com/ordinals/ord/pull/4238) by [casey](https://github.com/casey))
+- Abridge recursion examples ([#4232](https://github.com/ordinals/ord/pull/4232) by [cryptoni9n](https://github.com/cryptoni9n))
+- Fix some typos ([#4227](https://github.com/ordinals/ord/pull/4227) by [renshuncui](https://github.com/renshuncui))
+- Don't unnecessarily bump pointer for SameSat mode ([#4214](https://github.com/ordinals/ord/pull/4214) by [SmarakNayak](https://github.com/SmarakNayak))
+- Upgrade redb to 2.4.0 to improve reorg performance ([#4215](https://github.com/ordinals/ord/pull/4215) by [emilcondrea](https://github.com/emilcondrea))
+- Allow CORS content type ([#4216](https://github.com/ordinals/ord/pull/4216) by [raphjaph](https://github.com/raphjaph))
+- Allow CORS for POST requests as well ([#4210](https://github.com/ordinals/ord/pull/4210) by [raphjaph](https://github.com/raphjaph))
+- Use middleware for proxied endpoints ([#4204](https://github.com/ordinals/ord/pull/4204) by [arik-so](https://github.com/arik-so))
+- Remove wildcard dependency ([#4202](https://github.com/ordinals/ord/pull/4202) by [casey](https://github.com/casey))
+
+[0.22.2](https://github.com/ordinals/ord/releases/tag/0.22.2) - 2025-01-27
+--------------------------------------------------------------------------
+
+### Added
+- Add `/r/tx/<txid>`  ([#4147](https://github.com/ordinals/ord/pull/4147) by [samedcildir](https://github.com/samedcildir))
+- Add configurable max-savepoints and savepoint-interval ([#4191](https://github.com/ordinals/ord/pull/4191) by [emilcondrea](https://github.com/emilcondrea))
+- Add /satscard page ([#4176](https://github.com/ordinals/ord/pull/4176) by [casey](https://github.com/casey))
+- Add sat at inscription content endpoint `/r/sat/:sat_number/at/:index/content` ([#4113](https://github.com/ordinals/ord/pull/4113) by [astralarkitekt](https://github.com/astralarkitekt))
+- Add .opus to audio types ([#4194](https://github.com/ordinals/ord/pull/4194) by [raphjaph](https://github.com/raphjaph))
+- Display unlock time on /rune ([#4192](https://github.com/ordinals/ord/pull/4192) by [casey](https://github.com/casey))
+- Use `application/x-bittorrent` media type for `.torrent` files ([#4193](https://github.com/ordinals/ord/pull/4193) by [casey](https://github.com/casey))
+- Add creating and accepting offers ([#4156](https://github.com/ordinals/ord/pull/4156) by [raphjaph](https://github.com/raphjaph))
+- Set --disable-json-api with environment variable ([#4154](https://github.com/ordinals/ord/pull/4154) by [casey](https://github.com/casey))
+- Add rare sat supply ([#4153](https://github.com/ordinals/ord/pull/4153) by [casey](https://github.com/casey))
+
+### Changed
+- Update minimum Bitcoin version to v28 ([#4185](https://github.com/ordinals/ord/pull/4185) by [raphjaph](https://github.com/raphjaph))
+
+### Misc
+- Move recursive endpoints into dedicated submodule ([#4200](https://github.com/ordinals/ord/pull/4200) by [casey](https://github.com/casey))
+- Don't error when listing inscriptions in a block without inscriptions ([#4197](https://github.com/ordinals/ord/pull/4197) by [gmart7t2](https://github.com/gmart7t2))
+- Fix CI ([#4198](https://github.com/ordinals/ord/pull/4198) by [raphjaph](https://github.com/raphjaph))
+- Create savepoint when close to tip and at max reorg depth ([#4169](https://github.com/ordinals/ord/pull/4169) by [emilcondrea](https://github.com/emilcondrea))
+- Update install script ([#4149](https://github.com/ordinals/ord/pull/4149) by [casey](https://github.com/casey))
+- Inline inscription ID in format string ([#4195](https://github.com/ordinals/ord/pull/4195) by [casey](https://github.com/casey))
+- Fix Japanese translation ([#4189](https://github.com/ordinals/ord/pull/4189) by [SatoshiRoppongi](https://github.com/SatoshiRoppongi))
+- `ord env` less aggressive exit ([#4186](https://github.com/ordinals/ord/pull/4186) by [raphjaph](https://github.com/raphjaph))
+- Update docs to Bitcoin Core version 25 ([#4180](https://github.com/ordinals/ord/pull/4180) by [cryptoni9n](https://github.com/cryptoni9n))
+- Enable JSON API on charlie ([#4181](https://github.com/ordinals/ord/pull/4181) by [raphjaph](https://github.com/raphjaph))
+- Install crypto provider for TLS ([#4178](https://github.com/ordinals/ord/pull/4178) by [raphjaph](https://github.com/raphjaph))
+- Update HTTP stack ([#4172](https://github.com/ordinals/ord/pull/4172) by [raphjaph](https://github.com/raphjaph))
+- Share workspace metadata ([#4170](https://github.com/ordinals/ord/pull/4170) by [casey](https://github.com/casey))
+- Update sat supply figures in overview.md ([#4152](https://github.com/ordinals/ord/pull/4152) by [ZedZeroth](https://github.com/ZedZeroth))
+
 [0.22.1](https://github.com/ordinals/ord/releases/tag/0.22.1) - 2024-12-23
 --------------------------------------------------------------------------
 

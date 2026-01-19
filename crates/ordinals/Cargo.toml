@@ -1,6 +1,6 @@
 [package]
 name = "ordinals"
-version = "0.0.14"
+version = "0.0.15"
 description = "Library for interoperating with ordinals and inscriptions"
 
 authors.workspace = true

@@ -96,12 +96,12 @@ fn runic_outputs_are_protected() {
   core.mine_blocks(1);
 
   ord.assert_response_regex(
-    format!("/output/{}:0", txid),
-    format!(r".*<a href=/inscription/{}>.*</a>.*", inscription),
+    format!("/output/{txid}:0"),
+    format!(r".*<a href=/inscription/{inscription}>.*</a>.*"),
   );
 
   ord.assert_response_regex(
-    format!("/output/{}:0", txid),
+    format!("/output/{txid}:0"),
     format!(r".*<a href=/rune/{rune}>{rune}</a>.*"),
   );
 
@@ -208,8 +208,8 @@ fn cannot_burn_inscription_sharing_utxo_with_another_inscription() {
   core.mine_blocks(1);
 
   ord.assert_response_regex(
-    format!("/output/{}:0", txid),
-    format!(r".*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*<a href=/inscription/{}>.*</a>.*", inscription0, inscription1, inscription2),
+    format!("/output/{txid}:0"),
+    format!(r".*<a href=/inscription/{inscription0}>.*</a>.*<a href=/inscription/{inscription1}>.*</a>.*<a href=/inscription/{inscription2}>.*</a>.*")
   );
 
   CommandBuilder::new(format!("--regtest wallet burn --fee-rate 1 {inscription0}",))
@@ -435,9 +435,9 @@ fn burn_rune() {
       .ord(&ord)
       .run_and_deserialize_output::<Balance>(),
     Balance {
-      cardinal: 450 * COIN_VALUE - 2 * 10000 + 129,
+      cardinal: 450 * COIN_VALUE - 2 * 10000,
       ordinal: 10000,
-      runic: Some(9871),
+      runic: Some(10000),
       runes: Some(
         [(
           SpacedRune { rune, spacers: 0 },

@@ -165,8 +165,8 @@ impl Plan {
         Ok(txid) => txid,
         Err(err) => {
           return Err(anyhow!(
-        "Failed to send reveal transaction: {err}\nCommit tx {commit_txid} will be recovered once mined"
-      ))
+            "Failed to send reveal transaction: {err}\nCommit tx {commit_txid} will be recovered once mined"
+          ));
         }
       };
 
@@ -462,13 +462,13 @@ impl Plan {
               Ok(ordinals::Terms {
                 cap: (terms.cap > 0).then_some(terms.cap),
                 height: (
-                  terms.height.and_then(|range| (range.start)),
-                  terms.height.and_then(|range| (range.end)),
+                  terms.height.and_then(|range| range.start),
+                  terms.height.and_then(|range| range.end),
                 ),
                 amount: Some(terms.amount.to_integer(etching.divisibility)?),
                 offset: (
-                  terms.offset.and_then(|range| (range.start)),
-                  terms.offset.and_then(|range| (range.end)),
+                  terms.offset.and_then(|range| range.start),
+                  terms.offset.and_then(|range| range.end),
                 ),
               })
             })
@@ -615,7 +615,7 @@ impl Plan {
 
     let recovery_key_pair = key_pair.tap_tweak(&secp256k1, taproot_spend_info.merkle_root());
 
-    let (x_only_pub_key, _parity) = recovery_key_pair.to_inner().x_only_public_key();
+    let (x_only_pub_key, _parity) = recovery_key_pair.to_keypair().x_only_public_key();
     assert_eq!(
       Address::p2tr_tweaked(
         TweakedPublicKey::dangerous_assume_tweaked(x_only_pub_key),
@@ -675,7 +675,7 @@ impl Plan {
 
   fn backup_recovery_key(wallet: &Wallet, recovery_key_pair: TweakedKeypair) -> Result {
     let recovery_private_key = PrivateKey::new(
-      recovery_key_pair.to_inner().secret_key(),
+      recovery_key_pair.to_keypair().secret_key(),
       wallet.chain().network(),
     );
 
@@ -695,7 +695,7 @@ impl Plan {
         active: Some(false),
         range: None,
         next_index: None,
-        internal: Some(false),
+        internal: None,
         label: Some("commit tx recovery key".to_string()),
       })?;
 

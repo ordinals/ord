@@ -1,0 +1,12 @@
+<h1>Gallery {{ self.gallery_inscription_number }} item {{ self.i }}</h1>
+%% if let Some(title) = &self.item.attributes.title {
+<p class=subtitle>{{ title }}</p>
+%% }
+<div class=inscription>
+{{ Iframe::main(self.item.id) }}
+</div>
+<dl>
+  <dt>inscription</dt>
+  <dd><a href=/inscription/{{ self.item.id }}>{{ self.item.id }}</a></dl>
+  {{ Trusted(AttributesHtml(&self.item.attributes)) }}
+</dl>

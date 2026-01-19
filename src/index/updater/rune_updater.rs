@@ -26,18 +26,18 @@ impl RuneUpdater<'_, '_, '_> {
     let mut allocated: Vec<HashMap<RuneId, Lot>> = vec![HashMap::new(); tx.output.len()];
 
     if let Some(artifact) = &artifact {
-      if let Some(id) = artifact.mint() {
-        if let Some(amount) = self.mint(id)? {
-          *unallocated.entry(id).or_default() += amount;
+      if let Some(id) = artifact.mint()
+        && let Some(amount) = self.mint(id)?
+      {
+        *unallocated.entry(id).or_default() += amount;
 
-          if let Some(sender) = self.event_sender {
-            sender.blocking_send(Event::RuneMinted {
-              block_height: self.height,
-              txid,
-              rune_id: id,
-              amount: amount.n(),
-            })?;
-          }
+        if let Some(sender) = self.event_sender {
+          sender.blocking_send(Event::RuneMinted {
+            block_height: self.height,
+            txid,
+            rune_id: id,
+            amount: amount.n(),
+          })?;
         }
       }
 
@@ -406,7 +406,7 @@ impl RuneUpdater<'_, '_, '_> {
       // extracting a tapscript does not indicate that the input being spent
       // was actually a taproot output. this is checked below, when we load the
       // output's entry from the database
-      let Some(tapscript) = input.witness.tapscript() else {
+      let Some(tapscript) = unversioned_leaf_script_from_witness(&input.witness) else {
         continue;
       };
 
@@ -457,7 +457,7 @@ impl RuneUpdater<'_, '_, '_> {
           .unwrap()
           + 1;
 
-        if confirmations >= Runestone::COMMIT_CONFIRMATIONS.into() {
+        if confirmations >= u32::from(Runestone::COMMIT_CONFIRMATIONS) {
           return Ok(true);
         }
       }

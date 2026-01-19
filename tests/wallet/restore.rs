@@ -18,10 +18,12 @@ fn restore_generates_same_descriptors() {
       .run_and_deserialize_output::<ListDescriptorsResult>();
 
     // new descriptors are created with timestamp `now`
-    assert!(output
-      .descriptors
-      .iter()
-      .all(|descriptor| descriptor.timestamp == bitcoincore_rpc::json::Timestamp::Now));
+    assert!(
+      output
+        .descriptors
+        .iter()
+        .all(|descriptor| descriptor.timestamp == bitcoincore_rpc::json::Timestamp::Now)
+    );
 
     (mnemonic, core.descriptors())
   };
@@ -42,10 +44,12 @@ fn restore_generates_same_descriptors() {
     .run_and_deserialize_output::<ListDescriptorsResult>();
 
   // restored descriptors are created with timestamp `0`
-  assert!(output
-    .descriptors
-    .iter()
-    .all(|descriptor| descriptor.timestamp == bitcoincore_rpc::json::Timestamp::Time(0)));
+  assert!(
+    output
+      .descriptors
+      .iter()
+      .all(|descriptor| descriptor.timestamp == bitcoincore_rpc::json::Timestamp::Time(0))
+  );
 
   assert_eq!(core.descriptors(), descriptors);
 }
@@ -277,19 +281,19 @@ fn restore_with_now_timestamp() {
     .stderr_regex(".*")
     .run_and_deserialize_output::<ListDescriptorsResult>();
 
-  assert!(output
-    .descriptors
-    .iter()
-    .all(|descriptor| match descriptor.timestamp {
+  assert!(output.descriptors.iter().all(|descriptor| {
+    match descriptor.timestamp {
       bitcoincore_rpc::json::Timestamp::Now => true,
-      bitcoincore_rpc::json::Timestamp::Time(time) =>
+      bitcoincore_rpc::json::Timestamp::Time(time) => {
         time.abs_diff(
           std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs()
-        ) <= 5,
-    }));
+            .as_secs(),
+        ) <= 5
+      }
+    }
+  }));
 }
 
 #[test]
@@ -318,13 +322,15 @@ fn restore_with_no_timestamp_defaults_to_0() {
     .stderr_regex(".*")
     .run_and_deserialize_output::<ListDescriptorsResult>();
 
-  assert!(output
-    .descriptors
-    .iter()
-    .all(|descriptor| match descriptor.timestamp {
-      bitcoincore_rpc::json::Timestamp::Now => false,
-      bitcoincore_rpc::json::Timestamp::Time(time) => time == 0,
-    }));
+  assert!(
+    output
+      .descriptors
+      .iter()
+      .all(|descriptor| match descriptor.timestamp {
+        bitcoincore_rpc::json::Timestamp::Now => false,
+        bitcoincore_rpc::json::Timestamp::Time(time) => time == 0,
+      })
+  );
 }
 
 #[test]
@@ -360,11 +366,13 @@ fn restore_with_timestamp() {
     .stderr_regex(".*")
     .run_and_deserialize_output::<ListDescriptorsResult>();
 
-  assert!(output
-    .descriptors
-    .iter()
-    .all(|descriptor| match descriptor.timestamp {
-      bitcoincore_rpc::json::Timestamp::Now => false,
-      bitcoincore_rpc::json::Timestamp::Time(time) => time == 123456789,
-    }));
+  assert!(
+    output
+      .descriptors
+      .iter()
+      .all(|descriptor| match descriptor.timestamp {
+        bitcoincore_rpc::json::Timestamp::Now => false,
+        bitcoincore_rpc::json::Timestamp::Time(time) => time == 123456789,
+      })
+  );
 }

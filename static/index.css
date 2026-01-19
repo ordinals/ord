@@ -212,9 +212,14 @@ a.mythic {
 
 .thumbnails > a {
   border-radius: 2%;
+  border: 1px solid #222;
   margin: 1%;
   overflow: hidden;
   width: 23%;
+}
+
+.thumbnails > a:hover {
+  border-color: #444;
 }
 
 .thumbnails iframe {
@@ -285,4 +290,12 @@ a.mythic {
 .icon {
   height: 1rem;
   width: 1rem;
+}
+
+.subtitle {
+  margin-top: 0.25rem;
+}
+
+h1:has(+ .subtitle) {
+  margin-bottom: 0;
 }

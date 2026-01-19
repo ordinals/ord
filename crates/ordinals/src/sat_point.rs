@@ -3,7 +3,7 @@ use {super::*, bitcoin::transaction::ParseOutPointError};
 /// A satpoint identifies the location of a sat in an output.
 ///
 /// The string representation of a satpoint consists of that of an outpoint,
-/// which identifies and output, followed by `:OFFSET`. For example, the string
+/// which identifies an output, followed by `:OFFSET`. For example, the string
 /// representation of the first sat of the genesis block coinbase output is
 /// `000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f:0:0`,
 /// that of the second sat of the genesis block coinbase output is

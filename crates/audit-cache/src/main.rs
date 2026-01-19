@@ -1,6 +1,6 @@
 use {
   colored::Colorize,
-  reqwest::{blocking::get, StatusCode},
+  reqwest::{StatusCode, blocking::get},
   std::process,
 };
 
@@ -19,7 +19,7 @@ const ENDPOINTS: &[(&str, StatusCode, &str, &str)] = &[
     "HIT",
     "public, max-age=31536000, immutable",
   ),
-  // content respopnses that aren't found aren't cached
+  // content responses that aren't found aren't cached
   (
     "/content/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i1",
     StatusCode::NOT_FOUND,

@@ -13,11 +13,13 @@ fn dumped_descriptors_match_wallet_descriptors() {
     .stderr_regex(".*")
     .run_and_deserialize_output::<ListDescriptorsResult>();
 
-  assert!(core
-    .descriptors()
-    .iter()
-    .zip(output.descriptors.iter())
-    .all(|(wallet_descriptor, output_descriptor)| *wallet_descriptor == output_descriptor.desc));
+  assert!(
+    core
+      .descriptors()
+      .iter()
+      .zip(output.descriptors.iter())
+      .all(|(wallet_descriptor, output_descriptor)| *wallet_descriptor == output_descriptor.desc)
+  );
 }
 
 #[test]
@@ -41,11 +43,13 @@ fn dumped_descriptors_restore() {
     .ord(&ord)
     .run_and_extract_stdout();
 
-  assert!(core
-    .descriptors()
-    .iter()
-    .zip(output.descriptors.iter())
-    .all(|(wallet_descriptor, output_descriptor)| *wallet_descriptor == output_descriptor.desc));
+  assert!(
+    core
+      .descriptors()
+      .iter()
+      .zip(output.descriptors.iter())
+      .all(|(wallet_descriptor, output_descriptor)| *wallet_descriptor == output_descriptor.desc)
+  );
 }
 
 #[test]
@@ -69,9 +73,11 @@ fn dump_and_restore_descriptors_with_minify() {
     .ord(&ord)
     .run_and_extract_stdout();
 
-  assert!(core
-    .descriptors()
-    .iter()
-    .zip(output.descriptors.iter())
-    .all(|(wallet_descriptor, output_descriptor)| *wallet_descriptor == output_descriptor.desc));
+  assert!(
+    core
+      .descriptors()
+      .iter()
+      .zip(output.descriptors.iter())
+      .all(|(wallet_descriptor, output_descriptor)| *wallet_descriptor == output_descriptor.desc)
+  );
 }

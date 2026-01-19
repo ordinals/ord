@@ -252,7 +252,7 @@ impl InscriptionUpdater<'_, '_> {
     // still have to normalize over inscription size
     for flotsam in &mut floating_inscriptions {
       if let Flotsam {
-        origin: Origin::New { ref mut fee, .. },
+        origin: Origin::New { fee, .. },
         ..
       } = flotsam
       {
@@ -553,7 +553,7 @@ impl InscriptionUpdater<'_, '_> {
     };
 
     // The special outpoints, i.e., the null outpoint and the unbound outpoint,
-    // don't follow the normal rulesr. Unlike real outputs they get written to
+    // don't follow the normal rules. Unlike real outputs they get written to
     // more than once. So we create a new UTXO entry here and commit() will
     // merge it with any existing entry.
     let output_utxo_entry = normal_output_utxo_entry.unwrap_or_else(|| {

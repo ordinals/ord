@@ -205,11 +205,11 @@ impl CommandBuilder {
 
     for arg in self.args.iter() {
       args.push(arg.clone());
-      if arg == "wallet" {
-        if let Some(ord_server_url) = &self.ord_url {
-          args.push("--server-url".to_string());
-          args.push(ord_server_url.to_string());
-        }
+      if arg == "wallet"
+        && let Some(ord_server_url) = &self.ord_url
+      {
+        args.push("--server-url".to_string());
+        args.push(ord_server_url.to_string());
       }
     }
 

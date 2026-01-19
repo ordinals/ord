@@ -32,7 +32,7 @@ Then pass the file to `--config` when starting the server:
 Note that the `--config` option comes after `ord` but before the `server`
 subcommand.
 
-`ord` must be restarted in to load changes to the config file.
+`ord` must be restarted in order to load changes to the config file.
 
 `ordinals.com`
 --------------

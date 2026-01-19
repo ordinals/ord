@@ -62,10 +62,9 @@ const PATTERNS: &[(Representation, &str)] = &[
   Representation::SatPoint.pattern(),
 ];
 
-lazy_static! {
-  static ref REGEX_SET: RegexSet =
-    RegexSet::new(PATTERNS.iter().map(|(_representation, pattern)| pattern),).unwrap();
-}
+static REGEX_SET: LazyLock<RegexSet> = LazyLock::new(|| {
+  RegexSet::new(PATTERNS.iter().map(|(_representation, pattern)| pattern)).unwrap()
+});
 
 #[cfg(test)]
 mod tests {
@@ -73,8 +72,10 @@ mod tests {
 
   #[test]
   fn all_patterns_are_anchored() {
-    assert!(PATTERNS
-      .iter()
-      .all(|(_representation, pattern)| pattern.starts_with('^') && pattern.ends_with('$')));
+    assert!(
+      PATTERNS
+        .iter()
+        .all(|(_representation, pattern)| pattern.starts_with('^') && pattern.ends_with('$'))
+    );
   }
 }

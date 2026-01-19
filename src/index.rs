@@ -18,16 +18,19 @@ use {
   },
   bitcoin::block::Header,
   bitcoincore_rpc::{
-    json::{GetBlockHeaderResult, GetBlockStatsResult},
     Client,
+    json::{
+      GetBlockHeaderResult, GetBlockStatsResult, GetRawTransactionResult,
+      GetRawTransactionResultVout, GetRawTransactionResultVoutScriptPubKey, GetTxOutResult,
+    },
   },
   chrono::SubsecRound,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadOnlyTable, ReadableMultimapTable, ReadableTable, ReadableTableMetadata, RepairSession,
-    StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
+    ReadOnlyTable, ReadableDatabase, ReadableMultimapTable, ReadableTable, ReadableTableMetadata,
+    RepairSession, StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
     collections::HashMap,
@@ -50,16 +53,17 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 30;
+const SCHEMA_VERSION: u64 = 31;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
-define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
+define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
 define_table! { INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER, i32, u32 }
+define_table! { NUMBER_TO_OFFER, u64, &[u8] }
 define_table! { OUTPOINT_TO_RUNE_BALANCES, &OutPointValue, &[u8] }
 define_table! { OUTPOINT_TO_UTXO_ENTRY, &OutPointValue, &UtxoEntry }
 define_table! { RUNE_ID_TO_RUNE_ENTRY, RuneIdValue, RuneEntryValue }
@@ -230,7 +234,7 @@ impl Index {
 
     let index_cache_size = settings.index_cache_size();
 
-    log::info!("Setting index cache size to {} bytes", index_cache_size);
+    log::info!("Setting index cache size to {index_cache_size} bytes");
 
     let durability = if cfg!(test) {
       redb::Durability::None
@@ -277,33 +281,38 @@ impl Index {
             .unwrap_or(0);
 
           match schema_version.cmp(&SCHEMA_VERSION) {
-            cmp::Ordering::Less =>
-              bail!(
-                "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-                path.display()
-              ),
-            cmp::Ordering::Greater =>
-              bail!(
-                "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
-                path.display()
-              ),
-            cmp::Ordering::Equal => {
-            }
+            cmp::Ordering::Less => bail!(
+              "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+              path.display()
+            ),
+            cmp::Ordering::Greater => bail!(
+              "index at `{}` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+              path.display()
+            ),
+            cmp::Ordering::Equal => {}
           }
         }
+
+        let tx = database.begin_write()?;
+
+        tx.open_table(NUMBER_TO_OFFER)?;
+
+        tx.commit()?;
 
         database
       }
       Err(DatabaseError::Storage(StorageError::Io(error)))
         if error.kind() == io::ErrorKind::NotFound =>
       {
+        log::info!("Creating new index");
+
         let database = Database::builder()
           .set_cache_size(index_cache_size)
           .create(&path)?;
 
         let mut tx = database.begin_write()?;
 
-        tx.set_durability(durability);
+        tx.set_durability(durability)?;
         tx.set_quick_repair(true);
 
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
@@ -314,6 +323,7 @@ impl Index {
         tx.open_table(HOME_INSCRIPTIONS)?;
         tx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
         tx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
+        tx.open_table(NUMBER_TO_OFFER)?;
         tx.open_table(OUTPOINT_TO_RUNE_BALANCES)?;
         tx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
         tx.open_table(RUNE_ID_TO_RUNE_ENTRY)?;
@@ -671,7 +681,7 @@ impl Index {
       match updater.update_index(wtx) {
         Ok(ok) => return Ok(ok),
         Err(err) => {
-          log::info!("{}", err.to_string());
+          log::info!("{err}");
 
           match err.downcast_ref() {
             Some(&reorg::Error::Recoverable { height, depth }) => {
@@ -702,7 +712,7 @@ impl Index {
       .map(|(height, _header)| height.value() + 1)
       .unwrap_or(0);
 
-    writeln!(writer, "# export at block height {}", blocks_indexed)?;
+    writeln!(writer, "# export at block height {blocks_indexed}")?;
 
     log::info!("exporting database tables to {filename}");
 
@@ -761,7 +771,7 @@ impl Index {
             .map(|address| address.to_string())
             .unwrap_or_else(|e| e.to_string())
         };
-        write!(writer, "\t{}", address)?;
+        write!(writer, "\t{address}")?;
       }
       writeln!(writer)?;
 
@@ -779,7 +789,7 @@ impl Index {
 
   fn begin_write(&self) -> Result<WriteTransaction> {
     let mut tx = self.database.begin_write()?;
-    tx.set_durability(self.durability);
+    tx.set_durability(self.durability)?;
     tx.set_quick_repair(true);
     Ok(tx)
   }
@@ -829,6 +839,40 @@ impl Index {
       .unwrap()
       .map(|x| x.value())
       .unwrap_or_default()
+  }
+
+  pub(crate) fn get_offers(&self) -> Result<Vec<Vec<u8>>> {
+    let tx = self.database.begin_read()?;
+
+    let number_to_offer = tx.open_table(NUMBER_TO_OFFER)?;
+
+    Ok(
+      number_to_offer
+        .iter()?
+        .map(|result| result.map(|(_key, value)| value.value().to_vec()))
+        .collect::<Result<Vec<Vec<u8>>, StorageError>>()?,
+    )
+  }
+
+  pub(crate) fn insert_offer(&self, offer: Psbt) -> Result {
+    let tx = self.database.begin_write()?;
+
+    {
+      let mut number_to_offer = tx.open_table(NUMBER_TO_OFFER)?;
+
+      let number = number_to_offer
+        .last()?
+        .map(|(key, _value)| key.value() + 1)
+        .unwrap_or_default();
+
+      let offer = offer.serialize();
+
+      number_to_offer.insert(number, offer.as_slice())?;
+    }
+
+    tx.commit()?;
+
+    Ok(())
   }
 
   #[cfg(test)]
@@ -1308,17 +1352,17 @@ impl Index {
   pub fn get_parents_by_sequence_number_paginated(
     &self,
     parent_sequence_numbers: Vec<u32>,
+    page_size: usize,
     page_index: usize,
   ) -> Result<(Vec<InscriptionId>, bool)> {
-    const PAGE_SIZE: usize = 100;
     let rtx = self.database.begin_read()?;
 
     let sequence_number_to_entry = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
     let mut parents = parent_sequence_numbers
       .iter()
-      .skip(page_index * PAGE_SIZE)
-      .take(PAGE_SIZE.saturating_add(1))
+      .skip(page_index * page_size)
+      .take(page_size.saturating_add(1))
       .map(|sequence_number| {
         sequence_number_to_entry
           .get(sequence_number)
@@ -1327,7 +1371,7 @@ impl Index {
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
 
-    let more_parents = parents.len() > PAGE_SIZE;
+    let more_parents = parents.len() > page_size;
 
     if more_parents {
       parents.pop();
@@ -1405,7 +1449,7 @@ impl Index {
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
 
-    let more = ids.len() > page_size.try_into().unwrap();
+    let more = ids.len().into_u64() > page_size;
 
     if more {
       ids.pop();
@@ -1596,20 +1640,100 @@ impl Index {
     Ok(Some(result))
   }
 
+  pub fn get_unspent_or_unconfirmed_output(
+    &self,
+    txid: &Txid,
+    vout: u32,
+  ) -> Result<Option<GetTxOutResult>> {
+    if txid == &self.genesis_block_coinbase_txid {
+      let Some(output) = &self
+        .genesis_block_coinbase_transaction
+        .output
+        .get(vout.into_usize())
+      else {
+        return Ok(None);
+      };
+
+      return Ok(Some(GetTxOutResult {
+        bestblock: self.block_hash(None)?.unwrap(),
+        coinbase: true,
+        confirmations: self.block_count()?,
+        script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+          address: None,
+          addresses: Vec::new(),
+          asm: output.script_pubkey.to_asm_string(),
+          hex: output.script_pubkey.to_bytes(),
+          req_sigs: Some(1),
+          type_: Some(bitcoincore_rpc::json::ScriptPubkeyType::Pubkey),
+        },
+        value: output.value,
+      }));
+    }
+
+    Ok(self.client.get_tx_out(txid, vout, Some(true))?)
+  }
+
+  pub fn get_transaction_info(&self, txid: &Txid) -> Result<Option<GetRawTransactionResult>> {
+    if txid == &self.genesis_block_coinbase_txid {
+      let tx = &self.genesis_block_coinbase_transaction;
+
+      let block = bitcoin::blockdata::constants::genesis_block(self.settings.chain().network());
+      let time = block.header.time.into_usize();
+
+      return Ok(Some(GetRawTransactionResult {
+        in_active_chain: Some(true),
+        hex: consensus::encode::serialize(tx),
+        txid: tx.compute_txid(),
+        hash: tx.compute_wtxid(),
+        size: tx.total_size(),
+        vsize: tx.vsize(),
+        #[allow(clippy::cast_sign_loss)]
+        version: tx.version.0 as u32,
+        locktime: 0,
+        vin: Vec::new(),
+        vout: tx
+          .output
+          .iter()
+          .enumerate()
+          .map(|(n, output)| GetRawTransactionResultVout {
+            n: n.try_into().unwrap(),
+            value: output.value,
+            script_pub_key: GetRawTransactionResultVoutScriptPubKey {
+              asm: output.script_pubkey.to_asm_string(),
+              hex: output.script_pubkey.clone().into(),
+              req_sigs: None,
+              type_: None,
+              addresses: Vec::new(),
+              address: None,
+            },
+          })
+          .collect(),
+        blockhash: Some(block.block_hash()),
+        confirmations: Some(self.block_count()?),
+        time: Some(time),
+        blocktime: Some(time),
+      }));
+    }
+
+    self
+      .client
+      .get_raw_transaction_info(txid, None)
+      .into_option()
+  }
+
   pub fn get_transaction(&self, txid: Txid) -> Result<Option<Transaction>> {
     if txid == self.genesis_block_coinbase_txid {
       return Ok(Some(self.genesis_block_coinbase_transaction.clone()));
     }
 
-    if self.index_transactions {
-      if let Some(transaction) = self
+    if self.index_transactions
+      && let Some(transaction) = self
         .database
         .begin_read()?
         .open_table(TRANSACTION_ID_TO_TRANSACTION)?
         .get(&txid.store())?
-      {
-        return Ok(Some(consensus::encode::deserialize(transaction.value())?));
-      }
+    {
+      return Ok(Some(consensus::encode::deserialize(transaction.value())?));
     }
 
     self.client.get_raw_transaction(&txid, None).into_option()
@@ -2165,6 +2289,7 @@ impl Index {
         number: entry.inscription_number,
         parents,
         previous,
+        properties: inscription.properties(),
         rune,
         sat: entry.sat,
         satpoint,
@@ -2249,12 +2374,14 @@ impl Index {
           // unbound inscriptions should not be assigned to a sat
           assert_ne!(satpoint.outpoint, unbound_outpoint());
 
-          assert!(rtx
-            .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)
-            .unwrap()
-            .get(&sat)
-            .unwrap()
-            .any(|entry| entry.unwrap().value() == sequence_number));
+          assert!(
+            rtx
+              .open_multimap_table(SAT_TO_SEQUENCE_NUMBER)
+              .unwrap()
+              .get(&sat)
+              .unwrap()
+              .any(|entry| entry.unwrap().value() == sequence_number)
+          );
 
           // we do not track common sats (only the sat ranges)
           if !Sat(sat).common() {
@@ -2404,9 +2531,12 @@ impl Index {
   pub(crate) fn get_output_info(&self, outpoint: OutPoint) -> Result<Option<(api::Output, TxOut)>> {
     let sat_ranges = self.list(outpoint)?;
 
+    let confirmations;
     let indexed;
+    let spent;
+    let txout;
 
-    let txout = if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+    if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
       let mut value = 0;
 
       if let Some(ranges) = &sat_ranges {
@@ -2415,35 +2545,49 @@ impl Index {
         }
       }
 
+      confirmations = 0;
       indexed = true;
-
-      TxOut {
+      spent = false;
+      txout = TxOut {
         value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
-      }
+      };
     } else {
       indexed = self.contains_output(&outpoint)?;
 
-      let Some(tx) = self.get_transaction(outpoint.txid)? else {
-        return Ok(None);
-      };
+      if let Some(result) = self.get_unspent_or_unconfirmed_output(&outpoint.txid, outpoint.vout)? {
+        confirmations = result.confirmations;
+        spent = false;
+        txout = TxOut {
+          value: result.value,
+          script_pubkey: ScriptBuf::from_bytes(result.script_pub_key.hex),
+        };
+      } else {
+        let Some(result) = self.get_transaction_info(&outpoint.txid)? else {
+          return Ok(None);
+        };
 
-      let Some(txout) = tx.output.into_iter().nth(outpoint.vout as usize) else {
-        return Ok(None);
-      };
+        let Some(output) = result.vout.into_iter().nth(outpoint.vout.into_usize()) else {
+          return Ok(None);
+        };
 
-      txout
+        confirmations = result.confirmations.unwrap_or_default();
+        spent = true;
+        txout = TxOut {
+          value: output.value,
+          script_pubkey: ScriptBuf::from_bytes(output.script_pub_key.hex),
+        };
+      }
     };
 
     let inscriptions = self.get_inscriptions_for_output(outpoint)?;
 
     let runes = self.get_rune_balances_for_output(outpoint)?;
 
-    let spent = self.is_output_spent(outpoint)?;
-
     Ok(Some((
       api::Output::new(
         self.settings.chain(),
+        confirmations,
         inscriptions,
         outpoint,
         txout.clone(),
@@ -3494,8 +3638,17 @@ mod tests {
     let delimiter = if cfg!(windows) { '\\' } else { '/' };
 
     assert_eq!(
-      Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
-      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema {SCHEMA_VERSION}", path.display()));
+      Context::builder()
+        .tempdir(tempdir)
+        .try_build()
+        .err()
+        .unwrap()
+        .to_string(),
+      format!(
+        "index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema 0, ord schema {SCHEMA_VERSION}",
+        path.display()
+      )
+    );
   }
 
   #[test]
@@ -3521,8 +3674,18 @@ mod tests {
     let delimiter = if cfg!(windows) { '\\' } else { '/' };
 
     assert_eq!(
-      Context::builder().tempdir(tempdir).try_build().err().unwrap().to_string(),
-      format!("index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}", path.display(), u64::MAX));
+      Context::builder()
+        .tempdir(tempdir)
+        .try_build()
+        .err()
+        .unwrap()
+        .to_string(),
+      format!(
+        "index at `{}{delimiter}regtest{delimiter}index.redb` appears to have been built with a newer, incompatible version of ord, consider updating ord: index schema {}, ord schema {SCHEMA_VERSION}",
+        path.display(),
+        u64::MAX
+      )
+    );
   }
 
   #[test]
@@ -3652,23 +3815,27 @@ mod tests {
         Some(50 * COIN_VALUE),
       );
 
-      assert!(context
-        .index
-        .get_inscription_by_id(InscriptionId {
-          txid: second,
-          index: 0
-        })
-        .unwrap()
-        .is_some());
+      assert!(
+        context
+          .index
+          .get_inscription_by_id(InscriptionId {
+            txid: second,
+            index: 0
+          })
+          .unwrap()
+          .is_some()
+      );
 
-      assert!(context
-        .index
-        .get_inscription_by_id(InscriptionId {
-          txid: second,
-          index: 0
-        })
-        .unwrap()
-        .is_some());
+      assert!(
+        context
+          .index
+          .get_inscription_by_id(InscriptionId {
+            txid: second,
+            index: 0
+          })
+          .unwrap()
+          .is_some()
+      );
     }
   }
 
@@ -4808,13 +4975,15 @@ mod tests {
 
       let inscription_id = InscriptionId { txid, index: 0 };
 
-      assert!(context
-        .index
-        .get_inscription_entry(inscription_id)
-        .unwrap()
-        .unwrap()
-        .parents
-        .is_empty());
+      assert!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .parents
+          .is_empty()
+      );
     }
   }
 
@@ -4855,13 +5024,15 @@ mod tests {
 
       let inscription_id = InscriptionId { txid, index: 0 };
 
-      assert!(context
-        .index
-        .get_inscription_entry(inscription_id)
-        .unwrap()
-        .unwrap()
-        .parents
-        .is_empty());
+      assert!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .parents
+          .is_empty()
+      );
     }
   }
 
@@ -5413,11 +5584,13 @@ mod tests {
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("hello".into()),
-            parents: vec![parent_inscription_id
-              .value()
-              .into_iter()
-              .chain(iter::once(0))
-              .collect()],
+            parents: vec![
+              parent_inscription_id
+                .value()
+                .into_iter()
+                .chain(iter::once(0))
+                .collect(),
+            ],
             ..default()
           }
           .to_witness(),
@@ -5429,13 +5602,15 @@ mod tests {
 
       let inscription_id = InscriptionId { txid, index: 0 };
 
-      assert!(context
-        .index
-        .get_inscription_entry(inscription_id)
-        .unwrap()
-        .unwrap()
-        .parents
-        .is_empty());
+      assert!(
+        context
+          .index
+          .get_inscription_entry(inscription_id)
+          .unwrap()
+          .unwrap()
+          .parents
+          .is_empty()
+      );
     }
   }
 
@@ -6072,13 +6247,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       let sat = entry.sat;
 
@@ -6106,13 +6277,9 @@ mod tests {
 
       assert_eq!(entry.inscription_number, 0);
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(sat, entry.sat);
 
@@ -6136,13 +6303,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, -2);
 
@@ -6183,13 +6346,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       let sat = entry.sat;
 
@@ -6215,13 +6374,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, 1);
 
@@ -6247,13 +6402,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, 2);
 
@@ -6266,20 +6417,24 @@ mod tests {
     let context = Context::builder().build();
 
     assert!(!context.index.is_output_spent(OutPoint::null()).unwrap());
-    assert!(!context
-      .index
-      .is_output_spent(Chain::Mainnet.genesis_coinbase_outpoint())
-      .unwrap());
+    assert!(
+      !context
+        .index
+        .is_output_spent(Chain::Mainnet.genesis_coinbase_outpoint())
+        .unwrap()
+    );
 
     context.mine_blocks(1);
 
-    assert!(!context
-      .index
-      .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).compute_txid(),
-        vout: 0,
-      })
-      .unwrap());
+    assert!(
+      !context
+        .index
+        .is_output_spent(OutPoint {
+          txid: context.core.tx(1, 0).compute_txid(),
+          vout: 0,
+        })
+        .unwrap()
+    );
 
     context.core.broadcast_tx(TransactionTemplate {
       inputs: &[(1, 0, 0, Default::default())],
@@ -6288,54 +6443,66 @@ mod tests {
 
     context.mine_blocks(1);
 
-    assert!(context
-      .index
-      .is_output_spent(OutPoint {
-        txid: context.core.tx(1, 0).compute_txid(),
-        vout: 0,
-      })
-      .unwrap());
+    assert!(
+      context
+        .index
+        .is_output_spent(OutPoint {
+          txid: context.core.tx(1, 0).compute_txid(),
+          vout: 0,
+        })
+        .unwrap()
+    );
   }
 
   #[test]
   fn is_output_in_active_chain() {
     let context = Context::builder().build();
 
-    assert!(context
-      .index
-      .is_output_in_active_chain(OutPoint::null())
-      .unwrap());
+    assert!(
+      context
+        .index
+        .is_output_in_active_chain(OutPoint::null())
+        .unwrap()
+    );
 
-    assert!(context
-      .index
-      .is_output_in_active_chain(Chain::Mainnet.genesis_coinbase_outpoint())
-      .unwrap());
+    assert!(
+      context
+        .index
+        .is_output_in_active_chain(Chain::Mainnet.genesis_coinbase_outpoint())
+        .unwrap()
+    );
 
     context.mine_blocks(1);
 
-    assert!(context
-      .index
-      .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).compute_txid(),
-        vout: 0,
-      })
-      .unwrap());
+    assert!(
+      context
+        .index
+        .is_output_in_active_chain(OutPoint {
+          txid: context.core.tx(1, 0).compute_txid(),
+          vout: 0,
+        })
+        .unwrap()
+    );
 
-    assert!(!context
-      .index
-      .is_output_in_active_chain(OutPoint {
-        txid: context.core.tx(1, 0).compute_txid(),
-        vout: 1,
-      })
-      .unwrap());
+    assert!(
+      !context
+        .index
+        .is_output_in_active_chain(OutPoint {
+          txid: context.core.tx(1, 0).compute_txid(),
+          vout: 1,
+        })
+        .unwrap()
+    );
 
-    assert!(!context
-      .index
-      .is_output_in_active_chain(OutPoint {
-        txid: Txid::all_zeros(),
-        vout: 0,
-      })
-      .unwrap());
+    assert!(
+      !context
+        .index
+        .is_output_in_active_chain(OutPoint {
+          txid: Txid::all_zeros(),
+          vout: 0,
+        })
+        .unwrap()
+    );
   }
 
   #[test]
@@ -6753,7 +6920,7 @@ mod tests {
 
   #[test]
   fn assert_schema_statistic_key_is_zero() {
-    // other schema statistic keys may chenge when the schema changes, but for
+    // other schema statistic keys may change when the schema changes, but for
     // good error messages in older versions, the schema statistic key must be
     // zero
     assert_eq!(Statistic::Schema.key(), 0);
