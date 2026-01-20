@@ -1,0 +1,45 @@
+name: CI Test
+
+on:
+  push:
+    branches:
+    - master
+    paths-ignore:
+    - 'docs/**'
+  pull_request:
+    branches:
+    - master
+    paths-ignore:
+    - 'docs/**'
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  RUSTFLAGS: --deny warnings
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os:
+        - macos-latest
+        - ubuntu-latest
+        - windows-latest
+
+    runs-on: ${{matrix.os}}
+
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Install Rust Toolchain Components
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+
+    - uses: Swatinem/rust-cache@v2
+
+    - name: Test
+      run: cargo test --all

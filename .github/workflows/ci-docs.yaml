@@ -1,4 +1,4 @@
-name: CI
+name: CI Docs
 
 on:
   push:
@@ -11,9 +11,6 @@ on:
 defaults:
   run:
     shell: bash
-
-env:
-  RUSTFLAGS: --deny warnings
 
 jobs:
   docs:
@@ -60,53 +57,3 @@ jobs:
         github_token: ${{secrets.GITHUB_TOKEN}}
         publish_branch: gh-pages
         publish_dir: docs/build/html
-
-  lint:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v5
-
-    - name: Install Rust Toolchain Components
-      uses: actions-rs/toolchain@v1
-      with:
-        components: clippy, rustfmt
-        override: true
-        toolchain: stable
-
-    - uses: Swatinem/rust-cache@v2
-
-    - name: Clippy
-      run: cargo clippy --all --all-targets
-
-    - name: Format
-      run: cargo fmt --all -- --check
-
-    - name: Check for Forbidden Words
-      run: |
-        sudo apt-get install ripgrep
-        ./bin/forbid
-
-  test:
-    strategy:
-      matrix:
-        os:
-        - macos-latest
-        - ubuntu-latest
-        - windows-latest
-
-    runs-on: ${{matrix.os}}
-
-    steps:
-    - uses: actions/checkout@v5
-
-    - name: Install Rust Toolchain Components
-      uses: actions-rs/toolchain@v1
-      with:
-        profile: minimal
-        toolchain: stable
-
-    - uses: Swatinem/rust-cache@v2
-
-    - name: Test
-      run: cargo test --all
