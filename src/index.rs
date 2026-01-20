@@ -1255,25 +1255,19 @@ impl Index {
 
   pub fn get_galleries_paginated(
     &self,
-    page_size: u32,
-    page_index: u32,
+    page_size: usize,
+    page_index: usize,
   ) -> Result<(Vec<InscriptionId>, bool)> {
     let rtx = self.database.begin_read()?;
 
     let sequence_number_to_inscription_entry =
       rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
-    let page_size = usize::try_from(page_size).unwrap();
-
     let mut galleries = rtx
       .open_multimap_table(SEQUENCE_NUMBER_TO_GALLERY_ITEMS)?
       .iter()?
       .rev()
-      .skip(
-        usize::try_from(page_index)
-          .unwrap()
-          .saturating_mul(page_size),
-      )
+      .skip(page_index.saturating_mul(page_size))
       .take(page_size.saturating_add(1))
       .map(|result| {
         result

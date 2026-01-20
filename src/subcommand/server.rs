@@ -1831,7 +1831,7 @@ impl Server {
   async fn galleries_paginated(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(page_index): Path<u32>,
+    Path(page_index): Path<usize>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
@@ -1844,7 +1844,7 @@ impl Server {
       Ok(if accept_json {
         Json(api::Inscriptions {
           ids: galleries,
-          page_index,
+          page_index: page_index.try_into().unwrap_or(u32::MAX),
           more,
         })
         .into_response()
