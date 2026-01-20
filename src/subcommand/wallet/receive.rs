@@ -7,17 +7,24 @@ pub struct Output {
 
 #[derive(Debug, Parser)]
 pub(crate) struct Receive {
-  #[arg(short, long, help = "Generate <NUMBER> addresses.")]
-  number: Option<u64>,
+  #[arg(
+    short,
+    long,
+    help = "Generate <NUMBER> addresses.",
+    default_value_t = 1
+  )]
+  number: usize,
 }
 
 impl Receive {
-  pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
-    let mut addresses: Vec<Address<NetworkUnchecked>> = Vec::new();
+  pub(crate) fn run(self, mut wallet: Wallet) -> SubcommandResult {
+    let addresses = wallet
+      .get_receive_addresses(self.number)
+      .into_iter()
+      .map(|address| address.into_unchecked())
+      .collect();
 
-    for _ in 0..self.number.unwrap_or(1) {
-      addresses.push(wallet.get_receive_address()?.into_unchecked());
-    }
+    wallet.persist()?;
 
     Ok(Some(Box::new(Output { addresses })))
   }

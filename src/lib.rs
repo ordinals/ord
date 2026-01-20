@@ -37,6 +37,7 @@ use {
     tally::Tally,
   },
   anyhow::{Context, Error, anyhow, bail, ensure},
+  bdk_wallet as bdk,
   bip39::Mnemonic,
   bitcoin::{
     Amount, Block, KnownHrp, Network, OutPoint, Psbt, Script, ScriptBuf, Sequence, SignedAmount,
