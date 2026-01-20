@@ -1386,12 +1386,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "executable-path"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ebc5a6d89e3c90b84e8f33c8737933dda8f1c106b5415900b38b9d433841478"
-
-[[package]]
 name = "fastrand"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2675,7 +2669,6 @@ dependencies = [
  "derive_more",
  "dirs",
  "env_logger",
- "executable-path",
  "futures",
  "hex",
  "http-body-util",
