@@ -10,7 +10,6 @@ use {
     transaction::Version,
   },
   chrono::{DateTime, Utc},
-  executable_path::executable_path,
   mockcore::TransactionTemplate,
   ord::{
     Inscription, InscriptionId, RuneEntry, api, base64_decode, base64_encode, chain::Chain,
