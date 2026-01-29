@@ -53,9 +53,10 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 31;
+const SCHEMA_VERSION: u64 = 32;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
+define_multimap_table! { SEQUENCE_NUMBER_TO_GALLERY_ITEMS, u32, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
@@ -318,6 +319,7 @@ impl Index {
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+        tx.open_multimap_table(SEQUENCE_NUMBER_TO_GALLERY_ITEMS)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(HOME_INSCRIPTIONS)?;
@@ -1249,6 +1251,42 @@ impl Index {
     }
 
     Ok((collections, more))
+  }
+
+  pub fn get_galleries_paginated(
+    &self,
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    let mut galleries = rtx
+      .open_multimap_table(SEQUENCE_NUMBER_TO_GALLERY_ITEMS)?
+      .iter()?
+      .rev()
+      .skip(page_index.saturating_mul(page_size))
+      .take(page_size.saturating_add(1))
+      .map(|result| {
+        result
+          .and_then(|(gallery_owner, _items)| {
+            sequence_number_to_inscription_entry
+              .get(gallery_owner.value())
+              .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+          })
+          .map_err(|err| err.into())
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    let more = galleries.len() > page_size;
+
+    if more {
+      galleries.pop();
+    }
+
+    Ok((galleries, more))
   }
 
   #[cfg(test)]

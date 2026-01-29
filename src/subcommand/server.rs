@@ -6,12 +6,12 @@ use {
   },
   super::*,
   crate::templates::{
-    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, ItemHtml, OutputHtml,
-    PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
-    PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
-    PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml, RunesHtml, SatHtml,
-    SatscardHtml, TransactionHtml,
+    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, GalleriesHtml,
+    HomeHtml, InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, ItemHtml,
+    OutputHtml, PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml,
+    PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
+    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml,
+    RunesHtml, SatHtml, SatscardHtml, TransactionHtml,
   },
   axum::{
     Router,
@@ -210,6 +210,8 @@ impl Server {
         .route("/collections", get(Self::collections))
         .route("/collections/{page}", get(Self::collections_paginated))
         .route("/decode/{txid}", get(Self::decode))
+        .route("/galleries", get(Self::galleries))
+        .route("/galleries/{page}", get(Self::galleries_paginated))
         .route("/faq", get(Self::faq))
         .route("/favicon.ico", get(Self::favicon))
         .route("/feed.xml", get(Self::feed))
@@ -1809,6 +1811,52 @@ impl Server {
         .page(server_config)
         .into_response(),
       )
+    })
+  }
+
+  async fn galleries(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    accept_json: AcceptJson,
+  ) -> ServerResult {
+    Self::galleries_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path(0),
+      accept_json,
+    )
+    .await
+  }
+
+  async fn galleries_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(page_index): Path<usize>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let (galleries, more) = index.get_galleries_paginated(100, page_index)?;
+
+      let prev = page_index.checked_sub(1);
+
+      let next = more.then_some(page_index + 1);
+
+      Ok(if accept_json {
+        Json(api::Inscriptions {
+          ids: galleries,
+          page_index: page_index.try_into().unwrap_or(u32::MAX),
+          more,
+        })
+        .into_response()
+      } else {
+        GalleriesHtml {
+          inscriptions: galleries,
+          prev,
+          next,
+        }
+        .page(server_config)
+        .into_response()
+      })
     })
   }
 
@@ -5261,6 +5309,109 @@ prev
 next
 </div>.*"
         .unindent(),
+    );
+  }
+
+  #[test]
+  fn galleries_page_prev_and_next() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    let mut gallery_item_ids = Vec::new();
+
+    for i in 0..15 {
+      server.mine_blocks(1);
+
+      gallery_item_ids.push(InscriptionId {
+        txid: server.core.broadcast_tx(TransactionTemplate {
+          inputs: &[(
+            i + 1,
+            0,
+            0,
+            inscription("text/plain", "gallery item").to_witness(),
+          )],
+          ..default()
+        }),
+        index: 0,
+      });
+    }
+
+    for i in 0..101 {
+      server.mine_blocks(1);
+
+      let gallery_items = gallery_item_ids
+        .iter()
+        .cycle()
+        .skip((i * 3) % gallery_item_ids.len())
+        .take(3)
+        .map(|&id| properties::Item {
+          id,
+          attributes: Attributes::default(),
+        })
+        .collect::<Vec<_>>();
+
+      let properties = Properties {
+        attributes: Attributes::default(),
+        gallery: gallery_items,
+      };
+
+      server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(
+          i + 16,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("gallery".into()),
+            properties: properties.to_cbor(),
+            ..default()
+          }
+          .to_witness(),
+        )],
+        ..default()
+      });
+    }
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/galleries",
+      StatusCode::OK,
+      r".*
+<h1>Galleries</h1>
+<div class=thumbnails>
+  <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
+  (<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>\s*){19}
+</div>
+<div class=center>
+prev
+<a class=next href=/galleries/1>next</a>
+</div>.*"
+        .to_string()
+        .unindent(),
+    );
+
+    server.assert_response_regex(
+      "/galleries/1",
+      StatusCode::OK,
+      ".*
+<h1>Galleries</h1>
+<div class=thumbnails>
+  <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
+</div>
+<div class=center>
+<a class=prev href=/galleries/0>prev</a>
+next
+</div>.*"
+        .unindent(),
+    );
+
+    server.assert_response_regex(
+      "/galleries",
+      StatusCode::OK,
+      r".*<a href=/galleries title=galleries><img class=icon src=/static/gallery\.svg></a>.*",
     );
   }
 
