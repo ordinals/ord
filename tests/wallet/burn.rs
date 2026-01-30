@@ -384,8 +384,10 @@ fn cbor_and_json_metadata_flags_conflict() {
   .run_and_extract_stdout();
 }
 
+// With Bitcoin Core 30's increased datacarriersize (100,000 bytes),
+// 84-byte OP_RETURNs are now allowed by default
 #[test]
-fn oversize_metadata_requires_no_limit_flag() {
+fn large_metadata_is_allowed_by_default() {
   let core = mockcore::spawn();
 
   let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
@@ -398,15 +400,14 @@ fn oversize_metadata_requires_no_limit_flag() {
 
   core.mine_blocks(1);
 
+  // 84-byte metadata that was previously rejected is now allowed
   CommandBuilder::new(format!(
     "wallet burn --fee-rate 1 {inscription} --json-metadata metadata.json"
   ))
   .core(&core)
   .ord(&ord)
   .write("metadata.json", format!("\"{}\"", "0".repeat(79)))
-  .stderr_regex("error: OP_RETURN with metadata larger than maximum: 84 > 83\n")
-  .expected_exit_code(1)
-  .run_and_extract_stdout();
+  .run_and_deserialize_output::<Send>();
 }
 
 #[test]

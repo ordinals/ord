@@ -2631,61 +2631,10 @@ fn zero_amount_error() {
     .run_and_extract_stdout();
 }
 
+// With Bitcoin Core 30's increased datacarriersize (100,000 bytes),
+// 104-byte runestones are now allowed by default
 #[test]
-fn oversize_runestone_error() {
-  let core = mockcore::builder().network(Network::Regtest).build();
-
-  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
-
-  create_wallet(&core, &ord);
-
-  core.mine_blocks(1);
-
-  CommandBuilder::new("--regtest --index-runes wallet batch --fee-rate 0 --batch batch.yaml")
-    .write("inscription.txt", "foo")
-    .write(
-      "batch.yaml",
-      serde_yaml::to_string(&batch::File {
-        etching: Some(batch::Etching {
-          divisibility: 0,
-          rune: SpacedRune {
-            rune: Rune(6402364363415443603228541259936211926 - 1),
-            spacers: 0b00000111_11111111_11111111_11111111,
-          },
-          supply: u128::MAX.to_string().parse().unwrap(),
-          premine: (u128::MAX - 1).to_string().parse().unwrap(),
-          symbol: '\u{10FFFF}',
-          terms: Some(batch::Terms {
-            cap: 1,
-            height: Some(batch::Range {
-              start: Some(u64::MAX - 1),
-              end: Some(u64::MAX),
-            }),
-            offset: Some(batch::Range {
-              start: Some(u64::MAX - 1),
-              end: Some(u64::MAX),
-            }),
-            amount: "1".parse().unwrap(),
-          }),
-          turbo: true,
-        }),
-        inscriptions: vec![batch::Entry {
-          file: Some("inscription.txt".into()),
-          ..default()
-        }],
-        ..default()
-      })
-      .unwrap(),
-    )
-    .core(&core)
-    .ord(&ord)
-    .expected_stderr("error: runestone greater than maximum OP_RETURN size: 104 > 83\n")
-    .expected_exit_code(1)
-    .run_and_extract_stdout();
-}
-
-#[test]
-fn oversize_runestones_are_allowed_with_no_limit() {
+fn large_runestones_are_allowed_by_default() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
   let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
@@ -2695,7 +2644,7 @@ fn oversize_runestones_are_allowed_with_no_limit() {
   core.mine_blocks(1);
 
   CommandBuilder::new(
-    "--regtest --index-runes wallet batch --fee-rate 0 --dry-run --no-limit --batch batch.yaml",
+    "--regtest --index-runes wallet batch --fee-rate 0 --dry-run --batch batch.yaml",
   )
   .write("inscription.txt", "foo")
   .write(
