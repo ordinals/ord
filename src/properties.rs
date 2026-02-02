@@ -65,7 +65,7 @@ impl Properties {
       return None;
     }
 
-    Some(minicbor::to_vec(&self).unwrap())
+    Some(minicbor::to_vec(self).unwrap())
   }
 }
 
