@@ -237,6 +237,10 @@ fn gracefully_shut_down_indexer() {
   }
 }
 
+fn is_default<T: Default + PartialEq>(v: &T) -> bool {
+  *v == T::default()
+}
+
 /// Nota bene: This function extracts the leaf script from a witness if the
 /// witness could represent a taproot script path spend, respecting and
 /// ignoring the taproot script annex, if present. Note that the witness may

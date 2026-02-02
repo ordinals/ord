@@ -12,13 +12,13 @@ use {
   },
 };
 
-#[derive(Decode, Default, Encode)]
+#[derive(Decode, Default, Encode, PartialEq)]
 #[cbor(map)]
 pub(super) struct Attributes {
   #[n(0)]
   pub(super) title: Option<String>,
-  #[n(1)]
-  pub(super) traits: Option<Traits>,
+  #[cbor(n(1), default, skip_if = "is_default")]
+  pub(super) traits: Traits,
 }
 
 #[derive(Decode, Encode)]
@@ -26,17 +26,17 @@ pub(super) struct Attributes {
 pub(super) struct Item {
   #[n(0)]
   pub(super) id: Option<InscriptionId>,
-  #[n(1)]
-  pub(super) attributes: Option<Attributes>,
+  #[cbor(n(1), default, skip_if = "is_default")]
+  pub(super) attributes: Attributes,
 }
 
 #[derive(Decode, Default, Encode)]
 #[cbor(map)]
 pub(super) struct Properties {
-  #[n(0)]
-  pub(super) gallery: Option<Vec<Item>>,
-  #[n(1)]
-  pub(super) attributes: Option<Attributes>,
+  #[cbor(n(0), default, skip_if = "Vec::is_empty")]
+  pub(super) gallery: Vec<Item>,
+  #[cbor(n(1), default, skip_if = "is_default")]
+  pub(super) attributes: Attributes,
 }
 
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]

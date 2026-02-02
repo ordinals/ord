@@ -13,18 +13,10 @@ pub struct Attributes {
 }
 
 impl Attributes {
-  fn to_raw(&self) -> Option<raw::Attributes> {
-    if *self == Default::default() {
-      None
-    } else {
-      Some(raw::Attributes {
-        title: self.title.clone(),
-        traits: if self.traits.items.is_empty() {
-          None
-        } else {
-          Some(self.traits.clone())
-        },
-      })
+  fn to_raw(&self) -> raw::Attributes {
+    raw::Attributes {
+      title: self.title.clone(),
+      traits: self.traits.clone(),
     }
   }
 }
@@ -33,7 +25,7 @@ impl From<raw::Attributes> for Attributes {
   fn from(raw: raw::Attributes) -> Self {
     Self {
       title: raw.title,
-      traits: raw.traits.unwrap_or_default(),
+      traits: raw.traits,
     }
   }
 }
@@ -60,16 +52,18 @@ impl Properties {
     } = minicbor::decode(cbor).unwrap_or_default();
 
     Self {
-      attributes: attributes.unwrap_or_default().into(),
-      gallery: gallery
-        .filter(|gallery| gallery.iter().all(|item| item.id.is_some()))
-        .unwrap_or_default()
-        .into_iter()
-        .map(|item| Item {
-          id: item.id.unwrap(),
-          attributes: item.attributes.unwrap_or_default().into(),
-        })
-        .collect(),
+      attributes: attributes.into(),
+      gallery: if gallery.iter().any(|item| item.id.is_none()) {
+        Vec::new()
+      } else {
+        gallery
+          .into_iter()
+          .map(|item| Item {
+            id: item.id.unwrap(),
+            attributes: item.attributes.into(),
+          })
+          .collect()
+      },
     }
   }
 
@@ -80,20 +74,14 @@ impl Properties {
 
     Some(
       minicbor::to_vec(raw::Properties {
-        gallery: if self.gallery.is_empty() {
-          None
-        } else {
-          Some(
-            self
-              .gallery
-              .iter()
-              .map(|item| raw::Item {
-                id: Some(item.id),
-                attributes: item.attributes.to_raw(),
-              })
-              .collect(),
-          )
-        },
+        gallery: self
+          .gallery
+          .iter()
+          .map(|item| raw::Item {
+            id: Some(item.id),
+            attributes: item.attributes.to_raw(),
+          })
+          .collect(),
         attributes: self.attributes.to_raw(),
       })
       .unwrap(),
