@@ -4940,7 +4940,7 @@ mod tests {
           body: Some("foo".into()),
           properties: Properties {
             gallery: vec![Item {
-              id: inscription_id(1),
+              id: Some(inscription_id(1)),
               ..default()
             }],
             ..default()
