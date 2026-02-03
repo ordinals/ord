@@ -817,7 +817,8 @@ impl Wallet {
       {
         let mut wtx = self.database.begin_write()?;
         wtx.set_quick_repair(true);
-        wtx.open_table(UNUSED_CHANGE_ADDRESSES)?
+        wtx
+          .open_table(UNUSED_CHANGE_ADDRESSES)?
           .remove(address_str.as_str())?;
         wtx.commit()?;
       }
@@ -1239,11 +1240,11 @@ impl Wallet {
 
     let result = fund_raw_transaction(self.bitcoin_client(), fee_rate, &unfunded_transaction, None);
 
-    if result.is_err() {
+    if let Err(e) = result {
       if let Some(change_addr) = runes_change_address {
         self.save_unused_change_addresses(&[change_addr])?;
       }
-      return Err(result.unwrap_err().into());
+      return Err(e);
     }
 
     let unsigned_transaction: Transaction = consensus::encode::deserialize(&result?)?;
