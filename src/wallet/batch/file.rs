@@ -406,6 +406,7 @@ inscriptions:
           rune: "THE•BEST•RUNE".parse().unwrap(),
           divisibility: 2,
           premine: "1000.00".parse().unwrap(),
+          premine_postage: Some(15000),
           supply: "10000.00".parse().unwrap(),
           symbol: '$',
           terms: Some(batch::Terms {
