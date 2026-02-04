@@ -1,6 +1,8 @@
 use {
   super::*,
-  crate::wallet::{ListDescriptorsResult, Wallet, batch, wallet_constructor::WalletConstructor},
+  crate::wallet::{Wallet, batch, wallet_constructor::WalletConstructor},
+  bdk::KeychainKind,
+  bitcoin::Psbt,
   shared_args::SharedArgs,
 };
 
@@ -10,7 +12,7 @@ mod batch_command;
 pub mod burn;
 pub mod cardinals;
 pub mod create;
-pub mod dump;
+pub mod descriptors;
 pub mod inscribe;
 pub mod inscriptions;
 mod label;
@@ -34,8 +36,6 @@ pub mod transactions;
 pub(crate) struct WalletCommand {
   #[arg(long, default_value = "ord", help = "Use wallet named <WALLET>.")]
   pub(crate) name: String,
-  #[arg(long, alias = "nosync", help = "Do not update index.")]
-  pub(crate) no_sync: bool,
   #[arg(
     long,
     help = "Use ord running at <SERVER_URL>. [default: http://localhost:80]"
@@ -48,23 +48,23 @@ pub(crate) struct WalletCommand {
 #[derive(Debug, Parser)]
 #[allow(clippy::large_enum_variant)]
 pub(crate) enum Subcommand {
-  #[command(about = "Get wallet addresses")]
+  #[command(about = "List addresses")]
   Addresses,
-  #[command(about = "Get wallet balance")]
+  #[command(about = "Get balance")]
   Balance,
   #[command(about = "Create inscriptions and runes")]
   Batch(batch_command::Batch),
   #[command(about = "Burn an inscription")]
   Burn(burn::Burn),
-  #[command(about = "List unspent cardinal outputs in wallet")]
+  #[command(about = "List unspent cardinal outputs")]
   Cardinals,
   #[command(about = "Create new wallet")]
   Create(create::Create),
-  #[command(about = "Dump wallet descriptors")]
-  Dump,
+  #[command(about = "List descriptors")]
+  Descriptors,
   #[command(about = "Create inscription")]
   Inscribe(inscribe::Inscribe),
-  #[command(about = "List wallet inscriptions")]
+  #[command(about = "List inscriptions")]
   Inscriptions,
   #[command(about = "Export output labels")]
   Label,
@@ -72,7 +72,7 @@ pub(crate) enum Subcommand {
   Mint(mint::Mint),
   #[command(subcommand, about = "Offer commands")]
   Offer(offer::Offer),
-  #[command(about = "List all unspent outputs in wallet")]
+  #[command(about = "List unspent outputs")]
   Outputs(outputs::Outputs),
   #[command(about = "List pending etchings")]
   Pending(pending::Pending),
@@ -82,9 +82,9 @@ pub(crate) enum Subcommand {
   Restore(restore::Restore),
   #[command(about = "Resume pending etchings")]
   Resume(resume::Resume),
-  #[command(about = "List unspent runic outputs in wallet")]
+  #[command(about = "List unspent runic outputs")]
   Runics,
-  #[command(about = "List wallet satoshis")]
+  #[command(about = "List satoshis")]
   Sats(sats::Sats),
   #[command(about = "Send sat or inscription")]
   Send(send::Send),
@@ -101,14 +101,13 @@ pub(crate) enum Subcommand {
 impl WalletCommand {
   pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     match self.subcommand {
-      Subcommand::Create(create) => return create.run(self.name, &settings),
-      Subcommand::Restore(restore) => return restore.run(self.name, &settings),
+      Subcommand::Create(create) => return create.run(&settings, &self.name),
+      Subcommand::Restore(restore) => return restore.run(&settings, &self.name),
       _ => {}
     };
 
     let wallet = WalletConstructor::construct(
       self.name.clone(),
-      self.no_sync,
       settings.clone(),
       self
         .server_url
@@ -127,7 +126,7 @@ impl WalletCommand {
       Subcommand::Burn(burn) => burn.run(wallet),
       Subcommand::Cardinals => cardinals::run(wallet),
       Subcommand::Create(_) | Subcommand::Restore(_) => unreachable!(),
-      Subcommand::Dump => dump::run(wallet),
+      Subcommand::Descriptors => descriptors::run(wallet),
       Subcommand::Inscribe(inscribe) => inscribe.run(wallet),
       Subcommand::Inscriptions => inscriptions::run(wallet),
       Subcommand::Label => label::run(wallet),

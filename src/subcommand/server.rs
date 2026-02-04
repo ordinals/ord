@@ -342,6 +342,7 @@ impl Server {
         .layer(CompressionLayer::new())
         .with_state(server_config.clone());
 
+      #[allow(deprecated)]
       let router = if let Some((username, password)) = settings.credentials() {
         router.layer(ValidateRequestHeaderLayer::basic(username, password))
       } else {
