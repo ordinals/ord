@@ -5383,7 +5383,7 @@ next
 <h1>Galleries</h1>
 <div class=thumbnails>
   <a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>
-  (<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>\s*){19}
+  (<a href=/inscription/[[:xdigit:]]{64}i0>.*</a>\s*){99}
 </div>
 <div class=center>
 prev
@@ -5413,6 +5413,150 @@ next
       StatusCode::OK,
       r".*<a href=/galleries title=galleries><img class=icon src=/static/gallery\.svg></a>.*",
     );
+  }
+
+  #[test]
+  fn galleries_json() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    server.mine_blocks(1);
+
+    let item_id = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    let gallery_id = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(
+          2,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("bar".into()),
+            properties: Properties {
+              gallery: vec![Item {
+                id: Some(item_id),
+                ..default()
+              }],
+              ..default()
+            }
+            .to_cbor(),
+            ..default()
+          }
+          .to_witness(),
+        )],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    let json: api::Inscriptions = server.get_json("/galleries");
+
+    assert_eq!(json.ids, vec![gallery_id]);
+    assert!(!json.more);
+    assert_eq!(json.page_index, 0);
+  }
+
+  #[test]
+  fn galleries_json_pagination() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    let mut item_ids = Vec::new();
+
+    for i in 0..3 {
+      server.mine_blocks(1);
+
+      item_ids.push(InscriptionId {
+        txid: server.core.broadcast_tx(TransactionTemplate {
+          inputs: &[(i + 1, 0, 0, inscription("text/plain", "foo").to_witness())],
+          ..default()
+        }),
+        index: 0,
+      });
+    }
+
+    let mut gallery_ids = Vec::new();
+
+    for i in 0..101 {
+      server.mine_blocks(1);
+
+      gallery_ids.push(InscriptionId {
+        txid: server.core.broadcast_tx(TransactionTemplate {
+          inputs: &[(
+            i + 4,
+            0,
+            0,
+            Inscription {
+              content_type: Some("text/plain".into()),
+              body: Some("bar".into()),
+              properties: Properties {
+                gallery: vec![Item {
+                  id: Some(item_ids[i % item_ids.len()]),
+                  ..default()
+                }],
+                ..default()
+              }
+              .to_cbor(),
+              ..default()
+            }
+            .to_witness(),
+          )],
+          ..default()
+        }),
+        index: 0,
+      });
+    }
+
+    server.mine_blocks(1);
+
+    let json: api::Inscriptions = server.get_json("/galleries");
+
+    assert_eq!(json.ids.len(), 100);
+    assert!(json.more);
+    assert_eq!(json.page_index, 0);
+
+    let json: api::Inscriptions = server.get_json("/galleries/1");
+
+    assert_eq!(json.ids.len(), 1);
+    assert!(!json.more);
+    assert_eq!(json.page_index, 1);
+  }
+
+  #[test]
+  fn non_gallery_inscription_not_in_galleries() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    server.mine_blocks(1);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let json: api::Inscriptions = server.get_json("/galleries");
+
+    assert!(json.ids.is_empty());
+    assert!(!json.more);
   }
 
   #[test]

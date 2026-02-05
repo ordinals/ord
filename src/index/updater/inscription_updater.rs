@@ -25,7 +25,7 @@ enum Origin {
   New {
     cursed: bool,
     fee: u64,
-    gallery: Vec<InscriptionId>,
+    gallery: bool,
     hidden: bool,
     parents: Vec<InscriptionId>,
     reinscription: bool,
@@ -200,13 +200,7 @@ impl InscriptionUpdater<'_, '_> {
           origin: Origin::New {
             cursed: curse.is_some() && !jubilant,
             fee: 0,
-            gallery: inscription
-              .payload
-              .properties()
-              .gallery
-              .iter()
-              .map(|item| item.id.unwrap())// TODO
-              .collect(),
+            gallery: !inscription.payload.properties().gallery.is_empty(),
             hidden: inscription.payload.hidden(),
             parents: inscription.payload.parents(),
             reinscription: inscribed_offsets.contains_key(&offset),
@@ -503,7 +497,7 @@ impl InscriptionUpdater<'_, '_> {
           })
           .collect::<Result<Vec<u32>>>()?;
 
-        if !gallery.is_empty() {
+        if gallery {
           self.galleries.insert(sequence_number, ())?;
         }
 
