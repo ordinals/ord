@@ -25,6 +25,7 @@ enum Origin {
   New {
     cursed: bool,
     fee: u64,
+    gallery: bool,
     hidden: bool,
     parents: Vec<InscriptionId>,
     reinscription: bool,
@@ -41,6 +42,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) blessed_inscription_count: u64,
   pub(super) cursed_inscription_count: u64,
   pub(super) flotsam: Vec<Flotsam>,
+  pub(super) galleries: &'a mut Table<'tx, u32, ()>,
   pub(super) height: u32,
   pub(super) home_inscription_count: u64,
   pub(super) home_inscriptions: &'a mut Table<'tx, u32, InscriptionIdValue>,
@@ -49,12 +51,12 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) lost_sats: u64,
   pub(super) next_sequence_number: u32,
   pub(super) reward: u64,
+  pub(super) sat_to_sequence_number: &'a mut MultimapTable<'tx, u64, u32>,
+  pub(super) sequence_number_to_entry: &'a mut Table<'tx, u32, InscriptionEntryValue>,
+  pub(super) sequence_number_to_children: &'a mut MultimapTable<'tx, u32, u32>,
+  pub(super) timestamp: u32,
   pub(super) transaction_buffer: Vec<u8>,
   pub(super) transaction_id_to_transaction: &'a mut Table<'tx, &'static TxidValue, &'static [u8]>,
-  pub(super) sat_to_sequence_number: &'a mut MultimapTable<'tx, u64, u32>,
-  pub(super) sequence_number_to_children: &'a mut MultimapTable<'tx, u32, u32>,
-  pub(super) sequence_number_to_entry: &'a mut Table<'tx, u32, InscriptionEntryValue>,
-  pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
 }
 
@@ -198,6 +200,7 @@ impl InscriptionUpdater<'_, '_> {
           origin: Origin::New {
             cursed: curse.is_some() && !jubilant,
             fee: 0,
+            gallery: !inscription.payload.properties().gallery.is_empty(),
             hidden: inscription.payload.hidden(),
             parents: inscription.payload.parents(),
             reinscription: inscribed_offsets.contains_key(&offset),
@@ -413,6 +416,7 @@ impl InscriptionUpdater<'_, '_> {
       Origin::New {
         cursed,
         fee,
+        gallery,
         hidden,
         parents,
         reinscription,
@@ -492,6 +496,10 @@ impl InscriptionUpdater<'_, '_> {
             Ok(parent_sequence_number)
           })
           .collect::<Result<Vec<u32>>>()?;
+
+        if gallery {
+          self.galleries.insert(sequence_number, ())?;
+        }
 
         if let Some(ref sender) = index.event_sender {
           sender.blocking_send(Event::InscriptionCreated {
