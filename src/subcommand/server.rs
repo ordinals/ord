@@ -5347,7 +5347,7 @@ next
         .skip((i * 3) % gallery_item_ids.len())
         .take(3)
         .map(|&id| properties::Item {
-          id,
+          id: Some(id),
           attributes: Attributes::default(),
         })
         .collect::<Vec<_>>();

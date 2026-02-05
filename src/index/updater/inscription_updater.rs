@@ -495,6 +495,10 @@ impl InscriptionUpdater<'_, '_> {
               .unwrap()
               .value();
 
+            self
+              .sequence_number_to_children
+              .insert(parent_sequence_number, sequence_number)?;
+
             self.galleries.insert(parent_sequence_number, ())?;
 
             Ok(parent_sequence_number)
