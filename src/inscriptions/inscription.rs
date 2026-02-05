@@ -3,7 +3,9 @@ use {
   anyhow::ensure,
   axum::http::header::HeaderValue,
   bitcoin::blockdata::opcodes,
-  brotli::enc::{BrotliEncoderParams, writer::CompressorWriter},
+  brotli::enc::{
+    BrotliEncoderParams, backward_references::BrotliEncoderMode, writer::CompressorWriter,
+  },
   io::Write,
 };
 
@@ -46,38 +48,8 @@ impl Inscription {
       let content_type = Media::content_type_for_path(path)?.0;
 
       let (body, content_encoding) = if compress {
-        let compression_mode = Media::content_type_for_path(path)?.1;
-        let mut compressed = Vec::new();
-
-        {
-          CompressorWriter::with_params(
-            &mut compressed,
-            body.len(),
-            &BrotliEncoderParams {
-              lgblock: 24,
-              lgwin: 24,
-              mode: compression_mode,
-              quality: 11,
-              size_hint: body.len(),
-              ..default()
-            },
-          )
-          .write_all(&body)?;
-
-          let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
-
-          let mut decompressed = Vec::new();
-
-          decompressor.read_to_end(&mut decompressed)?;
-
-          ensure!(decompressed == body, "decompression roundtrip failed");
-        }
-
-        if compressed.len() < body.len() {
-          (compressed, Some(BROTLI.as_bytes().to_vec()))
-        } else {
-          (body, None)
-        }
+        let mode = Media::content_type_for_path(path)?.1;
+        Self::compress(body, mode)?
       } else {
         (body, None)
       };
@@ -102,37 +74,8 @@ impl Inscription {
       );
 
       if compress {
-        let mut compressed = Vec::new();
-
-        CompressorWriter::with_params(
-          &mut compressed,
-          cbor.len(),
-          &BrotliEncoderParams {
-            lgblock: 24,
-            lgwin: 24,
-            quality: 11,
-            size_hint: cbor.len(),
-            ..default()
-          },
-        )
-        .write_all(&cbor)?;
-
-        let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
-
-        let mut decompressed = Vec::new();
-
-        decompressor.read_to_end(&mut decompressed)?;
-
-        ensure!(
-          decompressed == cbor,
-          "properties decompression roundtrip failed"
-        );
-
-        if compressed.len() < cbor.len() {
-          (Some(compressed), Some(BROTLI.as_bytes().to_vec()))
-        } else {
-          (Some(cbor), None)
-        }
+        let (compressed, encoding) = Self::compress(cbor, BrotliEncoderMode::BROTLI_MODE_GENERIC)?;
+        (Some(compressed), encoding)
       } else {
         (Some(cbor), None)
       }
@@ -166,6 +109,38 @@ impl Inscription {
     }
 
     bytes
+  }
+
+  fn compress(data: Vec<u8>, mode: BrotliEncoderMode) -> Result<(Vec<u8>, Option<Vec<u8>>), Error> {
+    let mut compressed = Vec::new();
+
+    CompressorWriter::with_params(
+      &mut compressed,
+      data.len(),
+      &BrotliEncoderParams {
+        lgblock: 24,
+        lgwin: 24,
+        mode,
+        quality: 11,
+        size_hint: data.len(),
+        ..default()
+      },
+    )
+    .write_all(&data)?;
+
+    let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
+
+    let mut decompressed = Vec::new();
+
+    decompressor.read_to_end(&mut decompressed)?;
+
+    ensure!(decompressed == data, "decompression roundtrip failed");
+
+    if compressed.len() < data.len() {
+      Ok((compressed, Some(BROTLI.as_bytes().to_vec())))
+    } else {
+      Ok((data, None))
+    }
   }
 
   pub fn append_reveal_script_to_builder(&self, mut builder: script::Builder) -> script::Builder {
