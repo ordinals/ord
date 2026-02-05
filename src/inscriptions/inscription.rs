@@ -134,6 +134,7 @@ impl Inscription {
     Tag::Metadata.append(&mut builder, &self.metadata);
     Tag::Rune.append(&mut builder, &self.rune);
     Tag::Properties.append(&mut builder, &self.properties);
+    Tag::PropertyEncoding.append(&mut builder, &self.property_encoding);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
@@ -977,6 +978,113 @@ mod tests {
         ..default()
       }
       .hidden()
+    );
+  }
+
+  #[test]
+  fn properties_cbor_without_properties() {
+    assert!(
+      Inscription {
+        properties: None,
+        ..default()
+      }
+      .properties_cbor()
+      .is_none()
+    );
+  }
+
+  #[test]
+  fn properties_cbor_uncompressed() {
+    let cbor = minicbor::to_vec(Properties::default()).unwrap();
+
+    assert_eq!(
+      Inscription {
+        properties: Some(cbor.clone()),
+        ..default()
+      }
+      .properties_cbor()
+      .unwrap()
+      .into_owned(),
+      cbor,
+    );
+  }
+
+  #[test]
+  fn properties_cbor_compressed() {
+    let cbor = minicbor::to_vec(Properties {
+      attributes: Attributes {
+        title: Some("foo".into()),
+        ..default()
+      },
+      ..default()
+    })
+    .unwrap();
+
+    let mut compressed = Vec::new();
+
+    CompressorWriter::new(&mut compressed, 4096, 11, 22)
+      .write_all(&cbor)
+      .unwrap();
+
+    assert_eq!(
+      Inscription {
+        properties: Some(compressed),
+        property_encoding: Some(BROTLI.into()),
+        ..default()
+      }
+      .properties_cbor()
+      .unwrap()
+      .into_owned(),
+      cbor,
+    );
+  }
+
+  #[test]
+  fn properties_cbor_unknown_encoding() {
+    let cbor = minicbor::to_vec(Properties::default()).unwrap();
+
+    assert!(
+      Inscription {
+        properties: Some(cbor),
+        property_encoding: Some("foo".into()),
+        ..default()
+      }
+      .properties_cbor()
+      .is_none()
+    );
+  }
+
+  #[test]
+  fn properties_cbor_invalid_brotli() {
+    assert!(
+      Inscription {
+        properties: Some(vec![0, 1, 2, 3]),
+        property_encoding: Some(BROTLI.into()),
+        ..default()
+      }
+      .properties_cbor()
+      .is_none()
+    );
+  }
+
+  #[test]
+  fn properties_cbor_exceeds_limit() {
+    let cbor = vec![0u8; 4_000_001];
+
+    let mut compressed = Vec::new();
+
+    CompressorWriter::new(&mut compressed, 4096, 11, 22)
+      .write_all(&cbor)
+      .unwrap();
+
+    assert!(
+      Inscription {
+        properties: Some(compressed),
+        property_encoding: Some(BROTLI.into()),
+        ..default()
+      }
+      .properties_cbor()
+      .is_none()
     );
   }
 }
