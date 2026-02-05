@@ -27,7 +27,7 @@ mod tests {
         gallery_inscription_number: 1,
         i: 2,
         item: Item {
-          id: inscription_id(1),
+          id: Some(inscription_id(1)),
           attributes: Attributes {
             title: Some("foo".into()),
             traits: Traits::default(),
@@ -59,7 +59,7 @@ mod tests {
         gallery_inscription_number: 1,
         i: 2,
         item: Item {
-          id: inscription_id(1),
+          id: Some(inscription_id(1)),
           attributes: Attributes {
             title: Some("foo".into()),
             traits: Traits::default(),
