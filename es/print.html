@@ -3437,11 +3437,52 @@ i               # separator
 <details>
   <summary>
     <code>GET</code>
-    <code><b>/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
+    <code><b>/galleries</b></code>
   </summary>
 <h3 id="description-33"><a class="header" href="#description-33">Description</a></h3>
-<p>Fetch details about a specific inscription by its ID.</p>
+<p>Get a paginated list of gallery inscriptions.</p>
 <h3 id="ejemplo-35"><a class="header" href="#ejemplo-35">Ejemplo</a></h3>
+<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+  http://0.0.0.0/galleries
+</code></pre>
+<pre><code class="language-json">{
+  "ids": [
+    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
+    "26482871f33f1051f450f2da9af275794c0b5f1c61ebf35e4467fb42c2813403i0"
+  ],
+  "more": false,
+  "page_index": 0
+}
+</code></pre>
+</details>
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/galleries/&lt;PAGE&gt;</b></code>
+  </summary>
+<h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
+<p>Pagination allows you to choose which page of 100 galleries to return.</p>
+<h3 id="ejemplo-36"><a class="header" href="#ejemplo-36">Ejemplo</a></h3>
+<pre><code class="language-bash">curl -s -H "Accept: application/json" \
+  http://0.0.0.0/galleries/1
+</code></pre>
+<pre><code class="language-json">{
+  "ids": [
+    "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0"
+  ],
+  "more": false,
+  "page_index": 1
+}
+</code></pre>
+</details>
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
+  </summary>
+<h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
+<p>Fetch details about a specific inscription by its ID.</p>
+<h3 id="ejemplo-37"><a class="header" href="#ejemplo-37">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" /
   http://0.0.0.0/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
 </code></pre>
@@ -3496,9 +3537,9 @@ i               # separator
     <code>GET</code>
     <code><b>/inscription/&lt;INSCRIPTION_ID&gt;/&lt;CHILD&gt;</b></code>
   </summary>
-<h3 id="description-34"><a class="header" href="#description-34">Description</a></h3>
+<h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
 <p>Returns the inscription information for the specified child.</p>
-<h3 id="ejemplo-36"><a class="header" href="#ejemplo-36">Ejemplo</a></h3>
+<h3 id="ejemplo-38"><a class="header" href="#ejemplo-38">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscription/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/0
 </code></pre>
@@ -3533,9 +3574,9 @@ i               # separator
     <code>POST</code>
     <code><b>/inscriptions</b></code>
   </summary>
-<h3 id="description-35"><a class="header" href="#description-35">Description</a></h3>
+<h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
 <p>Fetch details for a list of inscription IDs.</p>
-<h3 id="ejemplo-37"><a class="header" href="#ejemplo-37">Ejemplo</a></h3>
+<h3 id="ejemplo-39"><a class="header" href="#ejemplo-39">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -3599,9 +3640,9 @@ i               # separator
     <code>GET</code>
     <code><b>/inscriptions</b></code>
   </summary>
-<h3 id="description-36"><a class="header" href="#description-36">Description</a></h3>
+<h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
 <p>Get a list of the latest 100 inscriptions.</p>
-<h3 id="ejemplo-38"><a class="header" href="#ejemplo-38">Ejemplo</a></h3>
+<h3 id="ejemplo-40"><a class="header" href="#ejemplo-40">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscriptions
 </code></pre>
@@ -3718,9 +3759,9 @@ i               # separator
     <code>GET</code>
     <code><b>/inscriptions/&lt;PAGE&gt;</b></code>
   </summary>
-<h3 id="description-37"><a class="header" href="#description-37">Description</a></h3>
+<h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
 <p>Pagination allows you to choose which page of 100 inscriptions to return.</p>
-<h3 id="ejemplo-39"><a class="header" href="#ejemplo-39">Ejemplo</a></h3>
+<h3 id="ejemplo-41"><a class="header" href="#ejemplo-41">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscriptions/9
 </code></pre>
@@ -3837,9 +3878,9 @@ i               # separator
     <code>GET</code>
     <code><b>/inscriptions/block/&lt;BLOCKHEIGHT&gt;</b></code>
   </summary>
-<h3 id="description-38"><a class="header" href="#description-38">Description</a></h3>
+<h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
 <p>Get inscriptions for a specific block.</p>
-<h3 id="ejemplo-40"><a class="header" href="#ejemplo-40">Ejemplo</a></h3>
+<h3 id="ejemplo-42"><a class="header" href="#ejemplo-42">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/inscriptions/block/767430
 </code></pre>
@@ -3857,9 +3898,9 @@ i               # separator
     <code>GET</code>
     <code><b>/install.sh</b></code>
   </summary>
-<h3 id="description-39"><a class="header" href="#description-39">Description</a></h3>
+<h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
 <p>Installs the latest pre-built binary of <code>ord</code></p>
-<h3 id="ejemplo-41"><a class="header" href="#ejemplo-41">Ejemplo</a></h3>
+<h3 id="ejemplo-43"><a class="header" href="#ejemplo-43">Ejemplo</a></h3>
 <p>See <a href="guides/wallet.html#installing-ord">wallet.md</a></p>
 </details>
 <details>
@@ -3867,9 +3908,9 @@ i               # separator
     <code>POST</code>
     <code><b>/offer</b></code>
  </summary>
-<h3 id="description-40"><a class="header" href="#description-40">Description</a></h3>
+<h3 id="description-42"><a class="header" href="#description-42">Description</a></h3>
 <p>Submit a PSBT offer. The body of the request is a base64 encoded PSBT.</p>
-<h3 id="ejemplo-42"><a class="header" href="#ejemplo-42">Ejemplo</a></h3>
+<h3 id="ejemplo-44"><a class="header" href="#ejemplo-44">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -X POST --data-binary @offer.psbt http://0.0.0.0/offer
 </code></pre>
 </details>
@@ -3878,9 +3919,9 @@ i               # separator
     <code>GET</code>
     <code><b>/offers</b></code>
  </summary>
-<h3 id="description-41"><a class="header" href="#description-41">Description</a></h3>
+<h3 id="description-43"><a class="header" href="#description-43">Description</a></h3>
 <p>Get submitted PSBT offers. Returns an array of base64 encoded PSBTs.</p>
-<h3 id="ejemplo-43"><a class="header" href="#ejemplo-43">Ejemplo</a></h3>
+<h3 id="ejemplo-45"><a class="header" href="#ejemplo-45">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" http://0.0.0.0/offers
 </code></pre>
 <pre><code class="language-json">["bG…gd==","aG…GQ"]
@@ -3891,9 +3932,9 @@ i               # separator
     <code>GET</code>
     <code><b>/output/&lt;OUTPOINT&gt;</b></code>
  </summary>
-<h3 id="description-42"><a class="header" href="#description-42">Description</a></h3>
+<h3 id="description-44"><a class="header" href="#description-44">Description</a></h3>
 <p>Returns information about a UTXO, including inscriptions within it.</p>
-<h3 id="ejemplo-44"><a class="header" href="#ejemplo-44">Ejemplo</a></h3>
+<h3 id="ejemplo-46"><a class="header" href="#ejemplo-46">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/output/bc4c30829a9564c0d58e6287195622b53ced54a25711d1b86be7cd3a70ef61ed:0
 </code></pre>
@@ -3917,9 +3958,9 @@ i               # separator
     <code>POST</code>
     <code><b>/outputs</b></code>
  </summary>
-<h3 id="description-43"><a class="header" href="#description-43">Description</a></h3>
+<h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
 <p>List information from a list of outputs.</p>
-<h3 id="ejemplo-45"><a class="header" href="#ejemplo-45">Ejemplo</a></h3>
+<h3 id="ejemplo-47"><a class="header" href="#ejemplo-47">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -X POST \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
@@ -3959,7 +4000,7 @@ i               # separator
     <code>GET</code>
     <code><b>/outputs/&lt;ADDRESS&gt;</b></code>
   </summary>
-<h3 id="description-44"><a class="header" href="#description-44">Description</a></h3>
+<h3 id="description-46"><a class="header" href="#description-46">Description</a></h3>
 <p>Get UTXOs held by <code>&lt;ADDRESS&gt;</code>.</p>
 <h3 id="query-parameters"><a class="header" href="#query-parameters">Query Parameters</a></h3>
 <h4 id="type-optional"><a class="header" href="#type-optional"><code>type</code> (optional)</a></h4>
@@ -3970,7 +4011,7 @@ i               # separator
 <tr><td><code>runic</code></td><td>return UTXOs containing runes</td></tr>
 </tbody></table>
 </div>
-<h3 id="ejemplo-46"><a class="header" href="#ejemplo-46">Ejemplo</a></h3>
+<h3 id="ejemplo-48"><a class="header" href="#ejemplo-48">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   "http://0.0.0.0/outputs/358mMRwcxuCSkKheuVWaXHJBGKrXo3f6JW?type=cardinal"
 </code></pre>
@@ -4033,9 +4074,9 @@ i               # separator
     <code>GET</code>
     <code><b>/rune/&lt;RUNE&gt;</b></code>
   </summary>
-<h3 id="description-45"><a class="header" href="#description-45">Description</a></h3>
+<h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
 <p>Returns details about the specified rune. Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="ejemplo-47"><a class="header" href="#ejemplo-47">Ejemplo</a></h3>
+<h3 id="ejemplo-49"><a class="header" href="#ejemplo-49">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://localhost/rune/UNCOMMONGOODS
 </code></pre>
@@ -4076,9 +4117,9 @@ i               # separator
     <code>GET</code>
     <code><b>/runes</b></code>
   </summary>
-<h3 id="description-46"><a class="header" href="#description-46">Description</a></h3>
+<h3 id="description-48"><a class="header" href="#description-48">Description</a></h3>
 <p>Returns details for last 100 inscribed runes.  Requires index with <code>--index-runes</code> flag.</p>
-<h3 id="ejemplo-48"><a class="header" href="#ejemplo-48">Ejemplo</a></h3>
+<h3 id="ejemplo-50"><a class="header" href="#ejemplo-50">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/runes
 </code></pre>
@@ -5564,9 +5605,9 @@ i               # separator
     <code>GET</code>
     <code><b>/runes/&lt;PAGE&gt;</b></code>
   </summary>
-<h3 id="description-47"><a class="header" href="#description-47">Description</a></h3>
+<h3 id="description-49"><a class="header" href="#description-49">Description</a></h3>
 <p>Pagination allows you to specify which page of 100 runes you'd like to return.</p>
-<h3 id="ejemplo-49"><a class="header" href="#ejemplo-49">Ejemplo</a></h3>
+<h3 id="ejemplo-51"><a class="header" href="#ejemplo-51">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/runes/0
 </code></pre>
@@ -7052,9 +7093,9 @@ i               # separator
     <code>GET</code>
     <code><b>/sat/&lt;SAT&gt;</b></code>
   </summary>
-<h3 id="description-48"><a class="header" href="#description-48">Description</a></h3>
+<h3 id="description-50"><a class="header" href="#description-50">Description</a></h3>
 <p>Returns details about a specific satoshi. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="ejemplo-50"><a class="header" href="#ejemplo-50">Ejemplo</a></h3>
+<h3 id="ejemplo-52"><a class="header" href="#ejemplo-52">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/sat/2099994106992659
 </code></pre>
@@ -7082,9 +7123,9 @@ i               # separator
     <code>GET</code>
     <code><b>/status</b></code>
   </summary>
-<h3 id="description-49"><a class="header" href="#description-49">Description</a></h3>
+<h3 id="description-51"><a class="header" href="#description-51">Description</a></h3>
 <p>Returns details about the server installation and index.</p>
-<h3 id="ejemplo-51"><a class="header" href="#ejemplo-51">Ejemplo</a></h3>
+<h3 id="ejemplo-53"><a class="header" href="#ejemplo-53">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/status
 </code></pre>
@@ -7119,9 +7160,9 @@ i               # separator
     <code>GET</code>
     <code><b>/tx/&lt;TRANSACTION_ID&gt;</b></code>
   </summary>
-<h3 id="description-50"><a class="header" href="#description-50">Description</a></h3>
+<h3 id="description-52"><a class="header" href="#description-52">Description</a></h3>
 <p>Returns details about the specified transaction.</p>
-<h3 id="ejemplo-52"><a class="header" href="#ejemplo-52">Ejemplo</a></h3>
+<h3 id="ejemplo-54"><a class="header" href="#ejemplo-54">Ejemplo</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0/tx/99811de396ff10152cdfc9588d9750d0151501f081df2e56071c42dc3532b743
 </code></pre>
@@ -7745,7 +7786,7 @@ outputs:
 <p>Las direcciones de teleburn se derivan de los IDs de inscripción. No tienen una clave privada correspondiente, por lo que los activos enviados a una dirección de teleburn se queman. Actualmente, solo se admiten direcciones de teleburn de Ethereum. Se agradecen las solicitudes de incorporación (pull requests) que añadan direcciones de teleburn para otras cadenas.</p>
 <h2 id="ethereum"><a class="header" href="#ethereum">Ethereum</a></h2>
 <p>Las direcciones de teleburn en Ethereum se derivan tomando los primeros 20 bytes del hash SHA-256 del ID de inscripción. Este ID de inscripción se serializa en 36 bytes, donde los primeros 32 bytes contienen el ID de la transacción y los últimos cuatro bytes contienen el índice de inscripción en formato big-endian. Este resultado se interpreta como una dirección de Ethereum.</p>
-<h2 id="ejemplo-53"><a class="header" href="#ejemplo-53">Ejemplo</a></h2>
+<h2 id="ejemplo-55"><a class="header" href="#ejemplo-55">Ejemplo</a></h2>
 <p>El dominio ENS <a href="https://app.ens.domains/rodarmor.eth">rodarmor.eth</a> fue telequemado a la <a href="https://ordinals.com/inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0">inscripción cero</a>.</p>
 <p>El ID de la inscripción cero es:</p>
 <p><code>6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0</code>.</p>
@@ -7787,7 +7828,7 @@ $ord outputs
 </tbody></table>
 </div>
 <p>Regtest no requiere que se descargue la cadena de bloques ya que puedes crear tu propia cadena de bloques privada, por lo que la indexación de <code>ord</code> es casi instantánea.</p>
-<h2 id="ejemplo-54"><a class="header" href="#ejemplo-54">Ejemplo</a></h2>
+<h2 id="ejemplo-56"><a class="header" href="#ejemplo-56">Ejemplo</a></h2>
 <p>Ejecuta <code>bitcoind</code> en regtest con:</p>
 <pre><code>bitcoind -regtest -txindex
 </code></pre>
