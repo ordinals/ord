@@ -5411,7 +5411,7 @@ next
     server.assert_response_regex(
       "/galleries",
       StatusCode::OK,
-      r".*<a href=/galleries title=galleries><img class=icon src=/static/gallery\.svg></a>.*",
+      r".*<a href=/galleries title=galleries><img class=icon src=/static/box-archive\.svg></a>.*",
     );
   }
 
