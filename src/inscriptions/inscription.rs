@@ -99,13 +99,16 @@ impl Inscription {
       content_encoding,
       content_type: content_type.map(|content_type| content_type.into()),
       delegate: delegate.map(|delegate| delegate.value()),
+      duplicate_field: false,
+      incomplete_field: false,
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
-      rune: rune.map(|rune| rune.commitment()),
+      property_encoding: None,
       properties: properties.to_cbor(),
-      ..default()
+      rune: rune.map(|rune| rune.commitment()),
+      unrecognized_even_field: false,
     })
   }
 
