@@ -695,7 +695,7 @@ impl Plan {
         active: Some(false),
         range: None,
         next_index: None,
-        internal: None,
+        internal: Some(false),
         label: Some("commit tx recovery key".to_string()),
       })?;
 

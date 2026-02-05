@@ -2944,7 +2944,7 @@ inscriptions:
       gallery_inscription_number: -1,
       i: 0,
       item: Item {
-        id: id0,
+        id: Some(id0),
         attributes: Attributes {
           title: Some("foo".into()),
           traits: Traits {
@@ -2962,7 +2962,7 @@ inscriptions:
       gallery_inscription_number: -1,
       i: 1,
       item: Item {
-        id: id1,
+        id: Some(id1),
         attributes: Attributes {
           title: Some("bar".into()),
           traits: Traits {

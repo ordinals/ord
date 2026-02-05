@@ -161,7 +161,7 @@ impl File {
             .clone()
             .into_iter()
             .map(|item| Item {
-              id: item.id,
+              id: Some(item.id),
               attributes: item.attributes,
             })
             .collect(),

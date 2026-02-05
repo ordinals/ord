@@ -100,7 +100,10 @@ impl Inscribe {
           gallery: self
             .gallery
             .into_iter()
-            .map(|id| Item { id, ..default() })
+            .map(|id| Item {
+              id: Some(id),
+              ..default()
+            })
             .collect(),
         },
         None,

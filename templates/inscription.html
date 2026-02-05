@@ -47,7 +47,7 @@
   <dd>
     <div class=thumbnails>
 %% for (i, item) in self.properties.gallery.iter().enumerate() {
-      {{ Iframe::item(self.id, i, item.id) }}
+      {{ Iframe::item(self.id, i, item.id()) }}
 %% }
     </div>
   </dd>
