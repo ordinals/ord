@@ -1330,7 +1330,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Get a paginated list of inscriptions that contain gallery items.
+Get a paginated list of gallery inscriptions.
 
 ### Example
 

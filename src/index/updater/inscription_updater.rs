@@ -42,6 +42,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) blessed_inscription_count: u64,
   pub(super) cursed_inscription_count: u64,
   pub(super) flotsam: Vec<Flotsam>,
+  pub(super) galleries: &'a mut Table<'tx, u32, ()>,
   pub(super) height: u32,
   pub(super) home_inscription_count: u64,
   pub(super) home_inscriptions: &'a mut Table<'tx, u32, InscriptionIdValue>,
@@ -50,13 +51,12 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) lost_sats: u64,
   pub(super) next_sequence_number: u32,
   pub(super) reward: u64,
+  pub(super) sat_to_sequence_number: &'a mut MultimapTable<'tx, u64, u32>,
+  pub(super) sequence_number_to_entry: &'a mut Table<'tx, u32, InscriptionEntryValue>,
+  pub(super) sequence_number_to_children: &'a mut MultimapTable<'tx, u32, u32>,
+  pub(super) timestamp: u32,
   pub(super) transaction_buffer: Vec<u8>,
   pub(super) transaction_id_to_transaction: &'a mut Table<'tx, &'static TxidValue, &'static [u8]>,
-  pub(super) sat_to_sequence_number: &'a mut MultimapTable<'tx, u64, u32>,
-  pub(super) sequence_number_to_children: &'a mut MultimapTable<'tx, u32, u32>,
-  pub(super) sequence_number_to_gallery_items: &'a mut MultimapTable<'tx, u32, u32>,
-  pub(super) sequence_number_to_entry: &'a mut Table<'tx, u32, InscriptionEntryValue>,
-  pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
 }
 
@@ -205,7 +205,7 @@ impl InscriptionUpdater<'_, '_> {
               .properties()
               .gallery
               .iter()
-              .map(|item| item.id)
+              .map(|item| item.id.unwrap())// TODO
               .collect(),
             hidden: inscription.payload.hidden(),
             parents: inscription.payload.parents(),
@@ -495,23 +495,19 @@ impl InscriptionUpdater<'_, '_> {
               .unwrap()
               .value();
 
-            self
-              .sequence_number_to_children
-              .insert(parent_sequence_number, sequence_number)?;
+            self.galleries.insert(parent_sequence_number, ())?;
 
             Ok(parent_sequence_number)
           })
           .collect::<Result<Vec<u32>>>()?;
 
         for gallery_item in &gallery {
-          if let Ok(Some(gallery_item_sequence_number)) = self
+          if let Ok(Some(_gallery_item_sequence_number)) = self
             .id_to_sequence_number
             .get(&gallery_item.store())
             .map(|entry| entry.map(|e| e.value()))
           {
-            self
-              .sequence_number_to_gallery_items
-              .insert(sequence_number, gallery_item_sequence_number)?;
+            self.galleries.insert(sequence_number, ())?;
           }
         }
 
