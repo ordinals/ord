@@ -1271,9 +1271,7 @@ impl Index {
       .take(page_size.saturating_add(1))
       .map(|result| {
         let (gallery, _) = result?;
-
         let entry = sequence_number_to_inscription_entry.get(gallery.value())?;
-
         Ok(InscriptionEntry::load(entry.unwrap().value()).id)
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
