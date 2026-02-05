@@ -17,6 +17,7 @@ pub(crate) enum Tag {
   #[allow(unused)]
   Note = 15,
   Properties = 17,
+  PropertyEncoding = 19,
   #[allow(unused)]
   Nop = 255,
 }

@@ -20,6 +20,7 @@ pub struct Inscription {
   pub parents: Vec<Vec<u8>>,
   pub pointer: Option<Vec<u8>>,
   pub properties: Option<Vec<u8>>,
+  pub property_encoding: Option<Vec<u8>>,
   pub rune: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
@@ -73,7 +74,7 @@ impl Inscription {
         }
 
         if compressed.len() < body.len() {
-          (compressed, Some("br".as_bytes().to_vec()))
+          (compressed, Some(BROTLI.as_bytes().to_vec()))
         } else {
           (body, None)
         }
@@ -273,10 +274,33 @@ impl Inscription {
 
   pub(crate) fn properties(&self) -> Properties {
     self
-      .properties
-      .as_ref()
-      .map(|cbor| Properties::from_cbor(cbor))
+      .properties_cbor()
+      .map(|cbor| Properties::from_cbor(&cbor))
       .unwrap_or_default()
+  }
+
+  fn properties_cbor(&self) -> Option<Cow<[u8]>> {
+    let value = self.properties.as_deref()?;
+
+    if let Some(encoding) = &self.property_encoding {
+      if encoding != BROTLI.as_bytes() {
+        return None;
+      }
+
+      let mut decompressor = brotli::Decompressor::new(value, 4096);
+      let mut value = vec![0; 4_000_001];
+      let n = decompressor.read(&mut value).ok()?;
+
+      if n == value.len() {
+        return None;
+      }
+
+      value.truncate(n);
+
+      Some(Cow::Owned(value))
+    } else {
+      Some(Cow::Borrowed(value))
+    }
   }
 }
 

@@ -71,6 +71,7 @@ use {
   snafu::{Backtrace, ErrorCompat, Snafu},
   std::{
     backtrace::BacktraceStatus,
+    borrow::Cow,
     cmp,
     collections::{BTreeMap, BTreeSet, HashSet},
     env,
@@ -145,6 +146,7 @@ pub mod wallet;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
+const BROTLI: &str = "br";
 const MAX_STANDARD_OP_RETURN_SIZE: usize = 83;
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 

@@ -310,14 +310,14 @@ pub(super) fn content_response(
   if let Some(content_encoding) = inscription.content_encoding() {
     if accept_encoding.is_acceptable(&content_encoding) {
       headers.insert(header::CONTENT_ENCODING, content_encoding);
-    } else if server_config.decompress && content_encoding == "br" {
+    } else if server_config.decompress && content_encoding == BROTLI {
       let Some(body) = inscription.into_body() else {
         return Ok(None);
       };
 
       let mut decompressed = Vec::new();
 
-      Decompressor::new(body.as_slice(), 4096)
+      brotli::Decompressor::new(body.as_slice(), 4096)
         .read_to_end(&mut decompressed)
         .map_err(|err| ServerError::Internal(err.into()))?;
 

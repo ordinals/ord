@@ -21,7 +21,6 @@ use {
     routing::{get, post},
   },
   axum_server::Handle,
-  brotli::Decompressor,
   rust_embed::RustEmbed,
   rustls_acme::{
     AcmeConfig,
@@ -5587,7 +5586,7 @@ next
 
     let mut headers = HeaderMap::new();
 
-    headers.insert(header::ACCEPT_ENCODING, "br".parse().unwrap());
+    headers.insert(header::ACCEPT_ENCODING, BROTLI.parse().unwrap());
 
     let response = reqwest::blocking::Client::builder()
       .default_headers(headers)
@@ -5600,7 +5599,7 @@ next
 
     assert_eq!(
       response.headers().get(header::CONTENT_ENCODING).unwrap(),
-      "br"
+      BROTLI
     );
   }
 
