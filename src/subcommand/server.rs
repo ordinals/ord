@@ -1831,18 +1831,15 @@ impl Server {
   async fn galleries_paginated(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path(page_index): Path<usize>,
+    Path(page_index): Path<u32>,
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let (galleries, more) = index.get_galleries_paginated(100, page_index)?;
+      let (galleries, more) = index.get_galleries_paginated(100, page_index.into_usize())?;
 
       let prev = page_index.checked_sub(1);
 
       let next = more.then_some(page_index + 1);
-
-      let page_index =
-        u32::try_from(page_index).map_err(|_| anyhow!("page index {page_index} out of range"))?;
 
       Ok(if accept_json {
         Json(api::Inscriptions {
