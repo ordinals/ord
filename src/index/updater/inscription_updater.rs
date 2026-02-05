@@ -499,20 +499,12 @@ impl InscriptionUpdater<'_, '_> {
               .sequence_number_to_children
               .insert(parent_sequence_number, sequence_number)?;
 
-            self.galleries.insert(parent_sequence_number, ())?;
-
             Ok(parent_sequence_number)
           })
           .collect::<Result<Vec<u32>>>()?;
 
-        for gallery_item in &gallery {
-          if let Ok(Some(_gallery_item_sequence_number)) = self
-            .id_to_sequence_number
-            .get(&gallery_item.store())
-            .map(|entry| entry.map(|e| e.value()))
-          {
-            self.galleries.insert(sequence_number, ())?;
-          }
+        if !gallery.is_empty() {
+          self.galleries.insert(sequence_number, ())?;
         }
 
         if let Some(ref sender) = index.event_sender {
