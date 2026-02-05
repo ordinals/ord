@@ -94,6 +94,52 @@ impl Inscription {
       (None, None, None)
     };
 
+    let (properties, property_encoding) = if let Some(cbor) = properties.to_cbor() {
+      ensure!(
+        cbor.len() <= 4_000_000,
+        "properties size of {} bytes exceeds 4000000 byte limit",
+        cbor.len(),
+      );
+
+      if compress {
+        let mut compressed = Vec::new();
+
+        CompressorWriter::with_params(
+          &mut compressed,
+          cbor.len(),
+          &BrotliEncoderParams {
+            lgblock: 24,
+            lgwin: 24,
+            quality: 11,
+            size_hint: cbor.len(),
+            ..default()
+          },
+        )
+        .write_all(&cbor)?;
+
+        let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
+
+        let mut decompressed = Vec::new();
+
+        decompressor.read_to_end(&mut decompressed)?;
+
+        ensure!(
+          decompressed == cbor,
+          "properties decompression roundtrip failed"
+        );
+
+        if compressed.len() < cbor.len() {
+          (Some(compressed), Some(BROTLI.as_bytes().to_vec()))
+        } else {
+          (Some(cbor), None)
+        }
+      } else {
+        (Some(cbor), None)
+      }
+    } else {
+      (None, None)
+    };
+
     Ok(Self {
       body,
       content_encoding,
@@ -105,8 +151,8 @@ impl Inscription {
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
-      property_encoding: None,
-      properties: properties.to_cbor(),
+      property_encoding,
+      properties,
       rune: rune.map(|rune| rune.commitment()),
       unrecognized_even_field: false,
     })
@@ -1088,6 +1134,74 @@ mod tests {
       }
       .properties_cbor()
       .is_none()
+    );
+  }
+
+  #[test]
+  fn new_compresses_properties() {
+    let mut file = tempfile::Builder::new().suffix(".txt").tempfile().unwrap();
+
+    write!(file, "foo").unwrap();
+
+    let properties = Properties {
+      attributes: Attributes {
+        title: Some("a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]".into()),
+        ..default()
+      },
+      ..default()
+    };
+
+    let cbor = properties.to_cbor().unwrap();
+
+    let inscription = Inscription::new(
+      Chain::Mainnet,
+      true,
+      None,
+      None,
+      None,
+      Vec::new(),
+      Some(file.path().to_path_buf()),
+      None,
+      properties.clone(),
+      None,
+    )
+    .unwrap();
+
+    assert!(inscription.properties.as_ref().unwrap().len() < cbor.len());
+    assert_eq!(inscription.property_encoding, Some(BROTLI.into()));
+    assert_eq!(inscription.properties(), properties);
+  }
+
+  #[test]
+  fn new_rejects_oversized_properties() {
+    let mut file = tempfile::Builder::new().suffix(".txt").tempfile().unwrap();
+
+    write!(file, "foo").unwrap();
+
+    let properties = Properties {
+      attributes: Attributes {
+        title: Some("x".repeat(4_000_001)),
+        ..default()
+      },
+      ..default()
+    };
+
+    assert!(
+      Inscription::new(
+        Chain::Mainnet,
+        false,
+        None,
+        None,
+        None,
+        Vec::new(),
+        Some(file.path().to_path_buf()),
+        None,
+        properties,
+        None,
+      )
+      .unwrap_err()
+      .to_string()
+      .contains("exceeds 4000000 byte limit")
     );
   }
 }
