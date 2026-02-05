@@ -1841,10 +1841,13 @@ impl Server {
 
       let next = more.then_some(page_index + 1);
 
+      let page_index =
+        u32::try_from(page_index).map_err(|_| anyhow!("page index {page_index} out of range"))?;
+
       Ok(if accept_json {
         Json(api::Inscriptions {
           ids: galleries,
-          page_index: page_index.try_into().unwrap_or(u32::MAX),
+          page_index,
           more,
         })
         .into_response()
