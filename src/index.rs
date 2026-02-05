@@ -1270,13 +1270,11 @@ impl Index {
       .skip(page_index.saturating_mul(page_size))
       .take(page_size.saturating_add(1))
       .map(|result| {
-        result
-          .and_then(|(gallery_owner, _items)| {
-            sequence_number_to_inscription_entry
-              .get(gallery_owner.value())
-              .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
-          })
-          .map_err(|err| err.into())
+        let (gallery, _) = result?;
+
+        let entry = sequence_number_to_inscription_entry.get(gallery.value())?;
+
+        Ok(InscriptionEntry::load(entry.unwrap().value()).id)
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
 
