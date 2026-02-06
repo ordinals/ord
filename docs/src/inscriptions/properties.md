@@ -66,7 +66,7 @@ To avoid decompression bombs, the maximum size of decompressed properties is
 
 To avoid denial-of-service attacks, the maximum compression ratio of
 decompressed properties is 10:1. So, for example, if the compressed properties
-are 100 bytes, the maximum size of the decompressed properties is 1000 bytes.
+are 100 bytes, the maximum size of the decompressed properties is 1,000 bytes.
 
 Inscriptions with any of the below issues are treated by `ord` as if they have
 no properties:
