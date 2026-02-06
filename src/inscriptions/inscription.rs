@@ -314,15 +314,25 @@ impl Inscription {
         return None;
       }
 
-      let mut decompressor = brotli::Decompressor::new(value, 4096);
-      let mut value = vec![0; MAX_COMPRESSED_PROPERTIES_SIZE + 1];
-      let n = decompressor.read(&mut value).ok()?;
+      let mut decompressor = brotli::Decompressor::new(value, BROTLI_COMPRESSOR_BUFFER_SIZE);
 
-      if n == value.len() {
-        return None;
+      let mut value = Vec::new();
+
+      let mut buffer = vec![0; BROTLI_COMPRESSOR_BUFFER_SIZE];
+
+      loop {
+        let n = decompressor.read(&mut buffer).ok()?;
+
+        if n == 0 {
+          break;
+        }
+
+        if value.len() + n > MAX_COMPRESSED_PROPERTIES_SIZE {
+          return None;
+        }
+
+        value.extend_from_slice(&buffer[..n]);
       }
-
-      value.truncate(n);
 
       Some(Cow::Owned(value))
     } else {
@@ -1055,7 +1065,7 @@ mod tests {
 
     let mut compressed = Vec::new();
 
-    CompressorWriter::new(&mut compressed, 4096, 11, 22)
+    CompressorWriter::new(&mut compressed, BROTLI_BUFFER_SIZE, 11, 22)
       .write_all(&cbor)
       .unwrap();
 
@@ -1106,7 +1116,7 @@ mod tests {
 
     let mut compressed = Vec::new();
 
-    CompressorWriter::new(&mut compressed, 4096, 11, 22)
+    CompressorWriter::new(&mut compressed, BROTLI_BUFFER_SIZE, 11, 22)
       .write_all(&cbor)
       .unwrap();
 

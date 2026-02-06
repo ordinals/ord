@@ -317,7 +317,7 @@ pub(super) fn content_response(
 
       let mut decompressed = Vec::new();
 
-      brotli::Decompressor::new(body.as_slice(), 4096)
+      brotli::Decompressor::new(body.as_slice(), BROTLI_BUFFER_SIZE)
         .read_to_end(&mut decompressed)
         .map_err(|err| ServerError::Internal(err.into()))?;
 
