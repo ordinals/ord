@@ -113,10 +113,8 @@ impl Inscription {
   }
 
   fn compress(mode: BrotliEncoderMode, data: Vec<u8>) -> Result<(Vec<u8>, Option<Vec<u8>>), Error> {
-    let mut compressed = Vec::new();
-
-    CompressorWriter::with_params(
-      &mut compressed,
+    let mut compressor = CompressorWriter::with_params(
+      Vec::new(),
       data.len(),
       &BrotliEncoderParams {
         lgblock: 24,
@@ -126,8 +124,11 @@ impl Inscription {
         size_hint: data.len(),
         ..default()
       },
-    )
-    .write_all(&data)?;
+    );
+
+    compressor.write_all(&data)?;
+
+    let compressed = compressor.into_inner();
 
     let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
 
@@ -138,7 +139,7 @@ impl Inscription {
     ensure!(decompressed == data, "decompression roundtrip failed");
 
     if compressed.len() < data.len() {
-      Ok((compressed, Some(BROTLI.as_bytes().to_vec())))
+      Ok((compressed, Some(BROTLI.as_bytes().into())))
     } else {
       Ok((data, None))
     }
