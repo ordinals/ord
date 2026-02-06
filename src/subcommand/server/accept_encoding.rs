@@ -92,7 +92,7 @@ mod tests {
 
     assert!(encodings.is_acceptable(&HeaderValue::from_static("deflate")));
     assert!(encodings.is_acceptable(&HeaderValue::from_static("gzip")));
-    assert!(encodings.is_acceptable(&HeaderValue::from_static("br")));
+    assert!(encodings.is_acceptable(&HeaderValue::from_static(BROTLI)));
     assert!(!encodings.is_acceptable(&HeaderValue::from_static("bzip2")));
   }
 
@@ -118,7 +118,7 @@ mod tests {
 
     assert!(encodings.is_acceptable(&HeaderValue::from_static("deflate")));
     assert!(encodings.is_acceptable(&HeaderValue::from_static("gzip")));
-    assert!(encodings.is_acceptable(&HeaderValue::from_static("br")));
+    assert!(encodings.is_acceptable(&HeaderValue::from_static(BROTLI)));
     assert!(!encodings.is_acceptable(&HeaderValue::from_static("bzip2")));
   }
 }

@@ -1,7 +1,10 @@
 use {
   super::*,
-  ord::subcommand::wallet::{create, inscriptions, receive},
-  std::ops::Deref,
+  ord::{
+    Properties,
+    subcommand::wallet::{create, inscriptions, receive},
+  },
+  std::{io::Read, ops::Deref},
 };
 
 #[test]
@@ -1047,6 +1050,43 @@ fn inscriptions_are_not_compressed_if_no_space_is_saved_by_compression() {
 
   assert_eq!(response.status(), StatusCode::OK);
   assert_eq!(response.text().unwrap(), "foo");
+}
+
+#[test]
+fn inscribe_can_compress_properties() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+  core.mine_blocks(1);
+
+  let title = "a]".repeat(100);
+
+  let Batch { reveal, .. } = CommandBuilder::new(format!(
+    "wallet inscribe --compress --fee-rate 1 --file foo.txt --title {title}"
+  ))
+  .write("foo.txt", "foo")
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output();
+
+  core.mine_blocks(1);
+
+  let response = ord.json_request(format!("/decode/{reveal}"));
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let decode: api::Decode = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let inscription = &decode.inscriptions[0].payload;
+
+  assert_eq!(inscription.property_encoding, Some(b"br".to_vec()));
+
+  let compressed = inscription.properties.as_ref().unwrap();
+  let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
+  let mut decompressed = Vec::new();
+  decompressor.read_to_end(&mut decompressed).unwrap();
+
+  let properties = minicbor::decode::<Properties>(&decompressed).unwrap();
+  assert_eq!(properties.attributes.title, Some(title));
 }
 
 #[test]

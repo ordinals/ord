@@ -3,7 +3,9 @@ use {
   anyhow::ensure,
   axum::http::header::HeaderValue,
   bitcoin::blockdata::opcodes,
-  brotli::enc::{BrotliEncoderParams, writer::CompressorWriter},
+  brotli::enc::{
+    BrotliEncoderParams, backward_references::BrotliEncoderMode, writer::CompressorWriter,
+  },
   io::Write,
 };
 
@@ -20,6 +22,7 @@ pub struct Inscription {
   pub parents: Vec<Vec<u8>>,
   pub pointer: Option<Vec<u8>>,
   pub properties: Option<Vec<u8>>,
+  pub property_encoding: Option<Vec<u8>>,
   pub rune: Option<Vec<u8>>,
   pub unrecognized_even_field: bool,
 }
@@ -45,38 +48,8 @@ impl Inscription {
       let content_type = Media::content_type_for_path(path)?.0;
 
       let (body, content_encoding) = if compress {
-        let compression_mode = Media::content_type_for_path(path)?.1;
-        let mut compressed = Vec::new();
-
-        {
-          CompressorWriter::with_params(
-            &mut compressed,
-            body.len(),
-            &BrotliEncoderParams {
-              lgblock: 24,
-              lgwin: 24,
-              mode: compression_mode,
-              quality: 11,
-              size_hint: body.len(),
-              ..default()
-            },
-          )
-          .write_all(&body)?;
-
-          let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
-
-          let mut decompressed = Vec::new();
-
-          decompressor.read_to_end(&mut decompressed)?;
-
-          ensure!(decompressed == body, "decompression roundtrip failed");
-        }
-
-        if compressed.len() < body.len() {
-          (compressed, Some("br".as_bytes().to_vec()))
-        } else {
-          (body, None)
-        }
+        let mode = Media::content_type_for_path(path)?.1;
+        Self::compress(mode, body)?
       } else {
         (body, None)
       };
@@ -93,18 +66,39 @@ impl Inscription {
       (None, None, None)
     };
 
+    let (properties, property_encoding) = if let Some(cbor) = properties.to_cbor() {
+      if compress {
+        ensure!(
+          cbor.len() <= MAX_COMPRESSED_PROPERTIES_SIZE,
+          "properties size of {} bytes exceeds {MAX_COMPRESSED_PROPERTIES_SIZE} byte limit",
+          cbor.len(),
+        );
+
+        let (compressed, encoding) = Self::compress(BrotliEncoderMode::BROTLI_MODE_GENERIC, cbor)?;
+
+        (Some(compressed), encoding)
+      } else {
+        (Some(cbor), None)
+      }
+    } else {
+      (None, None)
+    };
+
     Ok(Self {
       body,
       content_encoding,
       content_type: content_type.map(|content_type| content_type.into()),
       delegate: delegate.map(|delegate| delegate.value()),
+      duplicate_field: false,
+      incomplete_field: false,
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
       parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
+      property_encoding,
+      properties,
       rune: rune.map(|rune| rune.commitment()),
-      properties: properties.to_cbor(),
-      ..default()
+      unrecognized_even_field: false,
     })
   }
 
@@ -116,6 +110,39 @@ impl Inscription {
     }
 
     bytes
+  }
+
+  fn compress(mode: BrotliEncoderMode, data: Vec<u8>) -> Result<(Vec<u8>, Option<Vec<u8>>), Error> {
+    let mut compressor = CompressorWriter::with_params(
+      Vec::new(),
+      data.len(),
+      &BrotliEncoderParams {
+        lgblock: 24,
+        lgwin: 24,
+        mode,
+        quality: 11,
+        size_hint: data.len(),
+        ..default()
+      },
+    );
+
+    compressor.write_all(&data)?;
+
+    let compressed = compressor.into_inner();
+
+    let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
+
+    let mut decompressed = Vec::new();
+
+    decompressor.read_to_end(&mut decompressed)?;
+
+    assert!(decompressed == data, "decompression roundtrip failed");
+
+    if compressed.len() < data.len() {
+      Ok((compressed, Some(BROTLI.as_bytes().into())))
+    } else {
+      Ok((data, None))
+    }
   }
 
   pub fn append_reveal_script_to_builder(&self, mut builder: script::Builder) -> script::Builder {
@@ -133,6 +160,7 @@ impl Inscription {
     Tag::Metadata.append(&mut builder, &self.metadata);
     Tag::Rune.append(&mut builder, &self.rune);
     Tag::Properties.append(&mut builder, &self.properties);
+    Tag::PropertyEncoding.append(&mut builder, &self.property_encoding);
 
     if let Some(body) = &self.body {
       builder = builder.push_slice(envelope::BODY_TAG);
@@ -273,10 +301,43 @@ impl Inscription {
 
   pub(crate) fn properties(&self) -> Properties {
     self
-      .properties
-      .as_ref()
-      .map(|cbor| Properties::from_cbor(cbor))
+      .properties_cbor()
+      .map(|cbor| Properties::from_cbor(&cbor))
       .unwrap_or_default()
+  }
+
+  fn properties_cbor(&self) -> Option<Cow<[u8]>> {
+    let value = self.properties.as_deref()?;
+
+    if let Some(encoding) = &self.property_encoding {
+      if encoding != BROTLI.as_bytes() {
+        return None;
+      }
+
+      let mut decompressor = brotli::Decompressor::new(value, BROTLI_BUFFER_SIZE);
+
+      let mut value = Vec::new();
+
+      let mut buffer = vec![0; BROTLI_BUFFER_SIZE];
+
+      loop {
+        let n = decompressor.read(&mut buffer).ok()?;
+
+        if n == 0 {
+          break;
+        }
+
+        if value.len() + n > MAX_COMPRESSED_PROPERTIES_SIZE {
+          return None;
+        }
+
+        value.extend_from_slice(&buffer[..n]);
+      }
+
+      Some(Cow::Owned(value))
+    } else {
+      Some(Cow::Borrowed(value))
+    }
   }
 }
 
@@ -953,6 +1014,188 @@ mod tests {
         ..default()
       }
       .hidden()
+    );
+  }
+
+  #[test]
+  fn properties_cbor_without_properties() {
+    assert!(
+      Inscription {
+        properties: None,
+        ..default()
+      }
+      .properties_cbor()
+      .is_none()
+    );
+  }
+
+  #[test]
+  fn properties_cbor_uncompressed() {
+    let cbor = minicbor::to_vec(Properties {
+      attributes: Attributes {
+        title: Some("foo".into()),
+        ..default()
+      },
+      ..default()
+    })
+    .unwrap();
+
+    assert_eq!(
+      Inscription {
+        properties: Some(cbor.clone()),
+        ..default()
+      }
+      .properties_cbor()
+      .unwrap()
+      .into_owned(),
+      cbor,
+    );
+  }
+
+  #[test]
+  fn properties_cbor_compressed() {
+    let cbor = minicbor::to_vec(Properties {
+      attributes: Attributes {
+        title: Some("foo".into()),
+        ..default()
+      },
+      ..default()
+    })
+    .unwrap();
+
+    let mut compressed = Vec::new();
+
+    CompressorWriter::new(&mut compressed, BROTLI_BUFFER_SIZE, 11, 22)
+      .write_all(&cbor)
+      .unwrap();
+
+    assert_eq!(
+      Inscription {
+        properties: Some(compressed),
+        property_encoding: Some(BROTLI.into()),
+        ..default()
+      }
+      .properties_cbor()
+      .unwrap()
+      .into_owned(),
+      cbor,
+    );
+  }
+
+  #[test]
+  fn properties_cbor_unknown_encoding() {
+    let cbor = minicbor::to_vec(Properties::default()).unwrap();
+
+    assert!(
+      Inscription {
+        properties: Some(cbor),
+        property_encoding: Some("foo".into()),
+        ..default()
+      }
+      .properties_cbor()
+      .is_none()
+    );
+  }
+
+  #[test]
+  fn properties_cbor_invalid_brotli() {
+    assert!(
+      Inscription {
+        properties: Some(vec![0, 1, 2, 3]),
+        property_encoding: Some(BROTLI.into()),
+        ..default()
+      }
+      .properties_cbor()
+      .is_none()
+    );
+  }
+
+  #[test]
+  fn properties_cbor_exceeds_limit() {
+    let cbor = vec![0u8; 4_000_001];
+
+    let mut compressed = Vec::new();
+
+    CompressorWriter::new(&mut compressed, BROTLI_BUFFER_SIZE, 11, 22)
+      .write_all(&cbor)
+      .unwrap();
+
+    assert!(
+      Inscription {
+        properties: Some(compressed),
+        property_encoding: Some(BROTLI.into()),
+        ..default()
+      }
+      .properties_cbor()
+      .is_none()
+    );
+  }
+
+  #[test]
+  fn new_compresses_properties() {
+    let mut file = tempfile::Builder::new().suffix(".txt").tempfile().unwrap();
+
+    write!(file, "foo").unwrap();
+
+    let properties = Properties {
+      attributes: Attributes {
+        title: Some("a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]a]".into()),
+        ..default()
+      },
+      ..default()
+    };
+
+    let cbor = properties.to_cbor().unwrap();
+
+    let inscription = Inscription::new(
+      Chain::Mainnet,
+      true,
+      None,
+      None,
+      None,
+      Vec::new(),
+      Some(file.path().to_path_buf()),
+      None,
+      properties.clone(),
+      None,
+    )
+    .unwrap();
+
+    assert!(inscription.properties.as_ref().unwrap().len() < cbor.len());
+    assert_eq!(inscription.property_encoding, Some(BROTLI.into()));
+    assert_eq!(inscription.properties(), properties);
+  }
+
+  #[test]
+  fn new_rejects_oversized_properties() {
+    let mut file = tempfile::Builder::new().suffix(".txt").tempfile().unwrap();
+
+    write!(file, "foo").unwrap();
+
+    let properties = Properties {
+      attributes: Attributes {
+        title: Some("x".repeat(4_000_001)),
+        ..default()
+      },
+      ..default()
+    };
+
+    assert!(
+      Inscription::new(
+        Chain::Mainnet,
+        true,
+        None,
+        None,
+        None,
+        Vec::new(),
+        Some(file.path().to_path_buf()),
+        None,
+        properties,
+        None,
+      )
+      .unwrap_err()
+      .to_string()
+      .contains("exceeds 4000000 byte limit")
     );
   }
 }

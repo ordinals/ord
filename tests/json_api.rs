@@ -1,7 +1,9 @@
 use {
   super::*,
   bitcoin::{BlockHash, ScriptBuf},
+  brotli::enc::writer::CompressorWriter,
   ord::{Attributes, Envelope, Inscription, Properties, Traits, subcommand::wallet::send::Output},
+  std::io::Write,
 };
 
 #[test]
@@ -250,6 +252,60 @@ fn get_inscription_with_metaprotocol_and_properties() {
       metaprotocol: Some("foo".to_string())
     }
   );
+}
+
+#[test]
+fn get_inscription_with_compressed_properties() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let properties = Properties {
+    gallery: Vec::new(),
+    attributes: Attributes {
+      title: Some("foo".into()),
+      traits: Traits::default(),
+    },
+  };
+
+  let cbor = minicbor::to_vec(&properties).unwrap();
+
+  let mut compressed = Vec::new();
+  CompressorWriter::new(&mut compressed, 4096, 11, 22)
+    .write_all(&cbor)
+    .unwrap();
+
+  let witness = envelope(&[
+    b"ord",
+    &[1],
+    b"text/plain;charset=utf-8",
+    &[17],
+    &compressed,
+    &[19],
+    b"br",
+    &[],
+    b"bar",
+  ]);
+
+  let txid = core.broadcast_tx(TransactionTemplate {
+    inputs: &[(1, 0, 0, witness)],
+    ..default()
+  });
+
+  core.mine_blocks(1);
+
+  let inscription_id = InscriptionId { txid, index: 0 };
+
+  let response = ord.json_request(format!("/inscription/{inscription_id}"));
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let inscription_json: api::Inscription = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(inscription_json.properties, properties);
 }
 
 #[test]
