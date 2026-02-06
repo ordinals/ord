@@ -1166,7 +1166,7 @@ mod tests {
     assert!(
       Inscription::new(
         Chain::Mainnet,
-        false,
+        true,
         None,
         None,
         None,
