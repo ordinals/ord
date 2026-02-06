@@ -9,6 +9,9 @@ use {
   io::Write,
 };
 
+const MAX_COMPRESSED_PROPERTIES_SIZE: usize = 4_000_000;
+const MAX_PROPERTIES_COMPRESSION_RATIO: usize = 10;
+
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
 pub struct Inscription {
   pub body: Option<Vec<u8>>,
@@ -68,13 +71,19 @@ impl Inscription {
 
     let (properties, property_encoding) = if let Some(cbor) = properties.to_cbor() {
       if compress {
-        ensure!(
-          cbor.len() <= MAX_COMPRESSED_PROPERTIES_SIZE,
-          "properties size of {} bytes exceeds {MAX_COMPRESSED_PROPERTIES_SIZE} byte limit",
-          cbor.len(),
-        );
+        let len = cbor.len();
+
+        ensure! {
+          len <= MAX_COMPRESSED_PROPERTIES_SIZE,
+          "properties size of {len} bytes exceeds {MAX_COMPRESSED_PROPERTIES_SIZE} byte limit",
+        }
 
         let (compressed, encoding) = Self::compress(BrotliEncoderMode::BROTLI_MODE_GENERIC, cbor)?;
+
+        ensure! {
+          encoding.is_none() || len / compressed.len() <= MAX_PROPERTIES_COMPRESSION_RATIO,
+          "property compression over {MAX_PROPERTIES_COMPRESSION_RATIO}:1",
+        }
 
         (Some(compressed), encoding)
       } else {
@@ -314,6 +323,11 @@ impl Inscription {
         return None;
       }
 
+      let max = value
+        .len()
+        .saturating_mul(MAX_PROPERTIES_COMPRESSION_RATIO)
+        .min(MAX_COMPRESSED_PROPERTIES_SIZE);
+
       let mut decompressor = brotli::Decompressor::new(value, BROTLI_BUFFER_SIZE);
 
       let mut value = Vec::new();
@@ -327,7 +341,7 @@ impl Inscription {
           break;
         }
 
-        if value.len() + n > MAX_COMPRESSED_PROPERTIES_SIZE {
+        if value.len() + n > max {
           return None;
         }
 
@@ -1196,6 +1210,62 @@ mod tests {
       .unwrap_err()
       .to_string()
       .contains("exceeds 4000000 byte limit")
+    );
+  }
+
+  #[test]
+  fn new_rejects_high_compression_ratio_properties() {
+    let mut file = tempfile::Builder::new().suffix(".txt").tempfile().unwrap();
+
+    write!(file, "foo").unwrap();
+
+    let properties = Properties {
+      attributes: Attributes {
+        title: Some("a".repeat(10_000)),
+        ..default()
+      },
+      ..default()
+    };
+
+    assert!(
+      Inscription::new(
+        Chain::Mainnet,
+        true,
+        None,
+        None,
+        None,
+        Vec::new(),
+        Some(file.path().to_path_buf()),
+        None,
+        properties,
+        None,
+      )
+      .unwrap_err()
+      .to_string()
+      .contains("compression over 10:1")
+    );
+  }
+
+  #[test]
+  fn properties_cbor_exceeds_compression_ratio() {
+    let cbor = vec![0u8; 1001];
+
+    let mut compressed = Vec::new();
+
+    CompressorWriter::new(&mut compressed, BROTLI_BUFFER_SIZE, 11, 22)
+      .write_all(&cbor)
+      .unwrap();
+
+    assert!(compressed.len() * MAX_PROPERTIES_COMPRESSION_RATIO < cbor.len());
+
+    assert!(
+      Inscription {
+        properties: Some(compressed),
+        property_encoding: Some(BROTLI.into()),
+        ..default()
+      }
+      .properties_cbor()
+      .is_none()
     );
   }
 }
