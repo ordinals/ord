@@ -660,15 +660,26 @@ Trait = bool / int / null / text;
 </code></pre>
 <p>The above CDDL schema is provided as a convenience. As always, the ordinals reference implementation <code>ord</code> is the normative specification of inscriptions, and thus the properties field.</p>
 <p>Fields matching the <code>* any =&gt; any</code> wildcard must be accepted but ignored, for compatibility with future additions.</p>
-<h1 id="galleries"><a class="header" href="#galleries">Galleries</a></h1>
+<h2 id="compression"><a class="header" href="#compression">Compression</a></h2>
+<p>If the inscription property encoding field, tag 19, is set to "br", the value of the properties field will be decompressed with <a href="https://en.wikipedia.org/wiki/Brotli">Brotli</a>.</p>
+<p>Inscription properties my be compressed when inscribing with <code>ord wallet inscribe</code> and <code>ord wallet batch</code> with the <code>--compress</code> flag.</p>
+<p>To avoid decompression bombs, the maximum size of decompressed properties is 4,000,000 bytes.</p>
+<p>To avoid denial-of-service attacks, the maximum compression ratio of decompressed properties is 10:1. So, for example, if the compressed properties are 100 bytes, the maximum size of the decompressed properties is 1,000 bytes.</p>
+<p>Inscriptions with any of the below issues are treated by <code>ord</code> as if they have no properties:</p>
+<ul>
+<li>properties encoding field set to a value other than "br"</li>
+<li>properties which decompress to over 4,000,000 bytes</li>
+<li>properties with a compression ratio greater than 10:1</li>
+</ul>
+<h2 id="galleries"><a class="header" href="#galleries">Galleries</a></h2>
 <p>Inscriptions whose properties field contains <code>Item</code>s are galleries.</p>
 <p>Galleries contain <code>Item</code>s, whose key <code>0</code> contains a serialized inscription ID. Inscription ID <code>TXIDiINDEX</code> is serialized as a byte string containing the 32 byte <code>TXID</code>, concatenated with by the four-byte little-endian <code>INDEX</code>. Trailing zeros may be removed from four-byte <code>INDEX</code>, so IDs ending in <code>i0</code> may be serialized in 32 bytes.</p>
 <p>Gallery items are displayed on the inscriptions <code>/inscription</code> page on the explorer.</p>
 <p>Galleries are similar to children, in that they provide a way to create collections of inscriptions. However, galleries are permissionless. Anyone may create a gallery including any inscriptions. Thus, inclusion in a gallery does not imply provenance. Additionally, because of this, inclusion in a gallery does not create a backlink from the gallery item's <code>/inscription</code> page to the gallery.</p>
 <p>Galleries may be created when batch inscribing with <code>ord wallet batch</code> by including an array of string inscription IDs of under the <code>gallery</code> key of the inscription entry in the batch file, or when using <code>ord wallet inscribe</code> using the <code>--gallery</code> option.</p>
-<h1 id="attributes"><a class="header" href="#attributes">Attributes</a></h1>
+<h2 id="attributes"><a class="header" href="#attributes">Attributes</a></h2>
 <p>Attributes are structured metadata that may be attached to both inscriptions and gallery items.</p>
-<h2 id="traits"><a class="header" href="#traits">Traits</a></h2>
+<h3 id="traits"><a class="header" href="#traits">Traits</a></h3>
 <p>Traits are a structured counterpart to metadata. While metadata may be arbitrary CBOR, traits are ordered maps of string names to values. Names must be unique, and values may be booleans, integers, <code>null</code>, or strings.</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="기원"><a class="header" href="#기원">기원</a></h1>
 <p>인스크립션 소유자는 자식 인스크립션을 생성할 수 있으며, 해당 자식의 출처를 부모 인스크립션 소유자가 생성한 것으로 온체인에서 신뢰 없이 입증할 수 있다. 이는 부모 인스크립션의 자식이 동일한 컬렉션의 멤버가 되는 컬렉션에 사용할 수 있다.</p>
