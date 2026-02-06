@@ -72,7 +72,7 @@ Inscriptions with any of the below issues are treated by `ord` as if they have
 no properties:
 
 - properties encoding field set to a value other than "br"
-- properties which decompresses to over 4,000,000 bytes
+- properties which decompress to over 4,000,000 bytes
 - properties with a compression ratio greater than 10:1
 
 Galleries
