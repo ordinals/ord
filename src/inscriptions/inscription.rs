@@ -49,7 +49,7 @@ impl Inscription {
 
       let (body, content_encoding) = if compress {
         let mode = Media::content_type_for_path(path)?.1;
-        Self::compress(body, mode)?
+        Self::compress(mode, body)?
       } else {
         (body, None)
       };
@@ -74,7 +74,7 @@ impl Inscription {
           cbor.len(),
         );
 
-        let (compressed, encoding) = Self::compress(cbor, BrotliEncoderMode::BROTLI_MODE_GENERIC)?;
+        let (compressed, encoding) = Self::compress(BrotliEncoderMode::BROTLI_MODE_GENERIC, cbor)?;
 
         (Some(compressed), encoding)
       } else {
@@ -112,7 +112,7 @@ impl Inscription {
     bytes
   }
 
-  fn compress(data: Vec<u8>, mode: BrotliEncoderMode) -> Result<(Vec<u8>, Option<Vec<u8>>), Error> {
+  fn compress(mode: BrotliEncoderMode, data: Vec<u8>) -> Result<(Vec<u8>, Option<Vec<u8>>), Error> {
     let mut compressed = Vec::new();
 
     CompressorWriter::with_params(
