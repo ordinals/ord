@@ -314,11 +314,11 @@ impl Inscription {
         return None;
       }
 
-      let mut decompressor = brotli::Decompressor::new(value, BROTLI_COMPRESSOR_BUFFER_SIZE);
+      let mut decompressor = brotli::Decompressor::new(value, BROTLI_BUFFER_SIZE);
 
       let mut value = Vec::new();
 
-      let mut buffer = vec![0; BROTLI_COMPRESSOR_BUFFER_SIZE];
+      let mut buffer = vec![0; BROTLI_BUFFER_SIZE];
 
       loop {
         let n = decompressor.read(&mut buffer).ok()?;
