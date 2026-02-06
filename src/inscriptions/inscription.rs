@@ -67,14 +67,15 @@ impl Inscription {
     };
 
     let (properties, property_encoding) = if let Some(cbor) = properties.to_cbor() {
-      ensure!(
-        cbor.len() <= 4_000_000,
-        "properties size of {} bytes exceeds 4000000 byte limit",
-        cbor.len(),
-      );
-
       if compress {
+        ensure!(
+          cbor.len() <= MAX_COMPRESSED_PROPERTIES_SIZE,
+          "properties size of {} bytes exceeds {MAX_COMPRESSED_PROPERTIES_SIZE} byte limit",
+          cbor.len(),
+        );
+
         let (compressed, encoding) = Self::compress(cbor, BrotliEncoderMode::BROTLI_MODE_GENERIC)?;
+
         (Some(compressed), encoding)
       } else {
         (Some(cbor), None)
@@ -313,7 +314,7 @@ impl Inscription {
       }
 
       let mut decompressor = brotli::Decompressor::new(value, 4096);
-      let mut value = vec![0; 4_000_001];
+      let mut value = vec![0; MAX_COMPRESSED_PROPERTIES_SIZE + 1];
       let n = decompressor.read(&mut value).ok()?;
 
       if n == value.len() {
