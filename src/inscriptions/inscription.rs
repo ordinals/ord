@@ -1021,7 +1021,14 @@ mod tests {
 
   #[test]
   fn properties_cbor_uncompressed() {
-    let cbor = minicbor::to_vec(Properties::default()).unwrap();
+    let cbor = minicbor::to_vec(Properties {
+      attributes: Attributes {
+        title: Some("foo".into()),
+        ..default()
+      },
+      ..default()
+    })
+    .unwrap();
 
     assert_eq!(
       Inscription {
