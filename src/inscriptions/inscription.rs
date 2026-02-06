@@ -136,7 +136,7 @@ impl Inscription {
 
     decompressor.read_to_end(&mut decompressed)?;
 
-    ensure!(decompressed == data, "decompression roundtrip failed");
+    assert!(decompressed == data, "decompression roundtrip failed");
 
     if compressed.len() < data.len() {
       Ok((compressed, Some(BROTLI.as_bytes().into())))
