@@ -51,8 +51,32 @@ and thus the properties field.
 Fields matching the `* any => any` wildcard must be accepted but ignored, for
 compatibility with future additions.
 
+Compression
+-----------
+
+If the inscription property encoding field, tag 19, is set to "br", the value
+of the properties field will be decompressed with
+[Brotli](https://en.wikipedia.org/wiki/Brotli).
+
+Inscription properties my be compressed when inscribing with
+`ord wallet inscribe` and `ord wallet batch` with the `--compress` flag.
+
+To avoid decompression bombs, the maximum size of decompressed properties is
+4,000,000 bytes.
+
+To avoid denial-of-service attacks, the maximum compression ratio of
+decompressed properties is 10:1. So, for example, if the compressed properties
+are 100 bytes, the maximum size of the decompressed properties is 1,000 bytes.
+
+Inscriptions with any of the below issues are treated by `ord` as if they have
+no properties:
+
+- properties encoding field set to a value other than "br"
+- properties which decompress to over 4,000,000 bytes
+- properties with a compression ratio greater than 10:1
+
 Galleries
-=========
+---------
 
 Inscriptions whose properties field contains `Item`s are galleries.
 
@@ -78,13 +102,12 @@ inscription entry in the batch file, or when using `ord wallet inscribe` using
 the `--gallery` option.
 
 Attributes
-==========
+----------
 
 Attributes are structured metadata that may be attached to both inscriptions
 and gallery items.
 
-Traits
-------
+### Traits
 
 Traits are a structured counterpart to metadata. While metadata may be
 arbitrary CBOR, traits are ordered maps of string names to values. Names must
