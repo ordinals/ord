@@ -9,6 +9,7 @@ pub struct Etching {
   pub divisibility: u8,
   pub supply: Decimal,
   pub premine: Decimal,
+  pub premine_postage: Option<u64>,
   pub terms: Option<batch::Terms>,
   pub turbo: bool,
 }

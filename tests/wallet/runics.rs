@@ -19,6 +19,7 @@ fn wallet_runics() {
       etching: Some(batch::Etching {
         divisibility: 0,
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         rune: SpacedRune { rune, spacers: 1 },
         supply: "1000".parse().unwrap(),
         symbol: '¢',

@@ -17,6 +17,7 @@ fn addresses() {
       etching: Some(batch::Etching {
         divisibility: 3,
         premine: "1.111".parse().unwrap(),
+        premine_postage: None,
         rune: SpacedRune { rune, spacers: 1 },
         supply: "2.222".parse().unwrap(),
         symbol: '¢',
