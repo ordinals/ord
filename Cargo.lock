@@ -2379,7 +2379,6 @@ dependencies = [
  "jsonrpc-http-server",
  "ord",
  "ord-bitcoincore-rpc",
- "reqwest",
  "serde",
  "serde_json",
  "tempfile",

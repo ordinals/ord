@@ -209,6 +209,12 @@ audit-cache:
 audit-content-security-policy:
   cargo run --package audit-content-security-policy
 
+profile-tests *args:
+  cargo +nightly test --all {{args}} -- -Z unstable-options --report-time 2>&1 | tee /tmp/ord-test-profile.txt
+  @echo ""
+  @echo "Slowest tests:"
+  @grep -oP 'test \S+ \.\.\. ok <\K[^>]+' /tmp/ord-test-profile.txt | paste -d' ' - <(grep -oP 'test \K\S+(?= \.\.\. ok)' /tmp/ord-test-profile.txt) | sort -rn | head -20
+
 coverage:
   cargo llvm-cov
 
