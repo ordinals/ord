@@ -145,7 +145,13 @@ pub struct Server {
 }
 
 impl Server {
-  pub fn run(self, settings: Settings, index: Arc<Index>, handle: Handle) -> SubcommandResult {
+  pub fn run(
+    self,
+    settings: Settings,
+    index: Arc<Index>,
+    handle: Handle,
+    http_port_tx: Option<std::sync::mpsc::Sender<u16>>,
+  ) -> SubcommandResult {
     Runtime::new()?.block_on(async {
       let index_clone = index.clone();
       let integration_test = settings.integration_test();
@@ -352,7 +358,14 @@ impl Server {
       match (self.http_port(), self.https_port()) {
         (Some(http_port), None) => {
           self
-            .spawn(&settings, router, handle, http_port, SpawnConfig::Http)?
+            .spawn(
+              &settings,
+              router,
+              handle,
+              http_port,
+              SpawnConfig::Http,
+              http_port_tx,
+            )?
             .await??
         }
         (None, Some(https_port)) => {
@@ -363,6 +376,7 @@ impl Server {
               handle,
               https_port,
               SpawnConfig::Https(self.acceptor(&settings)?),
+              None,
             )?
             .await??
         }
@@ -383,7 +397,8 @@ impl Server {
               router.clone(),
               handle.clone(),
               http_port,
-              http_spawn_config
+              http_spawn_config,
+              http_port_tx,
             )?,
             self.spawn(
               &settings,
@@ -391,6 +406,7 @@ impl Server {
               handle,
               https_port,
               SpawnConfig::Https(self.acceptor(&settings)?),
+              None,
             )?
           );
           http_result.and(https_result)??;
@@ -409,6 +425,7 @@ impl Server {
     handle: Handle,
     port: u16,
     config: SpawnConfig,
+    port_tx: Option<std::sync::mpsc::Sender<u16>>,
   ) -> Result<task::JoinHandle<io::Result<()>>> {
     let address = match &self.address {
       Some(address) => address.as_str(),
@@ -426,27 +443,37 @@ impl Server {
       .next()
       .ok_or_else(|| anyhow!("failed to get socket addrs"))?;
 
-    if !settings.integration_test() && !cfg!(test) {
-      eprintln!(
-        "Listening on {}://{addr}",
-        match config {
-          SpawnConfig::Https(_) => "https",
-          _ => "http",
-        }
-      );
-    }
+    let test = settings.integration_test() || cfg!(test);
 
     Ok(tokio::spawn(async move {
+      let listener = tokio::net::TcpListener::bind(addr).await?.into_std()?;
+
+      let addr = listener.local_addr()?;
+
+      if !test {
+        eprintln!(
+          "Listening on {}://{addr}",
+          match config {
+            SpawnConfig::Https(_) => "https",
+            _ => "http",
+          }
+        );
+      }
+
+      if let Some(tx) = port_tx {
+        tx.send(addr.port()).unwrap();
+      }
+
       match config {
         SpawnConfig::Https(acceptor) => {
-          axum_server::Server::bind(addr)
+          axum_server::Server::from_tcp(listener)
             .handle(handle)
             .acceptor(acceptor)
             .serve(router.into_make_service())
             .await
         }
         SpawnConfig::Redirect(destination) => {
-          axum_server::Server::bind(addr)
+          axum_server::Server::from_tcp(listener)
             .handle(handle)
             .serve(
               Router::new()
@@ -457,7 +484,7 @@ impl Server {
             .await
         }
         SpawnConfig::Http => {
-          axum_server::Server::bind(addr)
+          axum_server::Server::from_tcp(listener)
             .handle(handle)
             .serve(router.into_make_service())
             .await
@@ -2112,7 +2139,6 @@ mod tests {
       header::{self, HeaderMap},
     },
     serde::de::DeserializeOwned,
-    std::net::TcpListener,
     tempfile::TempDir,
   };
 
@@ -2185,12 +2211,6 @@ mod tests {
 
       fs::write(&cookiefile, "username:password").unwrap();
 
-      let port = TcpListener::bind("127.0.0.1:0")
-        .unwrap()
-        .local_addr()
-        .unwrap()
-        .port();
-
       let mut args = vec!["ord".to_string()];
 
       args.push("--bitcoin-rpc-url".into());
@@ -2221,7 +2241,7 @@ mod tests {
       args.push("127.0.0.1".into());
 
       args.push("--http-port".into());
-      args.push(port.to_string());
+      args.push("0".to_string());
 
       args.push("--polling-interval".into());
       args.push("100ms".into());
@@ -2248,33 +2268,23 @@ mod tests {
       let index = Arc::new(Index::open(&settings).unwrap());
       let ord_server_handle = Handle::new();
 
+      let (tx, rx) = std::sync::mpsc::channel();
+
       {
         let index = index.clone();
         let ord_server_handle = ord_server_handle.clone();
-        thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
+        thread::spawn(|| {
+          server
+            .run(settings, index, ord_server_handle, Some(tx))
+            .unwrap()
+        });
       }
 
       while index.statistic(crate::index::Statistic::Commits) == 0 {
         thread::sleep(Duration::from_millis(50));
       }
 
-      let client = reqwest::blocking::Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
-        .build()
-        .unwrap();
-
-      for i in 0.. {
-        match client.get(format!("http://127.0.0.1:{port}/status")).send() {
-          Ok(_) => break,
-          Err(err) => {
-            if i == 400 {
-              panic!("ord server failed to start: {err}");
-            }
-          }
-        }
-
-        thread::sleep(Duration::from_millis(50));
-      }
+      let port = rx.recv().unwrap();
 
       TestServer {
         core,
