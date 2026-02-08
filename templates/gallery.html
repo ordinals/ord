@@ -1,0 +1,22 @@
+<h1><a href=/inscription/{{ self.gallery_id }}>Inscription {{ self.gallery_number }}</a> Gallery</h1>
+%% if self.items.is_empty() {
+<h3>No gallery items</h3>
+%% } else {
+<div class=thumbnails>
+%% for (i, id) in &self.items {
+  {{ Iframe::item(self.gallery_id, *i, *id) }}
+%% }
+</div>
+<div class=center>
+%% if let Some(prev_page) = &self.prev_page {
+  <a class=prev href=/gallery/{{ self.gallery_id }}/page/{{ prev_page }}>prev</a>
+%% } else {
+prev
+%% }
+%% if let Some(next_page) = &self.next_page {
+  <a class=next href=/gallery/{{ self.gallery_id }}/page/{{ next_page }}>next</a>
+%% } else {
+next
+%% }
+</div>
+%% }
