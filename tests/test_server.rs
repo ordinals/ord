@@ -35,14 +35,8 @@ impl TestServer {
 
     fs::write(&cookiefile, "username:password").unwrap();
 
-    let port = TcpListener::bind("127.0.0.1:0")
-      .unwrap()
-      .local_addr()
-      .unwrap()
-      .port();
-
     let (settings, server) = parse_ord_server_args(&format!(
-      "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --datadir {} {} server {} --http-port {port} --address 127.0.0.1",
+      "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --datadir {} {} server {} --http-port 0 --address 127.0.0.1",
       core.url(),
       cookiefile.to_str().unwrap(),
       tempdir.path().display(),
@@ -54,24 +48,19 @@ impl TestServer {
     let index = Arc::new(Index::open(&settings).unwrap());
     let ord_server_handle = Handle::new();
 
+    let (tx, rx) = std::sync::mpsc::channel();
+
     {
       let index = index.clone();
       let ord_server_handle = ord_server_handle.clone();
-      thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
+      thread::spawn(|| {
+        server
+          .run(settings, index, ord_server_handle, Some(tx))
+          .unwrap()
+      });
     }
 
-    for i in 0.. {
-      match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
-        Ok(_) => break,
-        Err(err) => {
-          if i == 400 {
-            panic!("ord server failed to start: {err}");
-          }
-        }
-      }
-
-      thread::sleep(Duration::from_millis(50));
-    }
+    let port = rx.recv().unwrap();
 
     Self {
       bitcoin_rpc_url: core.url(),

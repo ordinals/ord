@@ -75,7 +75,7 @@ impl Subcommand {
         let index = Arc::new(Index::open(&settings)?);
         let handle = axum_server::Handle::new();
         LISTENERS.lock().unwrap().push(handle.clone());
-        server.run(settings, index, handle)
+        server.run(settings, index, handle, None)
       }
       Self::Settings => settings::run(settings),
       Self::Subsidy(subsidy) => subsidy.run(),
