@@ -55,9 +55,9 @@ jobs:
       id: release-type
       run: |
         if [[ ${{ github.ref }} =~ ^refs/tags/[0-9]+[.][0-9]+[.][0-9]+$ ]]; then
-            echo ::set-output name=value::release
+            echo value=release >> $GITHUB_OUTPUT
         else
-            echo ::set-output name=value::prerelease
+            echo value=prerelease >> $GITHUB_OUTPUT
         fi
 
     - name: Package
