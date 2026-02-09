@@ -9,7 +9,7 @@ use {
 };
 
 pub(crate) struct TestServer {
-  bitcoin_rpc_url: String,
+  client: Client,
   ord_server_handle: Handle<SocketAddr>,
   port: u16,
   #[allow(unused)]
@@ -63,8 +63,10 @@ impl TestServer {
 
     let port = rx.recv().unwrap();
 
+    let client = Client::new(&core.url(), Auth::None).unwrap();
+
     Self {
-      bitcoin_rpc_url: core.url(),
+      client,
       ord_server_handle,
       port,
       tempdir,
@@ -148,8 +150,7 @@ impl TestServer {
   }
 
   pub(crate) fn sync_server(&self) {
-    let client = Client::new(&self.bitcoin_rpc_url, Auth::None).unwrap();
-    let chain_block_count = client.get_block_count().unwrap() + 1;
+    let chain_block_count = self.client.get_block_count().unwrap() + 1;
     let response = reqwest::blocking::get(self.url().join("/update").unwrap()).unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     assert!(response.text().unwrap().parse::<u64>().unwrap() >= chain_block_count);
