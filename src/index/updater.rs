@@ -46,6 +46,10 @@ impl Updater<'_> {
     let starting_height = u32::try_from(self.index.client.get_block_count()?).unwrap() + 1;
     let starting_index_height = self.height;
 
+    if self.height >= starting_height {
+      return Ok(());
+    }
+
     wtx
       .open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?
       .insert(
@@ -242,14 +246,20 @@ impl Updater<'_> {
     let fetcher = Fetcher::new(&index.settings)?;
 
     // A block probably has no more than 20k inputs
-    const CHANNEL_BUFFER_SIZE: usize = 20_000;
+    let channel_buffer_size = if cfg!(test) || index.settings.integration_test() {
+      // Test blocks are small, and the broadcast channel pre-allocates its full
+      // buffer, so use a small size to avoid wasting memory and CPU on allocation.
+      64
+    } else {
+      20_000
+    };
 
     // Batch 2048 missing inputs at a time, arbitrarily chosen size
     const BATCH_SIZE: usize = 2048;
 
-    let (outpoint_sender, mut outpoint_receiver) = mpsc::channel::<OutPoint>(CHANNEL_BUFFER_SIZE);
+    let (outpoint_sender, mut outpoint_receiver) = mpsc::channel::<OutPoint>(channel_buffer_size);
 
-    let (txout_sender, txout_receiver) = broadcast::channel::<TxOut>(CHANNEL_BUFFER_SIZE);
+    let (txout_sender, txout_receiver) = broadcast::channel::<TxOut>(channel_buffer_size);
 
     // Default rpcworkqueue in bitcoind is 16, meaning more than 16 concurrent requests will be rejected.
     // Since we are already requesting blocks on a separate thread, and we don't want to break if anything
