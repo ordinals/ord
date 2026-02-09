@@ -156,10 +156,6 @@ impl Server {
       let index_clone = index.clone();
       let integration_test = settings.integration_test();
 
-      if (cfg!(test) || integration_test) && !self.no_sync {
-        index.update().unwrap();
-      }
-
       let index_thread = thread::spawn(move || {
         loop {
           if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
