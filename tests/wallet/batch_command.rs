@@ -2933,6 +2933,9 @@ inscriptions:
       <a href=/gallery/{gallery}/0>.*<iframe .* src=/preview/{id0}></iframe></a>
       <a href=/gallery/{gallery}/1>.*<iframe .* src=/preview/{id1}></iframe></a>
     </div>
+    <div class=center>
+      <a href=/gallery/{gallery}>all \(2\)</a>
+    </div>
   </dd>
 .*"
     ),
