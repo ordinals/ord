@@ -80,7 +80,7 @@ use {
     fs::{self, File},
     io::{self, BufReader, Cursor, Read},
     mem,
-    net::ToSocketAddrs,
+    net::{SocketAddr, ToSocketAddrs},
     path::{Path, PathBuf},
     process::{self, Command, Stdio},
     str::FromStr,
@@ -152,7 +152,7 @@ const MAX_STANDARD_OP_RETURN_SIZE: usize = 83;
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
-static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
+static LISTENERS: Mutex<Vec<axum_server::Handle<SocketAddr>>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
 
 #[doc(hidden)]
