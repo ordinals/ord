@@ -119,5 +119,8 @@ path = "src/lib.rs"
 name = "integration"
 path = "tests/lib.rs"
 
+[profile.test]
+opt-level = 1
+
 [profile.test.package."*"]
 opt-level = 2
