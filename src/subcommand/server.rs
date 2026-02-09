@@ -2296,10 +2296,6 @@ mod tests {
         });
       }
 
-      while index.statistic(crate::index::Statistic::Commits) == 0 {
-        thread::sleep(Duration::from_millis(50));
-      }
-
       let port = rx.recv().unwrap();
 
       TestServer {
