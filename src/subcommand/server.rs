@@ -169,7 +169,7 @@ impl Server {
         index.update().unwrap();
       }
 
-      if !cfg!(test) {
+      if !cfg!(test) && !integration_test {
         let index_clone = index.clone();
         let index_thread = thread::spawn(move || {
           loop {
@@ -183,11 +183,7 @@ impl Server {
               log::warn!("Updating index: {error}");
             }
 
-            thread::sleep(if integration_test {
-              Duration::from_millis(100)
-            } else {
-              self.polling_interval.into()
-            });
+            thread::sleep(self.polling_interval.into());
           }
         });
 
@@ -205,6 +201,7 @@ impl Server {
         domain: acme_domains.first().cloned(),
         index_sats: index.has_sat_index(),
         json_api_enabled: !self.disable_json_api,
+        no_sync: self.no_sync,
         proxy: self.proxy.clone(),
       });
 
@@ -1356,12 +1353,15 @@ impl Server {
   }
 
   async fn update(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(settings): Extension<Arc<Settings>>,
     Extension(index): Extension<Arc<Index>>,
   ) -> ServerResult {
     task::block_in_place(|| {
       if settings.integration_test() {
-        index.update()?;
+        if !server_config.no_sync {
+          index.update()?;
+        }
         Ok(index.block_count()?.to_string().into_response())
       } else {
         Ok(StatusCode::NOT_FOUND.into_response())

@@ -9,6 +9,7 @@ pub struct ServerConfig {
   pub domain: Option<String>,
   pub index_sats: bool,
   pub json_api_enabled: bool,
+  pub no_sync: bool,
   pub proxy: Option<Url>,
 }
 
