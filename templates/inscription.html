@@ -46,9 +46,12 @@
   <dt>gallery</dt>
   <dd>
     <div class=thumbnails>
-%% for (i, item) in self.properties.gallery.iter().enumerate() {
+%% for (i, item) in self.properties.gallery.iter().enumerate().take(4) {
       {{ Iframe::item(self.id, i, item.id()) }}
 %% }
+    </div>
+    <div class=center>
+      <a href=/gallery/{{self.id}}>all ({{ self.properties.gallery.len() }})</a>
     </div>
   </dd>
 %% }
