@@ -39,6 +39,6 @@ case $OS in
   windows-latest)
     ARCHIVE=$DIST/ord-$VERSION-$TARGET.zip
     7z a $ARCHIVE *
-    [[ -v GITHUB_OUTPUT ]] && echo archive=`pwd -W`/ord-$VERSION-$TARGET.zip" >> $GITHUB_OUTPUT
+    [[ -v GITHUB_OUTPUT ]] && echo archive=`pwd -W`/ord-$VERSION-$TARGET.zip >> $GITHUB_OUTPUT
     ;;
 esac
