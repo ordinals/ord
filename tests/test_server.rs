@@ -9,7 +9,6 @@ use {
 };
 
 pub(crate) struct TestServer {
-  bitcoin_rpc_url: String,
   client: Client,
   ord_server_handle: Handle<SocketAddr>,
   port: u16,
