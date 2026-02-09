@@ -47,6 +47,7 @@ mod r;
 mod server_config;
 
 const MEBIBYTE: usize = 1 << 20;
+const PAGE_SIZE: usize = 100;
 
 enum SpawnConfig {
   Https(AxumAcceptor),
@@ -1831,7 +1832,8 @@ impl Server {
     Path(page_index): Path<usize>,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let (collections, more_collections) = index.get_collections_paginated(100, page_index)?;
+      let (collections, more_collections) =
+        index.get_collections_paginated(PAGE_SIZE, page_index)?;
 
       let prev = page_index.checked_sub(1);
 
@@ -1870,7 +1872,7 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      let (galleries, more) = index.get_galleries_paginated(100, page_index.into_usize())?;
+      let (galleries, more) = index.get_galleries_paginated(PAGE_SIZE, page_index.into_usize())?;
 
       let prev = page_index.checked_sub(1);
 
@@ -1924,18 +1926,17 @@ impl Server {
         .inscription_number;
 
       let properties = inscription.properties();
-      let page_size = 100;
 
       let mut items = properties
         .gallery
         .iter()
         .enumerate()
-        .skip(page.saturating_mul(page_size))
-        .take(page_size.saturating_add(1))
+        .skip(page.saturating_mul(PAGE_SIZE))
+        .take(PAGE_SIZE.saturating_add(1))
         .map(|(i, item)| (i, item.id()))
-        .collect::<Vec<_>>();
+        .collect::<Vec<(usize, InscriptionId)>>();
 
-      let more = items.len() > page_size;
+      let more = items.len() > PAGE_SIZE;
 
       if more {
         items.pop();
@@ -1986,7 +1987,7 @@ impl Server {
       let parent_number = entry.inscription_number;
 
       let (children, more_children) =
-        index.get_children_by_sequence_number_paginated(entry.sequence_number, 100, page)?;
+        index.get_children_by_sequence_number_paginated(entry.sequence_number, PAGE_SIZE, page)?;
 
       let prev_page = page.checked_sub(1);
 
@@ -2081,8 +2082,6 @@ impl Server {
     AcceptJson(accept_json): AcceptJson,
   ) -> ServerResult {
     task::block_in_place(|| {
-      const PAGE_SIZE: usize = 100;
-
       let mut inscriptions = index
         .get_inscriptions_in_block(block_height)?
         .into_iter()
@@ -2141,7 +2140,7 @@ impl Server {
         .ok_or_not_found(|| format!("inscription {id}"))?;
 
       let (parents, more) =
-        index.get_parents_by_sequence_number_paginated(child.parents, 100, page)?;
+        index.get_parents_by_sequence_number_paginated(child.parents, PAGE_SIZE, page)?;
 
       let prev_page = page.checked_sub(1);
 
