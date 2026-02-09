@@ -150,7 +150,7 @@ impl Server {
     self,
     settings: Settings,
     index: Arc<Index>,
-    handle: Handle,
+    handle: Handle<SocketAddr>,
     http_port_tx: Option<std::sync::mpsc::Sender<u16>>,
   ) -> SubcommandResult {
     Runtime::new()?.block_on(async {
@@ -360,6 +360,7 @@ impl Server {
         .with_state(server_config.clone());
 
       let router = if let Some((username, password)) = settings.credentials() {
+        #[allow(deprecated)]
         router.layer(ValidateRequestHeaderLayer::basic(username, password))
       } else {
         router
@@ -432,7 +433,7 @@ impl Server {
     &self,
     settings: &Settings,
     router: Router,
-    handle: Handle,
+    handle: Handle<SocketAddr>,
     port: u16,
     config: SpawnConfig,
     port_tx: Option<std::sync::mpsc::Sender<u16>>,
@@ -476,14 +477,14 @@ impl Server {
 
       match config {
         SpawnConfig::Https(acceptor) => {
-          axum_server::Server::from_tcp(listener)
+          axum_server::from_tcp(listener)?
             .handle(handle)
             .acceptor(acceptor)
             .serve(router.into_make_service())
             .await
         }
         SpawnConfig::Redirect(destination) => {
-          axum_server::Server::from_tcp(listener)
+          axum_server::from_tcp(listener)?
             .handle(handle)
             .serve(
               Router::new()
@@ -494,7 +495,7 @@ impl Server {
             .await
         }
         SpawnConfig::Http => {
-          axum_server::Server::from_tcp(listener)
+          axum_server::from_tcp(listener)?
             .handle(handle)
             .serve(router.into_make_service())
             .await
@@ -2389,7 +2390,7 @@ mod tests {
   struct TestServer {
     core: mockcore::Handle,
     index: Arc<Index>,
-    ord_server_handle: Handle,
+    ord_server_handle: Handle<SocketAddr>,
     #[allow(unused)]
     tempdir: TempDir,
     url: Url,

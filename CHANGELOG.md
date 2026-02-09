@@ -1,6 +1,26 @@
 Changelog
 =========
 
+[0.25.0](https://github.com/ordinals/ord/releases/tag/0.25.0) - 2026-02-09
+--------------------------------------------------------------------------
+
+### Added
+- Paginate gallery items ([#4467](https://github.com/ordinals/ord/pull/4467) by [lifofifoX](https://github.com/lifofifoX))
+- Enforce a maximum compression ratio for properties of 10:1 ([#4463](https://github.com/ordinals/ord/pull/4463) by [casey](https://github.com/casey))
+- Add property compression ([#4462](https://github.com/ordinals/ord/pull/4462) by [casey](https://github.com/casey))
+- Add /galleries page ([#4405](https://github.com/ordinals/ord/pull/4405) by [SatoshiRoppongi](https://github.com/SatoshiRoppongi))
+
+### Fixed
+- Set internal=false on recovery key descriptors ([#4451](https://github.com/ordinals/ord/pull/4451) by [8144225309](https://github.com/8144225309))
+
+### Misc
+- Avoid port allocation race in unit tests ([#4465](https://github.com/ordinals/ord/pull/4465) by [casey](https://github.com/casey))
+- Avoid `set-output` in CI ([#4466](https://github.com/ordinals/ord/pull/4466) by [casey](https://github.com/casey))
+- Simplify minicbor property decoding ([#4459](https://github.com/ordinals/ord/pull/4459) by [casey](https://github.com/casey))
+- Remove dependency on executable-path ([#4456](https://github.com/ordinals/ord/pull/4456) by [casey](https://github.com/casey))
+- Display title under inscription number ([#4449](https://github.com/ordinals/ord/pull/4449) by [lifofifoX](https://github.com/lifofifoX))
+- Update to boilerplate 1.1.0 ([#4448](https://github.com/ordinals/ord/pull/4448) by [casey](https://github.com/casey))
+
 [0.24.2](https://github.com/ordinals/ord/releases/tag/0.24.1) - 2025-11-13
 --------------------------------------------------------------------------
 

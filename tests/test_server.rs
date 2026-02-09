@@ -4,12 +4,13 @@ use {
   bitcoincore_rpc::{Auth, Client, RpcApi},
   ord::{Index, parse_ord_server_args},
   reqwest::blocking::Response,
+  std::net::SocketAddr,
   sysinfo::System,
 };
 
 pub(crate) struct TestServer {
   bitcoin_rpc_url: String,
-  ord_server_handle: Handle,
+  ord_server_handle: Handle<SocketAddr>,
   port: u16,
   #[allow(unused)]
   tempdir: TempDir,
