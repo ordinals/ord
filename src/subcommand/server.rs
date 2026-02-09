@@ -152,35 +152,47 @@ impl Server {
     handle: Handle,
     http_port_tx: Option<std::sync::mpsc::Sender<u16>>,
   ) -> SubcommandResult {
-    Runtime::new()?.block_on(async {
-      let index_clone = index.clone();
-      let integration_test = settings.integration_test();
+    let integration_test = settings.integration_test();
+
+    let rt = if cfg!(test) || integration_test {
+      tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(1)
+        .enable_all()
+        .build()?
+    } else {
+      Runtime::new()?
+    };
+
+    rt.block_on(async {
 
       if (cfg!(test) || integration_test) && !self.no_sync {
         index.update().unwrap();
       }
 
-      let index_thread = thread::spawn(move || {
-        loop {
-          if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
-            break;
+      if !cfg!(test) {
+        let index_clone = index.clone();
+        let index_thread = thread::spawn(move || {
+          loop {
+            if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+              break;
+            }
+
+            if !self.no_sync
+              && let Err(error) = index_clone.update()
+            {
+              log::warn!("Updating index: {error}");
+            }
+
+            thread::sleep(if integration_test {
+              Duration::from_millis(100)
+            } else {
+              self.polling_interval.into()
+            });
           }
+        });
 
-          if !self.no_sync
-            && let Err(error) = index_clone.update()
-          {
-            log::warn!("Updating index: {error}");
-          }
-
-          thread::sleep(if integration_test {
-            Duration::from_millis(100)
-          } else {
-            self.polling_interval.into()
-          });
-        }
-      });
-
-      INDEXER.lock().unwrap().replace(index_thread);
+        INDEXER.lock().unwrap().replace(index_thread);
+      }
 
       let settings = Arc::new(settings);
       let acme_domains = self.acme_domains()?;
