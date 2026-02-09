@@ -8,6 +8,27 @@ ci: clippy forbid
   cargo test --all
   cargo test --all -- --ignored
 
+test-parallel:
+  #!/usr/bin/env bash
+  set -euo pipefail
+  # Build all test targets and discover binary paths
+  binaries=$(cargo test --workspace --no-run 2>&1)
+  unit=$(echo "$binaries" | grep -oP 'unittests src/lib\.rs \(\K[^)]+(?=\))' | grep '/ord-')
+  integration=$(echo "$binaries" | grep -oP 'tests/lib\.rs \(\K[^)]+(?=\))')
+  ordinals=$(echo "$binaries" | grep -oP 'unittests src/lib\.rs \(\K[^)]+(?=\))' | grep '/ordinals-')
+  # Run test suites in parallel
+  $unit &
+  pid_unit=$!
+  $integration &
+  pid_int=$!
+  $ordinals &
+  pid_ord=$!
+  fail=0
+  wait $pid_unit || fail=1
+  wait $pid_int || fail=1
+  wait $pid_ord || fail=1
+  exit $fail
+
 forbid:
   ./bin/forbid
 
