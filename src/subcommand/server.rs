@@ -1913,16 +1913,16 @@ impl Server {
   async fn gallery_paginated(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
-    Path((inscription_id, page)): Path<(InscriptionId, usize)>,
+    Path((id, page)): Path<(InscriptionId, usize)>,
   ) -> ServerResult<PageHtml<GalleryHtml>> {
     task::block_in_place(|| {
       let inscription = index
-        .get_inscription_by_id(inscription_id)?
-        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+        .get_inscription_by_id(id)?
+        .ok_or_not_found(|| format!("inscription {id}"))?;
 
-      let inscription_number = index
-        .get_inscription_entry(inscription_id)?
-        .ok_or_not_found(|| format!("inscription {inscription_id}"))?
+      let number = index
+        .get_inscription_entry(id)?
+        .ok_or_not_found(|| format!("inscription {id}"))?
         .inscription_number;
 
       let properties = inscription.properties();
@@ -1947,8 +1947,8 @@ impl Server {
 
       Ok(
         GalleryHtml {
-          gallery_id: inscription_id,
-          gallery_number: inscription_number,
+          id,
+          number,
           items,
           prev_page,
           next_page,
