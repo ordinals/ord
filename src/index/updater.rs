@@ -415,11 +415,13 @@ impl Updater<'_> {
     sat_ranges_written: &mut u64,
     outputs_in_block: &mut u64,
   ) -> Result {
+    let mut collection_to_latest_child = wtx.open_table(COLLECTION_TO_LATEST_CHILD)?;
     let mut galleries = wtx.open_table(GALLERIES)?;
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut home_inscriptions = wtx.open_table(HOME_INSCRIPTIONS)?;
     let mut inscription_number_to_sequence_number =
       wtx.open_table(INSCRIPTION_NUMBER_TO_SEQUENCE_NUMBER)?;
+    let mut latest_child_to_collection = wtx.open_multimap_table(LATEST_CHILD_TO_COLLECTION)?;
     let mut outpoint_to_utxo_entry = wtx.open_table(OUTPOINT_TO_UTXO_ENTRY)?;
     let mut sat_to_satpoint = wtx.open_table(SAT_TO_SATPOINT)?;
     let mut sat_to_sequence_number = wtx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
@@ -506,6 +508,7 @@ impl Updater<'_> {
 
     let mut inscription_updater = InscriptionUpdater {
       blessed_inscription_count,
+      collection_to_latest_child: &mut collection_to_latest_child,
       cursed_inscription_count,
       flotsam: Vec::new(),
       galleries: &mut galleries,
@@ -514,6 +517,7 @@ impl Updater<'_> {
       home_inscriptions: &mut home_inscriptions,
       id_to_sequence_number: inscription_id_to_sequence_number,
       inscription_number_to_sequence_number: &mut inscription_number_to_sequence_number,
+      latest_child_to_collection: &mut latest_child_to_collection,
       lost_sats,
       next_sequence_number,
       reward: Height(self.height).subsidy(),
