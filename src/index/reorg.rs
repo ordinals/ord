@@ -35,10 +35,8 @@ impl Reorg {
 
         for depth in 1..max_recoverable_reorg_depth {
           let index_block_hash = index.block_hash(height.checked_sub(depth))?;
-          let bitcoind_block_hash = index
-            .client
-            .get_block_hash(u64::from(height.saturating_sub(depth)))
-            .into_option()?;
+          let bitcoind_block_hash =
+            index.rpc_block_hash(u64::from(height.saturating_sub(depth)))?;
 
           if index_block_hash == bitcoind_block_hash {
             return Err(anyhow!(reorg::Error::Recoverable { height, depth }));
@@ -91,7 +89,7 @@ impl Reorg {
       .map(|last_savepoint_height| last_savepoint_height.value())
       .unwrap_or(0);
 
-    let blocks = index.client.get_blockchain_info()?.headers;
+    let blocks = index.rpc_blockchain_info()?.headers;
 
     let savepoint_interval = u64::try_from(index.settings.savepoint_interval()).unwrap();
     let max_savepoints = u64::try_from(index.settings.max_savepoints()).unwrap();
