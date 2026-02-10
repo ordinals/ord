@@ -1710,7 +1710,8 @@ impl Server {
 
       Ok(
         ItemHtml {
-          gallery_inscription_number: info.number,
+          gallery_id: info.id,
+          gallery_number: info.number,
           i,
           item,
         }

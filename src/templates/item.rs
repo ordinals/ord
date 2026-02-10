@@ -2,17 +2,15 @@ use super::*;
 
 #[derive(Boilerplate)]
 pub struct ItemHtml {
-  pub gallery_inscription_number: i32,
+  pub gallery_id: InscriptionId,
+  pub gallery_number: i32,
   pub i: usize,
   pub item: Item,
 }
 
 impl PageContent for ItemHtml {
   fn title(&self) -> String {
-    format!(
-      "Gallery {} item {}",
-      self.gallery_inscription_number, self.i
-    )
+    format!("Gallery {} item {}", self.gallery_number, self.i)
   }
 }
 
@@ -24,7 +22,8 @@ mod tests {
   fn body() {
     assert_regex_match!(
       ItemHtml {
-        gallery_inscription_number: 1,
+        gallery_id: inscription_id(2),
+        gallery_number: 1,
         i: 2,
         item: Item {
           id: Some(inscription_id(1)),
@@ -42,7 +41,9 @@ mod tests {
         </div>
         <dl>
           <dt>inscription</dt>
-          <dd><a href=/inscription/1{64}i1>1{64}i1</a></dl>
+          <dd><a href=/inscription/1{64}i1>1{64}i1</a></dd>
+          <dt>gallery</dt>
+          <dd><a href=/inscription/2{64}i2>2{64}i2</a></dd>
           <dt>title</dt>
         <dd>foo</dd>
 
@@ -56,7 +57,8 @@ mod tests {
   fn title() {
     assert_eq!(
       ItemHtml {
-        gallery_inscription_number: 1,
+        gallery_id: inscription_id(2),
+        gallery_number: 1,
         i: 2,
         item: Item {
           id: Some(inscription_id(1)),
