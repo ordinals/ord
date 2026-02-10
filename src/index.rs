@@ -1234,30 +1234,34 @@ impl Index {
 
     let mut collections = Vec::new();
     let mut skipped = 0;
-    let target_skip = page_index.saturating_mul(page_size);
-    let target_take = page_size.saturating_add(1);
+    let skip = page_index.saturating_mul(page_size);
+    let take = page_size.saturating_add(1);
 
-    for result in rtx
+    for entry in rtx
       .open_multimap_table(LATEST_CHILD_TO_COLLECTION)?
       .iter()?
       .rev()
     {
-      let (_child_seq, parents) = result?;
-      for parent_result in parents {
-        let parent_seq = parent_result?.value();
-        if skipped < target_skip {
+      let (_latest_child, parents) = entry?;
+
+      for parent in parents {
+        let parent = parent?.value();
+
+        if skipped < skip {
           skipped += 1;
           continue;
         }
-        let entry = sequence_number_to_inscription_entry
-          .get(parent_seq)?
-          .unwrap();
+
+        let entry = sequence_number_to_inscription_entry.get(parent)?.unwrap();
+
         collections.push(InscriptionEntry::load(entry.value()).id);
-        if collections.len() >= target_take {
+
+        if collections.len() >= take {
           break;
         }
       }
-      if collections.len() >= target_take {
+
+      if collections.len() >= take {
         break;
       }
     }
