@@ -5399,8 +5399,7 @@ next
       .index_sats()
       .build();
 
-    // Create three parents one at a time so we know their exact positions
-    server.mine_blocks(1); // Block 1
+    server.mine_blocks(1);
     let parent_a = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
         inputs: &[(1, 0, 0, inscription("text/plain", "parent a").to_witness())],
@@ -5409,7 +5408,7 @@ next
       index: 0,
     };
 
-    server.mine_blocks(1); // Block 2 (parent_a mined, at (2,1,0))
+    server.mine_blocks(1);
     let parent_b = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
         inputs: &[(2, 0, 0, inscription("text/plain", "parent b").to_witness())],
@@ -5418,7 +5417,7 @@ next
       index: 0,
     };
 
-    server.mine_blocks(1); // Block 3 (parent_b mined, at (3,1,0))
+    server.mine_blocks(1);
     let parent_c = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
         inputs: &[(3, 0, 0, inscription("text/plain", "parent c").to_witness())],
@@ -5427,10 +5426,9 @@ next
       index: 0,
     };
 
-    server.mine_blocks(1); // Block 4 (parent_c mined, at (4,1,0))
-    server.mine_blocks(1); // Block 5 (empty, coinbase available)
+    server.mine_blocks(1);
+    server.mine_blocks(1);
 
-    // Add child to A: parent_a at (2,1,0), inscription UTXO from (4,0,0)
     server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (2, 1, 0, Default::default()),
@@ -5452,9 +5450,8 @@ next
       ..default()
     });
 
-    server.mine_blocks(1); // Block 6 (child_a mined, parent_a now at (6,1,0))
+    server.mine_blocks(1);
 
-    // Add child to B: parent_b at (3,1,0), inscription UTXO from (5,0,0)
     server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (3, 1, 0, Default::default()),
@@ -5476,9 +5473,8 @@ next
       ..default()
     });
 
-    server.mine_blocks(1); // Block 7 (child_b mined, parent_b now at (7,1,0))
+    server.mine_blocks(1);
 
-    // Add child to C: parent_c at (4,1,0), inscription UTXO from (6,0,0)
     server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (4, 1, 0, Default::default()),
@@ -5500,9 +5496,8 @@ next
       ..default()
     });
 
-    server.mine_blocks(1); // Block 8 (child_c mined, parent_c now at (8,1,0))
+    server.mine_blocks(1);
 
-    // Order should be C, B, A (most recent child first)
     server.assert_response_regex(
       "/collections",
       StatusCode::OK,
@@ -5511,7 +5506,6 @@ next
       ),
     );
 
-    // Add another child to A: parent_a at (6,1,0), inscription UTXO from (7,0,0)
     server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
         (6, 1, 0, Default::default()),
@@ -5533,9 +5527,8 @@ next
       ..default()
     });
 
-    server.mine_blocks(1); // Block 9 (child_a2 mined, parent_a now at (9,1,0))
+    server.mine_blocks(1);
 
-    // Order should now be A, C, B (A moved to first because it got a new child)
     server.assert_response_regex(
       "/collections",
       StatusCode::OK,
@@ -5552,7 +5545,6 @@ next
       .index_sats()
       .build();
 
-    // Create parent A
     server.mine_blocks(1);
     let parent_a = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
@@ -5562,7 +5554,6 @@ next
       index: 0,
     };
 
-    // Create parent B
     server.mine_blocks(1);
     let parent_b = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
@@ -5572,14 +5563,12 @@ next
       index: 0,
     };
 
-    // Mine both parents
     server.mine_blocks(1);
 
-    // Create a child with both parents
     server.core.broadcast_tx(TransactionTemplate {
       inputs: &[
-        (2, 1, 0, Default::default()), // parent A UTXO
-        (3, 1, 0, Default::default()), // parent B UTXO
+        (2, 1, 0, Default::default()),
+        (3, 1, 0, Default::default()),
         (
           3,
           0,
@@ -5600,7 +5589,6 @@ next
 
     server.mine_blocks(1);
 
-    // Both parents should appear in /collections
     server.assert_response_regex(
       "/collections",
       StatusCode::OK,
