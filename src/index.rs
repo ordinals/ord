@@ -1256,12 +1256,12 @@ impl Index {
 
         collections.push(InscriptionEntry::load(entry.value()).id);
 
-        if collections.len() >= take {
+        if collections.len() == take {
           break;
         }
       }
 
-      if collections.len() >= take {
+      if collections.len() == take {
         break;
       }
     }
