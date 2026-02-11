@@ -2112,6 +2112,37 @@ impl Index {
     )
   }
 
+  pub fn get_rune_parents(&self, n: usize) -> Result<Vec<InscriptionId>> {
+    let rtx = self.database.begin_read()?;
+
+    let inscription_id_to_sequence_number = rtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
+
+    let mut parents = Vec::new();
+
+    for result in rtx.open_table(RUNE_ID_TO_RUNE_ENTRY)?.iter()?.rev() {
+      if parents.len() >= n {
+        break;
+      }
+
+      let (_id, entry) = result?;
+      let entry = RuneEntry::load(entry.value());
+
+      let parent = InscriptionId {
+        txid: entry.etching,
+        index: 0,
+      };
+
+      if inscription_id_to_sequence_number
+        .get(&parent.store())?
+        .is_some()
+      {
+        parents.push(parent);
+      }
+    }
+
+    Ok(parents)
+  }
+
   pub fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u32, InscriptionId)>> {
     Ok(
       self

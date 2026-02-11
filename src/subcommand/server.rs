@@ -8,10 +8,10 @@ use {
   crate::templates::{
     AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, GalleriesHtml,
     GalleryHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml,
-    ItemHtml, OutputHtml, PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml,
-    PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
-    PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml,
-    RunesHtml, SatHtml, SatscardHtml, TransactionHtml,
+    ItemHtml, LatestHtml, OutputHtml, PageContent, PageHtml, ParentsHtml, PreviewAudioHtml,
+    PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml,
+    PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml,
+    RuneNotFoundHtml, RunesHtml, SatHtml, SatscardHtml, TransactionHtml,
   },
   axum::{
     Router,
@@ -252,6 +252,7 @@ impl Server {
         )
         .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route("/install.sh", get(Self::install_script))
+        .route("/latest", get(Self::latest))
         .route("/offer", post(Self::offer))
         .route("/offers", get(Self::offers))
         .route("/ordinal/{sat}", get(Self::ordinal))
@@ -1087,6 +1088,24 @@ impl Server {
     task::block_in_place(|| {
       Ok(
         HomeHtml {
+          latest: index.get_home_inscriptions()?.into_iter().take(8).collect(),
+          collections: index.get_collections_paginated(8, 0)?.0,
+          runes: index.get_rune_parents(8)?,
+          galleries: index.get_galleries_paginated(8, 0)?.0,
+          all: index.get_inscriptions_paginated(8, 0)?.0,
+        }
+        .page(server_config),
+      )
+    })
+  }
+
+  async fn latest(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+  ) -> ServerResult<PageHtml<LatestHtml>> {
+    task::block_in_place(|| {
+      Ok(
+        LatestHtml {
           inscriptions: index.get_home_inscriptions()?,
         }
         .page(server_config),
@@ -4145,10 +4164,17 @@ mod tests {
       StatusCode::OK,
       format!(
         r".*<title>Ordinals</title>.*
-<h1>Latest Inscriptions</h1>
+<h2><a href=/latest>Latest Inscriptions</a></h2>
 <div class=thumbnails>
   <a href=/inscription/{}>.*</a>
-  (<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>\s*){{99}}
+  (<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>\s*){{7}}
+</div>
+.*<h2><a href=/collections>Collections</a></h2>.*
+.*<h2><a href=/runes>Runes</a></h2>.*
+.*<h2><a href=/galleries>Galleries</a></h2>.*
+<h2><a href=/inscriptions>All Inscriptions</a></h2>
+<div class=thumbnails>
+  (<a href=/inscription/[[:xdigit:]]{{64}}i0>.*</a>\s*){{8}}
 </div>
 .*
 ",

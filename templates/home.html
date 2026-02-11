@@ -1,6 +1,30 @@
-<h1>Latest Inscriptions</h1>
+<h2><a href=/latest>Latest Inscriptions</a></h2>
 <div class=thumbnails>
-%% for inscription in &self.inscriptions {
-  {{ Iframe::thumbnail(*inscription) }}
+%% for id in &self.latest {
+  {{ Iframe::thumbnail(*id) }}
+%% }
+</div>
+<h2><a href=/collections>Collections</a></h2>
+<div class=thumbnails>
+%% for id in &self.collections {
+  {{ Iframe::thumbnail(*id) }}
+%% }
+</div>
+<h2><a href=/runes>Runes</a></h2>
+<div class=thumbnails>
+%% for id in &self.runes {
+  {{ Iframe::thumbnail(*id) }}
+%% }
+</div>
+<h2><a href=/galleries>Galleries</a></h2>
+<div class=thumbnails>
+%% for id in &self.galleries {
+  {{ Iframe::thumbnail(*id) }}
+%% }
+</div>
+<h2><a href=/inscriptions>All Inscriptions</a></h2>
+<div class=thumbnails>
+%% for id in &self.all {
+  {{ Iframe::thumbnail(*id) }}
 %% }
 </div>
