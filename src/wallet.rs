@@ -29,6 +29,7 @@ const SCHEMA_VERSION: u64 = 1;
 
 define_table! { RUNE_TO_ETCHING, u128, EtchingEntryValue }
 define_table! { STATISTICS, u64, u64 }
+define_table! { UNUSED_CHANGE_ADDRESSES, &str, () }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
@@ -333,6 +334,10 @@ impl Wallet {
   }
 
   pub(crate) fn get_change_address(&self) -> Result<Address> {
+    if let Some(addr) = self.get_unused_change_address()? {
+      return Ok(addr);
+    }
+
     Ok(
       self
         .bitcoin_client
@@ -710,6 +715,13 @@ impl Wallet {
           }
         }
 
+        {
+          let mut tx = database.begin_write()?;
+          tx.set_quick_repair(true);
+          tx.open_table(UNUSED_CHANGE_ADDRESSES)?;
+          tx.commit()?;
+        }
+
         database
       }
       Err(DatabaseError::Storage(StorageError::Io(error)))
@@ -721,6 +733,7 @@ impl Wallet {
         tx.set_quick_repair(true);
 
         tx.open_table(RUNE_TO_ETCHING)?;
+        tx.open_table(UNUSED_CHANGE_ADDRESSES)?;
 
         tx.open_table(STATISTICS)?
           .insert(&Statistic::Schema.key(), &SCHEMA_VERSION)?;
@@ -776,6 +789,97 @@ impl Wallet {
     wtx.set_quick_repair(true);
 
     wtx.open_table(RUNE_TO_ETCHING)?.remove(rune.0)?;
+    wtx.commit()?;
+
+    Ok(())
+  }
+
+  fn is_unused_address(&self, address: &Address) -> Result<bool> {
+    let received_btc: f64 = self.bitcoin_client.call(
+      "getreceivedbyaddress",
+      &[address.to_string().into(), 0u64.into()],
+    )?;
+
+    Ok(received_btc == 0.0)
+  }
+
+  fn get_unused_change_address(&self) -> Result<Option<Address>> {
+    loop {
+      let tx = self.database.begin_read()?;
+      let table = tx.open_table(UNUSED_CHANGE_ADDRESSES)?;
+
+      let Some(entry) = table.iter()?.next() else {
+        return Ok(None);
+      };
+
+      let address_str = entry?.0.value().to_string();
+
+      {
+        let mut wtx = self.database.begin_write()?;
+        wtx.set_quick_repair(true);
+        wtx
+          .open_table(UNUSED_CHANGE_ADDRESSES)?
+          .remove(address_str.as_str())?;
+        wtx.commit()?;
+      }
+
+      let address = address_str
+        .parse::<Address<NetworkUnchecked>>()?
+        .require_network(self.chain().network())?;
+
+      if self.is_unused_address(&address)? {
+        return Ok(Some(address));
+      }
+    }
+  }
+
+  pub(crate) fn save_tx_unused_change_addresses(
+    &self,
+    addresses: &[Address],
+    tx: &Transaction,
+  ) -> Result<()> {
+    let used_scripts: std::collections::HashSet<_> =
+      tx.output.iter().map(|o| &o.script_pubkey).collect();
+
+    let unused_addresses: Vec<_> = addresses
+      .iter()
+      .filter(|addr| !used_scripts.contains(&addr.script_pubkey()))
+      .collect();
+
+    if unused_addresses.is_empty() {
+      return Ok(());
+    }
+
+    let mut tx = self.database.begin_write()?;
+    tx.set_quick_repair(true);
+
+    {
+      let mut table = tx.open_table(UNUSED_CHANGE_ADDRESSES)?;
+      for addr in unused_addresses {
+        table.insert(addr.to_string().as_str(), ())?;
+      }
+    }
+
+    tx.commit()?;
+
+    Ok(())
+  }
+
+  pub(crate) fn save_unused_change_addresses(&self, addresses: &[Address]) -> Result<()> {
+    if addresses.is_empty() {
+      return Ok(());
+    }
+
+    let mut wtx = self.database.begin_write()?;
+    wtx.set_quick_repair(true);
+
+    {
+      let mut table = wtx.open_table(UNUSED_CHANGE_ADDRESSES)?;
+      for addr in addresses {
+        table.insert(addr.to_string().as_str(), ())?;
+      }
+    }
+
     wtx.commit()?;
 
     Ok(())
@@ -928,21 +1032,26 @@ impl Wallet {
       Target::Postage
     };
 
-    Ok(
-      TransactionBuilder::new(
-        satpoint,
-        self.inscriptions().clone(),
-        self.utxos().clone(),
-        self.locked_utxos().clone().into_keys().collect(),
-        runic_outputs,
-        destination.script_pubkey(),
-        change,
-        fee_rate,
-        postage,
-        self.chain().network(),
-      )
-      .build_transaction()?,
+    let tx = TransactionBuilder::new(
+      satpoint,
+      self.inscriptions().clone(),
+      self.utxos().clone(),
+      self.locked_utxos().clone().into_keys().collect(),
+      runic_outputs,
+      destination.script_pubkey(),
+      change.clone(),
+      fee_rate,
+      postage,
+      self.chain().network(),
     )
+    .build_transaction();
+
+    match &tx {
+      Ok(tx) => self.save_tx_unused_change_addresses(&change, tx)?,
+      Err(_) => self.save_unused_change_addresses(&change)?,
+    }
+
+    tx.map_err(|e| e.into())
   }
 
   pub fn create_unsigned_send_or_burn_runes_transaction(
@@ -1033,19 +1142,35 @@ impl Wallet {
       },
     }
 
-    let runestone;
     let postage = postage.unwrap_or(TARGET_POSTAGE);
 
-    let unfunded_transaction = if let Some(destination) = destination {
-      runestone = Runestone {
+    let runes_change_address = if needs_runes_change_output {
+      Some(self.get_change_address()?)
+    } else {
+      None
+    };
+
+    let runestone = if destination.is_some() {
+      Runestone {
         edicts: vec![Edict {
           amount,
           id,
           output: 2,
         }],
         ..default()
-      };
+      }
+    } else {
+      Runestone {
+        edicts: vec![Edict {
+          amount,
+          id,
+          output: 0,
+        }],
+        ..default()
+      }
+    };
 
+    let unfunded_transaction = if let Some(destination) = destination {
       Transaction {
         version: Version(2),
         lock_time: LockTime::ZERO,
@@ -1058,14 +1183,14 @@ impl Wallet {
             witness: Witness::new(),
           })
           .collect(),
-        output: if needs_runes_change_output {
+        output: if let Some(ref change_address) = runes_change_address {
           vec![
             TxOut {
               script_pubkey: runestone.encipher(),
               value: Amount::from_sat(0),
             },
             TxOut {
-              script_pubkey: self.get_change_address()?.script_pubkey(),
+              script_pubkey: change_address.script_pubkey(),
               value: postage,
             },
             TxOut {
@@ -1081,15 +1206,6 @@ impl Wallet {
         },
       }
     } else {
-      runestone = Runestone {
-        edicts: vec![Edict {
-          amount,
-          id,
-          output: 0,
-        }],
-        ..default()
-      };
-
       Transaction {
         version: Version(2),
         lock_time: LockTime::ZERO,
@@ -1102,14 +1218,14 @@ impl Wallet {
             witness: Witness::new(),
           })
           .collect(),
-        output: if needs_runes_change_output {
+        output: if let Some(ref change_address) = runes_change_address {
           vec![
             TxOut {
               script_pubkey: runestone.encipher(),
               value: Amount::from_sat(0),
             },
             TxOut {
-              script_pubkey: self.get_change_address()?.script_pubkey(),
+              script_pubkey: change_address.script_pubkey(),
               value: postage,
             },
           ]
@@ -1122,10 +1238,16 @@ impl Wallet {
       }
     };
 
-    let unsigned_transaction =
-      fund_raw_transaction(self.bitcoin_client(), fee_rate, &unfunded_transaction, None)?;
+    let result = fund_raw_transaction(self.bitcoin_client(), fee_rate, &unfunded_transaction, None);
 
-    let unsigned_transaction = consensus::encode::deserialize(&unsigned_transaction)?;
+    if let Err(e) = result {
+      if let Some(change_addr) = runes_change_address {
+        self.save_unused_change_addresses(&[change_addr])?;
+      }
+      return Err(e);
+    }
+
+    let unsigned_transaction: Transaction = consensus::encode::deserialize(&result?)?;
 
     if needs_runes_change_output {
       assert_eq!(
