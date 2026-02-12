@@ -55,6 +55,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
     let parents = Tag::Parent.take_array(&mut fields);
     let pointer = Tag::Pointer.take(&mut fields);
     let properties = Tag::Properties.take(&mut fields);
+    let property_encoding = Tag::PropertyEncoding.take(&mut fields);
     let rune = Tag::Rune.take(&mut fields);
 
     let unrecognized_even_field = fields
@@ -80,6 +81,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
         parents,
         pointer,
         properties,
+        property_encoding,
         rune,
         unrecognized_even_field,
       },
@@ -404,13 +406,13 @@ mod tests {
         &Tag::ContentType.bytes(),
         b"text/plain;charset=utf-8",
         &[9],
-        b"br",
+        BROTLI.as_bytes(),
         &[],
         b"ord",
       ])]),
       vec![ParsedEnvelope {
         payload: Inscription {
-          content_encoding: Some("br".as_bytes().to_vec()),
+          content_encoding: Some(BROTLI.into()),
           ..inscription("text/plain;charset=utf-8", "ord")
         },
         ..default()

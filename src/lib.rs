@@ -19,7 +19,6 @@ use {
     decimal::Decimal,
     deserialize_from_str::DeserializeFromStr,
     fund_raw_transaction::fund_raw_transaction,
-    gallery_item::GalleryItem,
     index::BitcoinCoreRpcResultExt,
     inscriptions::{
       inscription_id,
@@ -30,7 +29,6 @@ use {
     into_usize::IntoUsize,
     option_ext::OptionExt,
     outgoing::Outgoing,
-    properties::Properties,
     representation::Representation,
     satscard::Satscard,
     settings::Settings,
@@ -57,12 +55,11 @@ use {
     transaction::Version,
   },
   bitcoincore_rpc::{Client, RpcApi},
+  boilerplate::{Escape, Trusted},
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
   error::{ResultExt, SnafuError},
-  html_escaper::{Escape, Trusted},
-  lazy_static::lazy_static,
   ordinals::{
     Artifact, Charm, Edict, Epoch, Etching, Height, Pile, Rarity, Rune, RuneId, Runestone, Sat,
     SatPoint, SpacedRune, Terms, varint,
@@ -74,6 +71,7 @@ use {
   snafu::{Backtrace, ErrorCompat, Snafu},
   std::{
     backtrace::BacktraceStatus,
+    borrow::Cow,
     cmp,
     collections::{BTreeMap, BTreeSet, HashSet},
     env,
@@ -82,7 +80,7 @@ use {
     fs::{self, File},
     io::{self, BufReader, Cursor, Read},
     mem,
-    net::ToSocketAddrs,
+    net::{SocketAddr, ToSocketAddrs},
     path::{Path, PathBuf},
     process::{self, Command, Stdio},
     str::FromStr,
@@ -104,6 +102,7 @@ pub use self::{
   inscriptions::{Envelope, Inscription, InscriptionId, ParsedEnvelope, RawEnvelope},
   object::Object,
   options::Options,
+  properties::{Attributes, Item, Properties, Trait, Traits},
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
@@ -123,7 +122,6 @@ mod deserialize_from_str;
 mod error;
 mod fee_rate;
 mod fund_raw_transaction;
-mod gallery_item;
 pub mod index;
 mod inscriptions;
 mod into_u64;
@@ -148,11 +146,13 @@ pub mod wallet;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
+const BROTLI: &str = "br";
+const BROTLI_BUFFER_SIZE: usize = 4096;
 const MAX_STANDARD_OP_RETURN_SIZE: usize = 83;
 const TARGET_POSTAGE: Amount = Amount::from_sat(10_000);
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
-static LISTENERS: Mutex<Vec<axum_server::Handle>> = Mutex::new(Vec::new());
+static LISTENERS: Mutex<Vec<axum_server::Handle<SocketAddr>>> = Mutex::new(Vec::new());
 static INDEXER: Mutex<Option<thread::JoinHandle<()>>> = Mutex::new(None);
 
 #[doc(hidden)]
@@ -238,6 +238,10 @@ fn gracefully_shut_down_indexer() {
       log::warn!("Index thread panicked; join failed");
     }
   }
+}
+
+fn is_default<T: Default + PartialEq>(v: &T) -> bool {
+  *v == T::default()
 }
 
 /// Nota bene: This function extracts the leaf script from a witness if the

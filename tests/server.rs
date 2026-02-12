@@ -1,4 +1,4 @@
-use {super::*, ciborium::value::Integer, ord::subcommand::wallet::send::Output};
+use {super::*, ciborium::value::Integer, ord::Properties, ord::subcommand::wallet::send::Output};
 
 #[test]
 fn run() {
@@ -268,6 +268,7 @@ fn inscription_page() {
         value: Amount::from_sat(10000),
         script_pubkey: output.script_pubkey,
       }),
+      properties: Properties::default(),
       parents: Vec::new(),
       previous: None,
       rune: None,

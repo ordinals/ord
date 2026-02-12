@@ -7,7 +7,10 @@ pub(super) struct SharedArgs {
     help = "Use <COMMIT_FEE_RATE> sats/vbyte for commit transaction.\nDefaults to <FEE_RATE> if unset."
   )]
   pub(crate) commit_fee_rate: Option<FeeRate>,
-  #[arg(long, help = "Compress inscription content with brotli.")]
+  #[arg(
+    long,
+    help = "Compress inscription content and properties with brotli."
+  )]
   pub(crate) compress: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB.")]
   pub(crate) fee_rate: FeeRate,

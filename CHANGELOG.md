@@ -1,6 +1,65 @@
 Changelog
 =========
 
+[0.25.0](https://github.com/ordinals/ord/releases/tag/0.25.0) - 2026-02-09
+--------------------------------------------------------------------------
+
+### Added
+- Paginate gallery items ([#4467](https://github.com/ordinals/ord/pull/4467) by [lifofifoX](https://github.com/lifofifoX))
+- Enforce a maximum compression ratio for properties of 10:1 ([#4463](https://github.com/ordinals/ord/pull/4463) by [casey](https://github.com/casey))
+- Add property compression ([#4462](https://github.com/ordinals/ord/pull/4462) by [casey](https://github.com/casey))
+- Add /galleries page ([#4405](https://github.com/ordinals/ord/pull/4405) by [SatoshiRoppongi](https://github.com/SatoshiRoppongi))
+
+### Fixed
+- Set internal=false on recovery key descriptors ([#4451](https://github.com/ordinals/ord/pull/4451) by [8144225309](https://github.com/8144225309))
+
+### Misc
+- Avoid port allocation race in unit tests ([#4465](https://github.com/ordinals/ord/pull/4465) by [casey](https://github.com/casey))
+- Avoid `set-output` in CI ([#4466](https://github.com/ordinals/ord/pull/4466) by [casey](https://github.com/casey))
+- Simplify minicbor property decoding ([#4459](https://github.com/ordinals/ord/pull/4459) by [casey](https://github.com/casey))
+- Remove dependency on executable-path ([#4456](https://github.com/ordinals/ord/pull/4456) by [casey](https://github.com/casey))
+- Display title under inscription number ([#4449](https://github.com/ordinals/ord/pull/4449) by [lifofifoX](https://github.com/lifofifoX))
+- Update to boilerplate 1.1.0 ([#4448](https://github.com/ordinals/ord/pull/4448) by [casey](https://github.com/casey))
+
+[0.24.2](https://github.com/ordinals/ord/releases/tag/0.24.1) - 2025-11-13
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix trait template description list ([#4440](https://github.com/ordinals/ord/pull/4440) by [casey](https://github.com/casey))
+
+### Misc
+- Return empty page if block inscription page request is out of range ([#4439](https://github.com/ordinals/ord/pull/4439) by [casey](https://github.com/casey))
+- Log index creation ([#4438](https://github.com/ordinals/ord/pull/4438) by [casey](https://github.com/casey))
+
+[0.24.1](https://github.com/ordinals/ord/releases/tag/0.24.1) - 2025-11-13
+--------------------------------------------------------------------------
+
+### Fixed
+- Bump schema version ([#4436](https://github.com/ordinals/ord/pull/4436) by [casey](https://github.com/casey))
+
+[0.24.0](https://github.com/ordinals/ord/releases/tag/0.23.3) - 2025-11-12
+--------------------------------------------------------------------------
+
+### Fixed
+- Fix redirects for outpoints and TXIDs consisting only of decimal digits ([#4421](https://github.com/ordinals/ord/pull/4421) by [gmart7t2](https://github.com/gmart7t2))
+- Don't cache negative sat index responses ([#4418](https://github.com/ordinals/ord/pull/4418) by [casey](https://github.com/casey))
+
+### Added
+- Add traits ([#4433](https://github.com/ordinals/ord/pull/4433) by [casey](https://github.com/casey))
+- Return properties from inscription JSON API ([#4425](https://github.com/ordinals/ord/pull/4425) by [casey](https://github.com/casey))
+- Add attributes to inscriptions and gallery items ([#4424](https://github.com/ordinals/ord/pull/4424) by [casey](https://github.com/casey))
+
+### Misc
+- Replace `lazy_static` with `LazyLock` ([#4429](https://github.com/ordinals/ord/pull/4429) by [terror](https://github.com/terror))
+- Fix rune specification ([#4430](https://github.com/ordinals/ord/pull/4430) by [gmart7t2](https://github.com/gmart7t2))
+- Add properties and metaprotocol to API docs ([#4426](https://github.com/ordinals/ord/pull/4426) by [casey](https://github.com/casey))
+- Use single properties struct ([#4423](https://github.com/ordinals/ord/pull/4423) by [casey](https://github.com/casey))
+- Fix typo in src/fund_raw_transaction.rs ([#4420](https://github.com/ordinals/ord/pull/4420) by [stemlaud](https://github.com/stemlaud))
+- Add complete Japanese translation ([#4406](https://github.com/ordinals/ord/pull/4406) by [SatoshiRoppongi](https://github.com/SatoshiRoppongi))
+- Update install script to use Bitcoin Core 30 ([#4417](https://github.com/ordinals/ord/pull/4417) by [casey](https://github.com/casey))
+- Upgrade checkout to v5 ([#4392](https://github.com/ordinals/ord/pull/4392) by [rejected-l](https://github.com/rejected-l))
+- Update to Rust 2024 ([#4412](https://github.com/ordinals/ord/pull/4412) by [casey](https://github.com/casey))
+
 [0.23.3](https://github.com/ordinals/ord/releases/tag/0.23.3) - 2025-09-19
 --------------------------------------------------------------------------
 

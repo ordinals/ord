@@ -1325,6 +1325,63 @@ curl -s -H "Accept: application/json" \
 <details>
   <summary>
     <code>GET</code>
+    <code><b>/galleries</b></code>
+  </summary>
+
+### Description
+
+Get a paginated list of gallery inscriptions.
+
+### Example
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0/galleries
+```
+
+```json
+{
+  "ids": [
+    "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
+    "26482871f33f1051f450f2da9af275794c0b5f1c61ebf35e4467fb42c2813403i0"
+  ],
+  "more": false,
+  "page_index": 0
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/galleries/&lt;PAGE&gt;</b></code>
+  </summary>
+
+### Description
+
+Pagination allows you to choose which page of 100 galleries to return.
+
+### Example
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0/galleries/1
+```
+
+```json
+{
+  "ids": [
+    "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0"
+  ],
+  "more": false,
+  "page_index": 1
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
     <code><b>/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 
@@ -1354,10 +1411,30 @@ curl -s -H "Accept: application/json" /
   "fee": 322,
   "height": 767430,
   "id": "6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0",
+  "metaprotocol": "LOL-420",
   "next": "26482871f33f1051f450f2da9af275794c0b5f1c61ebf35e4467fb42c2813403i0",
   "number": 0,
   "parents": [],
   "previous": null,
+  "properties": {
+    "gallery": [
+      {
+        "id": "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0",
+        "attributes": {
+          "title": "goodbye",
+          "traits": {
+            "amazing": true
+          }
+        }
+      }
+    ],
+    "attributes": {
+      "title": "hello",
+      "traits": {
+        "color": "blue"
+      }
+    }
+  },
   "rune": null,
   "sat": null,
   "satpoint": "47c7260764af2ee17aa584d9c035f2e5429aefd96b8016cfe0e3f0bcf04869a3:0:0",

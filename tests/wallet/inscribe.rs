@@ -1,7 +1,10 @@
 use {
   super::*,
-  ord::subcommand::wallet::{create, inscriptions, receive},
-  std::ops::Deref,
+  ord::{
+    Properties,
+    subcommand::wallet::{create, inscriptions, receive},
+  },
+  std::{io::Read, ops::Deref},
 };
 
 #[test]
@@ -69,6 +72,31 @@ fn metaprotocol_appears_on_inscription_page() {
   ord.assert_response_regex(
     format!("/inscription/{}", inscribe.inscriptions[0].id),
     r".*<dt>metaprotocol</dt>\s*<dd>foo</dd>.*",
+  );
+}
+
+#[test]
+fn title_appears_on_inscription_page() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  create_wallet(&core, &ord);
+
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
+
+  let inscribe = CommandBuilder::new(format!(
+    "wallet inscribe --file foo.txt --title foo --satpoint {txid}:0:0 --fee-rate 10"
+  ))
+  .write("foo.txt", [0; 350_000])
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  ord.assert_response_regex(
+    format!("/inscription/{}", inscribe.inscriptions[0].id),
+    r".*<dt>title</dt>\s*<dd>foo</dd>.*",
   );
 }
 
@@ -1025,6 +1053,43 @@ fn inscriptions_are_not_compressed_if_no_space_is_saved_by_compression() {
 }
 
 #[test]
+fn inscribe_can_compress_properties() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+  core.mine_blocks(1);
+
+  let title = "a]".repeat(100);
+
+  let Batch { reveal, .. } = CommandBuilder::new(format!(
+    "wallet inscribe --compress --fee-rate 1 --file foo.txt --title {title}"
+  ))
+  .write("foo.txt", "foo")
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output();
+
+  core.mine_blocks(1);
+
+  let response = ord.json_request(format!("/decode/{reveal}"));
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let decode: api::Decode = serde_json::from_str(&response.text().unwrap()).unwrap();
+  let inscription = &decode.inscriptions[0].payload;
+
+  assert_eq!(inscription.property_encoding, Some(b"br".to_vec()));
+
+  let compressed = inscription.properties.as_ref().unwrap();
+  let mut decompressor = brotli::Decompressor::new(compressed.as_slice(), compressed.len());
+  let mut decompressed = Vec::new();
+  decompressor.read_to_end(&mut decompressed).unwrap();
+
+  let properties = minicbor::decode::<Properties>(&decompressed).unwrap();
+  assert_eq!(properties.attributes.title, Some(title));
+}
+
+#[test]
 fn inscribe_with_sat_arg() {
   let core = mockcore::spawn();
 
@@ -1284,7 +1349,9 @@ fn inscribe_can_include_gallery_items() {
 
   core.mine_blocks(1);
 
-  let request = ord.request(format!("/content/{}", output.inscriptions[0].id));
+  let gallery = output.inscriptions[0].id;
+
+  let request = ord.request(format!("/content/{}", gallery));
 
   assert_eq!(request.status(), 200);
   assert_eq!(
@@ -1294,14 +1361,14 @@ fn inscribe_can_include_gallery_items() {
   assert_eq!(request.text().unwrap(), "Hello World");
 
   ord.assert_response_regex(
-    format!("/inscription/{}", output.inscriptions[0].id),
+    format!("/inscription/{}", gallery),
     format!(
       r".*
   <dt>gallery</dt>
   <dd>
     <div class=thumbnails>
-      <a href=/inscription/{id0}>.*</a>
-      <a href=/inscription/{id1}>.*</a>
+      <a href=/gallery/{gallery}/0>.*</a>
+      <a href=/gallery/{gallery}/1>.*</a>
     </div>
   </dd>
 .*"

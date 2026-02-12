@@ -415,6 +415,7 @@ impl Updater<'_> {
     sat_ranges_written: &mut u64,
     outputs_in_block: &mut u64,
   ) -> Result {
+    let mut galleries = wtx.open_table(GALLERIES)?;
     let mut height_to_last_sequence_number = wtx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
     let mut home_inscriptions = wtx.open_table(HOME_INSCRIPTIONS)?;
     let mut inscription_number_to_sequence_number =
@@ -507,6 +508,7 @@ impl Updater<'_> {
       blessed_inscription_count,
       cursed_inscription_count,
       flotsam: Vec::new(),
+      galleries: &mut galleries,
       height: self.height,
       home_inscription_count,
       home_inscriptions: &mut home_inscriptions,

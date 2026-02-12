@@ -62,6 +62,12 @@ inscriptions:
   delegate: 6ac5cacb768794f4fd7a78bf00f2074891fce68bd65c4ff36e77177237aacacai0
   # destination (optional, if no destination is specified a new wallet change address will be used)
   destination: bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4
+  # title (optional)
+  title: Delicious Mangos
+  # traits (optional)
+  traits:
+    color: orange
+    deliciousness: 1000
   # inscription metadata (optional)
   metadata:
     title: Delicious Mangos
@@ -84,5 +90,9 @@ inscriptions:
 - file: gallery.png
   # gallery items
   gallery:
-  - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0
-  - a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3
+  - id: a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei0
+    title: Incredible
+    traits:
+      background: blue
+      cool: true
+  - id: a4676e57277b70171d69dc6ad2781485b491fe0ff5870f6f6b01999e7180b29ei3

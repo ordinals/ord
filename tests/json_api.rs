@@ -1,8 +1,9 @@
 use {
   super::*,
   bitcoin::{BlockHash, ScriptBuf},
-  ord::subcommand::wallet::send::Output,
-  ord::{Envelope, Inscription},
+  brotli::enc::writer::CompressorWriter,
+  ord::{Attributes, Envelope, Inscription, Properties, Traits, subcommand::wallet::send::Output},
+  std::io::Write,
 };
 
 #[test]
@@ -180,6 +181,7 @@ fn get_inscription() {
       value: Some(10000),
       parents: Vec::new(),
       previous: None,
+      properties: default(),
       rune: None,
       sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", reveal, 0, 0)).unwrap(),
@@ -190,7 +192,7 @@ fn get_inscription() {
 }
 
 #[test]
-fn get_inscription_with_metaprotocol() {
+fn get_inscription_with_metaprotocol_and_properties() {
   let core = mockcore::spawn();
   let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
 
@@ -199,7 +201,7 @@ fn get_inscription_with_metaprotocol() {
   core.mine_blocks(1);
 
   let output = CommandBuilder::new(format!(
-    "--chain {} wallet inscribe --fee-rate 1 --file foo.txt --metaprotocol foo",
+    "--chain {} wallet inscribe --fee-rate 1 --file foo.txt --metaprotocol foo --title bar",
     core.network()
   ))
   .write("foo.txt", "FOO")
@@ -228,7 +230,7 @@ fn get_inscription_with_metaprotocol() {
       content_length: Some(3),
       content_type: Some("text/plain;charset=utf-8".to_string()),
       effective_content_type: Some("text/plain;charset=utf-8".to_string()),
-      fee: 140,
+      fee: 143,
       height: 2,
       id: output.inscriptions[0].id,
       number: 0,
@@ -236,6 +238,13 @@ fn get_inscription_with_metaprotocol() {
       value: Some(10000),
       parents: Vec::new(),
       previous: None,
+      properties: Properties {
+        gallery: Vec::new(),
+        attributes: Attributes {
+          title: Some("bar".into()),
+          traits: Traits::default(),
+        },
+      },
       rune: None,
       sat: Some(Sat(50 * COIN_VALUE)),
       satpoint: SatPoint::from_str(&format!("{}:{}:{}", output.reveal, 0, 0)).unwrap(),
@@ -243,6 +252,60 @@ fn get_inscription_with_metaprotocol() {
       metaprotocol: Some("foo".to_string())
     }
   );
+}
+
+#[test]
+fn get_inscription_with_compressed_properties() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-sats"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let properties = Properties {
+    gallery: Vec::new(),
+    attributes: Attributes {
+      title: Some("foo".into()),
+      traits: Traits::default(),
+    },
+  };
+
+  let cbor = minicbor::to_vec(&properties).unwrap();
+
+  let mut compressed = Vec::new();
+  CompressorWriter::new(&mut compressed, 4096, 11, 22)
+    .write_all(&cbor)
+    .unwrap();
+
+  let witness = envelope(&[
+    b"ord",
+    &[1],
+    b"text/plain;charset=utf-8",
+    &[17],
+    &compressed,
+    &[19],
+    b"br",
+    &[],
+    b"bar",
+  ]);
+
+  let txid = core.broadcast_tx(TransactionTemplate {
+    inputs: &[(1, 0, 0, witness)],
+    ..default()
+  });
+
+  core.mine_blocks(1);
+
+  let inscription_id = InscriptionId { txid, index: 0 };
+
+  let response = ord.json_request(format!("/inscription/{inscription_id}"));
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let inscription_json: api::Inscription = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  pretty_assert_eq!(inscription_json.properties, properties);
 }
 
 #[test]

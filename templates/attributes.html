@@ -1,0 +1,14 @@
+%% if let Some(title) = &self.0.title {
+<dt>title</dt>
+<dd>{{ title }}</dd>
+%% }
+%% if !self.0.traits.items.is_empty() {
+<dt>traits</dt>
+<dd>
+  <dl>
+%% for (name, value) in &self.0.traits.items {
+    <dt>{{name}}</dt><dd>{{value}}</dd>
+%% }
+  </dl>
+</dd>
+%% }

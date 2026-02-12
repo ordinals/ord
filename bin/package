@@ -34,11 +34,15 @@ case $OS in
   ubuntu-latest | macos-latest)
     ARCHIVE=$DIST/ord-$VERSION-$TARGET.tar.gz
     tar czf $ARCHIVE *
-    echo "::set-output name=archive::$ARCHIVE"
+    if [[ -n "${GITHUB_OUTPUT+x}" ]]; then
+      echo archive=$ARCHIVE >> $GITHUB_OUTPUT
+    fi
     ;;
   windows-latest)
     ARCHIVE=$DIST/ord-$VERSION-$TARGET.zip
     7z a $ARCHIVE *
-    echo "::set-output name=archive::`pwd -W`/ord-$VERSION-$TARGET.zip"
+    if [[ -n "${GITHUB_OUTPUT+x}" ]]; then
+      echo archive=`pwd -W`/ord-$VERSION-$TARGET.zip >> $GITHUB_OUTPUT
+    fi
     ;;
 esac

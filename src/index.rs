@@ -29,8 +29,8 @@ use {
   log::log_enabled,
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
-    ReadOnlyTable, ReadableMultimapTable, ReadableTable, ReadableTableMetadata, RepairSession,
-    StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
+    ReadOnlyTable, ReadableDatabase, ReadableMultimapTable, ReadableTable, ReadableTableMetadata,
+    RepairSession, StorageError, Table, TableDefinition, TableHandle, TableStats, WriteTransaction,
   },
   std::{
     collections::HashMap,
@@ -53,11 +53,12 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 30;
+const SCHEMA_VERSION: u64 = 32;
 
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
+define_table! { GALLERIES, u32, () }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
@@ -304,18 +305,21 @@ impl Index {
       Err(DatabaseError::Storage(StorageError::Io(error)))
         if error.kind() == io::ErrorKind::NotFound =>
       {
+        log::info!("Creating new index");
+
         let database = Database::builder()
           .set_cache_size(index_cache_size)
           .create(&path)?;
 
         let mut tx = database.begin_write()?;
 
-        tx.set_durability(durability);
+        tx.set_durability(durability)?;
         tx.set_quick_repair(true);
 
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+        tx.open_table(GALLERIES)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(HOME_INSCRIPTIONS)?;
@@ -787,7 +791,7 @@ impl Index {
 
   fn begin_write(&self) -> Result<WriteTransaction> {
     let mut tx = self.database.begin_write()?;
-    tx.set_durability(self.durability);
+    tx.set_durability(self.durability)?;
     tx.set_quick_repair(true);
     Ok(tx)
   }
@@ -1247,6 +1251,38 @@ impl Index {
     }
 
     Ok((collections, more))
+  }
+
+  pub fn get_galleries_paginated(
+    &self,
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    let mut galleries = rtx
+      .open_table(GALLERIES)?
+      .iter()?
+      .rev()
+      .skip(page_index.saturating_mul(page_size))
+      .take(page_size.saturating_add(1))
+      .map(|result| {
+        let (gallery, _) = result?;
+        let entry = sequence_number_to_inscription_entry.get(gallery.value())?;
+        Ok(InscriptionEntry::load(entry.unwrap().value()).id)
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    let more = galleries.len() > page_size;
+
+    if more {
+      galleries.pop();
+    }
+
+    Ok((galleries, more))
   }
 
   #[cfg(test)]
@@ -2310,6 +2346,7 @@ impl Index {
         number: entry.inscription_number,
         parents,
         previous,
+        properties: inscription.properties(),
         rune,
         sat: entry.sat,
         satpoint,

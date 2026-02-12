@@ -8,13 +8,14 @@ pub struct InscriptionHtml {
   pub children: Vec<InscriptionId>,
   pub fee: u64,
   pub height: u32,
-  pub inscription: Inscription,
   pub id: InscriptionId,
-  pub number: i32,
+  pub inscription: Inscription,
   pub next: Option<InscriptionId>,
+  pub number: i32,
   pub output: Option<TxOut>,
   pub parents: Vec<InscriptionId>,
   pub previous: Option<InscriptionId>,
+  pub properties: Properties,
   pub rune: Option<SpacedRune>,
   pub sat: Option<Sat>,
   pub satpoint: SatPoint,
@@ -441,7 +442,7 @@ mod tests {
       InscriptionHtml {
         fee: 1,
         inscription: Inscription {
-          content_encoding: Some("br".into()),
+          content_encoding: Some(BROTLI.into()),
           ..inscription("text/plain;charset=utf-8", "HELLOWORLD")
         },
         id: inscription_id(1),
@@ -476,7 +477,7 @@ mod tests {
       InscriptionHtml {
         fee: 1,
         inscription: Inscription {
-          content_encoding: Some("br".into()),
+          content_encoding: Some(BROTLI.into()),
           ..inscription("text/plain;charset=utf-8", "HELLOWORLD")
         },
         id: inscription_id(1),

@@ -4,12 +4,13 @@ use {
   bitcoincore_rpc::{Auth, Client, RpcApi},
   ord::{Index, parse_ord_server_args},
   reqwest::blocking::Response,
+  std::net::SocketAddr,
   sysinfo::System,
 };
 
 pub(crate) struct TestServer {
-  bitcoin_rpc_url: String,
-  ord_server_handle: Handle,
+  client: Client,
+  ord_server_handle: Handle<SocketAddr>,
   port: u16,
   #[allow(unused)]
   tempdir: TempDir,
@@ -35,14 +36,8 @@ impl TestServer {
 
     fs::write(&cookiefile, "username:password").unwrap();
 
-    let port = TcpListener::bind("127.0.0.1:0")
-      .unwrap()
-      .local_addr()
-      .unwrap()
-      .port();
-
     let (settings, server) = parse_ord_server_args(&format!(
-      "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --datadir {} {} server {} --http-port {port} --address 127.0.0.1",
+      "ord --bitcoin-rpc-url {} --cookie-file {} --bitcoin-data-dir {} --datadir {} {} server {} --http-port 0 --address 127.0.0.1",
       core.url(),
       cookiefile.to_str().unwrap(),
       tempdir.path().display(),
@@ -54,27 +49,24 @@ impl TestServer {
     let index = Arc::new(Index::open(&settings).unwrap());
     let ord_server_handle = Handle::new();
 
+    let (tx, rx) = std::sync::mpsc::channel();
+
     {
       let index = index.clone();
       let ord_server_handle = ord_server_handle.clone();
-      thread::spawn(|| server.run(settings, index, ord_server_handle).unwrap());
+      thread::spawn(|| {
+        server
+          .run(settings, index, ord_server_handle, Some(tx))
+          .unwrap()
+      });
     }
 
-    for i in 0.. {
-      match reqwest::blocking::get(format!("http://127.0.0.1:{port}/status")) {
-        Ok(_) => break,
-        Err(err) => {
-          if i == 400 {
-            panic!("ord server failed to start: {err}");
-          }
-        }
-      }
+    let port = rx.recv().unwrap();
 
-      thread::sleep(Duration::from_millis(50));
-    }
+    let client = Client::new(&core.url(), Auth::None).unwrap();
 
     Self {
-      bitcoin_rpc_url: core.url(),
+      client,
       ord_server_handle,
       port,
       tempdir,
@@ -158,8 +150,7 @@ impl TestServer {
   }
 
   pub(crate) fn sync_server(&self) {
-    let client = Client::new(&self.bitcoin_rpc_url, Auth::None).unwrap();
-    let chain_block_count = client.get_block_count().unwrap() + 1;
+    let chain_block_count = self.client.get_block_count().unwrap() + 1;
     let response = reqwest::blocking::get(self.url().join("/update").unwrap()).unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     assert!(response.text().unwrap().parse::<u64>().unwrap() >= chain_block_count);
