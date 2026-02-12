@@ -2134,6 +2134,29 @@ impl Index {
     )
   }
 
+  pub fn get_home_inscriptions_paginated(
+    &self,
+    page_size: u32,
+    page_index: u32,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    let rtx = self.database.begin_read()?;
+    let home_inscriptions = rtx.open_table(HOME_INSCRIPTIONS)?;
+
+    let inscriptions: Vec<InscriptionId> = home_inscriptions
+      .iter()?
+      .rev()
+      .skip(page_size as usize * page_index as usize)
+      .take(page_size as usize + 1)
+      .flat_map(|result| result.map(|(_number, id)| InscriptionId::load(id.value())))
+      .collect();
+
+    let more = inscriptions.len() > page_size as usize;
+    let inscriptions: Vec<InscriptionId> =
+      inscriptions.into_iter().take(page_size as usize).collect();
+
+    Ok((inscriptions, more))
+  }
+
   pub fn get_feed_inscriptions(&self, n: usize) -> Result<Vec<(u32, InscriptionId)>> {
     Ok(
       self

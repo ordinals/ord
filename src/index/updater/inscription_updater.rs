@@ -557,11 +557,7 @@ impl InscriptionUpdater<'_, '_> {
             .home_inscriptions
             .insert(&sequence_number, inscription_id.store())?;
 
-          if self.home_inscription_count == 100 {
-            self.home_inscriptions.pop_first()?;
-          } else {
-            self.home_inscription_count += 1;
-          }
+          self.home_inscription_count += 1;
         }
 
         (unbound, sequence_number)
