@@ -5087,7 +5087,7 @@ mod tests {
     server.assert_response_regex(
       format!("/gallery/{}/0", Sat(5000000000).name()),
       StatusCode::OK,
-      ".*<title>Gallery 0 item 0</title.*",
+      ".*<title>Gallery 0 Item 0</title.*",
     );
   }
 
