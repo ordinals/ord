@@ -1726,7 +1726,8 @@ impl Server {
 
       Ok(
         ItemHtml {
-          gallery_inscription_number: info.number,
+          gallery_id: info.id,
+          gallery_number: info.number,
           i,
           item,
         }
@@ -5165,7 +5166,7 @@ prev
     server.assert_response_regex(
       format!("/gallery/{}/0", Sat(5000000000).name()),
       StatusCode::OK,
-      ".*<title>Gallery 0 item 0</title.*",
+      ".*<title>Gallery 0 Item 0</title.*",
     );
   }
 

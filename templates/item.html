@@ -1,4 +1,4 @@
-<h1>Gallery {{ self.gallery_inscription_number }} item {{ self.i }}</h1>
+<h1>Gallery {{ self.gallery_number }} Item {{ self.i }}</h1>
 %% if let Some(title) = &self.item.attributes.title {
 <p class=subtitle>{{ title }}</p>
 %% }
@@ -7,6 +7,8 @@
 </div>
 <dl>
   <dt>inscription</dt>
-  <dd><a href=/inscription/{{ self.item.id() }}>{{ self.item.id() }}</a></dl>
+  <dd><a href=/inscription/{{ self.item.id() }}>{{ self.item.id() }}</a></dd>
+  <dt>gallery</dt>
+  <dd><a href=/inscription/{{ self.gallery_id }}>{{ self.gallery_id }}</a></dd>
   {{ Trusted(AttributesHtml(&self.item.attributes)) }}
 </dl>
