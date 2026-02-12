@@ -1,4 +1,9 @@
-use super::*;
+use super::{
+  inscription_updater_filtered::{
+    InscribedOffset, parse_filtered_inscription_data, record_filtered_inscription_data,
+  },
+  *,
+};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum Curse {
@@ -15,7 +20,7 @@ enum Curse {
 
 #[derive(Debug, Clone)]
 pub(super) struct Flotsam {
-  inscription_id: InscriptionId,
+  inscription_id: Option<InscriptionId>,
   offset: u64,
   origin: Origin,
 }
@@ -28,6 +33,7 @@ enum Origin {
     gallery: bool,
     hidden: bool,
     parents: Vec<InscriptionId>,
+    filtered: bool,
     reinscription: bool,
     unbound: bool,
     vindicated: bool,
@@ -36,6 +42,18 @@ enum Origin {
     sequence_number: u32,
     old_satpoint: SatPoint,
   },
+  OldFiltered {
+    cursed_or_vindicated: bool,
+  },
+}
+
+impl Flotsam {
+  fn is_filtered(&self) -> bool {
+    matches!(
+      self.origin,
+      Origin::New { filtered: true, .. } | Origin::OldFiltered { .. }
+    )
+  }
 }
 
 pub(super) struct InscriptionUpdater<'a, 'tx> {
@@ -58,6 +76,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) transaction_buffer: Vec<u8>,
   pub(super) transaction_id_to_transaction: &'a mut Table<'tx, &'static TxidValue, &'static [u8]>,
   pub(super) unbound_inscriptions: u64,
+  pub(super) track_filtered_inscription_data: bool,
 }
 
 impl InscriptionUpdater<'_, '_> {
@@ -66,6 +85,8 @@ impl InscriptionUpdater<'_, '_> {
     tx: &Transaction,
     txid: Txid,
     input_utxo_entries: &[ParsedUtxoEntry],
+    input_filtered_inscription_data: &[Vec<u8>],
+    filtered_inscription_data_cache: Option<&mut HashMap<OutPoint, Vec<u8>>>,
     output_utxo_entries: &mut [UtxoEntryBuf],
     utxo_cache: &mut HashMap<OutPoint, UtxoEntryBuf>,
     index: &Index,
@@ -73,7 +94,7 @@ impl InscriptionUpdater<'_, '_> {
   ) -> Result {
     let mut floating_inscriptions = Vec::new();
     let mut id_counter = 0;
-    let mut inscribed_offsets = BTreeMap::new();
+    let mut inscribed_offsets = BTreeMap::<u64, InscribedOffset>::new();
     let jubilant = self.height >= index.settings.chain().jubilee_height();
     let mut total_input_value = 0;
     let total_output_value = tx
@@ -115,7 +136,7 @@ impl InscriptionUpdater<'_, '_> {
         let offset = total_input_value + old_satpoint_offset;
         floating_inscriptions.push(Flotsam {
           offset,
-          inscription_id,
+          inscription_id: Some(inscription_id),
           origin: Origin::Old {
             sequence_number,
             old_satpoint,
@@ -124,8 +145,28 @@ impl InscriptionUpdater<'_, '_> {
 
         inscribed_offsets
           .entry(offset)
-          .or_insert((inscription_id, 0))
-          .1 += 1;
+          .or_default()
+          .insert_indexed(inscription_id);
+      }
+
+      if self.track_filtered_inscription_data {
+        for filtered in
+          parse_filtered_inscription_data(&input_filtered_inscription_data[input_index])
+        {
+          let offset = total_input_value + filtered.offset;
+          floating_inscriptions.push(Flotsam {
+            offset,
+            inscription_id: None,
+            origin: Origin::OldFiltered {
+              cursed_or_vindicated: filtered.cursed_or_vindicated,
+            },
+          });
+
+          inscribed_offsets
+            .entry(offset)
+            .or_default()
+            .insert_filtered(filtered.cursed_or_vindicated);
+        }
       }
 
       let offset = total_input_value;
@@ -160,12 +201,15 @@ impl InscriptionUpdater<'_, '_> {
           Some(Curse::Pushnum)
         } else if inscription.stutter {
           Some(Curse::Stutter)
-        } else if let Some((id, count)) = inscribed_offsets.get(&offset) {
-          if *count > 1 {
+        } else if let Some(inscribed_offset) = inscribed_offsets.get(&offset) {
+          if inscribed_offset.count > 1 {
             Some(Curse::Reinscription)
-          } else {
-            let initial_inscription_sequence_number =
-              self.id_to_sequence_number.get(id.store())?.unwrap().value();
+          } else if let Some(inscription_id) = inscribed_offset.indexed_inscription_id {
+            let initial_inscription_sequence_number = self
+              .id_to_sequence_number
+              .get(inscription_id.store())?
+              .unwrap()
+              .value();
 
             let entry = InscriptionEntry::load(
               self
@@ -183,6 +227,13 @@ impl InscriptionUpdater<'_, '_> {
             } else {
               Some(Curse::Reinscription)
             }
+          } else if inscribed_offset
+            .filtered_cursed_or_vindicated
+            .unwrap_or_default()
+          {
+            None
+          } else {
+            Some(Curse::Reinscription)
           }
         } else {
           None
@@ -194,12 +245,15 @@ impl InscriptionUpdater<'_, '_> {
           .filter(|&pointer| pointer < total_output_value)
           .unwrap_or(offset);
 
+        let filtered = index.exclude_brc20 && inscription.payload.is_brc20();
+
         floating_inscriptions.push(Flotsam {
-          inscription_id,
+          inscription_id: Some(inscription_id),
           offset,
           origin: Origin::New {
             cursed: curse.is_some() && !jubilant,
             fee: 0,
+            filtered,
             gallery: !inscription.payload.properties().gallery.is_empty(),
             hidden: inscription.payload.hidden(),
             parents: inscription.payload.parents(),
@@ -211,10 +265,15 @@ impl InscriptionUpdater<'_, '_> {
           },
         });
 
-        inscribed_offsets
-          .entry(offset)
-          .or_insert((inscription_id, 0))
-          .1 += 1;
+        if !filtered || self.track_filtered_inscription_data {
+          let inscribed_offset = inscribed_offsets.entry(offset).or_default();
+
+          if filtered {
+            inscribed_offset.insert_filtered(curse.is_some());
+          } else {
+            inscribed_offset.insert_indexed(inscription_id);
+          }
+        }
 
         envelopes.next();
         id_counter += 1;
@@ -234,7 +293,11 @@ impl InscriptionUpdater<'_, '_> {
 
     let potential_parents = floating_inscriptions
       .iter()
-      .map(|flotsam| flotsam.inscription_id)
+      .filter_map(|flotsam| {
+        (!flotsam.is_filtered())
+          .then_some(flotsam.inscription_id)
+          .flatten()
+      })
       .collect::<HashSet<InscriptionId>>();
 
     for flotsam in &mut floating_inscriptions {
@@ -275,6 +338,7 @@ impl InscriptionUpdater<'_, '_> {
 
     floating_inscriptions.sort_by_key(|flotsam| flotsam.offset);
     let mut inscriptions = floating_inscriptions.into_iter().peekable();
+    let mut filtered_inscription_data_cache = filtered_inscription_data_cache;
 
     let mut new_locations = Vec::new();
     let mut output_value = 0;
@@ -313,6 +377,7 @@ impl InscriptionUpdater<'_, '_> {
         flotsam,
         new_satpoint,
         op_return,
+        &mut filtered_inscription_data_cache,
         Some(output_utxo_entry),
         utxo_cache,
         index,
@@ -330,6 +395,7 @@ impl InscriptionUpdater<'_, '_> {
           flotsam,
           new_satpoint,
           false,
+          &mut filtered_inscription_data_cache,
           None,
           utxo_cache,
           index,
@@ -373,16 +439,24 @@ impl InscriptionUpdater<'_, '_> {
     flotsam: Flotsam,
     new_satpoint: SatPoint,
     op_return: bool,
+    filtered_inscription_data_cache: &mut Option<&mut HashMap<OutPoint, Vec<u8>>>,
     mut normal_output_utxo_entry: Option<&mut UtxoEntryBuf>,
     utxo_cache: &mut HashMap<OutPoint, UtxoEntryBuf>,
     index: &Index,
   ) -> Result {
-    let inscription_id = flotsam.inscription_id;
-    let (unbound, sequence_number) = match flotsam.origin {
+    let Flotsam {
+      inscription_id,
+      offset,
+      origin,
+    } = flotsam;
+
+    let (unbound, sequence_number) = match origin {
       Origin::Old {
         sequence_number,
         old_satpoint,
       } => {
+        let inscription_id = inscription_id.expect("old flotsam must have inscription ID");
+
         if op_return {
           let entry = InscriptionEntry::load(
             self
@@ -413,9 +487,22 @@ impl InscriptionUpdater<'_, '_> {
 
         (false, sequence_number)
       }
+      Origin::OldFiltered {
+        cursed_or_vindicated,
+      } => {
+        record_filtered_inscription_data(
+          filtered_inscription_data_cache,
+          self.track_filtered_inscription_data,
+          new_satpoint,
+          op_return,
+          cursed_or_vindicated,
+        );
+        return Ok(());
+      }
       Origin::New {
         cursed,
         fee,
+        filtered,
         gallery,
         hidden,
         parents,
@@ -433,6 +520,31 @@ impl InscriptionUpdater<'_, '_> {
           number
         };
 
+        if filtered {
+          let satpoint = if unbound {
+            let unbound_satpoint = SatPoint {
+              outpoint: unbound_outpoint(),
+              offset: self.unbound_inscriptions,
+            };
+            self.unbound_inscriptions += 1;
+            unbound_satpoint
+          } else {
+            new_satpoint
+          };
+
+          record_filtered_inscription_data(
+            filtered_inscription_data_cache,
+            self.track_filtered_inscription_data,
+            satpoint,
+            op_return,
+            cursed || vindicated,
+          );
+
+          return Ok(());
+        }
+
+        let inscription_id = inscription_id.expect("new flotsam must have inscription ID");
+
         let sequence_number = self.next_sequence_number;
         self.next_sequence_number += 1;
 
@@ -443,7 +555,7 @@ impl InscriptionUpdater<'_, '_> {
         let sat = if unbound {
           None
         } else {
-          Self::calculate_sat(input_sat_ranges, flotsam.offset)
+          Self::calculate_sat(input_sat_ranges, offset)
         };
 
         let mut charms = 0;

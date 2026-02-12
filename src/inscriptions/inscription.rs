@@ -248,6 +248,22 @@ impl Inscription {
     str::from_utf8(self.metaprotocol.as_ref()?).ok()
   }
 
+  pub fn is_brc20(&self) -> bool {
+    let Some(body) = self.body() else {
+      return false;
+    };
+
+    serde_json::from_slice::<serde_json::Value>(body)
+      .ok()
+      .and_then(|json| {
+        json
+          .get("p")
+          .and_then(serde_json::Value::as_str)
+          .map(|protocol| protocol.eq_ignore_ascii_case("brc-20"))
+      })
+      .unwrap_or(false)
+  }
+
   pub fn parents(&self) -> Vec<InscriptionId> {
     self
       .parents
@@ -354,6 +370,10 @@ impl Inscription {
     }
   }
 }
+
+#[cfg(test)]
+#[path = "inscription_brc20_tests.rs"]
+mod brc20_tests;
 
 #[cfg(test)]
 mod tests {
