@@ -5472,6 +5472,212 @@ next
   }
 
   #[test]
+  fn collections_page_ordered_by_most_recent_child() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    server.mine_blocks(1);
+    let parent_a = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "parent a").to_witness())],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+    let parent_b = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, inscription("text/plain", "parent b").to_witness())],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+    let parent_c = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(3, 0, 0, inscription("text/plain", "parent c").to_witness())],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+    server.mine_blocks(1);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (2, 1, 0, Default::default()),
+        (
+          4,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("child a1".into()),
+            parents: vec![parent_a.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+      ],
+      outputs: 2,
+      output_values: &[50 * COIN_VALUE, 50 * COIN_VALUE],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (3, 1, 0, Default::default()),
+        (
+          5,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("child b1".into()),
+            parents: vec![parent_b.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+      ],
+      outputs: 2,
+      output_values: &[50 * COIN_VALUE, 50 * COIN_VALUE],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (4, 1, 0, Default::default()),
+        (
+          6,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("child c1".into()),
+            parents: vec![parent_c.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+      ],
+      outputs: 2,
+      output_values: &[50 * COIN_VALUE, 50 * COIN_VALUE],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/collections",
+      StatusCode::OK,
+      format!(
+        ".*<h1>Collections</h1>\n<div class=thumbnails>\n  <a href=/inscription/{parent_c}>.*</a>\n  <a href=/inscription/{parent_b}>.*</a>\n  <a href=/inscription/{parent_a}>.*</a>\n</div>.*"
+      ),
+    );
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (6, 1, 0, Default::default()),
+        (
+          7,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("child a2".into()),
+            parents: vec![parent_a.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+      ],
+      outputs: 2,
+      output_values: &[50 * COIN_VALUE, 50 * COIN_VALUE],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/collections",
+      StatusCode::OK,
+      format!(
+        ".*<h1>Collections</h1>\n<div class=thumbnails>\n  <a href=/inscription/{parent_a}>.*</a>\n  <a href=/inscription/{parent_c}>.*</a>\n  <a href=/inscription/{parent_b}>.*</a>\n</div>.*"
+      ),
+    );
+  }
+
+  #[test]
+  fn collections_page_shows_both_parents_of_multi_parent_child() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    server.mine_blocks(1);
+    let parent_a = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "parent a").to_witness())],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+    let parent_b = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, inscription("text/plain", "parent b").to_witness())],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (2, 1, 0, Default::default()),
+        (3, 1, 0, Default::default()),
+        (
+          3,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("child".into()),
+            parents: vec![parent_a.value(), parent_b.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+      ],
+      outputs: 3,
+      output_values: &[50 * COIN_VALUE, 50 * COIN_VALUE, 50 * COIN_VALUE],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/collections",
+      StatusCode::OK,
+      format!(
+        ".*<h1>Collections</h1>\n<div class=thumbnails>\n  <a href=/inscription/{parent_a}>.*</a>\n  <a href=/inscription/{parent_b}>.*</a>\n</div>.*"
+      ),
+    );
+  }
+
+  #[test]
   fn galleries_page_prev_and_next() {
     let server = TestServer::builder()
       .chain(Chain::Regtest)
