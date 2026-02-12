@@ -10,7 +10,7 @@ pub struct ItemHtml {
 
 impl PageContent for ItemHtml {
   fn title(&self) -> String {
-    format!("Gallery {} item {}", self.gallery_number, self.i)
+    format!("Gallery {} Item {}", self.gallery_number, self.i)
   }
 }
 
@@ -34,7 +34,7 @@ mod tests {
         }
       },
       "
-        <h1>Gallery 1 item 2</h1>
+        <h1>Gallery 1 Item 2</h1>
         <p class=subtitle>foo</p>
         <div class=inscription>
         <iframe .* src=/preview/1{64}i1></iframe>
@@ -69,7 +69,7 @@ mod tests {
         }
       }
       .title(),
-      "Gallery 1 item 2",
+      "Gallery 1 Item 2",
     );
   }
 }
