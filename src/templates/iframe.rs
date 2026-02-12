@@ -58,7 +58,7 @@ impl Display for Iframe {
         write!(
           f,
           "<a href=/inscription/{}>\
-            <iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/{}>\
+            <iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/{}?thumb=1>\
             </iframe>\
           </a>",
           self.inscription_id, self.inscription_id,
@@ -94,7 +94,7 @@ mod tests {
   fn thumbnail() {
     assert_regex_match!(
       Iframe::thumbnail(inscription_id(1)).0.to_string(),
-      "<a href=/inscription/1{64}i1><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/1{64}i1></iframe></a>",
+      "<a href=/inscription/1{64}i1><iframe sandbox=allow-scripts scrolling=no loading=lazy src=/preview/1{64}i1\\?thumb=1></iframe></a>",
     );
   }
 }

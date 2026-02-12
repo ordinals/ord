@@ -16,9 +16,12 @@ impl ServerConfig {
   pub(super) fn preview_content_security_policy(
     &self,
     media: Media,
+    host: Option<&str>,
   ) -> ServerResult<[(HeaderName, HeaderValue); 1]> {
     let default = match media {
-      Media::Audio => "default-src 'self'",
+      Media::Audio => {
+        "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; media-src 'self' blob:; connect-src 'self'"
+      }
       Media::Code(_) => "script-src-elem 'self' https://cdn.jsdelivr.net",
       Media::Font => "script-src-elem 'self'; style-src 'self' 'unsafe-inline'",
       Media::Iframe => {
@@ -35,11 +38,11 @@ impl ServerConfig {
       Media::Video => "default-src 'self'",
     };
 
-    let value = if let Some(csp_origin) = &self.csp_origin {
+    let value = if let Some(origin) = self.csp_origin.as_deref().or(host) {
       default
-        .replace("'self'", csp_origin)
+        .replace("'self'", origin)
         .parse()
-        .map_err(|err| anyhow!("invalid content-security-policy origin `{csp_origin}`: {err}"))?
+        .map_err(|err| anyhow!("invalid content-security-policy origin `{origin}`: {err}"))?
     } else {
       HeaderValue::from_static(default)
     };

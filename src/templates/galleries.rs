@@ -28,8 +28,8 @@ mod tests {
       "
         <h1>Galleries</h1>
         <div class=thumbnails>
-          <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
-          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+          <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1\\?thumb=1></iframe></a>
+          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2\\?thumb=1></iframe></a>
         </div>
         .*
         prev
@@ -51,8 +51,8 @@ mod tests {
       "
         <h1>Galleries</h1>
         <div class=thumbnails>
-          <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
-          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2></iframe></a>
+          <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1\\?thumb=1></iframe></a>
+          <a href=/inscription/2{64}i2><iframe .* src=/preview/2{64}i2\\?thumb=1></iframe></a>
         </div>
         .*
         <a class=prev href=/galleries/1>prev</a>

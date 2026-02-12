@@ -207,6 +207,7 @@ impl Server {
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/address/{address}", get(Self::address))
+        .route("/artwork/{inscription_id}", get(Self::artwork))
         .route("/block/{query}", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blocks", get(Self::blocks))
@@ -1496,14 +1497,15 @@ impl Server {
     })
     .ok_or_not_found(|| format!("asset {path}"))?;
 
-    let mime = mime_guess::from_path(path).first_or_octet_stream();
+    // Determine MIME type, with special handling for WASM files
+    let response = if path.ends_with(".wasm") {
+      Response::builder().header(header::CONTENT_TYPE, "application/wasm")
+    } else {
+      let mime = mime_guess::from_path(&path).first_or_octet_stream();
+      Response::builder().header(header::CONTENT_TYPE, mime.as_ref())
+    };
 
-    Ok(
-      Response::builder()
-        .header(header::CONTENT_TYPE, mime.as_ref())
-        .body(content.data.into())
-        .unwrap(),
-    )
+    Ok(response.body(content.data.into()).unwrap())
   }
 
   async fn block_count(Extension(index): Extension<Arc<Index>>) -> ServerResult<String> {
@@ -1552,6 +1554,7 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Path(inscription_id): Path<InscriptionId>,
     accept_encoding: AcceptEncoding,
+    headers: HeaderMap,
   ) -> ServerResult {
     task::block_in_place(|| {
       if settings.is_hidden(inscription_id) {
@@ -1583,19 +1586,35 @@ impl Server {
         );
       }
 
-      let content_security_policy = server_config.preview_content_security_policy(media)?;
+      let host = headers.get(header::HOST).and_then(|h| h.to_str().ok());
+      let scheme = headers
+        .get("x-forwarded-proto")
+        .and_then(|h| h.to_str().ok())
+        .unwrap_or("http");
+      let origin = host.map(|h| format!("{scheme}://{h}"));
+      let content_security_policy =
+        server_config.preview_content_security_policy(media, origin.as_deref())?;
 
       match media {
-        Media::Audio => Ok(
-          (
-            content_security_policy,
-            PreviewAudioHtml {
-              inscription_id,
-              inscription_number,
-            },
+        Media::Audio => {
+          let content_type = inscription
+            .content_type()
+            .unwrap_or("application/octet-stream")
+            .to_string();
+          let is_opus = content_type.starts_with("audio/ogg");
+          Ok(
+            (
+              content_security_policy,
+              PreviewAudioHtml {
+                inscription_id,
+                inscription_number,
+                content_type,
+                is_opus,
+              },
+            )
+              .into_response(),
           )
-            .into_response(),
-        ),
+        }
         Media::Code(language) => Ok(
           (
             content_security_policy,
@@ -1718,6 +1737,197 @@ impl Server {
         .page(server_config),
       )
     })
+  }
+
+  fn ensure_browser_compatible_image(data: &[u8]) -> (&'static str, Vec<u8>) {
+    if data.starts_with(&[0x89, 0x50, 0x4E, 0x47]) {
+      return ("image/png", data.to_vec());
+    }
+
+    if data.starts_with(&[0xFF, 0xD8]) {
+      return ("image/jpeg", data.to_vec());
+    }
+
+    if data.starts_with(&[0x47, 0x49, 0x46]) {
+      return ("image/gif", data.to_vec());
+    }
+
+    if data.starts_with(&[0x52, 0x49, 0x46, 0x46]) && data.len() > 8 && &data[8..12] == b"WEBP" {
+      return ("image/webp", data.to_vec());
+    }
+
+    ("application/octet-stream", data.to_vec())
+  }
+
+  async fn artwork(
+    Extension(index): Extension<Arc<Index>>,
+    Extension(settings): Extension<Arc<Settings>>,
+    Path(inscription_id): Path<InscriptionId>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      if settings.is_hidden(inscription_id) {
+        return Err(ServerError::NotFound(format!(
+          "inscription {inscription_id} not found"
+        )));
+      }
+
+      let mut inscription = index
+        .get_inscription_by_id(inscription_id)?
+        .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+      if let Some(delegate) = inscription.delegate() {
+        inscription = index
+          .get_inscription_by_id(delegate)?
+          .ok_or_not_found(|| format!("delegate {inscription_id}"))?
+      }
+
+      let media = inscription.media();
+
+      if !matches!(media, Media::Audio) {
+        return Err(ServerError::NotFound(format!(
+          "inscription {inscription_id} is not an audio file"
+        )));
+      }
+
+      let body = inscription
+        .into_body()
+        .ok_or_not_found(|| format!("inscription {inscription_id} content"))?;
+
+      Self::extract_audio_artwork_direct(body)
+    })
+  }
+
+  fn extract_audio_artwork_direct(audio_data: Vec<u8>) -> ServerResult {
+    use base64::Engine;
+    use symphonia::core::formats::FormatOptions;
+    use symphonia::core::io::MediaSourceStream;
+    use symphonia::core::meta::MetadataOptions;
+    use symphonia::core::probe::Hint;
+
+    let cursor = std::io::Cursor::new(audio_data);
+    let media_source = MediaSourceStream::new(Box::new(cursor), Default::default());
+
+    let mut hint = Hint::new();
+    hint.with_extension("opus");
+
+    let format_opts = FormatOptions::default();
+    let metadata_opts = MetadataOptions::default();
+
+    match symphonia::default::get_probe().format(&hint, media_source, &format_opts, &metadata_opts)
+    {
+      Ok(probed) => {
+        let mut format_reader = probed.format;
+
+        let metadata_queue = format_reader.metadata();
+
+        if let Some(metadata) = metadata_queue.current() {
+          // First, look for embedded visuals (artwork/pictures)
+          if let Some(visual) = metadata.visuals().first() {
+            let (mime, bytes) = Self::ensure_browser_compatible_image(&visual.data);
+
+            let mut headers = HeaderMap::new();
+            headers.insert(header::CONTENT_TYPE, HeaderValue::from_static(mime));
+            headers.insert(
+              header::CACHE_CONTROL,
+              HeaderValue::from_static("public, max-age=3600"),
+            );
+            headers.insert(
+              header::ACCESS_CONTROL_ALLOW_ORIGIN,
+              HeaderValue::from_static("*"),
+            );
+            headers.insert(
+              header::ACCESS_CONTROL_ALLOW_METHODS,
+              HeaderValue::from_static("GET"),
+            );
+            headers.insert(
+              header::ACCESS_CONTROL_ALLOW_HEADERS,
+              HeaderValue::from_static("*"),
+            );
+
+            return Ok((headers, bytes).into_response());
+          }
+
+          // Fallback: check tags for picture data
+          for tag in metadata.tags() {
+            // Look for METADATA_BLOCK_PICTURE tags (standard for FLAC/OGG)
+            if tag.key == "METADATA_BLOCK_PICTURE" || tag.key.to_uppercase().contains("PICTURE") {
+              let value_str = tag.value.to_string();
+
+              // Try to decode as base64
+              if let Ok(picture_data) = base64::engine::general_purpose::STANDARD.decode(&value_str)
+              {
+                // FLAC picture block format: skip the picture type and other metadata
+                // Look for JPEG/PNG headers in the decoded data
+                for offset in 0..picture_data.len().saturating_sub(4) {
+                  if picture_data[offset..].starts_with(&[0xFF, 0xD8]) {
+                    // Found JPEG header, look for end
+                    for end_offset in (offset + 10)..picture_data.len().saturating_sub(1) {
+                      if picture_data[end_offset] == 0xFF && picture_data[end_offset + 1] == 0xD9 {
+                        let image_data = &picture_data[offset..=end_offset + 1];
+
+                        let mut headers = HeaderMap::new();
+                        let (mime, bytes) = Self::ensure_browser_compatible_image(image_data);
+                        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static(mime));
+                        headers.insert(
+                          header::CACHE_CONTROL,
+                          HeaderValue::from_static("public, max-age=3600"),
+                        );
+                        headers.insert(
+                          header::ACCESS_CONTROL_ALLOW_ORIGIN,
+                          HeaderValue::from_static("*"),
+                        );
+                        headers.insert(
+                          header::ACCESS_CONTROL_ALLOW_METHODS,
+                          HeaderValue::from_static("GET"),
+                        );
+                        headers.insert(
+                          header::ACCESS_CONTROL_ALLOW_HEADERS,
+                          HeaderValue::from_static("*"),
+                        );
+                        return Ok((headers, bytes).into_response());
+                      }
+                    }
+                  } else if picture_data[offset..].starts_with(&[0x89, 0x50, 0x4E, 0x47]) {
+                    // Found PNG header, look for end
+                    for end_offset in (offset + 8)..picture_data.len().saturating_sub(8) {
+                      if picture_data[end_offset..end_offset + 4] == [0x49, 0x45, 0x4E, 0x44] {
+                        let image_data = &picture_data[offset..end_offset + 8];
+
+                        let mut headers = HeaderMap::new();
+                        headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("image/png"));
+                        headers.insert(
+                          header::CACHE_CONTROL,
+                          HeaderValue::from_static("public, max-age=3600"),
+                        );
+                        headers.insert(
+                          header::ACCESS_CONTROL_ALLOW_ORIGIN,
+                          HeaderValue::from_static("*"),
+                        );
+                        headers.insert(
+                          header::ACCESS_CONTROL_ALLOW_METHODS,
+                          HeaderValue::from_static("GET"),
+                        );
+                        headers.insert(
+                          header::ACCESS_CONTROL_ALLOW_HEADERS,
+                          HeaderValue::from_static("*"),
+                        );
+
+                        return Ok((headers, image_data.to_vec()).into_response());
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        Err(ServerError::NotFound(
+          "No artwork found in audio file metadata".into(),
+        ))
+      }
+      Err(_) => Err(ServerError::NotFound("Unable to parse audio file".into())),
+    }
   }
 
   async fn inscription(
@@ -4687,10 +4897,16 @@ mod tests {
 
       let inscription_id = InscriptionId { txid, index: 0 };
 
+      let origin = format!(
+        "http://{}:{}",
+        server.url.host_str().unwrap(),
+        server.url.port().unwrap()
+      );
+
       server.assert_response_csp(
         format!("/preview/{inscription_id}"),
         StatusCode::OK,
-        "default-src 'self'",
+        &format!("default-src {origin}"),
         format!(
           ".*<html lang=en data-inscription={inscription_id}>.*<title>Inscription 0 Preview</title>.*"
         ),
@@ -4805,10 +5021,16 @@ mod tests {
 
     server.mine_blocks(1);
 
+    let origin = format!(
+      "http://{}:{}",
+      server.url.host_str().unwrap(),
+      server.url.port().unwrap()
+    );
+
     server.assert_response_csp(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
-      "default-src 'self'",
+      &format!("default-src {origin}"),
       format!(".*<html lang=en data-inscription={inscription_id}>.*"),
     );
   }
@@ -4829,7 +5051,78 @@ mod tests {
     server.assert_response_regex(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
-      format!(r".*<audio .*>\s*<source src=/content/{inscription_id}>.*"),
+      format!(r#".*<audio .*>\s*<source src=/content/{inscription_id} type="audio/flac">.*"#),
+    );
+  }
+
+  #[test]
+  fn audio_preview_non_opus_excludes_wasm_scripts() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("audio/mpeg", "hello").to_witness())],
+      ..default()
+    });
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    let response = server.get(format!("/preview/{inscription_id}"));
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = response.text().unwrap();
+    assert!(!body.contains("opus-stream-decoder.js"));
+    assert!(!body.contains("preview-audio.js"));
+  }
+
+  #[test]
+  fn audio_preview_opus_includes_wasm_scripts() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("audio/ogg", "hello").to_witness())],
+      ..default()
+    });
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    let response = server.get(format!("/preview/{inscription_id}"));
+    assert_eq!(response.status(), StatusCode::OK);
+    let body = response.text().unwrap();
+    assert!(body.contains("opus-stream-decoder.js"));
+    assert!(body.contains("preview-audio.js"));
+  }
+
+  #[test]
+  fn audio_preview_content_security_policy() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("audio/flac", "hello").to_witness())],
+      ..default()
+    });
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    server.mine_blocks(1);
+
+    let origin = format!(
+      "http://{}:{}",
+      server.url.host_str().unwrap(),
+      server.url.port().unwrap()
+    );
+    let expected_csp = format!(
+      "default-src {origin}; script-src {origin} 'unsafe-inline' 'wasm-unsafe-eval'; \
+       style-src {origin} 'unsafe-inline'; media-src {origin} blob:; connect-src {origin}"
+    );
+
+    server.assert_response_csp(
+      format!("/preview/{inscription_id}"),
+      StatusCode::OK,
+      &expected_csp,
+      format!(r#".*<audio .*>\s*<source src=/content/{inscription_id} type="audio/flac">.*"#),
     );
   }
 
@@ -4911,10 +5204,16 @@ mod tests {
 
     server.mine_blocks(1);
 
+    let origin = format!(
+      "http://{}:{}",
+      server.url.host_str().unwrap(),
+      server.url.port().unwrap()
+    );
+
     server.assert_response_csp(
       format!("/preview/{inscription_id}"),
       StatusCode::OK,
-      "default-src 'self' 'unsafe-inline'",
+      &format!("default-src {origin} 'unsafe-inline'"),
       format!(r".*background-image: url\(/content/{inscription_id}\);.*"),
     );
   }
@@ -4956,10 +5255,16 @@ mod tests {
 
     server.mine_blocks(1);
 
+    let origin = format!(
+      "http://{}:{}",
+      server.url.host_str().unwrap(),
+      server.url.port().unwrap()
+    );
+
     server.assert_response_csp(
       format!("/preview/{}", InscriptionId { txid, index: 0 }),
       StatusCode::OK,
-      "default-src 'self'",
+      &format!("default-src {origin}"),
       fs::read_to_string("templates/preview-unknown.html").unwrap(),
     );
   }
@@ -6016,7 +6321,7 @@ next
     server.assert_response_regex(
       format!("/inscription/{inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription 1</title>.*<dt>parents</dt>.*<div class=thumbnails>.**<a href=/inscription/{parent_inscription_id}><iframe .* src=/preview/{parent_inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription 1</title>.*<dt>parents</dt>.*<div class=thumbnails>.**<a href=/inscription/{parent_inscription_id}><iframe .* src=/preview/{parent_inscription_id}\\?thumb=1></iframe></a>.*"),
     );
     server.assert_response_regex(
       format!("/inscription/{parent_inscription_id}"),
@@ -6088,7 +6393,7 @@ next
     server.assert_response_regex(
       format!("/children/{parent_inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription 0 Children</title>.*<h1><a href=/inscription/{parent_inscription_id}>Inscription 0</a> Children</h1>.*<div class=thumbnails>.*<a href=/inscription/{inscription_id}><iframe .* src=/preview/{inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription 0 Children</title>.*<h1><a href=/inscription/{parent_inscription_id}>Inscription 0</a> Children</h1>.*<div class=thumbnails>.*<a href=/inscription/{inscription_id}><iframe .* src=/preview/{inscription_id}\\?thumb=1></iframe></a>.*"),
     );
   }
 
@@ -6257,10 +6562,10 @@ next
       StatusCode::OK,
       format!(
         ".*<title>Inscription 0</title>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
-.*<a href=/inscription/.*><iframe .* src=/preview/.*></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/preview/.*\\?thumb=1></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/preview/.*\\?thumb=1></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/preview/.*\\?thumb=1></iframe></a>.*
+.*<a href=/inscription/.*><iframe .* src=/preview/.*\\?thumb=1></iframe></a>.*
     <div class=center>
       <a href=/children/{parent_inscription_id}>all \\(5\\)</a>
     </div>.*"
@@ -6484,7 +6789,7 @@ next
     server.assert_response_regex(
       format!("/parents/{inscription_id}"),
       StatusCode::OK,
-      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>.*<a href=/inscription/{parent_a_inscription_id}><iframe .* src=/preview/{parent_b_inscription_id}></iframe></a>.*"),
+      format!(".*<title>Inscription -1 Parents</title>.*<h1><a href=/inscription/{inscription_id}>Inscription -1</a> Parents</h1>.*<div class=thumbnails>.*<a href=/inscription/{parent_a_inscription_id}><iframe .* src=/preview/{parent_a_inscription_id}\\?thumb=1></iframe></a>.*<a href=/inscription/{parent_b_inscription_id}><iframe .* src=/preview/{parent_b_inscription_id}\\?thumb=1></iframe></a>.*"),
     );
   }
 

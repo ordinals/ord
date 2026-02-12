@@ -171,7 +171,7 @@ mod tests {
         <dl>
           <dt>inscriptions</dt>
           <dd class=thumbnails>
-            <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1></iframe></a>
+            <a href=/inscription/1{64}i1><iframe .* src=/preview/1{64}i1\\?thumb=1></iframe></a>
           </dd>
           .*
         </dl>
