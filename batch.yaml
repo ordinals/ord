@@ -28,6 +28,8 @@ etching:
   divisibility: 2
   # premine
   premine: 1000.00
+  # postage for premine output in sats (default: 10000)
+  premine_postage: 15000
   # total supply, must be equal to `premine + terms.cap * terms.amount`
   supply: 10000.00
   # currency symbol
