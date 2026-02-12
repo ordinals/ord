@@ -2,12 +2,44 @@
 <html lang=en>
   <head>
     <meta charset=utf-8>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>Inscription {{self.inscription_number}} Preview</title>
     <link rel=stylesheet href=/static/preview-audio.css>
+    <script>
+      if (new URLSearchParams(window.location.search).has('thumb')) {
+        document.documentElement.classList.add('thumbnail');
+      }
+    </script>
+%% if self.is_opus {
+    <script>
+      var Module = Module || {};
+
+      Object.defineProperty(Module, 'locateFile', {
+        value: function(path) {
+          return '/static/' + path;
+        },
+        writable: false,
+        configurable: false
+      });
+    </script>
+    <script src="/static/opus-stream-decoder.js"></script>
+    <script src="/static/preview-audio.js?v=METADATA_DISPLAY_2025_01_28_05_30" type=module></script>
+%% }
   </head>
-  <body>
-    <audio controls>
-      <source src=/content/{{self.inscription_id}}>
-    </audio>
+  <body style="--artwork-url: url(/artwork/{{self.inscription_id}});">
+    <div id="play-overlay">
+      <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="32" cy="32" r="30" fill="rgba(0,0,0,0.55)" stroke="rgba(255,255,255,0.9)" stroke-width="2"/>
+        <polygon points="26,20 26,44 46,32" fill="rgba(255,255,255,0.9)"/>
+      </svg>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 20px; width: 100%; max-width: none;">
+      <div id="artwork" style="background-image: url(/artwork/{{self.inscription_id}}); background-size: contain; background-repeat: no-repeat; background-position: center; width: 90%; height: 300px; margin: 0 auto; display: block;"></div>
+      <audio id="audio-player" controls style="width: 90%; max-width: none;">
+        <source src=/content/{{self.inscription_id}} type="{{self.content_type}}">
+      </audio>
+    </div>
   </body>
 </html>
