@@ -6,9 +6,9 @@ set -euxo pipefail
 
 CHAIN=$1
 DOMAIN=$2
-BRANCH=$3
+REF=$3
 COMMIT=$4
-REVISION="ord-$BRANCH-$COMMIT"
+REVISION="ord-$REF-$COMMIT"
 
 export DEBIAN_FRONTEND=noninteractive
 
