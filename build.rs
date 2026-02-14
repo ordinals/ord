@@ -3,7 +3,7 @@ use std::{process::Command, str};
 fn git_branch() -> Option<String> {
   str::from_utf8(
     &Command::new("git")
-      .args(["rev-parse", "--abbrev-ref", "HEAD"])
+      .args(["symbolic-ref", "--short", "HEAD"])
       .output()
       .ok()?
       .stdout,
