@@ -16,7 +16,7 @@ cd $REMOTE
 
 git fetch origin --tags --force
 HASH=$(git rev-parse origin/$REF 2>/dev/null) || HASH=$(git rev-parse $REF)
-git checkout $HASH
+git checkout -B $REF $HASH
 
 COMMIT=$(git rev-parse --short HEAD)
 
