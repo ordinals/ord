@@ -2,7 +2,7 @@
 
 set -euxo pipefail
 
-BRANCH=$1
+REF=$1
 REMOTE=$2
 CHAIN=$3
 DOMAIN=$4
@@ -14,10 +14,10 @@ fi
 
 cd $REMOTE
 
-git fetch origin
-git checkout -B $BRANCH
-git reset --hard origin/$BRANCH
+git fetch origin --tags --force
+HASH=$(git rev-parse origin/$REF 2>/dev/null) || HASH=$(git rev-parse $REF)
+git checkout $HASH
 
 COMMIT=$(git rev-parse --short HEAD)
 
-./deploy/setup $CHAIN $DOMAIN $BRANCH $COMMIT
+./deploy/setup $CHAIN $DOMAIN $REF $COMMIT
