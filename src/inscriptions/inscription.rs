@@ -10,7 +10,7 @@ use {
 };
 
 const MAX_COMPRESSED_PROPERTIES_SIZE: usize = 4_000_000;
-const MAX_PROPERTIES_COMPRESSION_RATIO: usize = 10;
+const MAX_PROPERTIES_COMPRESSION_RATIO: usize = 30;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
 pub struct Inscription {
@@ -1242,7 +1242,7 @@ mod tests {
       )
       .unwrap_err()
       .to_string()
-      .contains("compression over 10:1")
+      .contains("compression over 30:1")
     );
   }
 
