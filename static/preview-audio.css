@@ -4,11 +4,82 @@ html {
 
 body {
   align-items: center;
+  justify-content: center;
   display: flex;
   height: 100%;
   margin: 0;
+  background: transparent;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  position: relative;
+}
+
+#play-overlay {
+  display: none;
 }
 
 audio {
   width: 100%;
+  max-width: 90vw;
+  outline: none;
+  color-scheme: dark;
+}
+
+audio::-webkit-media-controls-enclosure {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+audio::-webkit-media-controls-panel {
+  background-color: #3a3a3a;
+}
+
+audio::-webkit-media-controls-play-button,
+audio::-webkit-media-controls-pause-button {
+  background-color: #4a4a4a;
+  border-radius: 50%;
+}
+
+audio::-webkit-media-controls-timeline {
+  background-color: #4a4a4a;
+  border-radius: 2px;
+}
+
+audio::-webkit-media-controls-current-time-display,
+audio::-webkit-media-controls-time-remaining-display {
+  color: #ffffff;
+}
+
+html.thumbnail body {
+  background-color: #131516;
+  background-image: var(--artwork-url);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: contain;
+}
+
+html.thumbnail #play-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
+}
+
+html.thumbnail #play-overlay svg {
+  width: 30%;
+  height: 30%;
+  max-width: 64px;
+  max-height: 64px;
+  min-width: 24px;
+  min-height: 24px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+html.thumbnail body > div:not(#play-overlay) {
+  display: none;
 }

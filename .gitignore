@@ -9,6 +9,8 @@
 /fuzz/coverage
 /fuzz/target
 /ord.log
+/static/opus-stream-decoder.js
+/static/opus-stream-decoder.wasm
 /target
 /test-times.txt
 /tmp
