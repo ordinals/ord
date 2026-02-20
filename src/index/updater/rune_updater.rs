@@ -1,12 +1,12 @@
 use super::*;
 
-pub(super) struct RuneUpdater<'a, 'tx, 'client> {
+pub(super) struct RuneUpdater<'a, 'tx, 'index> {
   pub(super) block_time: u32,
   pub(super) burned: HashMap<RuneId, Lot>,
-  pub(super) client: &'client Client,
   pub(super) event_sender: Option<&'a mpsc::Sender<Event>>,
   pub(super) height: u32,
   pub(super) id_to_entry: &'a mut Table<'tx, RuneIdValue, RuneEntryValue>,
+  pub(super) index: &'index Index,
   pub(super) inscription_id_to_sequence_number: &'a Table<'tx, InscriptionIdValue, u32>,
   pub(super) minimum: Rune,
   pub(super) outpoint_to_balances: &'a mut Table<'tx, &'static OutPointValue, &'static [u8]>,
@@ -425,9 +425,8 @@ impl RuneUpdater<'_, '_, '_> {
         }
 
         let Some(tx_info) = self
-          .client
-          .get_raw_transaction_info(&input.previous_output.txid, None)
-          .into_option()?
+          .index
+          .get_transaction_info(&input.previous_output.txid)?
         else {
           panic!(
             "can't get input transaction: {}",
@@ -445,9 +444,8 @@ impl RuneUpdater<'_, '_, '_> {
         }
 
         let commit_tx_height = self
-          .client
-          .get_block_header_info(&tx_info.blockhash.unwrap())
-          .into_option()?
+          .index
+          .block_header_info(tx_info.blockhash.unwrap())?
           .unwrap()
           .height;
 
