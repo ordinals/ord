@@ -285,14 +285,14 @@ of the properties field will be decompressed with
 <p>To avoid decompression bombs, the maximum size of decompressed properties is
 4,000,000 bytes.</p>
 <p>To avoid denial-of-service attacks, the maximum compression ratio of
-decompressed properties is 10:1. So, for example, if the compressed properties
-are 100 bytes, the maximum size of the decompressed properties is 1,000 bytes.</p>
+decompressed properties is 30:1. So, for example, if the compressed properties
+are 100 bytes, the maximum size of the decompressed properties is 3,000 bytes.</p>
 <p>Inscriptions with any of the below issues are treated by <code>ord</code> as if they have
 no properties:</p>
 <ul>
 <li>properties encoding field set to a value other than "br"</li>
 <li>properties which decompress to over 4,000,000 bytes</li>
-<li>properties with a compression ratio greater than 10:1</li>
+<li>properties with a compression ratio greater than 30:1</li>
 </ul>
 <h2 id="galleries"><a class="header" href="#galleries">Galleries</a></h2>
 <p>Inscriptions whose properties field contains <code>Item</code>s are galleries.</p>
