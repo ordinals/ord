@@ -53,12 +53,14 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 32;
+const SCHEMA_VERSION: u64 = 33;
 
+define_multimap_table! { LATEST_CHILD_SEQUENCE_NUMBER_TO_COLLECTION_SEQUENCE_NUMBER, u32, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
-define_table! { GALLERIES, u32, () }
+define_table! { COLLECTION_SEQUENCE_NUMBER_TO_LATEST_CHILD_SEQUENCE_NUMBER, u32, u32 }
+define_table! { GALLERY_SEQUENCE_NUMBERS, u32, () }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
@@ -316,10 +318,12 @@ impl Index {
         tx.set_durability(durability)?;
         tx.set_quick_repair(true);
 
+        tx.open_multimap_table(LATEST_CHILD_SEQUENCE_NUMBER_TO_COLLECTION_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
-        tx.open_table(GALLERIES)?;
+        tx.open_table(COLLECTION_SEQUENCE_NUMBER_TO_LATEST_CHILD_SEQUENCE_NUMBER)?;
+        tx.open_table(GALLERY_SEQUENCE_NUMBERS)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
         tx.open_table(HEIGHT_TO_LAST_SEQUENCE_NUMBER)?;
         tx.open_table(HOME_INSCRIPTIONS)?;
@@ -1228,21 +1232,39 @@ impl Index {
     let sequence_number_to_inscription_entry =
       rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
-    let mut collections = rtx
-      .open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?
+    let mut collections = Vec::new();
+    let mut skipped = 0;
+    let skip = page_index.saturating_mul(page_size);
+    let take = page_size.saturating_add(1);
+
+    for entry in rtx
+      .open_multimap_table(LATEST_CHILD_SEQUENCE_NUMBER_TO_COLLECTION_SEQUENCE_NUMBER)?
       .iter()?
-      .skip(page_index.saturating_mul(page_size))
-      .take(page_size.saturating_add(1))
-      .map(|result| {
-        result
-          .and_then(|(parent, _children)| {
-            sequence_number_to_inscription_entry
-              .get(parent.value())
-              .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
-          })
-          .map_err(|err| err.into())
-      })
-      .collect::<Result<Vec<InscriptionId>>>()?;
+      .rev()
+    {
+      let (_latest_child, parents) = entry?;
+
+      for parent in parents {
+        let parent = parent?.value();
+
+        if skipped < skip {
+          skipped += 1;
+          continue;
+        }
+
+        let entry = sequence_number_to_inscription_entry.get(parent)?.unwrap();
+
+        collections.push(InscriptionEntry::load(entry.value()).id);
+
+        if collections.len() == take {
+          break;
+        }
+      }
+
+      if collections.len() == take {
+        break;
+      }
+    }
 
     let more = collections.len() > page_size;
 
@@ -1264,7 +1286,7 @@ impl Index {
       rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
 
     let mut galleries = rtx
-      .open_table(GALLERIES)?
+      .open_table(GALLERY_SEQUENCE_NUMBERS)?
       .iter()?
       .rev()
       .skip(page_index.saturating_mul(page_size))

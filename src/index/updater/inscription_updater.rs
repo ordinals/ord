@@ -40,20 +40,22 @@ enum Origin {
 
 pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) blessed_inscription_count: u64,
+  pub(super) collection_to_latest_child: &'a mut Table<'tx, u32, u32>,
   pub(super) cursed_inscription_count: u64,
   pub(super) flotsam: Vec<Flotsam>,
-  pub(super) galleries: &'a mut Table<'tx, u32, ()>,
+  pub(super) gallery_sequence_numbers: &'a mut Table<'tx, u32, ()>,
   pub(super) height: u32,
   pub(super) home_inscription_count: u64,
   pub(super) home_inscriptions: &'a mut Table<'tx, u32, InscriptionIdValue>,
   pub(super) id_to_sequence_number: &'a mut Table<'tx, InscriptionIdValue, u32>,
   pub(super) inscription_number_to_sequence_number: &'a mut Table<'tx, i32, u32>,
+  pub(super) latest_child_to_collection: &'a mut MultimapTable<'tx, u32, u32>,
   pub(super) lost_sats: u64,
   pub(super) next_sequence_number: u32,
   pub(super) reward: u64,
   pub(super) sat_to_sequence_number: &'a mut MultimapTable<'tx, u64, u32>,
-  pub(super) sequence_number_to_entry: &'a mut Table<'tx, u32, InscriptionEntryValue>,
   pub(super) sequence_number_to_children: &'a mut MultimapTable<'tx, u32, u32>,
+  pub(super) sequence_number_to_entry: &'a mut Table<'tx, u32, InscriptionEntryValue>,
   pub(super) timestamp: u32,
   pub(super) transaction_buffer: Vec<u8>,
   pub(super) transaction_id_to_transaction: &'a mut Table<'tx, &'static TxidValue, &'static [u8]>,
@@ -493,12 +495,30 @@ impl InscriptionUpdater<'_, '_> {
               .sequence_number_to_children
               .insert(parent_sequence_number, sequence_number)?;
 
+            if let Some(old_latest) = self
+              .collection_to_latest_child
+              .get(parent_sequence_number)?
+              .map(|v| v.value())
+            {
+              self
+                .latest_child_to_collection
+                .remove(old_latest, parent_sequence_number)?;
+            }
+
+            self
+              .collection_to_latest_child
+              .insert(parent_sequence_number, sequence_number)?;
+
+            self
+              .latest_child_to_collection
+              .insert(sequence_number, parent_sequence_number)?;
+
             Ok(parent_sequence_number)
           })
           .collect::<Result<Vec<u32>>>()?;
 
         if gallery {
-          self.galleries.insert(sequence_number, ())?;
+          self.gallery_sequence_numbers.insert(sequence_number, ())?;
         }
 
         if let Some(ref sender) = index.event_sender {

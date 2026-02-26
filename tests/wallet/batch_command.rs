@@ -2945,7 +2945,8 @@ inscriptions:
     format!("/gallery/{gallery}/0"),
     Chain::Mainnet,
     ItemHtml {
-      gallery_inscription_number: -1,
+      gallery_id: gallery,
+      gallery_number: -1,
       i: 0,
       item: Item {
         id: Some(id0),
@@ -2963,7 +2964,8 @@ inscriptions:
     format!("/gallery/{gallery}/1"),
     Chain::Mainnet,
     ItemHtml {
-      gallery_inscription_number: -1,
+      gallery_id: gallery,
+      gallery_number: -1,
       i: 1,
       item: Item {
         id: Some(id1),
