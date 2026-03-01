@@ -292,6 +292,7 @@ pub struct InscriptionEntry {
   pub charms: u16,
   pub fee: u64,
   pub height: u32,
+  pub hidden: bool,
   pub id: InscriptionId,
   pub inscription_number: i32,
   pub parents: Vec<u32>,
@@ -304,6 +305,7 @@ pub(crate) type InscriptionEntryValue = (
   u16,                // charms
   u64,                // fee
   u32,                // height
+  bool,               // hidden
   InscriptionIdValue, // inscription id
   i32,                // inscription number
   Vec<u32>,           // parents
@@ -321,6 +323,7 @@ impl Entry for InscriptionEntry {
       charms,
       fee,
       height,
+      hidden,
       id,
       inscription_number,
       parents,
@@ -333,6 +336,7 @@ impl Entry for InscriptionEntry {
       charms,
       fee,
       height,
+      hidden,
       id: InscriptionId::load(id),
       inscription_number,
       parents,
@@ -347,6 +351,7 @@ impl Entry for InscriptionEntry {
       self.charms,
       self.fee,
       self.height,
+      self.hidden,
       self.id.store(),
       self.inscription_number,
       self.parents,
@@ -502,6 +507,7 @@ mod tests {
       charms: 0,
       fee: 1,
       height: 2,
+      hidden: false,
       id,
       inscription_number: 3,
       parents: vec![4, 5, 6],
@@ -510,7 +516,7 @@ mod tests {
       timestamp: 9,
     };
 
-    let value = (0, 1, 2, id.store(), 3, vec![4, 5, 6], Some(7), 8, 9);
+    let value = (0, 1, 2, false, id.store(), 3, vec![4, 5, 6], Some(7), 8, 9);
 
     assert_eq!(entry.clone().store(), value);
     assert_eq!(InscriptionEntry::load(value), entry);
