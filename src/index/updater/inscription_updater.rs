@@ -495,29 +495,40 @@ impl InscriptionUpdater<'_, '_> {
               .sequence_number_to_children
               .insert(parent_sequence_number, sequence_number)?;
 
-            if let Some(old_latest) = self
-              .collection_to_latest_child
-              .get(parent_sequence_number)?
-              .map(|v| v.value())
-            {
+            let parent_hidden = InscriptionEntry::load(
+              self
+                .sequence_number_to_entry
+                .get(parent_sequence_number)?
+                .unwrap()
+                .value(),
+            )
+            .hidden;
+
+            if !parent_hidden {
+              if let Some(old_latest) = self
+                .collection_to_latest_child
+                .get(parent_sequence_number)?
+                .map(|v| v.value())
+              {
+                self
+                  .latest_child_to_collection
+                  .remove(old_latest, parent_sequence_number)?;
+              }
+
+              self
+                .collection_to_latest_child
+                .insert(parent_sequence_number, sequence_number)?;
+
               self
                 .latest_child_to_collection
-                .remove(old_latest, parent_sequence_number)?;
+                .insert(sequence_number, parent_sequence_number)?;
             }
-
-            self
-              .collection_to_latest_child
-              .insert(parent_sequence_number, sequence_number)?;
-
-            self
-              .latest_child_to_collection
-              .insert(sequence_number, parent_sequence_number)?;
 
             Ok(parent_sequence_number)
           })
           .collect::<Result<Vec<u32>>>()?;
 
-        if gallery {
+        if gallery && !hidden {
           self.gallery_sequence_numbers.insert(sequence_number, ())?;
         }
 
@@ -538,6 +549,7 @@ impl InscriptionUpdater<'_, '_> {
             charms,
             fee,
             height: self.height,
+            hidden,
             id: inscription_id,
             inscription_number,
             parents: parent_sequence_numbers,
