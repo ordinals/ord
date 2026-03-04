@@ -1,0 +1,59 @@
+name: Docs
+
+on:
+  push:
+    branches:
+    - master
+  pull_request:
+    branches:
+    - master
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+
+    - name: Install Rust Toolchain Components
+      uses: actions-rs/toolchain@v1
+      with:
+        override: true
+        toolchain: stable
+
+    - uses: Swatinem/rust-cache@v2
+
+    - name: Install `mdbook`
+      run: cargo install mdbook@0.4.52
+
+    - name: Install `mdbook-i18n-helpers`
+      run: cargo install mdbook-i18n-helpers@0.3.6
+
+    - name: Install `mdbook-linkcheck`
+      run: cargo install mdbook-linkcheck@0.7.7
+
+    - name: Build docs
+      run: mdbook build docs -d build
+
+    - name: Build all translations for docs
+      env:
+        LANGUAGES: de fr es pt ru zh ja ko fil ar hi it nl
+      run: |
+        for lang in ${{ env.LANGUAGES }}; do
+          echo "::group::Building $lang translation"
+          MDBOOK_BOOK__LANGUAGE=$lang \
+            mdbook build docs -d build/$lang
+          mv docs/build/$lang/html docs/build/html/$lang
+          echo "::endgroup::"
+        done
+
+    - name: Deploy Pages
+      uses: peaceiris/actions-gh-pages@v4
+      if: github.ref == 'refs/heads/master'
+      with:
+        github_token: ${{secrets.GITHUB_TOKEN}}
+        publish_branch: gh-pages
+        publish_dir: docs/build/html
