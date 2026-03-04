@@ -5671,12 +5671,14 @@ next
         .map(|&id| properties::Item {
           id: Some(id),
           attributes: Attributes::default(),
+          index: None,
         })
         .collect::<Vec<_>>();
 
       let properties = Properties {
         attributes: Attributes::default(),
         gallery: gallery_items,
+        txids: Vec::new(),
       };
 
       server.core.broadcast_tx(TransactionTemplate {
@@ -5765,12 +5767,14 @@ next
       .map(|&id| properties::Item {
         id: Some(id),
         attributes: Attributes::default(),
+        index: None,
       })
       .collect::<Vec<_>>();
 
     let properties = Properties {
       attributes: Attributes::default(),
       gallery: gallery_items,
+      txids: Vec::new(),
     };
 
     server.mine_blocks(1);
@@ -6498,6 +6502,7 @@ next
     let properties = Properties {
       attributes: Attributes::default(),
       gallery: gallery_items,
+      txids: Vec::new(),
     };
 
     server.mine_blocks(1);

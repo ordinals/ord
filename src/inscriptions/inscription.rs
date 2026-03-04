@@ -69,28 +69,47 @@ impl Inscription {
       (None, None, None)
     };
 
-    let (properties, property_encoding) = if let Some(cbor) = properties.to_cbor() {
-      if compress {
-        let len = cbor.len();
+    let cbor_candidates = [properties.to_cbor(), properties.to_cbor_packed()];
 
-        ensure! {
-          len <= MAX_COMPRESSED_PROPERTIES_SIZE,
-          "properties size of {len} bytes exceeds {MAX_COMPRESSED_PROPERTIES_SIZE} byte limit",
+    let (properties, property_encoding) = {
+      let mut best: Option<(Vec<u8>, Option<Vec<u8>>)> = None;
+
+      for cbor in cbor_candidates.into_iter().flatten() {
+        let (final_bytes, encoding) = if compress {
+          let len = cbor.len();
+
+          ensure! {
+            len <= MAX_COMPRESSED_PROPERTIES_SIZE,
+            "properties size of {len} bytes exceeds {MAX_COMPRESSED_PROPERTIES_SIZE} byte limit",
+          }
+
+          let (compressed, encoding) =
+            Self::compress(BrotliEncoderMode::BROTLI_MODE_GENERIC, cbor)?;
+
+          if encoding.is_some() {
+            ensure! {
+              len / compressed.len() <= MAX_PROPERTIES_COMPRESSION_RATIO,
+              "property compression over {MAX_PROPERTIES_COMPRESSION_RATIO}:1",
+            }
+          }
+
+          (compressed, encoding)
+        } else {
+          (cbor, None)
+        };
+
+        if best
+          .as_ref()
+          .is_none_or(|(b, _)| final_bytes.len() < b.len())
+        {
+          best = Some((final_bytes, encoding));
         }
-
-        let (compressed, encoding) = Self::compress(BrotliEncoderMode::BROTLI_MODE_GENERIC, cbor)?;
-
-        ensure! {
-          encoding.is_none() || len / compressed.len() <= MAX_PROPERTIES_COMPRESSION_RATIO,
-          "property compression over {MAX_PROPERTIES_COMPRESSION_RATIO}:1",
-        }
-
-        (Some(compressed), encoding)
-      } else {
-        (Some(cbor), None)
       }
-    } else {
-      (None, None)
+
+      match best {
+        Some((bytes, encoding)) => (Some(bytes), encoding),
+        None => (None, None),
+      }
     };
 
     Ok(Self {

@@ -156,9 +156,11 @@ impl File {
             .map(|item| Item {
               id: Some(item.id),
               attributes: item.attributes,
+              index: None,
             })
             .collect(),
           attributes: entry.attributes.clone(),
+          txids: Vec::new(),
         },
         self
           .etching

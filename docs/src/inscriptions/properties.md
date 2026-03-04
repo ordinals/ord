@@ -21,12 +21,14 @@ of the properties value is as follows:
 Properties = {
   ? 0: [*Item],
   ? 1: Attributes,
+  ? 2: bytes,       ; concatenated TXIDs (N × 32 bytes)
   * any => any,
 }
 
 Item = {
   ? 0: bytes .size (32..36),
   ? 1: Attributes,
+  ? 2: uint,         ; inscription index (default 0)
   * any => any,
 }
 
@@ -100,6 +102,25 @@ Galleries may be created when batch inscribing with `ord wallet batch` by
 including an array of string inscription IDs of under the `gallery` key of the
 inscription entry in the batch file, or when using `ord wallet inscribe` using
 the `--gallery` option.
+
+### TXID Blob
+
+As an alternative to storing a full inscription ID in each `Item`, gallery
+item TXIDs may be stored in a single byte string in Properties key `2`. When
+present, the byte string contains all gallery item TXIDs concatenated in order,
+so its length must be exactly N × 32 bytes where N is the number of items.
+
+Each item then omits its inline ID (key `0`) and instead carries only its
+inscription index within the transaction in Item key `2` (default 0, omitted
+when 0). The item's full inscription ID is reconstructed from the TXID at
+position `i` in the blob combined with the item's index.
+
+This encoding is more compressible than inline IDs because Brotli can
+efficiently back-reference repeated 32-byte TXIDs in the blob, while inline
+IDs interleaved with trait data prevent effective compression.
+
+If the TXID blob is present but its length is not exactly N × 32, the gallery
+is treated as empty.
 
 Attributes
 ----------

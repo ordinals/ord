@@ -108,6 +108,7 @@ impl Inscribe {
               ..default()
             })
             .collect(),
+          txids: Vec::new(),
         },
         None,
       )?],

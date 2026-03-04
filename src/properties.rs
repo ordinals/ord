@@ -31,6 +31,9 @@ pub struct Item {
   pub id: Option<InscriptionId>,
   #[cbor(n(1), default, skip_if = "is_default")]
   pub attributes: Attributes,
+  #[n(2)]
+  #[serde(default, skip)]
+  pub index: Option<u32>,
 }
 
 impl Item {
@@ -47,11 +50,33 @@ pub struct Properties {
   pub gallery: Vec<Item>,
   #[cbor(n(1), default, skip_if = "is_default")]
   pub attributes: Attributes,
+  #[cbor(n(2), default, skip_if = "Vec::is_empty", with = "minicbor::bytes")]
+  #[serde(default, skip)]
+  pub txids: Vec<u8>,
 }
 
 impl Properties {
   pub(crate) fn from_cbor(cbor: &[u8]) -> Self {
     let mut properties = minicbor::decode::<Self>(cbor).unwrap_or_default();
+
+    if !properties.txids.is_empty() {
+      if properties.txids.len() == properties.gallery.len() * 32 {
+        for (i, item) in properties.gallery.iter_mut().enumerate() {
+          if item.id.is_none() {
+            let txid = Txid::from_slice(&properties.txids[i * 32..(i + 1) * 32]).unwrap();
+            item.id = Some(InscriptionId {
+              txid,
+              index: item.index.unwrap_or_default(),
+            });
+          }
+        }
+      }
+      properties.txids = Vec::new();
+    }
+
+    for item in &mut properties.gallery {
+      item.index = None;
+    }
 
     if properties.gallery.iter().any(|item| item.id.is_none()) {
       properties.gallery = Vec::new();
@@ -66,6 +91,50 @@ impl Properties {
     }
 
     Some(minicbor::to_vec(self).unwrap())
+  }
+
+  pub(crate) fn to_cbor_packed(&self) -> Option<Vec<u8>> {
+    let Properties {
+      attributes,
+      gallery,
+      txids,
+    } = self;
+
+    assert!(txids.is_empty());
+
+    if gallery.is_empty() {
+      return None;
+    }
+
+    let mut txids = Vec::with_capacity(gallery.len() * 32);
+    let mut packed_gallery = Vec::with_capacity(gallery.len());
+
+    for item in gallery {
+      let Item {
+        id,
+        attributes,
+        index,
+      } = item;
+
+      assert!(index.is_none());
+
+      let id = id.unwrap();
+      txids.extend_from_slice(&id.txid.to_byte_array());
+
+      packed_gallery.push(Item {
+        id: None,
+        attributes: attributes.clone(),
+        index: if id.index == 0 { None } else { Some(id.index) },
+      });
+    }
+
+    let packed = Properties {
+      gallery: packed_gallery,
+      attributes: attributes.clone(),
+      txids,
+    };
+
+    Some(minicbor::to_vec(&packed).unwrap())
   }
 }
 
@@ -376,6 +445,7 @@ mod tests {
             title: Some("bar".into()),
             traits: Traits::default(),
           },
+          index: None,
         },
         Item {
           id: Some(inscription_id(1)),
@@ -385,10 +455,12 @@ mod tests {
               items: vec![("abc".into(), Trait::String("xyz".into()))],
             },
           },
+          index: None,
         },
         Item {
           id: Some(inscription_id(2)),
           attributes: Attributes::default(),
+          index: None,
         },
       ],
       attributes: Attributes {
@@ -397,6 +469,7 @@ mod tests {
           items: vec![("hello".into(), Trait::Bool(true))],
         },
       },
+      txids: Vec::new(),
     };
 
     assert_eq!(Properties::from_cbor(&buffer), expected);
@@ -545,5 +618,142 @@ mod tests {
       &[Map(1), U8(0), Bytes(&[])],
       "invalid inscription ID length 0",
     );
+  }
+
+  #[test]
+  fn packed_round_trip() {
+    let properties = Properties {
+      gallery: vec![
+        Item {
+          id: Some(inscription_id(0)),
+          attributes: Attributes {
+            title: Some("foo".into()),
+            ..default()
+          },
+          index: None,
+        },
+        Item {
+          id: Some(inscription_id(1)),
+          attributes: Attributes::default(),
+          index: None,
+        },
+      ],
+      attributes: Attributes::default(),
+      txids: Vec::new(),
+    };
+
+    let packed = properties.to_cbor_packed().unwrap();
+    assert_eq!(Properties::from_cbor(&packed), properties);
+  }
+
+  #[test]
+  fn packed_non_zero_index() {
+    let id = InscriptionId {
+      txid: inscription_id(0).txid,
+      index: 5,
+    };
+
+    let properties = Properties {
+      gallery: vec![Item {
+        id: Some(id),
+        attributes: Attributes::default(),
+        index: None,
+      }],
+      attributes: Attributes::default(),
+      txids: Vec::new(),
+    };
+
+    let packed = properties.to_cbor_packed().unwrap();
+    assert_eq!(Properties::from_cbor(&packed), properties);
+  }
+
+  #[test]
+  fn packed_shared_txids() {
+    let txid = inscription_id(0).txid;
+
+    let properties = Properties {
+      gallery: vec![
+        Item {
+          id: Some(InscriptionId { txid, index: 0 }),
+          attributes: Attributes::default(),
+          index: None,
+        },
+        Item {
+          id: Some(InscriptionId { txid, index: 1 }),
+          attributes: Attributes::default(),
+          index: None,
+        },
+        Item {
+          id: Some(InscriptionId { txid, index: 2 }),
+          attributes: Attributes::default(),
+          index: None,
+        },
+      ],
+      attributes: Attributes::default(),
+      txids: Vec::new(),
+    };
+
+    let packed = properties.to_cbor_packed().unwrap();
+    assert_eq!(Properties::from_cbor(&packed), properties);
+  }
+
+  #[test]
+  fn packed_invalid_txids_length_produces_empty_gallery() {
+    let mut buffer = Vec::new();
+
+    {
+      Encoder::new(&mut buffer)
+        .map(2)
+        .unwrap()
+        .u8(0)
+        .unwrap()
+        .array(1)
+        .unwrap()
+        .map(0)
+        .unwrap()
+        .u8(2)
+        .unwrap()
+        .bytes(&[0; 31])
+        .unwrap();
+    }
+
+    assert_eq!(
+      Properties::from_cbor(&buffer),
+      Properties {
+        gallery: Vec::new(),
+        attributes: Attributes::default(),
+        txids: Vec::new(),
+      },
+    );
+  }
+
+  #[test]
+  fn packed_empty_gallery_returns_none() {
+    let properties = Properties {
+      gallery: Vec::new(),
+      attributes: Attributes {
+        title: Some("foo".into()),
+        ..default()
+      },
+      txids: Vec::new(),
+    };
+
+    assert!(properties.to_cbor_packed().is_none());
+  }
+
+  #[test]
+  fn old_format_decode_still_works() {
+    let properties = Properties {
+      gallery: vec![Item {
+        id: Some(inscription_id(0)),
+        attributes: Attributes::default(),
+        index: None,
+      }],
+      attributes: Attributes::default(),
+      txids: Vec::new(),
+    };
+
+    let cbor = properties.to_cbor().unwrap();
+    assert_eq!(Properties::from_cbor(&cbor), properties);
   }
 }

@@ -2958,6 +2958,7 @@ inscriptions:
             items: vec![("foo".into(), Trait::Bool(true))],
           },
         },
+        index: None,
       },
     },
   );
@@ -2977,6 +2978,7 @@ inscriptions:
             items: vec![("bar".into(), Trait::Bool(false))],
           },
         },
+        index: None,
       },
     },
   );
