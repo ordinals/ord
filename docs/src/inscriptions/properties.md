@@ -21,14 +21,14 @@ of the properties value is as follows:
 Properties = {
   ? 0: [*Item],
   ? 1: Attributes,
-  ? 2: bytes, ; gallery item TXIDs
+  ? 2: bytes, ; concatenated gallery item transaction IDs
   * any => any,
 }
 
 Item = {
   ? 0: bytes .size (32..36),
   ? 1: Attributes,
-  ? 2: uint, ; inscription index
+  ? 2: uint, ; inscription ID index
   * any => any,
 }
 
