@@ -107,14 +107,14 @@ the `--gallery` option.
 
 Inscription IDs consist of a 32-byte bitcoin transaction ID and an 0-4 byte
 integer index, defaulting to zero if omitted. This transaction ID is
-effectively incompressable, since it is an as-if-random cryptographic hash
+effectively incompressible, since it is an as-if-random cryptographic hash
 digest.
 
-Interleaving this incompressable data with the rest of the properties CBOR can
-reduce the compressability of the entire properties CBOR object.
+Interleaving this incompressible data with the rest of the properties CBOR can
+reduce the compressibility of the entire properties CBOR object.
 
-In order to allow for better compressability, an alternate encoding of gallery
-item inscription IDs is allowed. Both schemes are interchangable and must be
+In order to allow for better compressibility, an alternate encoding of gallery
+item inscription IDs is allowed. Both schemes are interchangeable and must be
 accepted and displayed identically.
 
 The inline encoding is describe above, each gallery item's 32 to 36 byte
