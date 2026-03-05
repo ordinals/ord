@@ -21,14 +21,14 @@ of the properties value is as follows:
 Properties = {
   ? 0: [*Item],
   ? 1: Attributes,
-  ? 2: bytes,       ; concatenated TXIDs (N × 32 bytes)
+  ? 2: bytes, ; gallery item TXIDs
   * any => any,
 }
 
 Item = {
   ? 0: bytes .size (32..36),
   ? 1: Attributes,
-  ? 2: uint,         ; inscription index (default 0)
+  ? 2: uint, ; inscription index
   * any => any,
 }
 
@@ -103,24 +103,26 @@ including an array of string inscription IDs of under the `gallery` key of the
 inscription entry in the batch file, or when using `ord wallet inscribe` using
 the `--gallery` option.
 
-### TXID Blob
+### Item Inscription IDs
 
-As an alternative to storing a full inscription ID in each `Item`, gallery
-item TXIDs may be stored in a single byte string in Properties key `2`. When
-present, the byte string contains all gallery item TXIDs concatenated in order,
-so its length must be exactly N × 32 bytes where N is the number of items.
+Inscription IDs consist of a 32-byte bitcoin transaction ID and an 0-4 byte
+integer index, defaulting to zero if omitted. This transaction ID is
+effectively incompressable, since it is an as-if-random cryptographic hash
+digest.
 
-Each item then omits its inline ID (key `0`) and instead carries only its
-inscription index within the transaction in Item key `2` (default 0, omitted
-when 0). The item's full inscription ID is reconstructed from the TXID at
-position `i` in the blob combined with the item's index.
+Interleaving this incompressable data with the rest of the properties CBOR can
+reduce the compressability of the entire properties CBOR object.
 
-This encoding is more compressible than inline IDs because Brotli can
-efficiently back-reference repeated 32-byte TXIDs in the blob, while inline
-IDs interleaved with trait data prevent effective compression.
+In order to allow for better compressability, an alternate encoding of gallery
+item inscription IDs is allowed. Both schemes are interchangable and must be
+accepted and displayed identically.
 
-If the TXID blob is present but its length is not exactly N × 32, the gallery
-is treated as empty.
+The inline encoding is describe above, each gallery item's 32 to 36 byte
+inscription ID is stored under `Item` key `0`.
+
+The packed encoding stores the concatenated 32-byte transaction IDs of all
+inscription IDs under `Properties` key `2`, with the indices stored as integers
+under `Item` key `2`. Omitted indices default to the value `0`.
 
 Attributes
 ----------
