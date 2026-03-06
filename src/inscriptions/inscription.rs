@@ -107,9 +107,7 @@ impl Inscription {
       return Ok((None, None));
     };
 
-    let Some(packed) = properties.to_packed_cbor() else {
-      return Ok((None, None));
-    };
+    let packed = properties.to_packed_cbor().unwrap();
 
     let mut candidates = vec![(inline.clone(), None), (packed.clone(), None)];
 

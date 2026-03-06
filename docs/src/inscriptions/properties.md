@@ -116,7 +116,7 @@ In order to allow for better compressibility, an alternate encoding of gallery
 item inscription IDs is allowed. Both schemes are interchangeable and must be
 accepted and displayed identically.
 
-The inline encoding is describe above, each gallery item's 32 to 36 byte
+The inline encoding is describe above, where each gallery item's 32 to 36 byte
 inscription ID is stored under `Item` key `0`.
 
 The packed encoding stores the concatenated 32-byte transaction IDs of all
