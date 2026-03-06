@@ -106,9 +106,8 @@ the `--gallery` option.
 ### Item Inscription IDs
 
 Inscription IDs consist of a 32-byte bitcoin transaction ID and an 0-4 byte
-integer index, defaulting to zero if omitted. This transaction ID is
-effectively incompressible, since it is an as-if-random cryptographic hash
-digest.
+integer index, defaulting to zero if omitted. Transaction IDs are effectively
+incompressible, since they are as-if-random cryptographic hash digests.
 
 Interleaving this incompressible data with the rest of the properties CBOR can
 reduce the compressibility of the entire properties CBOR object.
