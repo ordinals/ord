@@ -59,20 +59,18 @@ impl Properties {
   pub(crate) fn from_cbor(cbor: &[u8]) -> Self {
     let mut properties = minicbor::decode::<Self>(cbor).unwrap_or_default();
 
-    if !properties.txids.is_empty() {
-      if properties.txids.len() == properties.gallery.len() * 32 {
-        for (i, item) in properties.gallery.iter_mut().enumerate() {
-          if item.id.is_none() {
-            let txid = Txid::from_slice(&properties.txids[i * 32..(i + 1) * 32]).unwrap();
-            item.id = Some(InscriptionId {
-              txid,
-              index: item.index.unwrap_or_default(),
-            });
-          }
-        }
-      }
-      properties.txids = Vec::new();
+    for (item, txid) in properties
+      .gallery
+      .iter_mut()
+      .zip(properties.txids.as_chunks::<32>().0)
+    {
+      item.id = Some(InscriptionId {
+        txid: Txid::from_slice(txid).unwrap(),
+        index: item.index.unwrap_or_default(),
+      });
     }
+
+    properties.txids = Vec::new();
 
     for item in &mut properties.gallery {
       item.index = None;
