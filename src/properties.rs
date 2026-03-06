@@ -102,7 +102,7 @@ impl Properties {
 
     assert!(txids.is_empty());
 
-    if gallery.is_empty() {
+    if *self == Self::default() {
       return None;
     }
 
@@ -358,6 +358,7 @@ mod tests {
   #[test]
   fn encode() {
     assert_eq!(Properties::default().to_inline_cbor(), None);
+    assert_eq!(Properties::default().to_packed_cbor(), None);
 
     let mut buffer = Vec::new();
 
@@ -728,7 +729,7 @@ mod tests {
   }
 
   #[test]
-  fn packed_empty_gallery_returns_none() {
+  fn packed_empty_gallery() {
     let properties = Properties {
       gallery: Vec::new(),
       attributes: Attributes {
@@ -738,7 +739,7 @@ mod tests {
       txids: Vec::new(),
     };
 
-    assert!(properties.to_packed_cbor().is_none());
+    assert!(properties.to_packed_cbor().is_some());
   }
 
   #[test]
