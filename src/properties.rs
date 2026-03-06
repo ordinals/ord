@@ -741,6 +741,147 @@ mod tests {
   }
 
   #[test]
+  fn fewer_packed_txids_with_inline_ids_is_valid() {
+    let mut buffer = Vec::new();
+
+    {
+      Encoder::new(&mut buffer)
+        .map(2)
+        .unwrap()
+        .u8(0)
+        .unwrap()
+        .array(2)
+        .unwrap()
+        .map(0)
+        .unwrap()
+        .map(1)
+        .unwrap()
+        .u8(0)
+        .unwrap()
+        .bytes(&inscription_id(1).value())
+        .unwrap()
+        .u8(2)
+        .unwrap()
+        .bytes(&inscription_id(0).txid.to_byte_array())
+        .unwrap();
+    }
+
+    assert_eq!(
+      Properties::from_cbor(&buffer),
+      Properties {
+        gallery: vec![
+          Item {
+            id: Some(inscription_id(0)),
+            attributes: Attributes::default(),
+            index: None,
+          },
+          Item {
+            id: Some(inscription_id(1)),
+            attributes: Attributes::default(),
+            index: None,
+          },
+        ],
+        attributes: Attributes::default(),
+        txids: Vec::new(),
+      },
+    );
+  }
+
+  #[test]
+  fn fewer_packed_txids_without_inline_ids_clears_gallery() {
+    let mut buffer = Vec::new();
+
+    {
+      Encoder::new(&mut buffer)
+        .map(2)
+        .unwrap()
+        .u8(0)
+        .unwrap()
+        .array(2)
+        .unwrap()
+        .map(0)
+        .unwrap()
+        .map(0)
+        .unwrap()
+        .u8(2)
+        .unwrap()
+        .bytes(&inscription_id(0).txid.to_byte_array())
+        .unwrap();
+    }
+
+    assert_eq!(
+      Properties::from_cbor(&buffer),
+      Properties {
+        gallery: Vec::new(),
+        attributes: Attributes::default(),
+        txids: Vec::new(),
+      },
+    );
+  }
+
+  #[test]
+  fn extra_packed_txids_are_ignored() {
+    let mut txids = Vec::new();
+    txids.extend_from_slice(&inscription_id(0).txid.to_byte_array());
+    txids.extend_from_slice(&inscription_id(1).txid.to_byte_array());
+
+    let mut buffer = Vec::new();
+
+    {
+      Encoder::new(&mut buffer)
+        .map(2)
+        .unwrap()
+        .u8(0)
+        .unwrap()
+        .array(1)
+        .unwrap()
+        .map(0)
+        .unwrap()
+        .u8(2)
+        .unwrap()
+        .bytes(&txids)
+        .unwrap();
+    }
+
+    assert_eq!(
+      Properties::from_cbor(&buffer),
+      Properties {
+        gallery: vec![Item {
+          id: Some(inscription_id(0)),
+          attributes: Attributes::default(),
+          index: None,
+        }],
+        attributes: Attributes::default(),
+        txids: Vec::new(),
+      },
+    );
+  }
+
+  #[test]
+  fn packed_round_trip_with_attributes_and_non_zero_index() {
+    let id = InscriptionId {
+      txid: inscription_id(0).txid,
+      index: 3,
+    };
+
+    let properties = Properties {
+      gallery: vec![Item {
+        id: Some(id),
+        attributes: Attributes {
+          title: Some("foo".into()),
+          ..default()
+        },
+        index: None,
+      }],
+      attributes: Attributes::default(),
+      txids: Vec::new(),
+    };
+
+    let packed = properties.to_packed_cbor().unwrap();
+    assert_eq!(Properties::from_cbor(&packed), properties);
+  }
+
+  #[test]
   fn old_format_decode_still_works() {
     let properties = Properties {
       gallery: vec![Item {
