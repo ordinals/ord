@@ -85,7 +85,7 @@ impl Properties {
     properties
   }
 
-  pub(crate) fn to_cbor(&self) -> Option<Vec<u8>> {
+  pub(crate) fn to_inline_cbor(&self) -> Option<Vec<u8>> {
     if *self == Self::default() {
       return None;
     }
@@ -93,7 +93,7 @@ impl Properties {
     Some(minicbor::to_vec(self).unwrap())
   }
 
-  pub(crate) fn to_cbor_packed(&self) -> Option<Vec<u8>> {
+  pub(crate) fn to_packed_cbor(&self) -> Option<Vec<u8>> {
     let Properties {
       attributes,
       gallery,
@@ -357,7 +357,7 @@ mod tests {
 
   #[test]
   fn encode() {
-    assert_eq!(Properties::default().to_cbor(), None);
+    assert_eq!(Properties::default().to_inline_cbor(), None);
 
     let mut buffer = Vec::new();
 
@@ -474,7 +474,7 @@ mod tests {
 
     assert_eq!(Properties::from_cbor(&buffer), expected);
 
-    assert_eq!(expected.to_cbor(), Some(buffer.clone()));
+    assert_eq!(expected.to_inline_cbor(), Some(buffer.clone()));
   }
 
   #[test]
@@ -642,7 +642,7 @@ mod tests {
       txids: Vec::new(),
     };
 
-    let packed = properties.to_cbor_packed().unwrap();
+    let packed = properties.to_packed_cbor().unwrap();
     assert_eq!(Properties::from_cbor(&packed), properties);
   }
 
@@ -663,7 +663,7 @@ mod tests {
       txids: Vec::new(),
     };
 
-    let packed = properties.to_cbor_packed().unwrap();
+    let packed = properties.to_packed_cbor().unwrap();
     assert_eq!(Properties::from_cbor(&packed), properties);
   }
 
@@ -693,7 +693,7 @@ mod tests {
       txids: Vec::new(),
     };
 
-    let packed = properties.to_cbor_packed().unwrap();
+    let packed = properties.to_packed_cbor().unwrap();
     assert_eq!(Properties::from_cbor(&packed), properties);
   }
 
@@ -738,7 +738,7 @@ mod tests {
       txids: Vec::new(),
     };
 
-    assert!(properties.to_cbor_packed().is_none());
+    assert!(properties.to_packed_cbor().is_none());
   }
 
   #[test]
@@ -753,7 +753,7 @@ mod tests {
       txids: Vec::new(),
     };
 
-    let cbor = properties.to_cbor().unwrap();
+    let cbor = properties.to_inline_cbor().unwrap();
     assert_eq!(Properties::from_cbor(&cbor), properties);
   }
 }

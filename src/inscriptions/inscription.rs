@@ -69,48 +69,7 @@ impl Inscription {
       (None, None, None)
     };
 
-    let cbor_candidates = [properties.to_cbor(), properties.to_cbor_packed()];
-
-    let (properties, property_encoding) = {
-      let mut best: Option<(Vec<u8>, Option<Vec<u8>>)> = None;
-
-      for cbor in cbor_candidates.into_iter().flatten() {
-        let (final_bytes, encoding) = if compress {
-          let len = cbor.len();
-
-          ensure! {
-            len <= MAX_COMPRESSED_PROPERTIES_SIZE,
-            "properties size of {len} bytes exceeds {MAX_COMPRESSED_PROPERTIES_SIZE} byte limit",
-          }
-
-          let (compressed, encoding) =
-            Self::compress(BrotliEncoderMode::BROTLI_MODE_GENERIC, cbor)?;
-
-          if encoding.is_some() {
-            ensure! {
-              len / compressed.len() <= MAX_PROPERTIES_COMPRESSION_RATIO,
-              "property compression over {MAX_PROPERTIES_COMPRESSION_RATIO}:1",
-            }
-          }
-
-          (compressed, encoding)
-        } else {
-          (cbor, None)
-        };
-
-        if best
-          .as_ref()
-          .is_none_or(|(b, _)| final_bytes.len() < b.len())
-        {
-          best = Some((final_bytes, encoding));
-        }
-      }
-
-      match best {
-        Some((bytes, encoding)) => (Some(bytes), encoding),
-        None => (None, None),
-      }
-    };
+    let (properties, property_encoding) = Self::encode_properties(compress, &properties)?;
 
     Ok(Self {
       body,
@@ -138,6 +97,58 @@ impl Inscription {
     }
 
     bytes
+  }
+
+  fn encode_properties(
+    compress: bool,
+    properties: &Properties,
+  ) -> Result<(Option<Vec<u8>>, Option<Vec<u8>>)> {
+    let Some(inline) = properties.to_inline_cbor() else {
+      return Ok((None, None));
+    };
+
+    let Some(packed) = properties.to_packed_cbor() else {
+      return Ok((None, None));
+    };
+
+    let mut candidates = vec![(inline.clone(), None), (packed.clone(), None)];
+
+    if compress {
+      if let (cbor, Some(encoding)) = Self::compress_properties(inline)? {
+        candidates.push((cbor, Some(encoding)))
+      }
+
+      if let (cbor, Some(encoding)) = Self::compress_properties(packed)? {
+        candidates.push((cbor, Some(encoding)))
+      }
+    }
+
+    let (bytes, encoding) = candidates
+      .into_iter()
+      .min_by_key(|(bytes, _)| bytes.len())
+      .unwrap();
+
+    Ok((Some(bytes), encoding))
+  }
+
+  fn compress_properties(cbor: Vec<u8>) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+    let len = cbor.len();
+
+    ensure! {
+      len <= MAX_COMPRESSED_PROPERTIES_SIZE,
+      "properties size of {len} bytes exceeds {MAX_COMPRESSED_PROPERTIES_SIZE} byte limit",
+    }
+
+    let (compressed, encoding) = Self::compress(BrotliEncoderMode::BROTLI_MODE_GENERIC, cbor)?;
+
+    if encoding.is_some() {
+      ensure! {
+        len / compressed.len() <= MAX_PROPERTIES_COMPRESSION_RATIO,
+        "property compression over {MAX_PROPERTIES_COMPRESSION_RATIO}:1",
+      }
+    }
+
+    Ok((compressed, encoding))
   }
 
   fn compress(mode: BrotliEncoderMode, data: Vec<u8>) -> Result<(Vec<u8>, Option<Vec<u8>>), Error> {
@@ -1178,7 +1189,7 @@ mod tests {
       ..default()
     };
 
-    let cbor = properties.to_cbor().unwrap();
+    let cbor = properties.to_inline_cbor().unwrap();
 
     let inscription = Inscription::new(
       Chain::Mainnet,

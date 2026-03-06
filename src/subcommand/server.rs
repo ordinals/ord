@@ -5109,7 +5109,7 @@ mod tests {
             }],
             ..default()
           }
-          .to_cbor(),
+          .to_inline_cbor(),
           ..default()
         }
         .to_witness(),
@@ -5689,7 +5689,7 @@ next
           Inscription {
             content_type: Some("image/png".into()),
             body: Some("gallery".into()),
-            properties: properties.to_cbor(),
+            properties: properties.to_inline_cbor(),
             ..default()
           }
           .to_witness(),
@@ -5788,7 +5788,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("gallery".into()),
-            properties: properties.to_cbor(),
+            properties: properties.to_inline_cbor(),
             ..default()
           }
           .to_witness(),
@@ -5858,7 +5858,7 @@ next
               }],
               ..default()
             }
-            .to_cbor(),
+            .to_inline_cbor(),
             ..default()
           }
           .to_witness(),
@@ -5919,7 +5919,7 @@ next
                 }],
                 ..default()
               }
-              .to_cbor(),
+              .to_inline_cbor(),
               ..default()
             }
             .to_witness(),
@@ -6001,7 +6001,7 @@ next
             }],
             ..default()
           }
-          .to_cbor(),
+          .to_inline_cbor(),
           ..default()
         }
         .to_witness(),
@@ -6027,7 +6027,7 @@ next
               }],
               ..default()
             }
-            .to_cbor(),
+            .to_inline_cbor(),
             ..default()
           }
           .to_witness(),
@@ -6342,7 +6342,7 @@ next
             }],
             ..default()
           }
-          .to_cbor(),
+          .to_inline_cbor(),
           ..default()
         }
         .to_witness(),
@@ -6515,7 +6515,7 @@ next
         Inscription {
           content_type: Some("text/plain".into()),
           body: Some("gallery".into()),
-          properties: properties.to_cbor(),
+          properties: properties.to_inline_cbor(),
           ..default()
         }
         .to_witness(),
