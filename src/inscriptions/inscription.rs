@@ -1341,14 +1341,14 @@ mod tests {
     {
       let properties = Properties {
         gallery: (0..2)
-          .map(|i: u32| {
+          .map(|i: u8| {
             let mut txid = [0u8; 32];
             for (j, byte) in txid.iter_mut().enumerate() {
-              *byte = (i as u8).wrapping_mul(17).wrapping_add(j as u8);
+              *byte = i.wrapping_mul(17).wrapping_add(j.try_into().unwrap());
             }
             item_with_attributes(
               Txid::from_byte_array(txid),
-              100 + i,
+              (100 + i).into(),
               &format!("title-{i:x}"),
             )
           })
