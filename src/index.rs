@@ -1640,6 +1640,24 @@ impl Index {
     )
   }
 
+  pub fn missing_inscriptions(
+    &self,
+    inscription_ids: &[InscriptionId],
+  ) -> Result<Vec<InscriptionId>> {
+    let rtx = self.database.begin_read()?;
+    let table = rtx.open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?;
+
+    let mut missing = Vec::new();
+
+    for &inscription_id in inscription_ids {
+      if table.get(&inscription_id.store())?.is_none() {
+        missing.push(inscription_id);
+      }
+    }
+
+    Ok(missing)
+  }
+
   pub fn get_inscriptions_on_output_with_satpoints(
     &self,
     outpoint: OutPoint,

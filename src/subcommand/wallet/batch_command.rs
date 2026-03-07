@@ -18,12 +18,28 @@ impl Batch {
 
     let batchfile = batch::File::load(&self.batch)?;
 
-    for inscription in &batchfile.inscriptions {
-      for item in &inscription.gallery {
-        ensure! {
-          wallet.inscription_exists(item.id)?,
-          "gallery item does not exist: {}", item.id,
-        }
+    let gallery_ids = batchfile
+      .inscriptions
+      .iter()
+      .flat_map(|inscription| inscription.gallery.iter().map(|item| item.id))
+      .collect::<BTreeSet<InscriptionId>>()
+      .into_iter()
+      .collect::<Vec<InscriptionId>>();
+
+    if !gallery_ids.is_empty() {
+      let missing = wallet.missing_inscriptions(&gallery_ids)?;
+
+      if let [id] = missing.as_slice() {
+        bail!("gallery item does not exist: {id}");
+      } else if !missing.is_empty() {
+        bail!(
+          "gallery items do not exist: {}",
+          missing
+            .iter()
+            .map(|id| id.to_string())
+            .collect::<Vec<_>>()
+            .join(", "),
+        );
       }
     }
 

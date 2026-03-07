@@ -61,17 +61,34 @@ impl Inscribe {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let chain = wallet.chain();
 
+    let mut ids_to_check = self.gallery.clone();
+
     if let Some(delegate) = self.delegate {
-      ensure! {
-        wallet.inscription_exists(delegate)?,
-        "delegate {delegate} does not exist"
-      }
+      ids_to_check.push(delegate);
     }
 
-    for inscription_id in &self.gallery {
-      ensure! {
-        wallet.inscription_exists(*inscription_id)?,
-        "gallery item does not exist: {inscription_id}",
+    if !ids_to_check.is_empty() {
+      let missing = wallet.missing_inscriptions(&ids_to_check)?;
+
+      if !missing.is_empty() {
+        if let Some(delegate) = self.delegate
+          && missing.contains(&delegate)
+        {
+          bail!("delegate {delegate} does not exist");
+        }
+
+        if missing.len() == 1 {
+          bail!("gallery item does not exist: {}", missing[0]);
+        } else {
+          bail!(
+            "gallery items do not exist: {}",
+            missing
+              .iter()
+              .map(|id| id.to_string())
+              .collect::<Vec<_>>()
+              .join(", "),
+          );
+        }
       }
     }
 
