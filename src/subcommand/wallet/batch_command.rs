@@ -18,28 +18,60 @@ impl Batch {
 
     let batchfile = batch::File::load(&self.batch)?;
 
-    let gallery_ids = batchfile
+    let delegate_ids = batchfile
+      .inscriptions
+      .iter()
+      .filter_map(|entry| entry.delegate)
+      .collect::<BTreeSet<InscriptionId>>();
+
+    let ids_to_check = batchfile
       .inscriptions
       .iter()
       .flat_map(|inscription| inscription.gallery.iter().map(|item| item.id))
+      .chain(delegate_ids.iter().copied())
       .collect::<BTreeSet<InscriptionId>>()
       .into_iter()
       .collect::<Vec<InscriptionId>>();
 
-    if !gallery_ids.is_empty() {
-      let missing = wallet.missing_inscriptions(&gallery_ids)?;
+    if !ids_to_check.is_empty() {
+      let missing = wallet.missing_inscriptions(&ids_to_check)?;
 
-      if let [id] = missing.as_slice() {
-        bail!("gallery item does not exist: {id}");
-      } else if !missing.is_empty() {
-        bail!(
-          "gallery items do not exist: {}",
-          missing
-            .iter()
-            .map(|id| id.to_string())
-            .collect::<Vec<_>>()
-            .join(", "),
-        );
+      if !missing.is_empty() {
+        let missing_delegates = missing
+          .iter()
+          .filter(|id| delegate_ids.contains(id))
+          .collect::<Vec<_>>();
+
+        if let [id] = missing_delegates.as_slice() {
+          bail!("delegate {id} does not exist");
+        } else if !missing_delegates.is_empty() {
+          bail!(
+            "delegates do not exist: {}",
+            missing_delegates
+              .iter()
+              .map(|id| id.to_string())
+              .collect::<Vec<_>>()
+              .join(", "),
+          );
+        }
+
+        let missing_gallery = missing
+          .iter()
+          .filter(|id| !delegate_ids.contains(id))
+          .collect::<Vec<_>>();
+
+        if let [id] = missing_gallery.as_slice() {
+          bail!("gallery item does not exist: {id}");
+        } else if !missing_gallery.is_empty() {
+          bail!(
+            "gallery items do not exist: {}",
+            missing_gallery
+              .iter()
+              .map(|id| id.to_string())
+              .collect::<Vec<_>>()
+              .join(", "),
+          );
+        }
       }
     }
 

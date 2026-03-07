@@ -61,11 +61,14 @@ impl Inscribe {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let chain = wallet.chain();
 
-    let mut ids_to_check = self.gallery.clone();
-
-    if let Some(delegate) = self.delegate {
-      ids_to_check.push(delegate);
-    }
+    let ids_to_check = self
+      .gallery
+      .iter()
+      .copied()
+      .chain(self.delegate)
+      .collect::<BTreeSet<InscriptionId>>()
+      .into_iter()
+      .collect::<Vec<InscriptionId>>();
 
     if !ids_to_check.is_empty() {
       let missing = wallet.missing_inscriptions(&ids_to_check)?;
@@ -77,8 +80,8 @@ impl Inscribe {
           bail!("delegate {delegate} does not exist");
         }
 
-        if missing.len() == 1 {
-          bail!("gallery item does not exist: {}", missing[0]);
+        if let [id] = missing.as_slice() {
+          bail!("gallery item does not exist: {id}");
         } else {
           bail!(
             "gallery items do not exist: {}",

@@ -132,31 +132,6 @@ impl File {
     Vec<Amount>,
     Vec<Address>,
   )> {
-    let delegate_ids = self
-      .inscriptions
-      .iter()
-      .filter_map(|entry| entry.delegate)
-      .collect::<BTreeSet<InscriptionId>>()
-      .into_iter()
-      .collect::<Vec<InscriptionId>>();
-
-    if !delegate_ids.is_empty() {
-      let missing = wallet.missing_inscriptions(&delegate_ids)?;
-
-      if let [id] = missing.as_slice() {
-        bail!("delegate {id} does not exist");
-      } else if !missing.is_empty() {
-        bail!(
-          "delegates do not exist: {}",
-          missing
-            .iter()
-            .map(|id| id.to_string())
-            .collect::<Vec<_>>()
-            .join(", "),
-        );
-      }
-    }
-
     let mut inscriptions = Vec::new();
     let mut reveal_satpoints = Vec::new();
     let mut postages = Vec::new();
