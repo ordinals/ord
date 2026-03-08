@@ -707,6 +707,10 @@ impl Index {
   }
 
   pub fn export(&self, filename: &String, include_addresses: bool) -> Result {
+    if include_addresses && !self.index_addresses {
+      bail!("--include-addresses requires index built with --index-addresses");
+    }
+
     let mut writer = BufWriter::new(File::create(filename)?);
     let rtx = self.database.begin_read()?;
 
@@ -749,26 +753,15 @@ impl Index {
         let address = if satpoint.outpoint == unbound_outpoint() {
           "unbound".to_string()
         } else {
-          let script_pubkey = if self.index_addresses {
-            ScriptBuf::from_bytes(
-              outpoint_to_utxo_entry
-                .get(&satpoint.outpoint.store())?
-                .unwrap()
-                .value()
-                .parse(self)
-                .script_pubkey()
-                .to_vec(),
-            )
-          } else {
-            self
-              .get_transaction(satpoint.outpoint.txid)?
+          let script_pubkey = ScriptBuf::from_bytes(
+            outpoint_to_utxo_entry
+              .get(&satpoint.outpoint.store())?
               .unwrap()
-              .output
-              .into_iter()
-              .nth(satpoint.outpoint.vout.try_into().unwrap())
-              .unwrap()
-              .script_pubkey
-          };
+              .value()
+              .parse(self)
+              .script_pubkey()
+              .to_vec(),
+          );
 
           self
             .settings
