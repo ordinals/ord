@@ -118,3 +118,6 @@ path = "src/lib.rs"
 [[test]]
 name = "integration"
 path = "tests/lib.rs"
+
+[profile.dev]
+debug = "line-tables-only"
