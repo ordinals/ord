@@ -34,7 +34,7 @@ impl Batch {
 
     ensure! {
       missing.is_empty(),
-      "referenced inscriptions do not exist: {}",
+      "inscriptions referenced in batchfile do not exist: {}",
       missing.into_iter().map(|id| id.to_string()).collect::<Vec<String>>().join(", "),
     }
 
