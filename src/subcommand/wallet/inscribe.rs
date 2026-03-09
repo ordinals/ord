@@ -61,7 +61,7 @@ impl Inscribe {
   pub(crate) fn run(self, wallet: Wallet) -> SubcommandResult {
     let chain = wallet.chain();
 
-    let ids_to_check = self
+    let ids = self
       .gallery
       .iter()
       .copied()
@@ -70,29 +70,12 @@ impl Inscribe {
       .into_iter()
       .collect::<Vec<InscriptionId>>();
 
-    if !ids_to_check.is_empty() {
-      let missing = wallet.missing_inscriptions(&ids_to_check)?;
+    let missing = wallet.missing_inscriptions(&ids)?;
 
-      if !missing.is_empty() {
-        if let Some(delegate) = self.delegate
-          && missing.contains(&delegate)
-        {
-          bail!("delegate {delegate} does not exist");
-        }
-
-        if let [id] = missing.as_slice() {
-          bail!("gallery item does not exist: {id}");
-        } else {
-          bail!(
-            "gallery items do not exist: {}",
-            missing
-              .iter()
-              .map(|id| id.to_string())
-              .collect::<Vec<_>>()
-              .join(", "),
-          );
-        }
-      }
+    ensure! {
+      missing.is_empty(),
+      "referenced inscriptions do not exist: {}",
+      missing.into_iter().map(|id| id.to_string()).collect::<Vec<String>>().join(", "),
     }
 
     batch::Plan {
