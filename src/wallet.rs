@@ -250,7 +250,11 @@ impl Wallet {
       .send()?;
 
     if !response.status().is_success() {
-      bail!("failed to check missing inscriptions: {}", response.text()?);
+      bail!(
+        "failed to check missing inscriptions: {} {}",
+        response.status(),
+        response.text()?,
+      );
     }
 
     Ok(response.json()?)
