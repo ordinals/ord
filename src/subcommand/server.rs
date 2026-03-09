@@ -153,16 +153,7 @@ impl Server {
     handle: Handle<SocketAddr>,
     http_port_tx: Option<std::sync::mpsc::Sender<u16>>,
   ) -> SubcommandResult {
-    let runtime = if cfg!(test) || settings.integration_test() {
-      tokio::runtime::Builder::new_multi_thread()
-        .worker_threads(1)
-        .enable_all()
-        .build()?
-    } else {
-      Runtime::new()?
-    };
-
-    runtime.block_on(async {
+    settings.runtime()?.block_on(async {
       let index_clone = index.clone();
       let integration_test = settings.integration_test();
 

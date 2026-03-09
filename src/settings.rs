@@ -599,6 +599,18 @@ impl Settings {
   pub fn server_url(&self) -> Option<&str> {
     self.server_url.as_deref()
   }
+
+  pub(crate) fn runtime(&self) -> Result<Runtime> {
+    if cfg!(test) || self.integration_test() {
+      tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(1)
+        .enable_all()
+        .build()
+    } else {
+      Runtime::new()
+    }
+    .context("failed to initialize runtime")
+  }
 }
 
 #[cfg(test)]
