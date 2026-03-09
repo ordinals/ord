@@ -18,61 +18,24 @@ impl Batch {
 
     let batchfile = batch::File::load(&self.batch)?;
 
-    let delegate_ids = batchfile
-      .inscriptions
-      .iter()
-      .filter_map(|entry| entry.delegate)
-      .collect::<BTreeSet<InscriptionId>>();
+    let mut ids = BTreeSet::new();
 
-    let ids_to_check = batchfile
-      .inscriptions
-      .iter()
-      .flat_map(|inscription| inscription.gallery.iter().map(|item| item.id))
-      .chain(delegate_ids.iter().copied())
-      .collect::<BTreeSet<InscriptionId>>()
-      .into_iter()
-      .collect::<Vec<InscriptionId>>();
-
-    if !ids_to_check.is_empty() {
-      let missing = wallet.missing_inscriptions(&ids_to_check)?;
-
-      if !missing.is_empty() {
-        let missing_delegates = missing
-          .iter()
-          .filter(|id| delegate_ids.contains(id))
-          .collect::<Vec<_>>();
-
-        if let [id] = missing_delegates.as_slice() {
-          bail!("delegate {id} does not exist");
-        } else if !missing_delegates.is_empty() {
-          bail!(
-            "delegates do not exist: {}",
-            missing_delegates
-              .iter()
-              .map(|id| id.to_string())
-              .collect::<Vec<_>>()
-              .join(", "),
-          );
-        }
-
-        let missing_gallery = missing
-          .iter()
-          .filter(|id| !delegate_ids.contains(id))
-          .collect::<Vec<_>>();
-
-        if let [id] = missing_gallery.as_slice() {
-          bail!("gallery item does not exist: {id}");
-        } else if !missing_gallery.is_empty() {
-          bail!(
-            "gallery items do not exist: {}",
-            missing_gallery
-              .iter()
-              .map(|id| id.to_string())
-              .collect::<Vec<_>>()
-              .join(", "),
-          );
-        }
+    for inscription in &batchfile.inscriptions {
+      if let Some(delegate) = inscription.delegate {
+        ids.insert(delegate);
       }
+
+      for item in &inscription.gallery {
+        ids.insert(item.id);
+      }
+    }
+
+    let missing = wallet.missing_inscriptions(&ids.into_iter().collect::<Vec<InscriptionId>>())?;
+
+    ensure! {
+      missing.is_empty(),
+      "referenced inscriptions do not exist: {}",
+      missing.into_iter().map(|id| id.to_string()).collect::<Vec<String>>().join(", "),
     }
 
     let parent_info = wallet.get_parent_info(&batchfile.parents)?;

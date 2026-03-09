@@ -238,6 +238,10 @@ impl Wallet {
     &self,
     inscription_ids: &[InscriptionId],
   ) -> Result<Vec<InscriptionId>> {
+    if inscription_ids.is_empty() {
+      return Ok(Vec::new());
+    }
+
     let response = self
       .ord_client
       .post(self.rpc_url.join("/missing").unwrap())
