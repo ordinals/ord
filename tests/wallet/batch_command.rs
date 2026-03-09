@@ -1200,7 +1200,9 @@ inscriptions:
     )
     .core(&core)
     .ord(&ord)
-    .expected_stderr(format!("error: delegate {delegate} does not exist\n"))
+    .expected_stderr(format!(
+      "error: inscriptions referenced in batchfile do not exist: {delegate}\n"
+    ))
     .expected_exit_code(1)
     .run_and_extract_stdout();
 }
@@ -3023,7 +3025,7 @@ inscriptions:
     .core(&core)
     .ord(&ord)
     .expected_stderr(
-      "error: gallery item does not exist: \
+      "error: inscriptions referenced in batchfile do not exist: \
       0000000000000000000000000000000000000000000000000000000000000000i0\n",
     )
     .expected_exit_code(1)
