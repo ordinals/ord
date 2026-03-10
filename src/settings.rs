@@ -607,7 +607,7 @@ impl Settings {
         .enable_all()
         .build()
     } else {
-      Runtime::new()
+      tokio::runtime::Builder::new_current_thread().build()
     }
     .context("failed to initialize runtime")
   }
