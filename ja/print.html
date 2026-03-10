@@ -636,12 +636,14 @@ OP_ENDIF
 <pre><code class="language-cddl">Properties = {
   ? 0: [*Item],
   ? 1: Attributes,
+  ? 2: bytes, ; concatenated gallery item transaction IDs
   * any =&gt; any,
 }
 
 Item = {
   ? 0: bytes .size (32..36),
   ? 1: Attributes,
+  ? 2: uint, ; inscription ID index
   * any =&gt; any,
 }
 
@@ -677,6 +679,12 @@ Trait = bool / int / null / text;
 <p>ギャラリーアイテムは、エクスプローラーのInscriptionの<code>/inscription</code>ページに表示されます。</p>
 <p>ギャラリーは、Inscriptionのコレクションを作成する方法を提供するという点で子要素に似ています。ただし、ギャラリーはパーミッションレスです。誰でも任意のInscriptionを含むギャラリーを作成できます。したがって、ギャラリーに含まれることは出所を意味しません。さらに、このため、ギャラリーに含まれてもギャラリーアイテムの<code>/inscription</code>ページからギャラリーへのバックリンクは作成されません。</p>
 <p>ギャラリーは、<code>ord wallet batch</code>でバッチInscriptionを行う際に、バッチファイルのInscriptionエントリの<code>gallery</code>キーの下に文字列Inscription IDの配列を含めることで作成できます。また、<code>ord wallet inscribe</code>で<code>--gallery</code>オプションを使用することでも作成できます。</p>
+<h3 id="item-inscription-ids"><a class="header" href="#item-inscription-ids">Item Inscription IDs</a></h3>
+<p>Inscription IDs consist of a 32-byte bitcoin transaction ID and an 0-4 byte integer index, defaulting to zero if omitted. Transaction IDs are effectively incompressible, since they are as-if-random cryptographic hash digests.</p>
+<p>Interleaving this incompressible data with the rest of the properties CBOR can reduce the compressibility of the entire properties CBOR object.</p>
+<p>In order to allow for better compressibility, an alternate encoding of gallery item inscription IDs is allowed. Both schemes are interchangeable and must be accepted and displayed identically.</p>
+<p>The inline encoding is described above, where each gallery item's 32 to 36 byte inscription ID is stored under <code>Item</code> key <code>0</code>.</p>
+<p>The packed encoding stores the concatenated 32-byte transaction IDs of all inscription IDs under <code>Properties</code> key <code>2</code>, with the indices stored as integers under <code>Item</code> key <code>2</code>. Omitted indices default to the value <code>0</code>.</p>
 <h2 id="attributes"><a class="header" href="#attributes">Attributes</a></h2>
 <p>Attributes are structured metadata that may be attached to both inscriptions and gallery items.</p>
 <h3 id="traits"><a class="header" href="#traits">Traits</a></h3>

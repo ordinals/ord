@@ -636,12 +636,14 @@ OP_ENDIF
 <pre><code class="language-cddl">Properties = {
   ? 0: [*Item],
   ? 1: Attributes,
+  ? 2: bytes, ; concatenated gallery item transaction IDs
   * any =&gt; any,
 }
 
 Item = {
   ? 0: bytes .size (32..36),
   ? 1: Attributes,
+  ? 2: uint, ; inscription ID index
   * any =&gt; any,
 }
 
@@ -677,6 +679,12 @@ Trait = bool / int / null / text;
 <p>Gallery items are displayed on the inscriptions <code>/inscription</code> page on the explorer.</p>
 <p>Galleries are similar to children, in that they provide a way to create collections of inscriptions. However, galleries are permissionless. Anyone may create a gallery including any inscriptions. Thus, inclusion in a gallery does not imply provenance. Additionally, because of this, inclusion in a gallery does not create a backlink from the gallery item's <code>/inscription</code> page to the gallery.</p>
 <p>Galleries may be created when batch inscribing with <code>ord wallet batch</code> by including an array of string inscription IDs of under the <code>gallery</code> key of the inscription entry in the batch file, or when using <code>ord wallet inscribe</code> using the <code>--gallery</code> option.</p>
+<h3 id="item-inscription-ids"><a class="header" href="#item-inscription-ids">Item Inscription IDs</a></h3>
+<p>Inscription IDs consist of a 32-byte bitcoin transaction ID and an 0-4 byte integer index, defaulting to zero if omitted. Transaction IDs are effectively incompressible, since they are as-if-random cryptographic hash digests.</p>
+<p>Interleaving this incompressible data with the rest of the properties CBOR can reduce the compressibility of the entire properties CBOR object.</p>
+<p>In order to allow for better compressibility, an alternate encoding of gallery item inscription IDs is allowed. Both schemes are interchangeable and must be accepted and displayed identically.</p>
+<p>The inline encoding is described above, where each gallery item's 32 to 36 byte inscription ID is stored under <code>Item</code> key <code>0</code>.</p>
+<p>The packed encoding stores the concatenated 32-byte transaction IDs of all inscription IDs under <code>Properties</code> key <code>2</code>, with the indices stored as integers under <code>Item</code> key <code>2</code>. Omitted indices default to the value <code>0</code>.</p>
 <h2 id="attributes"><a class="header" href="#attributes">Attributes</a></h2>
 <p>Attributes are structured metadata that may be attached to both inscriptions and gallery items.</p>
 <h3 id="traits"><a class="header" href="#traits">Traits</a></h3>
