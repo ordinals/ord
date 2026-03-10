@@ -665,7 +665,7 @@ mod tests {
 
   #[test]
   fn packed_shared_txids() {
-    let txid = inscription_id(0).txid;
+    let txid = txid(0);
 
     let properties = Properties {
       gallery: vec![
