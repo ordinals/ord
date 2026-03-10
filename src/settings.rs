@@ -602,7 +602,9 @@ impl Settings {
 
   pub(crate) fn runtime(&self) -> Result<Runtime> {
     if cfg!(test) || self.integration_test() {
-      tokio::runtime::Builder::new_current_thread().build()
+      tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
     } else {
       Runtime::new()
     }
