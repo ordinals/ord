@@ -647,10 +647,7 @@ mod tests {
 
   #[test]
   fn packed_non_zero_index() {
-    let id = InscriptionId {
-      txid: inscription_id(0).txid,
-      index: 5,
-    };
+    let id = inscription_id(1);
 
     let properties = Properties {
       gallery: vec![Item {
