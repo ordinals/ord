@@ -16,7 +16,7 @@ use {
 #[cbor(map)]
 #[serde(deny_unknown_fields)]
 pub struct Attributes {
-  #[n(0)]
+  #[cbor(n(0))]
   pub title: Option<String>,
   #[cbor(n(1), default, skip_if = "is_default")]
   #[serde(default)]
@@ -27,11 +27,11 @@ pub struct Attributes {
 #[cbor(map)]
 #[serde(deny_unknown_fields)]
 pub struct Item {
-  #[n(0)]
+  #[cbor(n(0))]
   pub id: Option<InscriptionId>,
   #[cbor(n(1), default, skip_if = "is_default")]
   pub attributes: Attributes,
-  #[n(2)]
+  #[cbor(n(2))]
   #[serde(default, skip)]
   pub index: Option<u32>,
 }
