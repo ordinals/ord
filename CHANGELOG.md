@@ -1,6 +1,20 @@
 Changelog
 =========
 
+[0.27.0](https://github.com/ordinals/ord/releases/tag/0.27.0) - 2026-03-10
+--------------------------------------------------------------------------
+
+### Added
+- Add `/missing` to bulk check inscription existance ([#4493](https://github.com/ordinals/ord/pull/4493) by [casey](https://github.com/casey))
+
+### Changed
+- Optionally pack gallery TXIDs to increase compressibility ([#4490](https://github.com/ordinals/ord/pull/4490) by [casey](https://github.com/casey))
+
+### Misc
+- Reduce test thread contention ([#4495](https://github.com/ordinals/ord/pull/4495) by [casey](https://github.com/casey))
+- Don't show hidden inscriptions on /collections or /galleries ([#4488](https://github.com/ordinals/ord/pull/4488) by [casey](https://github.com/casey))
+- Allow missing current index when swapping ([#4487](https://github.com/ordinals/ord/pull/4487) by [casey](https://github.com/casey))
+
 [0.26.0](https://github.com/ordinals/ord/releases/tag/0.26.0) - 2026-02-26
 --------------------------------------------------------------------------
 

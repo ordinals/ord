@@ -1,7 +1,7 @@
 [package]
 name = "ord"
 description = "◉ Ordinal wallet and block explorer"
-version = "0.26.0"
+version = "0.27.0"
 autotests = false
 autobins = false
 
@@ -90,7 +90,7 @@ serde_json.workspace = true
 serde_with.workspace = true
 serde_yaml = "0.9.17"
 sha3 = "0.10.8"
-snafu = "0.8.3"
+snafu = "0.9.0"
 sysinfo = "0.38.0"
 tempfile.workspace = true
 tokio = { version = "1.43.0", features = ["rt-multi-thread"] }
