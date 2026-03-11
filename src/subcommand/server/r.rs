@@ -423,6 +423,110 @@ pub(super) async fn metadata(
   })
 }
 
+pub(super) async fn gallery(
+  Extension(index): Extension<Arc<Index>>,
+  Path(inscription_id): Path<InscriptionId>,
+) -> ServerResult {
+  gallery_paginated(Extension(index), Path((inscription_id, 0))).await
+}
+
+pub(super) async fn gallery_paginated(
+  Extension(index): Extension<Arc<Index>>,
+  Path((id, page)): Path<(InscriptionId, usize)>,
+) -> ServerResult {
+  task::block_in_place(|| {
+    let inscription = index
+      .get_inscription_by_id(id)?
+      .ok_or_not_found(|| format!("inscription {id}"))?;
+
+    let properties = inscription.properties();
+
+    let mut items: Vec<InscriptionId> = properties
+      .gallery
+      .iter()
+      .skip(page.saturating_mul(100))
+      .take(101)
+      .map(|item| item.id())
+      .collect();
+
+    let more = items.len() > 100;
+
+    if more {
+      items.pop();
+    }
+
+    Ok(Json(api::GalleryItems { ids: items, more, page }).into_response())
+  })
+}
+
+pub(super) async fn gallery_inscriptions(
+  Extension(index): Extension<Arc<Index>>,
+  Path(inscription_id): Path<InscriptionId>,
+) -> ServerResult {
+  gallery_inscriptions_paginated(Extension(index), Path((inscription_id, 0))).await
+}
+
+pub(super) async fn gallery_inscriptions_paginated(
+  Extension(index): Extension<Arc<Index>>,
+  Path((id, page)): Path<(InscriptionId, usize)>,
+) -> ServerResult {
+  task::block_in_place(|| {
+    let inscription = index
+      .get_inscription_by_id(id)?
+      .ok_or_not_found(|| format!("inscription {id}"))?;
+
+    let properties = inscription.properties();
+
+    let mut items: Vec<&crate::properties::Item> = properties
+      .gallery
+      .iter()
+      .skip(page.saturating_mul(100))
+      .take(101)
+      .collect();
+
+    let more = items.len() > 100;
+
+    if more {
+      items.pop();
+    }
+
+    let gallery = items
+      .into_iter()
+      .map(|item| {
+        let item_id = item.id();
+        let entry = index
+          .get_inscription_entry(item_id)?
+          .ok_or_not_found(|| format!("inscription {item_id}"))?;
+        let satpoint = index
+          .get_inscription_satpoint_by_id(item_id)?
+          .ok_or_not_found(|| format!("satpoint for inscription {item_id}"))?;
+
+        Ok(api::GalleryItemRecursive {
+          charms: Charm::charms(entry.charms),
+          fee: entry.fee,
+          height: entry.height,
+          id: item_id,
+          number: entry.inscription_number,
+          output: satpoint.outpoint,
+          sat: entry.sat,
+          satpoint,
+          timestamp: timestamp(entry.timestamp.into()).timestamp(),
+          attributes: item.attributes.clone(),
+        })
+      })
+      .collect::<ServerResult<Vec<api::GalleryItemRecursive>>>()?;
+
+    Ok(
+      Json(api::GalleryInscriptions {
+        gallery,
+        more,
+        page,
+      })
+      .into_response(),
+    )
+  })
+}
+
 pub(super) async fn parents(
   Extension(index): Extension<Arc<Index>>,
   Path(inscription_id): Path<InscriptionId>,

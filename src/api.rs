@@ -96,6 +96,34 @@ pub struct ParentInscriptions {
   pub page: usize,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct GalleryItems {
+  pub ids: Vec<InscriptionId>,
+  pub more: bool,
+  pub page: usize,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct GalleryInscriptions {
+  pub gallery: Vec<GalleryItemRecursive>,
+  pub more: bool,
+  pub page: usize,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct GalleryItemRecursive {
+  pub charms: Vec<Charm>,
+  pub fee: u64,
+  pub height: u32,
+  pub id: InscriptionId,
+  pub number: i32,
+  pub output: OutPoint,
+  pub sat: Option<ordinals::Sat>,
+  pub satpoint: SatPoint,
+  pub timestamp: i64,
+  pub attributes: Attributes,
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Inscription {
   pub address: Option<String>,
