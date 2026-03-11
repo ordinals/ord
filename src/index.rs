@@ -200,6 +200,8 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
 
 pub struct Index {
   pub(crate) client: Client,
+  rpc_pool: Vec<Client>,
+  rpc_pool_index: AtomicUsize,
   database: Database,
   durability: redb::Durability,
   event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
@@ -228,6 +230,13 @@ impl Index {
     event_sender: Option<tokio::sync::mpsc::Sender<Event>>,
   ) -> Result<Self> {
     let client = settings.bitcoin_rpc_client(None)?;
+
+    let pool_size = settings.bitcoin_rpc_pool_size();
+    let mut rpc_pool = Vec::with_capacity(pool_size);
+    for _ in 0..pool_size {
+      rpc_pool.push(settings.bitcoin_rpc_client(None)?);
+    }
+    log::info!("Created RPC client pool with {pool_size} connections");
 
     let path = settings.index().to_owned();
 
@@ -460,6 +469,8 @@ impl Index {
     Ok(Self {
       genesis_block_coinbase_txid: genesis_block_coinbase_transaction.compute_txid(),
       client,
+      rpc_pool,
+      rpc_pool_index: AtomicUsize::new(0),
       database,
       durability,
       event_sender,
@@ -476,6 +487,14 @@ impl Index {
       started: Utc::now(),
       unrecoverably_reorged: AtomicBool::new(false),
     })
+  }
+
+  /// Get an RPC client from the pool using round-robin selection.
+  /// Each client has its own TCP connection, avoiding the single-socket
+  /// mutex bottleneck in jsonrpc's SimpleHttpTransport.
+  fn rpc_client(&self) -> &Client {
+    let idx = self.rpc_pool_index.fetch_add(1, atomic::Ordering::Relaxed) % self.rpc_pool.len();
+    &self.rpc_pool[idx]
   }
 
   #[cfg(test)]
@@ -1196,30 +1215,30 @@ impl Index {
   }
 
   pub fn block_header(&self, hash: BlockHash) -> Result<Option<Header>> {
-    self.client.get_block_header(&hash).into_option()
+    self.rpc_client().get_block_header(&hash).into_option()
   }
 
   pub fn block_header_info(&self, hash: BlockHash) -> Result<Option<GetBlockHeaderResult>> {
-    self.client.get_block_header_info(&hash).into_option()
+    self.rpc_client().get_block_header_info(&hash).into_option()
   }
 
   pub fn block_stats(&self, height: u64) -> Result<Option<GetBlockStatsResult>> {
-    self.client.get_block_stats(height).into_option()
+    self.rpc_client().get_block_stats(height).into_option()
   }
 
   pub fn get_block_by_height(&self, height: u32) -> Result<Option<Block>> {
     Ok(
       self
-        .client
+        .rpc_client()
         .get_block_hash(height.into())
         .into_option()?
-        .map(|hash| self.client.get_block(&hash))
+        .map(|hash| self.rpc_client().get_block(&hash))
         .transpose()?,
     )
   }
 
   pub fn get_block_by_hash(&self, hash: BlockHash) -> Result<Option<Block>> {
-    self.client.get_block(&hash).into_option()
+    self.rpc_client().get_block(&hash).into_option()
   }
 
   pub fn get_collections_paginated(
@@ -1744,7 +1763,7 @@ impl Index {
       }));
     }
 
-    Ok(self.client.get_tx_out(txid, vout, Some(true))?)
+    Ok(self.rpc_client().get_tx_out(txid, vout, Some(true))?)
   }
 
   pub fn get_transaction_info(&self, txid: &Txid) -> Result<Option<GetRawTransactionResult>> {
@@ -1790,7 +1809,7 @@ impl Index {
     }
 
     self
-      .client
+      .rpc_client()
       .get_raw_transaction_info(txid, None)
       .into_option()
   }
@@ -1810,7 +1829,7 @@ impl Index {
       return Ok(Some(consensus::encode::deserialize(transaction.value())?));
     }
 
-    self.client.get_raw_transaction(&txid, None).into_option()
+    self.rpc_client().get_raw_transaction(&txid, None).into_option()
   }
 
   pub fn get_transaction_hex_recursive(&self, txid: Txid) -> Result<Option<String>> {
@@ -1821,7 +1840,7 @@ impl Index {
     }
 
     self
-      .client
+      .rpc_client()
       .get_raw_transaction_hex(&txid, None)
       .into_option()
   }
@@ -1946,7 +1965,7 @@ impl Index {
             .is_none()
         } else {
           self
-            .client
+            .rpc_client()
             .get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
             .is_none()
         },
@@ -1963,7 +1982,7 @@ impl Index {
     }
 
     let Some(info) = self
-      .client
+      .rpc_client()
       .get_raw_transaction_info(&outpoint.txid, None)
       .into_option()?
     else {

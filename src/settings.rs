@@ -6,6 +6,7 @@ pub struct Settings {
   bitcoin_data_dir: Option<PathBuf>,
   bitcoin_rpc_limit: Option<u32>,
   bitcoin_rpc_password: Option<String>,
+  bitcoin_rpc_pool_size: Option<usize>,
   bitcoin_rpc_url: Option<String>,
   bitcoin_rpc_username: Option<String>,
   chain: Option<Chain>,
@@ -113,6 +114,7 @@ impl Settings {
       bitcoin_data_dir: self.bitcoin_data_dir.or(source.bitcoin_data_dir),
       bitcoin_rpc_limit: self.bitcoin_rpc_limit.or(source.bitcoin_rpc_limit),
       bitcoin_rpc_password: self.bitcoin_rpc_password.or(source.bitcoin_rpc_password),
+      bitcoin_rpc_pool_size: self.bitcoin_rpc_pool_size.or(source.bitcoin_rpc_pool_size),
       bitcoin_rpc_url: self.bitcoin_rpc_url.or(source.bitcoin_rpc_url),
       bitcoin_rpc_username: self.bitcoin_rpc_username.or(source.bitcoin_rpc_username),
       chain: self.chain.or(source.chain),
@@ -153,6 +155,7 @@ impl Settings {
       bitcoin_data_dir: options.bitcoin_data_dir,
       bitcoin_rpc_limit: options.bitcoin_rpc_limit,
       bitcoin_rpc_password: options.bitcoin_rpc_password,
+      bitcoin_rpc_pool_size: options.bitcoin_rpc_pool_size,
       bitcoin_rpc_url: options.bitcoin_rpc_url,
       bitcoin_rpc_username: options.bitcoin_rpc_username,
       chain: options
@@ -249,6 +252,7 @@ impl Settings {
       bitcoin_data_dir: get_path("BITCOIN_DATA_DIR"),
       bitcoin_rpc_limit: get_u32("BITCOIN_RPC_LIMIT")?,
       bitcoin_rpc_password: get_string("BITCOIN_RPC_PASSWORD"),
+      bitcoin_rpc_pool_size: get_usize("BITCOIN_RPC_POOL_SIZE")?,
       bitcoin_rpc_url: get_string("BITCOIN_RPC_URL"),
       bitcoin_rpc_username: get_string("BITCOIN_RPC_USERNAME"),
       chain: get_chain("CHAIN")?,
@@ -281,6 +285,7 @@ impl Settings {
       bitcoin_data_dir: Some(dir.into()),
       bitcoin_rpc_limit: None,
       bitcoin_rpc_password: None,
+      bitcoin_rpc_pool_size: None,
       bitcoin_rpc_url: Some(rpc_url.into()),
       bitcoin_rpc_username: None,
       chain: Some(Chain::Regtest),
@@ -345,6 +350,7 @@ impl Settings {
       bitcoin_data_dir: Some(bitcoin_data_dir),
       bitcoin_rpc_limit: Some(self.bitcoin_rpc_limit.unwrap_or(12)),
       bitcoin_rpc_password: self.bitcoin_rpc_password,
+      bitcoin_rpc_pool_size: Some(self.bitcoin_rpc_pool_size.unwrap_or(12)),
       bitcoin_rpc_url: Some(
         self
           .bitcoin_rpc_url
@@ -594,6 +600,10 @@ impl Settings {
 
   pub fn bitcoin_rpc_limit(&self) -> u32 {
     self.bitcoin_rpc_limit.unwrap()
+  }
+
+  pub fn bitcoin_rpc_pool_size(&self) -> usize {
+    self.bitcoin_rpc_pool_size.unwrap()
   }
 
   pub fn server_url(&self) -> Option<&str> {
@@ -1112,6 +1122,7 @@ mod tests {
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
         bitcoin_rpc_limit: Some(12),
         bitcoin_rpc_password: Some("bitcoin password".into()),
+        bitcoin_rpc_pool_size: None,
         bitcoin_rpc_url: Some("url".into()),
         bitcoin_rpc_username: Some("bitcoin username".into()),
         chain: Some(Chain::Signet),
@@ -1188,6 +1199,7 @@ mod tests {
         bitcoin_data_dir: Some("/bitcoin/data/dir".into()),
         bitcoin_rpc_limit: Some(12),
         bitcoin_rpc_password: Some("bitcoin password".into()),
+        bitcoin_rpc_pool_size: None,
         bitcoin_rpc_url: Some("url".into()),
         bitcoin_rpc_username: Some("bitcoin username".into()),
         chain: Some(Chain::Signet),

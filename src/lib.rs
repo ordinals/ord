@@ -86,7 +86,7 @@ use {
     str::FromStr,
     sync::{
       Arc, LazyLock, Mutex,
-      atomic::{self, AtomicBool},
+      atomic::{self, AtomicBool, AtomicUsize},
     },
     thread,
     time::{Duration, Instant, SystemTime},
