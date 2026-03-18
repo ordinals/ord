@@ -667,6 +667,38 @@ curl -s \
 <details>
   <summary>
     <code>GET</code>
+    <code><b>/r/properties/&lt;INSCRIPTION_ID&gt;</b></code>
+  </summary>
+
+### Description
+
+The decoded [properties](properties.md) of an inscription as JSON. Returns 404 if
+the inscription has no properties.
+
+### Example
+```bash
+curl -s \
+  http://0.0.0.0:80/r/properties/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
+```
+
+```json
+{
+  "gallery": [],
+  "attributes": {
+    "title": "Skull #1",
+    "traits": {
+      "Background": "Pink",
+      "Hat": "Grey Cap",
+      "Expression": "Tongue Out"
+    }
+  }
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 

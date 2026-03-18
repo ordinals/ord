@@ -329,6 +329,7 @@ impl Server {
         )
         .route("/r/inscription/{inscription_id}", get(r::inscription))
         .route("/r/metadata/{inscription_id}", get(r::metadata))
+        .route("/r/properties/{inscription_id}", get(r::properties))
         .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index))
         .route(
           "/r/sat/{sat_number}/at/{index}/content",
@@ -8258,6 +8259,78 @@ next
       format!("/r/metadata/{id}"),
       StatusCode::OK,
       &format!("\"{}\"", hex::encode(metadata.clone())),
+    );
+  }
+
+  #[test]
+  fn properties_endpoint() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let properties = Properties {
+      attributes: Attributes {
+        title: Some("Test Title".into()),
+        traits: Traits {
+          items: vec![
+            ("Background".into(), Trait::String("Pink".into())),
+            ("Hat".into(), Trait::String("Grey Cap".into())),
+          ],
+        },
+      },
+      gallery: Vec::new(),
+      txids: Vec::new(),
+    };
+
+    let inscription = Inscription {
+      content_type: Some("text/plain".into()),
+      body: Some("hello".into()),
+      properties: properties.to_inline_cbor(),
+      ..default()
+    };
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription.to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    let result = server.get_json::<Properties>(format!("/r/properties/{id}"));
+    assert_eq!(result.attributes.title, Some("Test Title".into()));
+    assert_eq!(
+      result.attributes.traits,
+      Traits {
+        items: vec![
+          ("Background".into(), Trait::String("Pink".into())),
+          ("Hat".into(), Trait::String("Grey Cap".into())),
+        ],
+      }
+    );
+    assert!(result.gallery.is_empty());
+  }
+
+  #[test]
+  fn properties_endpoint_not_found_when_no_properties() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response(
+      format!("/r/properties/{id}"),
+      StatusCode::NOT_FOUND,
+      &format!("inscription {id} properties not found"),
     );
   }
 
