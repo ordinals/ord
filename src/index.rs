@@ -6999,4 +6999,62 @@ mod tests {
     // zero
     assert_eq!(Statistic::Schema.key(), 0);
   }
+
+  #[test]
+  fn same_tx_forward_parent_reference_does_not_panic() {
+    for context in Context::configurations() {
+      context.mine_blocks(2);
+
+      let coinbase_1 = context.core.tx(1, 0);
+      let coinbase_2 = context.core.tx(2, 0);
+
+      let mut tx = Transaction {
+        version: Version(2),
+        lock_time: LockTime::ZERO,
+        input: vec![
+          TxIn {
+            previous_output: OutPoint::new(coinbase_1.compute_txid(), 0),
+            script_sig: ScriptBuf::new(),
+            sequence: Sequence::MAX,
+            witness: Witness::new(),
+          },
+          TxIn {
+            previous_output: OutPoint::new(coinbase_2.compute_txid(), 0),
+            script_sig: ScriptBuf::new(),
+            sequence: Sequence::MAX,
+            witness: Witness::new(),
+          },
+        ],
+        output: vec![TxOut {
+          value: coinbase_1.output[0].value + coinbase_2.output[0].value,
+          script_pubkey: ScriptBuf::new_p2wpkh(&WPubkeyHash::all_zeros()),
+        }],
+      };
+
+      let txid = tx.compute_txid();
+
+      let forward_parent_id = InscriptionId { txid, index: 1 };
+
+      tx.input[0].witness = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("foo".into()),
+        parents: vec![forward_parent_id.value()],
+        ..default()
+      }
+      .to_witness();
+
+      tx.input[1].witness = inscription("text/plain", "bar").to_witness();
+
+      context.core.state().mempool.push(tx);
+
+      context.mine_blocks(1);
+
+      let child_id = InscriptionId { txid, index: 0 };
+
+      assert_eq!(
+        context.index.get_parents_by_inscription_id(child_id),
+        Vec::<InscriptionId>::new(),
+      );
+    }
+  }
 }
