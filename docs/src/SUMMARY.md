@@ -7,6 +7,7 @@ Summary
 - [Inscriptions](inscriptions.md)
   - [Burning](inscriptions/burning.md)
   - [Delegate](inscriptions/delegate.md)
+  - [Memos](inscriptions/memos.md)
   - [Metadata](inscriptions/metadata.md)
   - [Pointer](inscriptions/pointer.md)
   - [Properties](inscriptions/properties.md)

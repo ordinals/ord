@@ -6,6 +6,7 @@ pub struct Plan {
   pub(crate) dry_run: bool,
   pub(crate) etching: Option<Etching>,
   pub(crate) inscriptions: Vec<Inscription>,
+  pub(crate) memo_info: Option<ParentInfo>,
   pub(crate) mode: Mode,
   pub(crate) no_backup: bool,
   pub(crate) no_limit: bool,
@@ -25,6 +26,7 @@ impl Default for Plan {
       dry_run: false,
       etching: None,
       inscriptions: Vec::new(),
+      memo_info: None,
       mode: Mode::SharedOutput,
       no_backup: false,
       no_limit: false,
@@ -158,10 +160,13 @@ impl Plan {
         wallet.wait_for_maturation(rune_info.rune.rune)?,
       )))
     } else {
-      let reveal = match wallet
-        .bitcoin_client()
-        .send_raw_transaction(&signed_reveal_tx)
-      {
+      let burn_amount = if self.memo_info.is_some() {
+        Some(Amount::from_sat(1))
+      } else {
+        None
+      };
+
+      let reveal = match wallet.send_raw_transaction(&signed_reveal_tx, burn_amount) {
         Ok(txid) => txid,
         Err(err) => {
           return Err(anyhow!(
@@ -206,11 +211,12 @@ impl Plan {
     for i in 0..inscriptions.len() {
       let index = u32::try_from(i).unwrap();
 
+      let prefix_outputs =
+        u32::try_from(self.parent_info.len() + usize::from(self.memo_info.is_some())).unwrap();
+
       let vout = match self.mode {
-        Mode::SharedOutput | Mode::SameSat => self.parent_info.len().try_into().unwrap(),
-        Mode::SeparateOutputs | Mode::SatPoints => {
-          index + u32::try_from(self.parent_info.len()).unwrap()
-        }
+        Mode::SharedOutput | Mode::SameSat => prefix_outputs,
+        Mode::SeparateOutputs | Mode::SatPoints => index + prefix_outputs,
       };
 
       let offset = match self.mode {
@@ -270,6 +276,11 @@ impl Plan {
           .iter()
           .map(|info| info.id)
           .collect::<Vec<InscriptionId>>()
+      );
+
+      assert_eq!(
+        inscription.memo_target(),
+        self.memo_info.as_ref().map(|info| info.id),
       );
     }
 
@@ -406,6 +417,14 @@ impl Plan {
       });
     }
 
+    if let Some(ref memo) = self.memo_info {
+      reveal_inputs.push(memo.location.outpoint);
+      reveal_outputs.push(TxOut {
+        script_pubkey: memo.destination.script_pubkey(),
+        value: memo.tx_out.value,
+      });
+    }
+
     if self.mode == Mode::SatPoints {
       for (satpoint, _txout) in self.reveal_satpoints.iter() {
         reveal_inputs.push(satpoint.outpoint);
@@ -415,13 +434,22 @@ impl Plan {
     reveal_inputs.push(OutPoint::null());
 
     for (i, destination) in self.destinations.iter().enumerate() {
-      reveal_outputs.push(TxOut {
-        script_pubkey: destination.script_pubkey(),
-        value: match self.mode {
-          Mode::SeparateOutputs | Mode::SatPoints => self.postages[i],
-          Mode::SharedOutput | Mode::SameSat => total_postage,
-        },
-      });
+      if self.memo_info.is_some() {
+        reveal_outputs.push(TxOut {
+          script_pubkey: script::Builder::new()
+            .push_opcode(opcodes::all::OP_RETURN)
+            .into_script(),
+          value: Amount::from_sat(1),
+        });
+      } else {
+        reveal_outputs.push(TxOut {
+          script_pubkey: destination.script_pubkey(),
+          value: match self.mode {
+            Mode::SeparateOutputs | Mode::SatPoints => self.postages[i],
+            Mode::SharedOutput | Mode::SameSat => total_postage,
+          },
+        });
+      }
     }
 
     let rune;
@@ -502,7 +530,8 @@ impl Plan {
       runestone = None;
     }
 
-    let commit_input = self.parent_info.len() + self.reveal_satpoints.len();
+    let commit_input =
+      self.parent_info.len() + usize::from(self.memo_info.is_some()) + self.reveal_satpoints.len();
 
     let (_reveal_tx, reveal_fee) = Self::build_reveal_transaction(
       commit_input,
@@ -522,6 +551,10 @@ impl Plan {
 
     if premine > 0 {
       target_value += TARGET_POSTAGE;
+    }
+
+    if target_value < commit_tx_address.script_pubkey().minimal_non_dust() {
+      target_value = commit_tx_address.script_pubkey().minimal_non_dust();
     }
 
     let unsigned_commit_tx = TransactionBuilder::new(
@@ -571,6 +604,10 @@ impl Plan {
 
     for parent_info in &self.parent_info {
       prevouts.push(parent_info.tx_out.clone());
+    }
+
+    if let Some(ref memo) = self.memo_info {
+      prevouts.push(memo.tx_out.clone());
     }
 
     if self.mode == Mode::SatPoints {

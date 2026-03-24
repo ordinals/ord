@@ -429,6 +429,7 @@ impl Updater<'_> {
     let mut sequence_number_to_children = wtx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
     let mut sequence_number_to_inscription_entry =
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+    let mut sequence_number_to_memos = wtx.open_multimap_table(SEQUENCE_NUMBER_TO_MEMOS)?;
     let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
 
     let index_inscriptions = self.height >= self.index.settings.first_inscription_height()
@@ -524,6 +525,7 @@ impl Updater<'_> {
       sat_to_sequence_number: &mut sat_to_sequence_number,
       sequence_number_to_children: &mut sequence_number_to_children,
       sequence_number_to_entry: &mut sequence_number_to_inscription_entry,
+      sequence_number_to_memos: &mut sequence_number_to_memos,
       timestamp: block.header.time,
       transaction_buffer: Vec::new(),
       transaction_id_to_transaction: &mut transaction_id_to_transaction,

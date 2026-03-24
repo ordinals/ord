@@ -52,6 +52,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
     let delegate = Tag::Delegate.take(&mut fields);
     let metadata = Tag::Metadata.take(&mut fields);
     let metaprotocol = Tag::Metaprotocol.take(&mut fields);
+    let memo = Tag::Memo.take(&mut fields);
     let parents = Tag::Parent.take_array(&mut fields);
     let pointer = Tag::Pointer.take(&mut fields);
     let properties = Tag::Properties.take(&mut fields);
@@ -78,6 +79,7 @@ impl From<RawEnvelope> for ParsedEnvelope {
         incomplete_field,
         metadata,
         metaprotocol,
+        memo,
         parents,
         pointer,
         properties,
@@ -918,6 +920,41 @@ mod tests {
       vec![ParsedEnvelope {
         payload: Inscription {
           properties: Some(vec![0, 1]),
+          duplicate_field: true,
+          ..default()
+        },
+        ..default()
+      }]
+    );
+  }
+
+  #[test]
+  fn memo_is_parsed_correctly() {
+    assert_eq!(
+      parse(&[envelope(&[&PROTOCOL_ID, &Tag::Memo.bytes(), &[]])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          memo: Some(Vec::new()),
+          ..default()
+        },
+        ..default()
+      }]
+    );
+  }
+
+  #[test]
+  fn memo_is_parsed_correctly_from_chunks() {
+    assert_eq!(
+      parse(&[envelope(&[
+        &PROTOCOL_ID,
+        &Tag::Memo.bytes(),
+        &[0],
+        &Tag::Memo.bytes(),
+        &[1]
+      ])]),
+      vec![ParsedEnvelope {
+        payload: Inscription {
+          memo: Some(vec![0, 1]),
           duplicate_field: true,
           ..default()
         },

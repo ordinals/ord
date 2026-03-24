@@ -143,6 +143,7 @@ impl File {
         wallet.chain(),
         compress,
         entry.delegate,
+        None,
         entry.metadata()?,
         entry.metaprotocol.clone(),
         self.parents.clone(),

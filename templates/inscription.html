@@ -104,6 +104,16 @@
   <dt>metaprotocol</dt>
   <dd>{{ metaprotocol }}</dd>
 %% }
+%% if let Some(memo_target) = self.memo_target {
+  <dt>memo for</dt>
+  <dd><a class=collapse href=/inscription/{{ memo_target }}>{{ memo_target }}</a></dd>
+%% }
+%% if self.memo_count > 0 {
+  <dt>memos</dt>
+  <dd>
+    <a href=/memos/{{self.id}}>all ({{ self.memo_count }})</a>
+  </dd>
+%% }
 %% if self.inscription.content_length().is_some() || self.inscription.delegate().is_some() {
 %% if let Some(delegate) = self.inscription.delegate() {
   <dt>delegate</dt>

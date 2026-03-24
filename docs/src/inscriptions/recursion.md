@@ -594,6 +594,111 @@ curl -s \
 <details>
   <summary>
     <code>GET</code>
+    <code><b>/r/memos/&lt;INSCRIPTION_ID&gt;</b></code>
+  </summary>
+
+### Description
+
+The first 100 memo inscription ids for the given inscription.
+
+### Example
+
+```bash
+curl -s \
+  http://0.0.0.0:80/r/memos/ea36cd388ee6bcde961b3d301fa83e1fba5f3c92d334c70378ad2f2247166afdi0
+```
+
+```json
+{
+  "ids": [
+    "e3ea3f5b7356e334fb5688b9069f445e07511bac802fa1baf593409e51d1f95ci0"
+  ],
+  "more": false,
+  "page": 0
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/memos/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
+  </summary>
+
+### Description
+
+The set of 100 memo inscription ids on `<PAGE>`.
+
+### Example
+
+```bash
+curl -s \
+  http://0.0.0.0:80/r/memos/ea36cd388ee6bcde961b3d301fa83e1fba5f3c92d334c70378ad2f2247166afdi0/1
+```
+
+```json
+{
+  "ids": [],
+  "more": false,
+  "page": 1
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/memos/&lt;INSCRIPTION_ID&gt;/at/&lt;INDEX&gt;</b></code>
+  </summary>
+
+### Description
+
+The inscription id at `<INDEX>` of all memos for an inscription. `<INDEX>` may
+be a negative number to index from the back. `0` being the first and `-1` being
+the most recent.
+
+### Example
+
+```bash
+curl -s \
+  http://0.0.0.0:80/r/memos/ea36cd388ee6bcde961b3d301fa83e1fba5f3c92d334c70378ad2f2247166afdi0/at/-1
+```
+
+```json
+{
+  "id": "e3ea3f5b7356e334fb5688b9069f445e07511bac802fa1baf593409e51d1f95ci0"
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/memos/&lt;INSCRIPTION_ID&gt;/at/&lt;INDEX&gt;/content</b></code>
+  </summary>
+
+### Description
+
+The content of the memo at `<INDEX>` for an inscription. `<INDEX>` may be a
+negative number to index from the back. `0` being the first and `-1` being the
+most recent.
+
+### Example
+
+```bash
+curl -s \
+  http://0.0.0.0:80/r/memos/ea36cd388ee6bcde961b3d301fa83e1fba5f3c92d334c70378ad2f2247166afdi0/at/-1/content
+```
+
+```
+This is a memo for the target
+```
+
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
     <code><b>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 

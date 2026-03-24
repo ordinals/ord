@@ -262,6 +262,8 @@ fn inscription_page() {
         ..default()
       },
       id: inscription,
+      memo_count: 0,
+      memo_target: None,
       number: 0,
       next: None,
       output: Some(TxOut {

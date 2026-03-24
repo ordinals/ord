@@ -53,12 +53,13 @@ mod utxo_entry;
 #[cfg(test)]
 pub(crate) mod testing;
 
-const SCHEMA_VERSION: u64 = 34;
+const SCHEMA_VERSION: u64 = 35;
 
 define_multimap_table! { LATEST_CHILD_SEQUENCE_NUMBER_TO_COLLECTION_SEQUENCE_NUMBER, u32, u32 }
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
+define_multimap_table! { SEQUENCE_NUMBER_TO_MEMOS, u32, u32 }
 define_table! { COLLECTION_SEQUENCE_NUMBER_TO_LATEST_CHILD_SEQUENCE_NUMBER, u32, u32 }
 define_table! { GALLERY_SEQUENCE_NUMBERS, u32, () }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
@@ -322,6 +323,7 @@ impl Index {
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+        tx.open_multimap_table(SEQUENCE_NUMBER_TO_MEMOS)?;
         tx.open_table(COLLECTION_SEQUENCE_NUMBER_TO_LATEST_CHILD_SEQUENCE_NUMBER)?;
         tx.open_table(GALLERY_SEQUENCE_NUMBERS)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
@@ -1405,6 +1407,41 @@ impl Index {
     Ok((children, more))
   }
 
+  pub fn get_memos_by_sequence_number_paginated(
+    &self,
+    sequence_number: u32,
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionId>, bool)> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_entry = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    let mut memos = rtx
+      .open_multimap_table(SEQUENCE_NUMBER_TO_MEMOS)?
+      .get(sequence_number)?
+      .skip(page_index * page_size)
+      .take(page_size.saturating_add(1))
+      .map(|result| {
+        result
+          .and_then(|sequence_number| {
+            sequence_number_to_entry
+              .get(sequence_number.value())
+              .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+          })
+          .map_err(|err| err.into())
+      })
+      .collect::<Result<Vec<InscriptionId>>>()?;
+
+    let more = memos.len() > page_size;
+
+    if more {
+      memos.pop();
+    }
+
+    Ok((memos, more))
+  }
+
   pub fn get_parents_by_sequence_number_paginated(
     &self,
     parent_sequence_numbers: Vec<u32>,
@@ -1534,6 +1571,40 @@ impl Index {
       sat_to_sequence_number
         .get(&sat.n())?
         .nth(inscription_index.abs_diff(0))
+    }
+    .map(|result| {
+      result
+        .and_then(|sequence_number| {
+          let sequence_number = sequence_number.value();
+          sequence_number_to_inscription_entry
+            .get(sequence_number)
+            .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+        })
+        .map_err(|err| anyhow!(err.to_string()))
+    })
+    .transpose()
+  }
+
+  pub fn get_memo_by_sequence_number_indexed(
+    &self,
+    sequence_number: u32,
+    memo_index: isize,
+  ) -> Result<Option<InscriptionId>> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_inscription_entry =
+      rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    let sequence_number_to_memos = rtx.open_multimap_table(SEQUENCE_NUMBER_TO_MEMOS)?;
+
+    if memo_index < 0 {
+      sequence_number_to_memos
+        .get(sequence_number)?
+        .nth_back((memo_index + 1).abs_diff(0))
+    } else {
+      sequence_number_to_memos
+        .get(sequence_number)?
+        .nth(memo_index.abs_diff(0))
     }
     .map(|result| {
       result
@@ -2293,6 +2364,11 @@ impl Index {
       })
       .collect::<Result<Vec<InscriptionId>>>()?;
 
+    let memo_count = rtx
+      .open_multimap_table(SEQUENCE_NUMBER_TO_MEMOS)?
+      .get(sequence_number)?
+      .len();
+
     let rune = if let Some(rune_id) = rtx
       .open_table(SEQUENCE_NUMBER_TO_RUNE_ID)?
       .get(sequence_number)?
@@ -2359,6 +2435,7 @@ impl Index {
         fee: entry.fee,
         height: entry.height,
         id: entry.id,
+        memo_count,
         next,
         number: entry.inscription_number,
         parents,

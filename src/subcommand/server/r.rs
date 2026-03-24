@@ -404,6 +404,82 @@ pub(super) async fn inscription(
   })
 }
 
+pub(super) async fn memos(
+  Extension(index): Extension<Arc<Index>>,
+  Path(inscription_id): Path<InscriptionId>,
+) -> ServerResult {
+  memos_paginated(Extension(index), Path((inscription_id, 0))).await
+}
+
+pub(super) async fn memos_paginated(
+  Extension(index): Extension<Arc<Index>>,
+  Path((inscription_id, page)): Path<(InscriptionId, usize)>,
+) -> ServerResult {
+  task::block_in_place(|| {
+    let Some(entry) = index.get_inscription_entry(inscription_id)? else {
+      return Err(ServerError::NotFound(format!(
+        "inscription {inscription_id} not found"
+      )));
+    };
+
+    let sequence_number = entry.sequence_number;
+
+    let (ids, more) =
+      index.get_memos_by_sequence_number_paginated(sequence_number, 100, page)?;
+
+    Ok(Json(api::Memos { ids, more, page }).into_response())
+  })
+}
+
+pub(super) async fn memo_at_index(
+  Extension(index): Extension<Arc<Index>>,
+  Path((inscription_id, memo_index)): Path<(InscriptionId, isize)>,
+) -> ServerResult<(HeaderMap, Json<api::MemoInscription>)> {
+  task::block_in_place(|| {
+    let entry = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    let id = index.get_memo_by_sequence_number_indexed(entry.sequence_number, memo_index)?;
+
+    let mut headers = HeaderMap::new();
+
+    if memo_index < 0 {
+      headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    }
+
+    Ok((headers, Json(api::MemoInscription { id })))
+  })
+}
+
+pub(super) async fn memo_at_index_content(
+  index: Extension<Arc<Index>>,
+  settings: Extension<Arc<Settings>>,
+  server_config: Extension<Arc<ServerConfig>>,
+  Path((inscription_id, memo_index)): Path<(InscriptionId, isize)>,
+  accept_encoding: AcceptEncoding,
+) -> ServerResult {
+  let memo_inscription_id = task::block_in_place(|| {
+    let entry = index
+      .get_inscription_entry(inscription_id)?
+      .ok_or_not_found(|| format!("inscription {inscription_id}"))?;
+
+    index
+      .get_memo_by_sequence_number_indexed(entry.sequence_number, memo_index)?
+      .ok_or_not_found(|| format!("memo on inscription {inscription_id}"))
+  })?;
+
+  content_inner(
+    &index,
+    &settings,
+    &server_config,
+    memo_inscription_id,
+    accept_encoding,
+    memo_index >= 0,
+  )
+  .await
+}
+
 pub(super) async fn metadata(
   Extension(index): Extension<Arc<Index>>,
   Path(inscription_id): Path<InscriptionId>,

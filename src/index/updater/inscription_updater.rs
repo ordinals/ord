@@ -27,6 +27,7 @@ enum Origin {
     fee: u64,
     gallery: bool,
     hidden: bool,
+    memo_target: Option<InscriptionId>,
     parents: Vec<InscriptionId>,
     reinscription: bool,
     unbound: bool,
@@ -56,6 +57,7 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) sat_to_sequence_number: &'a mut MultimapTable<'tx, u64, u32>,
   pub(super) sequence_number_to_children: &'a mut MultimapTable<'tx, u32, u32>,
   pub(super) sequence_number_to_entry: &'a mut Table<'tx, u32, InscriptionEntryValue>,
+  pub(super) sequence_number_to_memos: &'a mut MultimapTable<'tx, u32, u32>,
   pub(super) timestamp: u32,
   pub(super) transaction_buffer: Vec<u8>,
   pub(super) transaction_id_to_transaction: &'a mut Table<'tx, &'static TxidValue, &'static [u8]>,
@@ -204,6 +206,7 @@ impl InscriptionUpdater<'_, '_> {
             fee: 0,
             gallery: !inscription.payload.properties().gallery.is_empty(),
             hidden: inscription.payload.hidden(),
+            memo_target: inscription.payload.memo_target(),
             parents: inscription.payload.parents(),
             reinscription: inscribed_offsets.contains_key(&offset),
             unbound: input_value == 0
@@ -241,16 +244,24 @@ impl InscriptionUpdater<'_, '_> {
 
     for flotsam in &mut floating_inscriptions {
       if let Flotsam {
-        origin: Origin::New {
-          parents: purported_parents,
-          ..
-        },
+        origin:
+          Origin::New {
+            memo_target,
+            parents: purported_parents,
+            ..
+          },
         ..
       } = flotsam
       {
         let mut seen = HashSet::new();
         purported_parents
           .retain(|parent| seen.insert(*parent) && potential_parents.contains(parent));
+
+        if let Some(target) = memo_target {
+          if !potential_parents.contains(target) {
+            *memo_target = None;
+          }
+        }
       }
     }
 
@@ -420,6 +431,7 @@ impl InscriptionUpdater<'_, '_> {
         fee,
         gallery,
         hidden,
+        memo_target,
         parents,
         reinscription,
         unbound,
@@ -527,6 +539,18 @@ impl InscriptionUpdater<'_, '_> {
             Ok(parent_sequence_number)
           })
           .collect::<Result<Vec<u32>>>()?;
+
+        if let Some(memo_target) = memo_target {
+          let target_sequence_number = self
+            .id_to_sequence_number
+            .get(&memo_target.store())?
+            .unwrap()
+            .value();
+
+          self
+            .sequence_number_to_memos
+            .insert(target_sequence_number, sequence_number)?;
+        }
 
         if gallery && !hidden {
           self.gallery_sequence_numbers.insert(sequence_number, ())?;

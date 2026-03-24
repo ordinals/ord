@@ -68,6 +68,7 @@ impl Batch {
       dry_run: self.shared.dry_run,
       etching: batchfile.etching,
       inscriptions,
+      memo_info: None,
       mode: batchfile.mode,
       no_backup: self.shared.no_backup,
       no_limit: self.shared.no_limit,

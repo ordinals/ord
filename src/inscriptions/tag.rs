@@ -18,13 +18,14 @@ pub(crate) enum Tag {
   Note = 15,
   Properties = 17,
   PropertyEncoding = 19,
+  Memo = 27,
   #[allow(unused)]
   Nop = 255,
 }
 
 impl Tag {
   fn chunked(self) -> bool {
-    matches!(self, Self::Metadata | Self::Properties)
+    matches!(self, Self::Metadata | Self::Memo | Self::Properties)
   }
 
   pub(crate) fn bytes(self) -> [u8; 1] {

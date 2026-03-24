@@ -10,6 +10,8 @@ pub struct InscriptionHtml {
   pub height: u32,
   pub id: InscriptionId,
   pub inscription: Inscription,
+  pub memo_count: u64,
+  pub memo_target: Option<InscriptionId>,
   pub next: Option<InscriptionId>,
   pub number: i32,
   pub output: Option<TxOut>,

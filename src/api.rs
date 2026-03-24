@@ -96,6 +96,18 @@ pub struct ParentInscriptions {
   pub page: usize,
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct MemoInscription {
+  pub id: Option<InscriptionId>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct Memos {
+  pub ids: Vec<InscriptionId>,
+  pub more: bool,
+  pub page: usize,
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Inscription {
   pub address: Option<String>,
@@ -108,6 +120,7 @@ pub struct Inscription {
   pub fee: u64,
   pub height: u32,
   pub id: InscriptionId,
+  pub memo_count: u64,
   pub metaprotocol: Option<String>,
   pub next: Option<InscriptionId>,
   pub number: i32,

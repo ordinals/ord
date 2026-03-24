@@ -39,7 +39,9 @@ pub(crate) struct Inscribe {
   pub(crate) json_metadata: Option<PathBuf>,
   #[clap(long, help = "Set inscription metaprotocol to <METAPROTOCOL>.")]
   pub(crate) metaprotocol: Option<String>,
-  #[clap(long, help = "Make inscription a child of <PARENT>.")]
+  #[clap(long, conflicts_with = "parent", help = "Attach memo to target inscription <MEMO>.")]
+  pub(crate) memo: Option<InscriptionId>,
+  #[clap(long, conflicts_with = "memo", help = "Make inscription a child of <PARENT>.")]
   pub(crate) parent: Option<InscriptionId>,
   #[arg(
     long,
@@ -78,6 +80,14 @@ impl Inscribe {
       missing.into_iter().map(|id| id.to_string()).collect::<Vec<String>>().join(", "),
     }
 
+    let memo_info = match self.memo {
+      Some(memo_target) => {
+        let mut infos = wallet.get_parent_info(&[memo_target])?;
+        Some(infos.remove(0))
+      }
+      None => None,
+    };
+
     batch::Plan {
       commit_fee_rate: self.shared.commit_fee_rate.unwrap_or(self.shared.fee_rate),
       destinations: vec![match self.destination.clone() {
@@ -90,6 +100,7 @@ impl Inscribe {
         chain,
         self.shared.compress,
         self.delegate,
+        self.memo,
         WalletCommand::parse_metadata(self.cbor_metadata, self.json_metadata)?,
         self.metaprotocol,
         self.parent.into_iter().collect(),
@@ -112,11 +123,16 @@ impl Inscribe {
         },
         None,
       )?],
+      memo_info,
       mode: batch::Mode::SeparateOutputs,
       no_backup: self.shared.no_backup,
       no_limit: self.shared.no_limit,
       parent_info: wallet.get_parent_info(self.parent.as_slice())?,
-      postages: vec![self.postage.unwrap_or(TARGET_POSTAGE)],
+      postages: vec![if self.memo.is_some() {
+        Amount::from_sat(1)
+      } else {
+        self.postage.unwrap_or(TARGET_POSTAGE)
+      }],
       reinscribe: self.reinscribe,
       reveal_fee_rate: self.shared.fee_rate,
       reveal_satpoints: Vec::new(),

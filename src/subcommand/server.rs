@@ -8,7 +8,8 @@ use {
   crate::templates::{
     AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, GalleriesHtml,
     GalleryHtml, HomeHtml, InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml,
-    ItemHtml, OutputHtml, PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml,
+    ItemHtml, MemosPageHtml, OutputHtml, PageContent, PageHtml, ParentsHtml, PreviewAudioHtml,
+    PreviewCodeHtml,
     PreviewFontHtml, PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml,
     PreviewTextHtml, PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RuneNotFoundHtml,
     RunesHtml, SatHtml, SatscardHtml, TransactionHtml,
@@ -79,6 +80,9 @@ struct Search {
 #[derive(RustEmbed)]
 #[folder = "static"]
 struct StaticAssets;
+
+static MEMO_AT_INDEX_PATH: LazyLock<Regex> =
+  LazyLock::new(|| Regex::new(r"^/r/memos/[^/]+/at/[^/]+$").unwrap());
 
 static SAT_AT_INDEX_PATH: LazyLock<Regex> =
   LazyLock::new(|| Regex::new(r"^/r/sat/[^/]+/at/[^/]+$").unwrap());
@@ -216,6 +220,11 @@ impl Server {
           "/children/{inscription_id}/{page}",
           get(Self::children_paginated),
         )
+        .route("/memos/{inscription_id}", get(Self::memos_page))
+        .route(
+          "/memos/{inscription_id}/{page}",
+          get(Self::memos_page_paginated),
+        )
         .route("/clock", get(Self::clock))
         .route("/collections", get(Self::collections))
         .route("/collections/{page}", get(Self::collections_paginated))
@@ -328,6 +337,19 @@ impl Server {
           get(r::children_paginated),
         )
         .route("/r/inscription/{inscription_id}", get(r::inscription))
+        .route("/r/memos/{inscription_id}", get(r::memos))
+        .route(
+          "/r/memos/{inscription_id}/{page}",
+          get(r::memos_paginated),
+        )
+        .route(
+          "/r/memos/{inscription_id}/at/{index}",
+          get(r::memo_at_index),
+        )
+        .route(
+          "/r/memos/{inscription_id}/at/{index}/content",
+          get(r::memo_at_index_content),
+        )
         .route("/r/metadata/{inscription_id}", get(r::metadata))
         .route("/r/sat/{sat_number}/at/{index}", get(r::sat_at_index))
         .route(
@@ -609,6 +631,24 @@ impl Server {
 
         if let Ok(api::SatInscription { id: None }) =
           serde_json::from_slice::<api::SatInscription>(&bytes)
+        {
+          return task::block_in_place(|| Server::proxy(proxy, &path));
+        }
+
+        return Ok(Response::from_parts(parts, axum::body::Body::from(bytes)));
+      }
+
+      // `/r/memos/<INSCRIPTION_ID>/at/<INDEX>` does not return a 404 when no
+      // memo is present, so we must deserialize and check the body.
+      if MEMO_AT_INDEX_PATH.is_match(&path) {
+        let (parts, body) = response.into_parts();
+
+        let bytes = axum::body::to_bytes(body, usize::MAX)
+          .await
+          .map_err(|err| anyhow!(err))?;
+
+        if let Ok(api::MemoInscription { id: None }) =
+          serde_json::from_slice::<api::MemoInscription>(&bytes)
         {
           return task::block_in_place(|| Server::proxy(proxy, &path));
         }
@@ -1769,6 +1809,8 @@ impl Server {
 
         let properties = inscription.properties();
 
+        let memo_target = inscription.memo_target();
+
         InscriptionHtml {
           chain: server_config.chain,
           charms: Charm::Vindicated.unset(info.charms.iter().fold(0, |mut acc, charm| {
@@ -1781,6 +1823,8 @@ impl Server {
           height: info.height,
           id: info.id,
           inscription,
+          memo_count: info.memo_count,
+          memo_target,
           next: info.next,
           number: info.number,
           output: txout,
@@ -2022,6 +2066,62 @@ impl Server {
           parent,
           parent_number,
           children,
+          prev_page,
+          next_page,
+        }
+        .page(server_config)
+        .into_response()
+      })
+    })
+  }
+
+  async fn memos_page(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(inscription_id): Path<InscriptionId>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    Self::memos_page_paginated(
+      Extension(server_config),
+      Extension(index),
+      Path((inscription_id, 0)),
+      AcceptJson(accept_json),
+    )
+    .await
+  }
+
+  async fn memos_page_paginated(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path((target, page)): Path<(InscriptionId, usize)>,
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      let entry = index
+        .get_inscription_entry(target)?
+        .ok_or_not_found(|| format!("inscription {target}"))?;
+
+      let target_number = entry.inscription_number;
+
+      let (memos, more) =
+        index.get_memos_by_sequence_number_paginated(entry.sequence_number, PAGE_SIZE, page)?;
+
+      let prev_page = page.checked_sub(1);
+
+      let next_page = more.then_some(page + 1);
+
+      Ok(if accept_json {
+        Json(api::Memos {
+          ids: memos,
+          more,
+          page,
+        })
+        .into_response()
+      } else {
+        MemosPageHtml {
+          target,
+          target_number,
+          memos,
           prev_page,
           next_page,
         }
@@ -9299,5 +9399,374 @@ next
       "{}",
       response.text().unwrap(),
     );
+  }
+
+  #[test]
+  fn memos_recursive_endpoint() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let target_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    let target_inscription_id = InscriptionId {
+      txid: target_txid,
+      index: 0,
+    };
+
+    server.assert_response(
+      format!("/r/memos/{target_inscription_id}"),
+      StatusCode::NOT_FOUND,
+      &format!("inscription {target_inscription_id} not found"),
+    );
+
+    server.mine_blocks(1);
+
+    let memos_json =
+      server.get_json::<api::Memos>(format!("/r/memos/{target_inscription_id}"));
+    assert_eq!(memos_json.ids.len(), 0);
+
+    let mut builder = script::Builder::new();
+    for _ in 0..111 {
+      builder = Inscription {
+        content_type: Some("application/cbor".into()),
+        body: Some(vec![0xa1, 0x61, 0x6d, 0x63, 0x66, 0x6f, 0x6f]),
+        memo: Some(target_inscription_id.value()),
+        unrecognized_even_field: false,
+        ..default()
+      }
+      .append_reveal_script_to_builder(builder);
+    }
+
+    let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let first_memo_inscription_id = InscriptionId { txid, index: 0 };
+    let hundredth_memo_inscription_id = InscriptionId { txid, index: 99 };
+    let hundred_first_memo_inscription_id = InscriptionId { txid, index: 100 };
+    let hundred_eleventh_memo_inscription_id = InscriptionId { txid, index: 110 };
+
+    let memos_json =
+      server.get_json::<api::Memos>(format!("/r/memos/{target_inscription_id}"));
+
+    assert_eq!(memos_json.ids.len(), 100);
+    assert_eq!(memos_json.ids[0], first_memo_inscription_id);
+    assert_eq!(memos_json.ids[99], hundredth_memo_inscription_id);
+    assert!(memos_json.more);
+    assert_eq!(memos_json.page, 0);
+
+    let memos_json =
+      server.get_json::<api::Memos>(format!("/r/memos/{target_inscription_id}/1"));
+
+    assert_eq!(memos_json.ids.len(), 11);
+    assert_eq!(memos_json.ids[0], hundred_first_memo_inscription_id);
+    assert_eq!(memos_json.ids[10], hundred_eleventh_memo_inscription_id);
+    assert!(!memos_json.more);
+    assert_eq!(memos_json.page, 1);
+  }
+
+  #[test]
+  fn memo_at_index() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let target_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    let target_inscription_id = InscriptionId {
+      txid: target_txid,
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    let mut ids = Vec::new();
+
+    for i in 0..3 {
+      let memo_inscription = Inscription {
+        content_type: Some("application/cbor".into()),
+        body: Some(vec![0xa0 + i]),
+        memo: Some(target_inscription_id.value()),
+        unrecognized_even_field: false,
+        ..default()
+      };
+
+      let txid = server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(
+          i as usize + 2,
+          0,
+          0,
+          memo_inscription.to_witness(),
+        ), (i as usize + 2, 1, 0, Default::default())],
+        ..default()
+      });
+
+      server.mine_blocks(1);
+
+      ids.push(InscriptionId { txid, index: 0 });
+    }
+
+    assert_eq!(
+      server
+        .get_json::<api::MemoInscription>(format!("/r/memos/{target_inscription_id}/at/0"))
+        .id,
+      Some(ids[0])
+    );
+
+    assert_eq!(
+      server
+        .get_json::<api::MemoInscription>(format!("/r/memos/{target_inscription_id}/at/2"))
+        .id,
+      Some(ids[2])
+    );
+
+    assert_eq!(
+      server
+        .get_json::<api::MemoInscription>(format!("/r/memos/{target_inscription_id}/at/-1"))
+        .id,
+      Some(ids[2])
+    );
+
+    assert_eq!(
+      server
+        .get_json::<api::MemoInscription>(format!("/r/memos/{target_inscription_id}/at/-3"))
+        .id,
+      Some(ids[0])
+    );
+
+    assert!(
+      server
+        .get_json::<api::MemoInscription>(format!("/r/memos/{target_inscription_id}/at/3"))
+        .id
+        .is_none()
+    );
+  }
+
+  #[test]
+  fn memo_at_index_content() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let target_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    let target_inscription_id = InscriptionId {
+      txid: target_txid,
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    let cbor_body = vec![0xa1, 0x61, 0x6d, 0x63, 0x66, 0x6f, 0x6f];
+
+    let memo_inscription = Inscription {
+      content_type: Some("application/cbor".into()),
+      body: Some(cbor_body.clone()),
+      memo: Some(target_inscription_id.value()),
+      unrecognized_even_field: false,
+      ..default()
+    };
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (2, 0, 0, memo_inscription.to_witness()),
+        (2, 1, 0, Default::default()),
+      ],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let response = server.get(format!(
+      "/r/memos/{target_inscription_id}/at/0/content"
+    ));
+
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+      response.bytes().unwrap().as_ref(),
+      cbor_body.as_slice()
+    );
+  }
+
+  #[test]
+  fn memo_without_valid_target_is_ignored() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let fake_target_id = InscriptionId {
+      txid: "0000000000000000000000000000000000000000000000000000000000000000"
+        .parse()
+        .unwrap(),
+      index: 0,
+    };
+
+    let memo_inscription = Inscription {
+      content_type: Some("application/cbor".into()),
+      body: Some(vec![0xa0]),
+      memo: Some(fake_target_id.value()),
+      unrecognized_even_field: false,
+      ..default()
+    };
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, memo_inscription.to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response(
+      format!("/r/memos/{fake_target_id}"),
+      StatusCode::NOT_FOUND,
+      &format!("inscription {fake_target_id} not found"),
+    );
+  }
+
+  #[test]
+  fn memo_content_readable_after_burn() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let target_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    let target_inscription_id = InscriptionId {
+      txid: target_txid,
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    let cbor_body = vec![0xa1, 0x61, 0x6d, 0x63, 0x66, 0x6f, 0x6f];
+
+    let memo_inscription = Inscription {
+      content_type: Some("application/cbor".into()),
+      body: Some(cbor_body.clone()),
+      memo: Some(target_inscription_id.value()),
+      unrecognized_even_field: false,
+      ..default()
+    };
+
+    let memo_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (2, 0, 0, memo_inscription.to_witness()),
+        (2, 1, 0, Default::default()),
+      ],
+      outputs: 0,
+      op_return_index: Some(0),
+      op_return_value: Some(50 * COIN_VALUE),
+      op_return: Some(
+        script::Builder::new()
+          .push_opcode(opcodes::all::OP_RETURN)
+          .into_script(),
+      ),
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let memo_id = InscriptionId {
+      txid: memo_txid,
+      index: 0,
+    };
+
+    let response = server.get(format!("/content/{memo_id}"));
+    assert_eq!(response.status(), StatusCode::OK);
+    assert_eq!(
+      response.bytes().unwrap().as_ref(),
+      cbor_body.as_slice()
+    );
+
+    let inscription_json =
+      server.get_json::<api::InscriptionRecursive>(format!("/r/inscription/{memo_id}"));
+    assert!(inscription_json.charms.contains(&Charm::Burned));
+  }
+
+  #[test]
+  fn memo_proxy() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let target_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    let target_id = InscriptionId {
+      txid: target_txid,
+      index: 0,
+    };
+
+    server.assert_response(
+      format!("/r/memos/{target_id}"),
+      StatusCode::NOT_FOUND,
+      &format!("inscription {target_id} not found"),
+    );
+
+    server.mine_blocks(1);
+
+    let memos = server.get_json::<api::Memos>(format!("/r/memos/{target_id}"));
+
+    assert_eq!(memos.ids.len(), 0);
+
+    let mut builder = script::Builder::new();
+    for _ in 0..11 {
+      builder = Inscription {
+        content_type: Some("application/cbor".into()),
+        body: Some(vec![0xa0]),
+        memo: Some(target_id.value()),
+        unrecognized_even_field: false,
+        ..default()
+      }
+      .append_reveal_script_to_builder(builder);
+    }
+
+    let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let first_memo_id = InscriptionId { txid, index: 0 };
+
+    let memos = server.get_json::<api::Memos>(format!("/r/memos/{target_id}"));
+
+    assert_eq!(memos.ids.len(), 11);
+    assert_eq!(first_memo_id, memos.ids[0]);
+
+    let server_with_proxy = TestServer::builder()
+      .chain(Chain::Regtest)
+      .server_option("--proxy", server.url.as_ref())
+      .build();
+
+    server_with_proxy.mine_blocks(1);
+
+    let memos = server.get_json::<api::Memos>(format!("/r/memos/{target_id}"));
+
+    assert_eq!(memos.ids.len(), 11);
+    assert_eq!(first_memo_id, memos.ids[0]);
+
+    let memos = server_with_proxy.get_json::<api::Memos>(format!("/r/memos/{target_id}"));
+
+    assert_eq!(memos.ids.len(), 11);
+    assert_eq!(first_memo_id, memos.ids[0]);
   }
 }

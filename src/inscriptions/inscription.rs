@@ -20,6 +20,7 @@ pub struct Inscription {
   pub delegate: Option<Vec<u8>>,
   pub duplicate_field: bool,
   pub incomplete_field: bool,
+  pub memo: Option<Vec<u8>>,
   pub metadata: Option<Vec<u8>>,
   pub metaprotocol: Option<Vec<u8>>,
   pub parents: Vec<Vec<u8>>,
@@ -35,6 +36,7 @@ impl Inscription {
     chain: Chain,
     compress: bool,
     delegate: Option<InscriptionId>,
+    memo: Option<InscriptionId>,
     metadata: Option<Vec<u8>>,
     metaprotocol: Option<String>,
     parents: Vec<InscriptionId>,
@@ -80,6 +82,7 @@ impl Inscription {
       incomplete_field: false,
       metadata,
       metaprotocol: metaprotocol.map(|metaprotocol| metaprotocol.into_bytes()),
+      memo: memo.map(|m| m.value()),
       parents: parents.iter().map(|parent| parent.value()).collect(),
       pointer: pointer.map(Self::pointer_value),
       property_encoding,
@@ -195,6 +198,7 @@ impl Inscription {
     Tag::Delegate.append(&mut builder, &self.delegate);
     Tag::Pointer.append(&mut builder, &self.pointer);
     Tag::Metadata.append(&mut builder, &self.metadata);
+    Tag::Memo.append(&mut builder, &self.memo);
     Tag::Rune.append(&mut builder, &self.rune);
     Tag::Properties.append(&mut builder, &self.properties);
     Tag::PropertyEncoding.append(&mut builder, &self.property_encoding);
@@ -274,6 +278,10 @@ impl Inscription {
 
   pub fn metaprotocol(&self) -> Option<&str> {
     str::from_utf8(self.metaprotocol.as_ref()?).ok()
+  }
+
+  pub fn memo_target(&self) -> Option<InscriptionId> {
+    InscriptionId::from_value(self.memo.as_deref()?)
   }
 
   pub fn parents(&self) -> Vec<InscriptionId> {
@@ -918,6 +926,7 @@ mod tests {
       None,
       None,
       None,
+      None,
       Vec::new(),
       Some(file.path().to_path_buf()),
       None,
@@ -931,6 +940,7 @@ mod tests {
     let inscription = Inscription::new(
       Chain::Mainnet,
       false,
+      None,
       None,
       None,
       None,
@@ -950,6 +960,7 @@ mod tests {
       None,
       None,
       None,
+      None,
       Vec::new(),
       Some(file.path().to_path_buf()),
       Some(1),
@@ -963,6 +974,7 @@ mod tests {
     let inscription = Inscription::new(
       Chain::Mainnet,
       false,
+      None,
       None,
       None,
       None,
@@ -1195,6 +1207,7 @@ mod tests {
       None,
       None,
       None,
+      None,
       Vec::new(),
       Some(file.path().to_path_buf()),
       None,
@@ -1229,6 +1242,7 @@ mod tests {
         None,
         None,
         None,
+        None,
         Vec::new(),
         Some(file.path().to_path_buf()),
         None,
@@ -1259,6 +1273,7 @@ mod tests {
       Inscription::new(
         Chain::Mainnet,
         true,
+        None,
         None,
         None,
         None,
