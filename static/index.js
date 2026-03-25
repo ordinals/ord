@@ -75,9 +75,8 @@ addEventListener("DOMContentLoaded", () => {
 
   resize();
 
-  for (let a of document.querySelectorAll('nav a[href]')) {
-    if (a.getAttribute('href') === window.location.pathname) {
-      a.classList.add('active');
-    }
-  }
+
+  document
+    .querySelectorAll(`nav a[href="${CSS.escape(window.location.pathname)}"]`)
+    .forEach(a => a.classList.add('active'));
 });
