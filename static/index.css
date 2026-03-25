@@ -287,6 +287,14 @@ a.mythic {
   text-align: left;
 }
 
+nav a.active {
+  color: #ffffff;
+}
+
+nav a.active img {
+  filter: brightness(0) invert(1);
+}
+
 .icon {
   height: 1rem;
   width: 1rem;

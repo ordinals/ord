@@ -74,4 +74,10 @@ addEventListener("DOMContentLoaded", () => {
   addEventListener('copy', copy);
 
   resize();
+
+  for (let a of document.querySelectorAll('nav a[href]')) {
+    if (a.getAttribute('href') === window.location.pathname) {
+      a.classList.add('active');
+    }
+  }
 });
