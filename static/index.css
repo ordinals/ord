@@ -78,6 +78,14 @@ nav > :first-child {
   font-weight: bold;
 }
 
+nav a.active {
+  color: #ffffff;
+}
+
+nav a.active img {
+  filter: brightness(0) invert(1);
+}
+
 form {
   display: flex;
   flex-grow: 1;
@@ -285,14 +293,6 @@ a.mythic {
 .tabs > *:last-child {
   flex: 1;
   text-align: left;
-}
-
-nav a.active {
-  color: #ffffff;
-}
-
-nav a.active img {
-  filter: brightness(0) invert(1);
 }
 
 .icon {

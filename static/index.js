@@ -73,10 +73,9 @@ addEventListener("DOMContentLoaded", () => {
 
   addEventListener('copy', copy);
 
-  resize();
-
-
   document
     .querySelectorAll(`nav a[href="${CSS.escape(window.location.pathname)}"]`)
     .forEach(a => a.classList.add('active'));
+
+  resize();
 });
