@@ -30,7 +30,8 @@ mod tests {
           attributes: Attributes {
             title: Some("foo".into()),
             traits: Traits::default(),
-          }
+          },
+          index: None,
         }
       },
       "
@@ -65,7 +66,8 @@ mod tests {
           attributes: Attributes {
             title: Some("foo".into()),
             traits: Traits::default(),
-          }
+          },
+          index: None,
         }
       }
       .title(),

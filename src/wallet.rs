@@ -234,6 +234,32 @@ impl Wallet {
     )
   }
 
+  pub(crate) fn missing_inscriptions(
+    &self,
+    inscription_ids: &[InscriptionId],
+  ) -> Result<Vec<InscriptionId>> {
+    if inscription_ids.is_empty() {
+      return Ok(Vec::new());
+    }
+
+    let response = self
+      .ord_client
+      .post(self.rpc_url.join("/missing").unwrap())
+      .json(&inscription_ids)
+      .header(reqwest::header::ACCEPT, "application/json")
+      .send()?;
+
+    if !response.status().is_success() {
+      bail!(
+        "failed to check missing inscriptions: {} {}",
+        response.status(),
+        response.text()?,
+      );
+    }
+
+    Ok(response.json()?)
+  }
+
   pub(crate) fn get_inscriptions_in_output(
     &self,
     output: &OutPoint,

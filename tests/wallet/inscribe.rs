@@ -1321,7 +1321,9 @@ fn file_inscribe_with_non_existent_delegate_inscription() {
   .write("child.png", [1; 520])
   .core(&core)
   .ord(&ord)
-  .expected_stderr(format!("error: delegate {delegate} does not exist\n"))
+  .expected_stderr(format!(
+    "error: referenced inscriptions do not exist: {delegate}\n"
+  ))
   .expected_exit_code(1)
   .run_and_extract_stdout();
 }
@@ -1394,7 +1396,7 @@ fn inscribe_fails_if_gallery_inscription_does_not_exist() {
   .core(&core)
   .ord(&ord)
   .expected_stderr(
-    "error: gallery item does not exist: \
+    "error: referenced inscriptions do not exist: \
       0000000000000000000000000000000000000000000000000000000000000000i0\n",
   )
   .expected_exit_code(1)

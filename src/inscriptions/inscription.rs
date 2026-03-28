@@ -10,7 +10,7 @@ use {
 };
 
 const MAX_COMPRESSED_PROPERTIES_SIZE: usize = 4_000_000;
-const MAX_PROPERTIES_COMPRESSION_RATIO: usize = 10;
+const MAX_PROPERTIES_COMPRESSION_RATIO: usize = 30;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize, Eq, Default)]
 pub struct Inscription {
@@ -69,29 +69,7 @@ impl Inscription {
       (None, None, None)
     };
 
-    let (properties, property_encoding) = if let Some(cbor) = properties.to_cbor() {
-      if compress {
-        let len = cbor.len();
-
-        ensure! {
-          len <= MAX_COMPRESSED_PROPERTIES_SIZE,
-          "properties size of {len} bytes exceeds {MAX_COMPRESSED_PROPERTIES_SIZE} byte limit",
-        }
-
-        let (compressed, encoding) = Self::compress(BrotliEncoderMode::BROTLI_MODE_GENERIC, cbor)?;
-
-        ensure! {
-          encoding.is_none() || len / compressed.len() <= MAX_PROPERTIES_COMPRESSION_RATIO,
-          "property compression over {MAX_PROPERTIES_COMPRESSION_RATIO}:1",
-        }
-
-        (Some(compressed), encoding)
-      } else {
-        (Some(cbor), None)
-      }
-    } else {
-      (None, None)
-    };
+    let (properties, property_encoding) = Self::encode_properties(compress, &properties)?;
 
     Ok(Self {
       body,
@@ -119,6 +97,56 @@ impl Inscription {
     }
 
     bytes
+  }
+
+  fn encode_properties(
+    compress: bool,
+    properties: &Properties,
+  ) -> Result<(Option<Vec<u8>>, Option<Vec<u8>>)> {
+    let Some(inline) = properties.to_inline_cbor() else {
+      return Ok((None, None));
+    };
+
+    let packed = properties.to_packed_cbor().unwrap();
+
+    let mut candidates = vec![(inline.clone(), None), (packed.clone(), None)];
+
+    if compress {
+      if let (cbor, Some(encoding)) = Self::compress_properties(inline)? {
+        candidates.push((cbor, Some(encoding)))
+      }
+
+      if let (cbor, Some(encoding)) = Self::compress_properties(packed)? {
+        candidates.push((cbor, Some(encoding)))
+      }
+    }
+
+    let (bytes, encoding) = candidates
+      .into_iter()
+      .min_by_key(|(bytes, _)| bytes.len())
+      .unwrap();
+
+    Ok((Some(bytes), encoding))
+  }
+
+  fn compress_properties(cbor: Vec<u8>) -> Result<(Vec<u8>, Option<Vec<u8>>)> {
+    let len = cbor.len();
+
+    ensure! {
+      len <= MAX_COMPRESSED_PROPERTIES_SIZE,
+      "properties size of {len} bytes exceeds {MAX_COMPRESSED_PROPERTIES_SIZE} byte limit",
+    }
+
+    let (compressed, encoding) = Self::compress(BrotliEncoderMode::BROTLI_MODE_GENERIC, cbor)?;
+
+    if encoding.is_some() {
+      ensure! {
+        len / compressed.len() <= MAX_PROPERTIES_COMPRESSION_RATIO,
+        "property compression over {MAX_PROPERTIES_COMPRESSION_RATIO}:1",
+      }
+    }
+
+    Ok((compressed, encoding))
   }
 
   fn compress(mode: BrotliEncoderMode, data: Vec<u8>) -> Result<(Vec<u8>, Option<Vec<u8>>), Error> {
@@ -1159,7 +1187,7 @@ mod tests {
       ..default()
     };
 
-    let cbor = properties.to_cbor().unwrap();
+    let cbor = properties.to_inline_cbor().unwrap();
 
     let inscription = Inscription::new(
       Chain::Mainnet,
@@ -1242,8 +1270,127 @@ mod tests {
       )
       .unwrap_err()
       .to_string()
-      .contains("compression over 10:1")
+      .contains("compression over 30:1")
     );
+  }
+
+  #[test]
+  fn encode_properties_selects_smallest_candidate() {
+    fn item(txid: Txid, index: u32) -> properties::Item {
+      properties::Item {
+        id: Some(InscriptionId { txid, index }),
+        attributes: Attributes::default(),
+        index: None,
+      }
+    }
+
+    fn item_with_attributes(txid: Txid, index: u32, title: &str) -> properties::Item {
+      properties::Item {
+        id: Some(InscriptionId { txid, index }),
+        attributes: Attributes {
+          title: Some(title.into()),
+          ..default()
+        },
+        index: None,
+      }
+    }
+
+    let txid_a = inscription_id(0).txid;
+
+    // inline uncompressed: single item with non-zero index,
+    // packed adds overhead for separate index field and txid blob
+    {
+      let properties = Properties {
+        gallery: vec![item(txid_a, 5)],
+        ..default()
+      };
+
+      let (bytes, encoding) = Inscription::encode_properties(false, &properties).unwrap();
+      let bytes = bytes.unwrap();
+
+      assert!(encoding.is_none());
+      assert_eq!(bytes, properties.to_inline_cbor().unwrap());
+    }
+
+    // packed uncompressed: many items with index 0,
+    // packed saves per-item overhead
+    {
+      let properties = Properties {
+        gallery: (0..10)
+          .map(|i| {
+            let mut txid = [0u8; 32];
+            txid[0] = i;
+            item(Txid::from_byte_array(txid), 0)
+          })
+          .collect(),
+        ..default()
+      };
+
+      let (bytes, encoding) = Inscription::encode_properties(false, &properties).unwrap();
+      let bytes = bytes.unwrap();
+
+      assert!(encoding.is_none());
+      assert_eq!(bytes, properties.to_packed_cbor().unwrap());
+    }
+
+    // inline compressed: items with non-zero indices and a
+    // compressible title, packed CBOR is larger because each item
+    // carries a separate index field, compressed inline wins
+    {
+      let properties = Properties {
+        gallery: (0..2)
+          .map(|i: u8| {
+            let mut txid = [0u8; 32];
+            for (j, byte) in txid.iter_mut().enumerate() {
+              *byte = i.wrapping_mul(17).wrapping_add(j.try_into().unwrap());
+            }
+            item_with_attributes(
+              Txid::from_byte_array(txid),
+              (100 + i).into(),
+              &format!("title-{i:x}"),
+            )
+          })
+          .collect(),
+        ..default()
+      };
+
+      let (bytes, encoding) = Inscription::encode_properties(true, &properties).unwrap();
+      let bytes = bytes.unwrap();
+
+      assert!(encoding.is_some());
+
+      let inline = properties.to_inline_cbor().unwrap();
+      let packed = properties.to_packed_cbor().unwrap();
+      let (compressed_inline, _) = Inscription::compress_properties(inline).unwrap();
+      let (compressed_packed, _) = Inscription::compress_properties(packed).unwrap();
+
+      assert_eq!(bytes, compressed_inline);
+      assert!(compressed_inline.len() < compressed_packed.len());
+    }
+
+    // packed compressed: many items sharing a txid, the txid blob
+    // contains repeated 32-byte sequences that brotli back-references
+    {
+      let properties = Properties {
+        gallery: (0..20)
+          .map(|i| item_with_attributes(txid_a, i, &format!("title-{i:x}")))
+          .collect(),
+        ..default()
+      };
+
+      let (bytes, encoding) = Inscription::encode_properties(true, &properties).unwrap();
+      let bytes = bytes.unwrap();
+
+      assert!(encoding.is_some());
+
+      let inline = properties.to_inline_cbor().unwrap();
+      let packed = properties.to_packed_cbor().unwrap();
+      let (compressed_inline, _) = Inscription::compress_properties(inline).unwrap();
+      let (compressed_packed, _) = Inscription::compress_properties(packed).unwrap();
+
+      assert_eq!(bytes, compressed_packed);
+      assert!(compressed_packed.len() < compressed_inline.len());
+    }
   }
 
   #[test]

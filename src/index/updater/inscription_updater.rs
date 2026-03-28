@@ -482,19 +482,30 @@ impl InscriptionUpdater<'_, '_> {
           self.sat_to_sequence_number.insert(&n, &sequence_number)?;
         }
 
-        let parent_sequence_numbers = parents
-          .iter()
-          .map(|parent| {
-            let parent_sequence_number = self
-              .id_to_sequence_number
-              .get(&parent.store())?
-              .unwrap()
-              .value();
+        let mut parent_inscription_ids = Vec::new();
+        let mut parent_sequence_numbers = Vec::new();
 
+        for parent in parents {
+          let Some(entry) = self.id_to_sequence_number.get(&parent.store())? else {
+            continue;
+          };
+
+          let parent_sequence_number = entry.value();
+
+          self
+            .sequence_number_to_children
+            .insert(parent_sequence_number, sequence_number)?;
+
+          let parent_hidden = InscriptionEntry::load(
             self
-              .sequence_number_to_children
-              .insert(parent_sequence_number, sequence_number)?;
+              .sequence_number_to_entry
+              .get(parent_sequence_number)?
+              .unwrap()
+              .value(),
+          )
+          .hidden;
 
+          if !parent_hidden {
             if let Some(old_latest) = self
               .collection_to_latest_child
               .get(parent_sequence_number)?
@@ -512,12 +523,13 @@ impl InscriptionUpdater<'_, '_> {
             self
               .latest_child_to_collection
               .insert(sequence_number, parent_sequence_number)?;
+          }
 
-            Ok(parent_sequence_number)
-          })
-          .collect::<Result<Vec<u32>>>()?;
+          parent_inscription_ids.push(parent);
+          parent_sequence_numbers.push(parent_sequence_number);
+        }
 
-        if gallery {
+        if gallery && !hidden {
           self.gallery_sequence_numbers.insert(sequence_number, ())?;
         }
 
@@ -527,7 +539,7 @@ impl InscriptionUpdater<'_, '_> {
             charms,
             inscription_id,
             location: (!unbound).then_some(new_satpoint),
-            parent_inscription_ids: parents,
+            parent_inscription_ids,
             sequence_number,
           })?;
         }
@@ -538,6 +550,7 @@ impl InscriptionUpdater<'_, '_> {
             charms,
             fee,
             height: self.height,
+            hidden,
             id: inscription_id,
             inscription_number,
             parents: parent_sequence_numbers,

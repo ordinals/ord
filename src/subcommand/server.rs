@@ -153,7 +153,7 @@ impl Server {
     handle: Handle<SocketAddr>,
     http_port_tx: Option<std::sync::mpsc::Sender<u16>>,
   ) -> SubcommandResult {
-    Runtime::new()?.block_on(async {
+    settings.runtime()?.block_on(async {
       let index_clone = index.clone();
       let integration_test = settings.integration_test();
 
@@ -253,6 +253,7 @@ impl Server {
         )
         .route("/inscriptions/{page}", get(Self::inscriptions_paginated))
         .route("/install.sh", get(Self::install_script))
+        .route("/missing", post(Self::missing).layer(body_limit))
         .route("/offer", post(Self::offer))
         .route("/offers", get(Self::offers))
         .route("/ordinal/{sat}", get(Self::ordinal))
@@ -1837,6 +1838,20 @@ impl Server {
     })
   }
 
+  async fn missing(
+    Extension(index): Extension<Arc<Index>>,
+    AcceptJson(accept_json): AcceptJson,
+    Json(inscription_ids): Json<Vec<InscriptionId>>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      Ok(if accept_json {
+        Json(index.missing_inscriptions(&inscription_ids)?).into_response()
+      } else {
+        StatusCode::NOT_FOUND.into_response()
+      })
+    })
+  }
+
   async fn collections(
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
@@ -2497,6 +2512,26 @@ mod tests {
 
       let response = client
         .get(self.join_url(path.as_ref()))
+        .header(header::ACCEPT, "application/json")
+        .send()
+        .unwrap();
+
+      assert_eq!(response.status(), StatusCode::OK);
+
+      response.json().unwrap()
+    }
+
+    #[track_caller]
+    fn post_json<T: DeserializeOwned>(&self, path: impl AsRef<str>, body: &impl Serialize) -> T {
+      if let Err(error) = self.index.update() {
+        log::error!("{error}");
+      }
+
+      let client = reqwest::blocking::Client::new();
+
+      let response = client
+        .post(self.join_url(path.as_ref()))
+        .json(body)
         .header(header::ACCEPT, "application/json")
         .send()
         .unwrap();
@@ -5153,7 +5188,7 @@ prev
             }],
             ..default()
           }
-          .to_cbor(),
+          .to_inline_cbor(),
           ..default()
         }
         .to_witness(),
@@ -5405,7 +5440,7 @@ prev
 
       parent_ids.push(InscriptionId {
         txid: server.core.broadcast_tx(TransactionTemplate {
-          inputs: &[(i + 1, 0, 0, inscription("text/plain", "hello").to_witness())],
+          inputs: &[(i + 1, 0, 0, inscription("image/png", "hello").to_witness())],
           ..default()
         }),
         index: 0,
@@ -5482,7 +5517,7 @@ next
     server.mine_blocks(1);
     let parent_a = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(1, 0, 0, inscription("text/plain", "parent a").to_witness())],
+        inputs: &[(1, 0, 0, inscription("image/png", "parent a").to_witness())],
         ..default()
       }),
       index: 0,
@@ -5491,7 +5526,7 @@ next
     server.mine_blocks(1);
     let parent_b = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(2, 0, 0, inscription("text/plain", "parent b").to_witness())],
+        inputs: &[(2, 0, 0, inscription("image/png", "parent b").to_witness())],
         ..default()
       }),
       index: 0,
@@ -5500,7 +5535,7 @@ next
     server.mine_blocks(1);
     let parent_c = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(3, 0, 0, inscription("text/plain", "parent c").to_witness())],
+        inputs: &[(3, 0, 0, inscription("image/png", "parent c").to_witness())],
         ..default()
       }),
       index: 0,
@@ -5628,7 +5663,7 @@ next
     server.mine_blocks(1);
     let parent_a = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(1, 0, 0, inscription("text/plain", "parent a").to_witness())],
+        inputs: &[(1, 0, 0, inscription("image/png", "parent a").to_witness())],
         ..default()
       }),
       index: 0,
@@ -5637,7 +5672,7 @@ next
     server.mine_blocks(1);
     let parent_b = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(2, 0, 0, inscription("text/plain", "parent b").to_witness())],
+        inputs: &[(2, 0, 0, inscription("image/png", "parent b").to_witness())],
         ..default()
       }),
       index: 0,
@@ -5696,7 +5731,7 @@ next
             i + 1,
             0,
             0,
-            inscription("text/plain", "gallery item").to_witness(),
+            inscription("image/png", "gallery item").to_witness(),
           )],
           ..default()
         }),
@@ -5715,12 +5750,14 @@ next
         .map(|&id| properties::Item {
           id: Some(id),
           attributes: Attributes::default(),
+          index: None,
         })
         .collect::<Vec<_>>();
 
       let properties = Properties {
         attributes: Attributes::default(),
         gallery: gallery_items,
+        txids: Vec::new(),
       };
 
       server.core.broadcast_tx(TransactionTemplate {
@@ -5729,9 +5766,9 @@ next
           0,
           0,
           Inscription {
-            content_type: Some("text/plain".into()),
+            content_type: Some("image/png".into()),
             body: Some("gallery".into()),
-            properties: properties.to_cbor(),
+            properties: properties.to_inline_cbor(),
             ..default()
           }
           .to_witness(),
@@ -5809,12 +5846,14 @@ next
       .map(|&id| properties::Item {
         id: Some(id),
         attributes: Attributes::default(),
+        index: None,
       })
       .collect::<Vec<_>>();
 
     let properties = Properties {
       attributes: Attributes::default(),
       gallery: gallery_items,
+      txids: Vec::new(),
     };
 
     server.mine_blocks(1);
@@ -5828,7 +5867,7 @@ next
           Inscription {
             content_type: Some("text/plain".into()),
             body: Some("gallery".into()),
-            properties: properties.to_cbor(),
+            properties: properties.to_inline_cbor(),
             ..default()
           }
           .to_witness(),
@@ -5874,7 +5913,7 @@ next
 
     let item_id = InscriptionId {
       txid: server.core.broadcast_tx(TransactionTemplate {
-        inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+        inputs: &[(1, 0, 0, inscription("image/png", "foo").to_witness())],
         ..default()
       }),
       index: 0,
@@ -5889,7 +5928,7 @@ next
           0,
           0,
           Inscription {
-            content_type: Some("text/plain".into()),
+            content_type: Some("image/png".into()),
             body: Some("bar".into()),
             properties: Properties {
               gallery: vec![Item {
@@ -5898,7 +5937,7 @@ next
               }],
               ..default()
             }
-            .to_cbor(),
+            .to_inline_cbor(),
             ..default()
           }
           .to_witness(),
@@ -5931,7 +5970,7 @@ next
 
       item_ids.push(InscriptionId {
         txid: server.core.broadcast_tx(TransactionTemplate {
-          inputs: &[(i + 1, 0, 0, inscription("text/plain", "foo").to_witness())],
+          inputs: &[(i + 1, 0, 0, inscription("image/png", "foo").to_witness())],
           ..default()
         }),
         index: 0,
@@ -5950,7 +5989,7 @@ next
             0,
             0,
             Inscription {
-              content_type: Some("text/plain".into()),
+              content_type: Some("image/png".into()),
               body: Some("bar".into()),
               properties: Properties {
                 gallery: vec![Item {
@@ -5959,7 +5998,7 @@ next
                 }],
                 ..default()
               }
-              .to_cbor(),
+              .to_inline_cbor(),
               ..default()
             }
             .to_witness(),
@@ -6005,6 +6044,167 @@ next
 
     assert!(json.ids.is_empty());
     assert!(!json.more);
+  }
+
+  #[test]
+  fn hidden_galleries_are_excluded() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    server.mine_blocks(1);
+
+    let item_id = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("image/png", "foo").to_witness())],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(
+        2,
+        0,
+        0,
+        Inscription {
+          content_type: Some("text/plain".into()),
+          body: Some("bar".into()),
+          properties: Properties {
+            gallery: vec![Item {
+              id: Some(item_id),
+              ..default()
+            }],
+            ..default()
+          }
+          .to_inline_cbor(),
+          ..default()
+        }
+        .to_witness(),
+      )],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let visible_gallery_id = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(
+          3,
+          0,
+          0,
+          Inscription {
+            content_type: Some("image/png".into()),
+            body: Some("baz".into()),
+            properties: Properties {
+              gallery: vec![Item {
+                id: Some(item_id),
+                ..default()
+              }],
+              ..default()
+            }
+            .to_inline_cbor(),
+            ..default()
+          }
+          .to_witness(),
+        )],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    let json: api::Inscriptions = server.get_json("/galleries");
+
+    assert_eq!(json.ids, vec![visible_gallery_id]);
+  }
+
+  #[test]
+  fn hidden_collections_are_excluded() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    server.mine_blocks(1);
+
+    let hidden_parent = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    let visible_parent = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(2, 0, 0, inscription("image/png", "bar").to_witness())],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (2, 1, 0, Default::default()),
+        (
+          3,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("baz".into()),
+            parents: vec![hidden_parent.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+      ],
+      outputs: 2,
+      output_values: &[50 * COIN_VALUE, 50 * COIN_VALUE],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[
+        (3, 1, 0, Default::default()),
+        (
+          4,
+          0,
+          0,
+          Inscription {
+            content_type: Some("text/plain".into()),
+            body: Some("qux".into()),
+            parents: vec![visible_parent.value()],
+            ..default()
+          }
+          .to_witness(),
+        ),
+      ],
+      outputs: 2,
+      output_values: &[50 * COIN_VALUE, 50 * COIN_VALUE],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    server.assert_response_regex(
+      "/collections",
+      StatusCode::OK,
+      format!(
+        ".*<h1>Collections</h1>\n<div class=thumbnails>\n  <a href=/inscription/{visible_parent}>.*</a>\n</div>.*"
+      ),
+    );
   }
 
   #[test]
@@ -6221,7 +6421,7 @@ next
             }],
             ..default()
           }
-          .to_cbor(),
+          .to_inline_cbor(),
           ..default()
         }
         .to_witness(),
@@ -6381,6 +6581,7 @@ next
     let properties = Properties {
       attributes: Attributes::default(),
       gallery: gallery_items,
+      txids: Vec::new(),
     };
 
     server.mine_blocks(1);
@@ -6393,7 +6594,7 @@ next
         Inscription {
           content_type: Some("text/plain".into()),
           body: Some("gallery".into()),
-          properties: properties.to_cbor(),
+          properties: properties.to_inline_cbor(),
           ..default()
         }
         .to_witness(),
@@ -9096,6 +9297,50 @@ next
     );
 
     server.post("offer", &psbt, StatusCode::PAYLOAD_TOO_LARGE);
+  }
+
+  #[test]
+  fn missing_returns_missing_inscription_ids() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let existing = InscriptionId { txid, index: 0 };
+
+    let missing_id = "0000000000000000000000000000000000000000000000000000000000000000i0"
+      .parse::<InscriptionId>()
+      .unwrap();
+
+    let result = server.post_json::<Vec<InscriptionId>>("missing", &vec![existing, missing_id]);
+
+    assert_eq!(result, vec![missing_id]);
+  }
+
+  #[test]
+  fn missing_returns_empty_when_all_exist() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "foo").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let existing = InscriptionId { txid, index: 0 };
+
+    let result = server.post_json::<Vec<InscriptionId>>("missing", &vec![existing]);
+
+    assert!(result.is_empty());
   }
 
   #[test]

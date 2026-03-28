@@ -1,6 +1,35 @@
 Changelog
 =========
 
+[0.27.0](https://github.com/ordinals/ord/releases/tag/0.27.0) - 2026-03-10
+--------------------------------------------------------------------------
+
+### Added
+- Add `/missing` to bulk check inscription existance ([#4493](https://github.com/ordinals/ord/pull/4493) by [casey](https://github.com/casey))
+
+### Changed
+- Optionally pack gallery TXIDs to increase compressibility ([#4490](https://github.com/ordinals/ord/pull/4490) by [casey](https://github.com/casey))
+
+### Misc
+- Reduce test thread contention ([#4495](https://github.com/ordinals/ord/pull/4495) by [casey](https://github.com/casey))
+- Don't show hidden inscriptions on /collections or /galleries ([#4488](https://github.com/ordinals/ord/pull/4488) by [casey](https://github.com/casey))
+- Allow missing current index when swapping ([#4487](https://github.com/ordinals/ord/pull/4487) by [casey](https://github.com/casey))
+
+[0.26.0](https://github.com/ordinals/ord/releases/tag/0.26.0) - 2026-02-26
+--------------------------------------------------------------------------
+
+### Changed
+- Increase properties compression ratio to 30:1 ([#4483](https://github.com/ordinals/ord/pull/4483) by [casey](https://github.com/casey))
+- Reverse /collections page order ([#4475](https://github.com/ordinals/ord/pull/4475) by [casey](https://github.com/casey))
+
+### Misc
+- Add from item to gallery ([#4476](https://github.com/ordinals/ord/pull/4476) by [casey](https://github.com/casey))
+- Cache RPC client in TestServer ([#4474](https://github.com/ordinals/ord/pull/4474) by [casey](https://github.com/casey))
+- Remove redundant mockcore health-check polling ([#4473](https://github.com/ordinals/ord/pull/4473) by [casey](https://github.com/casey))
+- Use shallow clones in release recipes ([#4472](https://github.com/ordinals/ord/pull/4472) by [casey](https://github.com/casey))
+- Fix bin/package even more ([#4471](https://github.com/ordinals/ord/pull/4471) by [casey](https://github.com/casey))
+- Fix bin/package ([#4470](https://github.com/ordinals/ord/pull/4470) by [casey](https://github.com/casey))
+
 [0.25.0](https://github.com/ordinals/ord/releases/tag/0.25.0) - 2026-02-09
 --------------------------------------------------------------------------
 

@@ -139,13 +139,6 @@ impl File {
     let mut pointer = parent_values.iter().sum();
 
     for (i, entry) in self.inscriptions.iter().enumerate() {
-      if let Some(delegate) = entry.delegate {
-        ensure! {
-          wallet.inscription_exists(delegate)?,
-          "delegate {delegate} does not exist"
-        }
-      }
-
       inscriptions.push(Inscription::new(
         wallet.chain(),
         compress,
@@ -163,9 +156,11 @@ impl File {
             .map(|item| Item {
               id: Some(item.id),
               attributes: item.attributes,
+              index: None,
             })
             .collect(),
           attributes: entry.attributes.clone(),
+          txids: Vec::new(),
         },
         self
           .etching

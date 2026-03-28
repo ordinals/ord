@@ -18,13 +18,24 @@ impl Batch {
 
     let batchfile = batch::File::load(&self.batch)?;
 
+    let mut ids = BTreeSet::new();
+
     for inscription in &batchfile.inscriptions {
-      for item in &inscription.gallery {
-        ensure! {
-          wallet.inscription_exists(item.id)?,
-          "gallery item does not exist: {}", item.id,
-        }
+      if let Some(delegate) = inscription.delegate {
+        ids.insert(delegate);
       }
+
+      for item in &inscription.gallery {
+        ids.insert(item.id);
+      }
+    }
+
+    let missing = wallet.missing_inscriptions(&ids.into_iter().collect::<Vec<InscriptionId>>())?;
+
+    ensure! {
+      missing.is_empty(),
+      "inscriptions referenced in batchfile do not exist: {}",
+      missing.into_iter().map(|id| id.to_string()).collect::<Vec<String>>().join(", "),
     }
 
     let parent_info = wallet.get_parent_info(&batchfile.parents)?;

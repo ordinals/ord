@@ -256,12 +256,10 @@ impl Updater<'_> {
     // else runs a request, we keep this to 12.
     let parallel_requests: usize = index.settings.bitcoin_rpc_limit().try_into().unwrap();
 
+    let runtime = index.settings.runtime()?;
+
     thread::spawn(move || {
-      let rt = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .unwrap();
-      rt.block_on(async move {
+      runtime.block_on(async move {
         loop {
           let Some(outpoint) = outpoint_receiver.recv().await else {
             log::debug!("Outpoint channel closed");
