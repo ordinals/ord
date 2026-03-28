@@ -1918,11 +1918,13 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path(inscription_id): Path<InscriptionId>,
-  ) -> ServerResult<PageHtml<GalleryHtml>> {
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
     Self::gallery_paginated(
       Extension(server_config),
       Extension(index),
       Path((inscription_id, 0)),
+      AcceptJson(accept_json),
     )
     .await
   }
@@ -1931,7 +1933,8 @@ impl Server {
     Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     Path((id, page)): Path<(InscriptionId, usize)>,
-  ) -> ServerResult<PageHtml<GalleryHtml>> {
+    AcceptJson(accept_json): AcceptJson,
+  ) -> ServerResult {
     task::block_in_place(|| {
       let inscription = index
         .get_inscription_by_id(id)?
@@ -1962,7 +1965,14 @@ impl Server {
       let prev_page = page.checked_sub(1);
       let next_page = more.then_some(page + 1);
 
-      Ok(
+      Ok(if accept_json {
+        Json(api::Gallery {
+          ids: items.iter().map(|(_, id)| *id).collect(),
+          more,
+          page,
+        })
+        .into_response()
+      } else {
         GalleryHtml {
           id,
           number,
@@ -1970,8 +1980,9 @@ impl Server {
           prev_page,
           next_page,
         }
-        .page(server_config),
-      )
+        .page(server_config)
+        .into_response()
+      })
     })
   }
 
@@ -5875,6 +5886,60 @@ next
     assert_eq!(json.ids, vec![gallery_id]);
     assert!(!json.more);
     assert_eq!(json.page_index, 0);
+  }
+
+  #[test]
+  fn gallery_json() {
+    let server = TestServer::builder()
+      .chain(Chain::Regtest)
+      .index_sats()
+      .build();
+
+    server.mine_blocks(1);
+
+    let item_id = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(1, 0, 0, inscription("image/png", "foo").to_witness())],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    let gallery_id = InscriptionId {
+      txid: server.core.broadcast_tx(TransactionTemplate {
+        inputs: &[(
+          2,
+          0,
+          0,
+          Inscription {
+            content_type: Some("image/png".into()),
+            body: Some("bar".into()),
+            properties: Properties {
+              gallery: vec![Item {
+                id: Some(item_id),
+                ..default()
+              }],
+              ..default()
+            }
+            .to_inline_cbor(),
+            ..default()
+          }
+          .to_witness(),
+        )],
+        ..default()
+      }),
+      index: 0,
+    };
+
+    server.mine_blocks(1);
+
+    let json: api::Gallery = server.get_json(format!("/gallery/{gallery_id}"));
+
+    assert_eq!(json.ids, vec![item_id]);
+    assert!(!json.more);
+    assert_eq!(json.page, 0);
   }
 
   #[test]
