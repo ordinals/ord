@@ -1,6 +1,15 @@
 Changelog
 =========
 
+[0.27.1](https://github.com/ordinals/ord/releases/tag/0.27.1) - 2026-03-10
+--------------------------------------------------------------------------
+
+### Added
+- Highlight active nav icon ([#4503](https://github.com/ordinals/ord/pull/4503) by [casey](https://github.com/casey))
+
+### Misc
+- Filter invalid parents ([#4502](https://github.com/ordinals/ord/pull/4502) by [casey](https://github.com/casey))
+
 [0.27.0](https://github.com/ordinals/ord/releases/tag/0.27.0) - 2026-03-10
 --------------------------------------------------------------------------
 
