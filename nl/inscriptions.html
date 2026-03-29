@@ -257,16 +257,23 @@ OP_ENDIF
 <p>Het gegevensmodel van de inscripties is dat van een HTTP-respons, waardoor de inhoud van de inscriptie kan worden verkregen via een webserver en bekeken kan worden in een webbrowser.</p>
 <h2 id="velden"><a class="header" href="#velden">Velden</a></h2>
 <p>Inscripties kunnen velden bevatten vóór een optionele body. Elk veld bestaat uit twee gegevenspushes: een label en een waarde.</p>
-<p>Momenteel zijn er zes gedefinieerde velden:</p>
-<ul>
-<li><code>content_type</code>, met een label van <code>1</code>, waarvan de waarde het MIME-type van de body is.</li>
-<li><code>pointer</code>, met een label van <code>2</code>, zie <a href="inscriptions/pointer.html">documentatie van pointers</a>.</li>
-<li><code>parent</code>, met een label van <code>3</code>, zie <a href="inscriptions/provenance.html">herkomst</a>.</li>
-<li><code>metadata</code>, met een label van <code>5</code>, zie <a href="inscriptions/metadata.html">metadata</a>.</li>
-<li><code>metaprotocol</code>, met een label van <code>7</code>, waarvan de waarde de identificator van het metaprotocol is.</li>
-<li><code>content_encoding</code>, met een label van <code>9</code>, waarvan de waarde de codering van de body is.</li>
-<li><code>delegate</code>, met een label van <code>11</code>, zie <a href="inscriptions/delegate.html">gedelegeerde</a>.</li>
-</ul>
+<p>Currently, there are thirteen defined fields:</p>
+<div class="table-wrapper"><table><thead><tr><th>tag</th><th>name</th><th>comment</th></tr></thead><tbody>
+<tr><td><code>1</code></td><td><code>content_type</code></td><td>MIME type of the body</td></tr>
+<tr><td><code>2</code></td><td><code>pointer</code></td><td>see <a href="inscriptions/pointer.html">pointer</a></td></tr>
+<tr><td><code>3</code></td><td><code>parent</code></td><td>see <a href="inscriptions/provenance.html">provenance</a></td></tr>
+<tr><td><code>5</code></td><td><code>metadata</code></td><td>see <a href="inscriptions/metadata.html">metadata</a></td></tr>
+<tr><td><code>7</code></td><td><code>metaprotocol</code></td><td>metaprotocol identifier</td></tr>
+<tr><td><code>9</code></td><td><code>content_encoding</code></td><td>encoding of the body</td></tr>
+<tr><td><code>11</code></td><td><code>delegate</code></td><td>see <a href="inscriptions/delegate.html">delegate</a></td></tr>
+<tr><td><code>13</code></td><td><code>rune</code></td><td>serialized rune</td></tr>
+<tr><td><code>15</code></td><td></td><td>no-op</td></tr>
+<tr><td><code>17</code></td><td><code>properties</code></td><td>see <a href="inscriptions/properties.html">properties</a></td></tr>
+<tr><td><code>19</code></td><td><code>property_encoding</code></td><td>encoding of the properties field</td></tr>
+<tr><td><code>66</code></td><td></td><td>unbinds inscription</td></tr>
+<tr><td><code>255</code></td><td></td><td>no-op</td></tr>
+</tbody></table>
+</div>
 <p>Om het begin van de body en het einde van de velden aan te geven, wordt een lege gegevenspush uitgevoerd.</p>
 <p>Niet-herkende labels worden op verschillende manieren geïnterpreteerd, afhankelijk van of ze even of oneven zijn, volgens de regel "oneven is toegestaan" die wordt gebruikt door het Lightning Network.</p>
 <p>Even labels worden gebruikt voor velden die de creatie, initiële toewijzing of overdracht van een inscriptie kunnen beïnvloeden. Daarom moeten inscripties met niet-herkende even labels worden weergegeven als "niet-gelinkt", dat wil zeggen zonder locatie.</p>

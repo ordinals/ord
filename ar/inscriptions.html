@@ -257,16 +257,23 @@ OP_ENDIF
 <p>نموذج بيانات الكتابات هو نفس نموذج الاستجابة HTTP، مما يتيح لمحتوى انسكريبشين أن يتم تقديمه من خلال خادم ويب وعرضه في متصفح ويب.</p>
 <h2 id="الحقول"><a class="header" href="#الحقول">الحقول</a></h2>
 <p>قد تشمل الأنسكريبشين حقولًا قبل هيكل اختياري. يتألف كل حقل من توجيهين للبيانات، علامة وقيمة.</p>
-<p>Currently, there are six defined fields:</p>
-<ul>
-<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
-<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="inscriptions/pointer.html">pointer docs</a>.</li>
-<li><code>parent</code>, with a tag of <code>3</code>, see <a href="inscriptions/provenance.html">provenance</a>.</li>
-<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="inscriptions/metadata.html">metadata</a>.</li>
-<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
-<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
-<li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
-</ul>
+<p>Currently, there are thirteen defined fields:</p>
+<div class="table-wrapper"><table><thead><tr><th>tag</th><th>name</th><th>comment</th></tr></thead><tbody>
+<tr><td><code>1</code></td><td><code>content_type</code></td><td>MIME type of the body</td></tr>
+<tr><td><code>2</code></td><td><code>pointer</code></td><td>see <a href="inscriptions/pointer.html">pointer</a></td></tr>
+<tr><td><code>3</code></td><td><code>parent</code></td><td>see <a href="inscriptions/provenance.html">provenance</a></td></tr>
+<tr><td><code>5</code></td><td><code>metadata</code></td><td>see <a href="inscriptions/metadata.html">metadata</a></td></tr>
+<tr><td><code>7</code></td><td><code>metaprotocol</code></td><td>metaprotocol identifier</td></tr>
+<tr><td><code>9</code></td><td><code>content_encoding</code></td><td>encoding of the body</td></tr>
+<tr><td><code>11</code></td><td><code>delegate</code></td><td>see <a href="inscriptions/delegate.html">delegate</a></td></tr>
+<tr><td><code>13</code></td><td><code>rune</code></td><td>serialized rune</td></tr>
+<tr><td><code>15</code></td><td></td><td>no-op</td></tr>
+<tr><td><code>17</code></td><td><code>properties</code></td><td>see <a href="inscriptions/properties.html">properties</a></td></tr>
+<tr><td><code>19</code></td><td><code>property_encoding</code></td><td>encoding of the properties field</td></tr>
+<tr><td><code>66</code></td><td></td><td>unbinds inscription</td></tr>
+<tr><td><code>255</code></td><td></td><td>no-op</td></tr>
+</tbody></table>
+</div>
 <p>يتم توضيح بداية الهيكل ونهاية الحقول باستخدام دفعة بيانات فارغة.</p>
 <p>العلامات غير المعترف بها تفسر بشكل مختلف اعتمادًا على ما إذا كانت زوجية أم فردية، وذلك وفقًا لقاعدة "من الجيد أن تكون فردية" المستخدمة في شبكة Lightning.</p>
 <p>تُستخدم العلامات الزوجية للحقول التي قد تؤثر على إنشاء الأنسكريبشين، وتعيينه الأولي، أو نقله. بالتالي، يجب عرض الأنسكريبشين ذات الحقول الزوجية غير المعترف بها على أنها "غير مُرتبطة"، أي بدون موقع.</p>

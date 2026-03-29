@@ -257,16 +257,23 @@ OP_ENDIF
 <p>O modelo de dados das inscrições é o de uma resposta HTTP, permitindo que os conteúdos de inscrições sejam servidos por um servidor web e visualizados em um navegador web.</p>
 <h2 id="campos"><a class="header" href="#campos">Campos</a></h2>
 <p>As inscrições podem incluir campos antes de um corpo opcional. Cada campo consiste em dois envios de dados, uma tag e um valor.</p>
-<p>Currently, there are six defined fields:</p>
-<ul>
-<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
-<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="inscriptions/pointer.html">pointer docs</a>.</li>
-<li><code>parent</code>, with a tag of <code>3</code>, see <a href="inscriptions/provenance.html">provenance</a>.</li>
-<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="inscriptions/metadata.html">metadata</a>.</li>
-<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
-<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
-<li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
-</ul>
+<p>Currently, there are thirteen defined fields:</p>
+<div class="table-wrapper"><table><thead><tr><th>tag</th><th>name</th><th>comment</th></tr></thead><tbody>
+<tr><td><code>1</code></td><td><code>content_type</code></td><td>MIME type of the body</td></tr>
+<tr><td><code>2</code></td><td><code>pointer</code></td><td>see <a href="inscriptions/pointer.html">pointer</a></td></tr>
+<tr><td><code>3</code></td><td><code>parent</code></td><td>see <a href="inscriptions/provenance.html">provenance</a></td></tr>
+<tr><td><code>5</code></td><td><code>metadata</code></td><td>see <a href="inscriptions/metadata.html">metadata</a></td></tr>
+<tr><td><code>7</code></td><td><code>metaprotocol</code></td><td>metaprotocol identifier</td></tr>
+<tr><td><code>9</code></td><td><code>content_encoding</code></td><td>encoding of the body</td></tr>
+<tr><td><code>11</code></td><td><code>delegate</code></td><td>see <a href="inscriptions/delegate.html">delegate</a></td></tr>
+<tr><td><code>13</code></td><td><code>rune</code></td><td>serialized rune</td></tr>
+<tr><td><code>15</code></td><td></td><td>no-op</td></tr>
+<tr><td><code>17</code></td><td><code>properties</code></td><td>see <a href="inscriptions/properties.html">properties</a></td></tr>
+<tr><td><code>19</code></td><td><code>property_encoding</code></td><td>encoding of the properties field</td></tr>
+<tr><td><code>66</code></td><td></td><td>unbinds inscription</td></tr>
+<tr><td><code>255</code></td><td></td><td>no-op</td></tr>
+</tbody></table>
+</div>
 <p>O início do corpo e o final dos campos são indicados com um push de dados vazio.</p>
 <p>Tags não reconhecidas são interpretadas de maneira diferente dependendo se são pares ou ímpares, seguindo a regra "não há problema ser ímpar" usada pela Rede Lightning.</p>
 <p>Etiquetas pares são usadas para campos que podem afetar a criação, atribuição inicial ou transferência de uma inscrição. Assim, inscrições com campos pares não reconhecidos devem ser exibidas como "não vinculadas", ou seja, sem localização.</p>

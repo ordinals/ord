@@ -257,16 +257,23 @@ OP_ENDIF
 <p>Ang data model ng mga inskripsiyon ay isang HTTP response, na nagbibigay-daan sa nilalaman ng inskripsiyon na maipakita gamit ang web server at nang web browser.</p>
 <h2 id="fields"><a class="header" href="#fields">Fields</a></h2>
 <p>Ang inskripsiyon ay maaring magkaroon ng fields bago ang optional body. Ang bawat field ay binubuo ng dalawang data pushes, isang tag at isang value.</p>
-<p>Currently, there are six defined fields:</p>
-<ul>
-<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
-<li><code>pointer</code>, with a tag of <code>2</code>, see <a href="inscriptions/pointer.html">pointer docs</a>.</li>
-<li><code>parent</code>, with a tag of <code>3</code>, see <a href="inscriptions/provenance.html">provenance</a>.</li>
-<li><code>metadata</code>, with a tag of <code>5</code>, see <a href="inscriptions/metadata.html">metadata</a>.</li>
-<li><code>metaprotocol</code>, with a tag of <code>7</code>, whose value is the metaprotocol identifier.</li>
-<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
-<li><code>delegate</code>, with a tag of <code>11</code>, see <a href="inscriptions/delegate.html">delegate</a>.</li>
-</ul>
+<p>Currently, there are thirteen defined fields:</p>
+<div class="table-wrapper"><table><thead><tr><th>tag</th><th>name</th><th>comment</th></tr></thead><tbody>
+<tr><td><code>1</code></td><td><code>content_type</code></td><td>MIME type of the body</td></tr>
+<tr><td><code>2</code></td><td><code>pointer</code></td><td>see <a href="inscriptions/pointer.html">pointer</a></td></tr>
+<tr><td><code>3</code></td><td><code>parent</code></td><td>see <a href="inscriptions/provenance.html">provenance</a></td></tr>
+<tr><td><code>5</code></td><td><code>metadata</code></td><td>see <a href="inscriptions/metadata.html">metadata</a></td></tr>
+<tr><td><code>7</code></td><td><code>metaprotocol</code></td><td>metaprotocol identifier</td></tr>
+<tr><td><code>9</code></td><td><code>content_encoding</code></td><td>encoding of the body</td></tr>
+<tr><td><code>11</code></td><td><code>delegate</code></td><td>see <a href="inscriptions/delegate.html">delegate</a></td></tr>
+<tr><td><code>13</code></td><td><code>rune</code></td><td>serialized rune</td></tr>
+<tr><td><code>15</code></td><td></td><td>no-op</td></tr>
+<tr><td><code>17</code></td><td><code>properties</code></td><td>see <a href="inscriptions/properties.html">properties</a></td></tr>
+<tr><td><code>19</code></td><td><code>property_encoding</code></td><td>encoding of the properties field</td></tr>
+<tr><td><code>66</code></td><td></td><td>unbinds inscription</td></tr>
+<tr><td><code>255</code></td><td></td><td>no-op</td></tr>
+</tbody></table>
+</div>
 <p>Ang simula ng body at dulo ng mga fields ay mayroong isang walang laman na data push.</p>
 <p>Ang mga hindi unkown tag ay sinusuri depende sa kung even o odd ang mga ito, na sumusunod sa panuntunang "it's okay to be odd" na ginagamit ng Lightning Network.</p>
 <p>Ang mga tag na ginagamit para sa fields ay maaaring makaapekto sa pag-create, paunang pagtatalaga, o paglipat ng isang inskripsiyon. Kaya, ang mga inskripsiyon na unknown at kahit na ang fields ay dapat na ipakita bilang "unbound", iyon ay, walang lokasyon.</p>

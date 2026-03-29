@@ -257,16 +257,23 @@ OP_ENDIF
 <p>銘文のデータモデルはHTTP応答のデータモデルであり、銘文がウェブサーバによってサービスされ、ウェブブラウザで閲覧することを可能にします。</p>
 <h2 id="フィールド"><a class="header" href="#フィールド">フィールド</a></h2>
 <p>銘文には、オプションの本文の前にフィールドを含めることができます。各フィールドにはの2つのデータプッシュ、1つのラベルと1つの値。</p>
-<p>現在、6つの定義されたフィールドがあります：</p>
-<ul>
-<li><code>content_type</code>, with a tag of <code>1</code>, whose value is the MIME type of the body.</li>
-<li><code>ポインタ</code>、タグ<code>2</code>、詳細は<a href="inscriptions/pointer.html">ポインタドキュメント</a>を参照してください。</li>
-<li><code>親</code>、タグ<code>3</code>、詳細は<a href="inscriptions/provenance.html">出所</a>を参照してください。</li>
-<li><code>メタデータ</code>、タグ<code>5</code>、詳細は<a href="inscriptions/metadata.html">メタデータ</a>を参照してください。</li>
-<li><code>メタプロトコル</code>、タグ<code>7</code>、値はメタプロトコル識別子です。</li>
-<li><code>content_encoding</code>, with a tag of <code>9</code>, whose value is the encoding of the body.</li>
-<li><code>デリゲート</code>、タグ<code>11</code>、詳細は<a href="inscriptions/delegate.html">デリゲート</a>を参照してください。</li>
-</ul>
+<p>Currently, there are thirteen defined fields:</p>
+<div class="table-wrapper"><table><thead><tr><th>tag</th><th>name</th><th>comment</th></tr></thead><tbody>
+<tr><td><code>1</code></td><td><code>content_type</code></td><td>MIME type of the body</td></tr>
+<tr><td><code>2</code></td><td><code>pointer</code></td><td>see <a href="inscriptions/pointer.html">pointer</a></td></tr>
+<tr><td><code>3</code></td><td><code>parent</code></td><td>see <a href="inscriptions/provenance.html">provenance</a></td></tr>
+<tr><td><code>5</code></td><td><code>metadata</code></td><td>see <a href="inscriptions/metadata.html">metadata</a></td></tr>
+<tr><td><code>7</code></td><td><code>metaprotocol</code></td><td>metaprotocol identifier</td></tr>
+<tr><td><code>9</code></td><td><code>content_encoding</code></td><td>encoding of the body</td></tr>
+<tr><td><code>11</code></td><td><code>delegate</code></td><td>see <a href="inscriptions/delegate.html">delegate</a></td></tr>
+<tr><td><code>13</code></td><td><code>rune</code></td><td>serialized rune</td></tr>
+<tr><td><code>15</code></td><td></td><td>no-op</td></tr>
+<tr><td><code>17</code></td><td><code>properties</code></td><td>see <a href="inscriptions/properties.html">properties</a></td></tr>
+<tr><td><code>19</code></td><td><code>property_encoding</code></td><td>encoding of the properties field</td></tr>
+<tr><td><code>66</code></td><td></td><td>unbinds inscription</td></tr>
+<tr><td><code>255</code></td><td></td><td>no-op</td></tr>
+</tbody></table>
+</div>
 <p>本文の先頭とフィールドの末尾には "空のデータ"でプッシュが表示されます。</p>
 <p>認識できないラベルの解釈は、偶数か奇数かによって異なり、稲妻ネットワーク"は奇数"にすることができるというルールに従います。</p>
 <p>ラベルさえも、作成、初期割り当て、または銘文の転送に影響を及ぼす可能性のあるフィールドのために使用されます。だから、識別できない銘文でも、フィールドも"未バインド"として表示されなければなりません。つまり、場所がありません。</p>
