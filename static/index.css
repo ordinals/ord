@@ -76,6 +76,7 @@ nav {
 nav > :first-child {
   color: var(--light-fg);
   font-weight: bold;
+  text-decoration: none;
 }
 
 nav a.active {
