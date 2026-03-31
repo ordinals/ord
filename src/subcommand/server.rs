@@ -298,6 +298,14 @@ impl Server {
           "/r/children/{inscription_id}/inscriptions/{page}",
           get(r::children_inscriptions_paginated),
         )
+        .route(
+          "/r/children/{inscription_id}/metadata",
+          get(r::children_metadata),
+        )
+        .route(
+          "/r/children/{inscription_id}/metadata/{page}",
+          get(r::children_metadata_paginated),
+        )
         .route("/r/parents/{inscription_id}", get(r::parents))
         .route(
           "/r/parents/{inscription_id}/{page}",
@@ -7840,6 +7848,104 @@ next
 
     assert!(!child_inscriptions_json.more);
     assert_eq!(child_inscriptions_json.page, 1);
+  }
+
+  #[test]
+  fn child_metadata_recursive_endpoint() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+    server.mine_blocks(1);
+
+    let parent_txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+
+    let parent_inscription_id = InscriptionId {
+      txid: parent_txid,
+      index: 0,
+    };
+
+    server.assert_response(
+      format!("/r/children/{parent_inscription_id}/metadata"),
+      StatusCode::NOT_FOUND,
+      &format!("inscription {parent_inscription_id} not found"),
+    );
+
+    server.mine_blocks(1);
+
+    let child_metadata_json =
+      server.get_json::<api::ChildrenMetadata>(format!("/r/children/{parent_inscription_id}/metadata"));
+    assert_eq!(child_metadata_json.children.len(), 0);
+
+    let mut metadata = Vec::new();
+    ciborium::into_writer("child metadata", &mut metadata).unwrap();
+    let metadata_hex = hex::encode(&metadata);
+
+    let mut builder = script::Builder::new();
+    builder = Inscription {
+      content_type: Some("text/plain".into()),
+      body: Some("hello".into()),
+      metadata: Some(metadata),
+      parents: vec![parent_inscription_id.value()],
+      unrecognized_even_field: false,
+      ..default()
+    }
+    .append_reveal_script_to_builder(builder);
+
+    for _ in 0..110 {
+      builder = Inscription {
+        content_type: Some("text/plain".into()),
+        body: Some("hello".into()),
+        parents: vec![parent_inscription_id.value()],
+        unrecognized_even_field: false,
+        ..default()
+      }
+      .append_reveal_script_to_builder(builder);
+    }
+
+    let witness = Witness::from_slice(&[builder.into_bytes(), Vec::new()]);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 0, 0, witness), (2, 1, 0, Default::default())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let first_child_inscription_id = InscriptionId { txid, index: 0 };
+    let hundredth_child_inscription_id = InscriptionId { txid, index: 99 };
+    let hundred_first_child_inscription_id = InscriptionId { txid, index: 100 };
+    let hundred_eleventh_child_inscription_id = InscriptionId { txid, index: 110 };
+
+    let child_metadata_json =
+      server.get_json::<api::ChildrenMetadata>(format!("/r/children/{parent_inscription_id}/metadata"));
+
+    assert_eq!(child_metadata_json.children.len(), 100);
+    assert_eq!(child_metadata_json.children[0].id, first_child_inscription_id);
+    assert_eq!(child_metadata_json.children[0].metadata, Some(metadata_hex));
+    assert_eq!(
+      child_metadata_json.children[99].id,
+      hundredth_child_inscription_id
+    );
+    assert_eq!(child_metadata_json.children[99].metadata, None);
+    assert!(child_metadata_json.more);
+    assert_eq!(child_metadata_json.page, 0);
+
+    let child_metadata_json = server
+      .get_json::<api::ChildrenMetadata>(format!("/r/children/{parent_inscription_id}/metadata/1"));
+
+    assert_eq!(child_metadata_json.children.len(), 11);
+    assert_eq!(
+      child_metadata_json.children[0].id,
+      hundred_first_child_inscription_id
+    );
+    assert_eq!(
+      child_metadata_json.children[10].id,
+      hundred_eleventh_child_inscription_id
+    );
+    assert_eq!(child_metadata_json.children[0].metadata, None);
+    assert!(!child_metadata_json.more);
+    assert_eq!(child_metadata_json.page, 1);
   }
 
   #[test]
