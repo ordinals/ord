@@ -124,7 +124,7 @@ How do sat inscriptions compare to…
 
 *Inscriptions are always immutable.*
 
-There is simply no way to for the creator of an inscription, or the owner of an
+There is simply no way for the creator of an inscription, or the owner of an
 inscription, to modify it after it has been created.
 
 Ethereum NFTs *can* be immutable, but many are not, and can be changed or
@@ -294,7 +294,7 @@ royalties.
 immutable and on-chain, with no special due diligence required.
 
 *Inscriptions are on Bitcoin.* You can verify the location and properties of
-inscriptions easily with Bitcoin full node that you control.
+inscriptions easily with a Bitcoin full node that you control.
 
 ### Bitcoiners
 
