@@ -1160,8 +1160,8 @@ msgid ""
 "or transfer of an inscription. Thus, inscriptions with unrecognized even "
 "fields must be displayed as \"unbound\", that is, without a location."
 msgstr ""
-"甚至标签也用于可能影响创建、初始分配的字段，或铭文的转移。因此，即使无法识别"
-"的铭文，字段也必须显示为\"未绑定\"，即没有位置。"
+"偶数标签用于可能影响铭文创建、初始分配或转移的字段。因此，包含无法识别的偶数"
+"字段的铭文必须显示为\"未绑定\"（unbound），即没有位置。"
 
 #: src/inscriptions.md:100
 msgid ""
@@ -1169,8 +1169,8 @@ msgid ""
 "assignment, or transfer, such as additional metadata, and thus are safe to "
 "ignore."
 msgstr ""
-"奇数标签用于不影响创建、初始的字段,分配或转移，例如附加元数据，因此是选择忽略"
-"是安全的。"
+"奇数标签用于不影响创建、初始分配或转移的字段，例如附加元数据，因此可以安全地"
+"忽略。"
 
 #: src/inscriptions.md:103
 msgid "Inscription IDs"
