@@ -423,6 +423,29 @@ pub(super) async fn metadata(
   })
 }
 
+pub(super) async fn properties(
+  Extension(index): Extension<Arc<Index>>,
+  Path(inscription_id): Path<InscriptionId>,
+) -> ServerResult {
+  task::block_in_place(|| {
+    let Some(inscription) = index.get_inscription_by_id(inscription_id)? else {
+      return Err(ServerError::NotFound(format!(
+        "inscription {inscription_id} not found"
+      )));
+    };
+
+    let properties = inscription.properties();
+
+    if properties == Properties::default() {
+      return Err(ServerError::NotFound(format!(
+        "inscription {inscription_id} properties not found"
+      )));
+    }
+
+    Ok(Json(properties).into_response())
+  })
+}
+
 pub(super) async fn parents(
   Extension(index): Extension<Arc<Index>>,
   Path(inscription_id): Path<InscriptionId>,
