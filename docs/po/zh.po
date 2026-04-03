@@ -7602,7 +7602,7 @@ msgid ""
 msgstr ""
 "使用以下标志来指定测试网络，可以测试 Ord。有关运行比特币核心进行测试的更多信"
 "息，请参见[比特币的开发者文档](https://developer.bitcoin.org/examples/"
-"testing。"
+"testing.html)。"
 
 #: src/guides/testing.md:51
 msgid ""
