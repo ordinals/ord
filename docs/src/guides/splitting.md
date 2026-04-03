@@ -19,7 +19,7 @@ ord wallet split --fee-rate 21 --splits split.yaml
 ```
 
 Example `splits.yaml`
---------------------`
+--------------------
 
 ```yaml
 {{#include ../../../splits.yaml}}
