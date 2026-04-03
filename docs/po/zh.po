@@ -6443,7 +6443,7 @@ msgid ""
 "miner unless you know what you are doing."
 msgstr ""
 "⚠️⚠️ 发送铭文时要非常小心，特别是如果`offset` 值不是`0`。如果是这种情况，不建议"
-"使用这种方法，否则您可能会无意中将您的雕文发送给比特币矿工，除非您知道自己在"
+"使用这种方法，否则你可能会无意中将你的铭文发送给比特币矿工，除非你知道自己在"
 "做什么。"
 
 #: src/guides/collecting/sparrow-wallet.md:133
@@ -6455,7 +6455,7 @@ msgid ""
 "To send an inscription navigate to the `UTXOs` tab, and find the UTXO which "
 "you previously validated contains your inscription."
 msgstr ""
-"要发送铭文，请导航到`UTXOs`选项卡，并找到您之前验证包含您的雕文的UTXO。"
+"要发送铭文，请导航到`UTXOs`选项卡，并找到你之前验证的包含你的铭文的UTXO。"
 
 #: src/guides/collecting/sparrow-wallet.md:136
 msgid ""
