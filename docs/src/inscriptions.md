@@ -7,7 +7,7 @@ sidechain or separate token.
 
 These inscribed sats can then be transferred using bitcoin transactions, sent
 to bitcoin addresses, and held in bitcoin UTXOs. These transactions, addresses,
-and UTXOs are normal bitcoin transactions, addresses, and UTXOS in all
+and UTXOs are normal bitcoin transactions, addresses, and UTXOs in all
 respects, with the exception that in order to send individual sats,
 transactions must control the order and value of inputs and outputs according
 to ordinal theory.
@@ -54,7 +54,7 @@ First the string `ord` is pushed, to disambiguate inscriptions from other uses
 of envelopes.
 
 `OP_PUSH 1` indicates that the next push contains the content type, and
-`OP_PUSH 0`indicates that subsequent data pushes contain the content itself.
+`OP_PUSH 0` indicates that subsequent data pushes contain the content itself.
 Multiple data pushes must be used for large inscriptions, as one of taproot's
 few restrictions is that individual data pushes may not be larger than 520
 bytes.
@@ -161,7 +161,7 @@ the `sandbox` attribute, as well as serving inscription content with
 Self-Reference
 --------------
 
-The content of the inscription with ID `INSCRIPTION_ID` must served from the
+The content of the inscription with ID `INSCRIPTION_ID` must be served from the
 URL path `/content/<INSCRIPTION_ID>`.
 
 This allows inscriptions to retrieve their own inscription ID with:
