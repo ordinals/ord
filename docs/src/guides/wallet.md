@@ -318,7 +318,7 @@ To create an inscription with the contents of `FILE`, run:
 ord wallet inscribe --fee-rate FEE_RATE --file FILE
 ```
 
-Ord will output two transactions IDs, one for the commit transaction, and one
+`ord` will output two transaction IDs, one for the commit transaction, and one
 for the reveal transaction, and the inscription ID. Inscription IDs are of the
 form `TXIDiN`, where `TXID` is the transaction ID of the reveal transaction,
 and `N` is the index of the inscription in the reveal transaction.
