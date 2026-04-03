@@ -49,7 +49,7 @@ Searching for Rare Ordinals
 ### Searching for Rare Ordinals in a Bitcoin Core Wallet
 
 The `ord wallet` command is just a wrapper around Bitcoin Core's RPC API, so
-searching for rare ordinals in a Bitcoin Core wallet is Easy. Assuming your
+searching for rare ordinals in a Bitcoin Core wallet is easy. Assuming your
 wallet is named `foo`:
 
 1. Load your wallet:
@@ -110,7 +110,7 @@ your wallet of funds.
      '[{ "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax", "timestamp":0 }]'
    ```
 
-   If you know the Unix timestamp when your wallet first started receive
+   If you know the Unix timestamp when your wallet first started receiving
    transactions, you may use it for the value of `"timestamp"` instead of `0`.
    This will reduce the time it takes for Bitcoin Core to search for your
    wallet's UTXOs.
@@ -201,7 +201,7 @@ those multiple descriptors into Bitcoin Core.
     importdescriptors \
     '[
       {
-        "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax"
+        "desc": "wpkh([bf1dd55e/84h/0h/0h]xpub6CcJtWcvFQaMo39ANFi1MyXkEXM8T8ZhnxMtSjQAdPmVSTHYnc8Hwoc11VpuP8cb8JUTboZB5A7YYGDonYySij4XTawL6iNZvmZwdnSEEep/0/*)#tpnxnxax",
         "timestamp":0
       },
       {
@@ -211,7 +211,7 @@ those multiple descriptors into Bitcoin Core.
     ]'
    ```
 
-   If you know the Unix timestamp when your wallet first started receive
+   If you know the Unix timestamp when your wallet first started receiving
    transactions, you may use it for the value of the `"timestamp"` fields
    instead of `0`. This will reduce the time it takes for Bitcoin Core to
    search for your wallet's UTXOs.

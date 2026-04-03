@@ -8,8 +8,8 @@ the children of a parent inscription being members of the same collection.
 
 Children can themselves have children, allowing for complex hierarchies. For
 example, an artist might create an inscription representing themselves, with
-sub inscriptions representing collections that they create, with the children
-of those sub inscriptions being items in those collections.
+child inscriptions representing collections that they create, with the children
+of those child inscriptions being items in those collections.
 
 ### Specification
 
