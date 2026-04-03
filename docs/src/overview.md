@@ -33,7 +33,7 @@ Ordinal numbers have a few different representations:
   We'll get to that in a moment.
 
 - *Percentile notation*:
-  [`99.99971949060254%`](https://ordinals.com/sat/99.99971949060254%25) .
+  [`99.99971949060254%`](https://ordinals.com/sat/99.99971949060254%25).
   The satoshi's position in Bitcoin's supply, expressed as a percentage.
 
 - *Name*: [`satoshi`](https://ordinals.com/sat/satoshi). An encoding of the
