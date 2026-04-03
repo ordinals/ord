@@ -54,7 +54,7 @@ msgstr "渲染"
 
 #: src/SUMMARY.md:14 src/runes.md:1
 msgid "Runes"
-msgstr "符文｜福文🧧"
+msgstr "符文"
 
 #: src/SUMMARY.md:15 src/inscriptions/delegate.md:9
 #: src/inscriptions/provenance.md:14
@@ -2358,7 +2358,7 @@ msgid ""
 "Runes allow Bitcoin transactions to etch, mint, and transfer Bitcoin-native "
 "digital commodities."
 msgstr ""
-"符文，又称福文🧧，允许比特币交易来刻画、铸造和转移比特币原生的数字商品。 "
+"符文允许比特币交易来蚀刻、铸造和转移比特币原生的数字商品。"
 
 #: src/runes.md:7
 msgid ""
