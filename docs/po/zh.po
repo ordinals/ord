@@ -115,7 +115,7 @@ msgstr "设置"
 
 #: src/SUMMARY.md:29 src/guides/teleburning.md:1
 msgid "Teleburning"
-msgstr "燃烧传送"
+msgstr "销毁传送"
 
 #: src/SUMMARY.md:30 src/guides/testing.md:1
 msgid "Testing"
@@ -2643,13 +2643,13 @@ msgstr ""
 
 #: src/runes.md:141
 msgid "Burning"
-msgstr "燃烧"
+msgstr "销毁"
 
 #: src/runes.md:143
 msgid ""
 "Runes may be burned by transferring them to an `OP_RETURN` output with an "
 "edict or pointer."
-msgstr " 符文可以通过将它们转移到一个包含指令或指针的`OP_RETURN`输出来燃烧。"
+msgstr " 符文可以通过将它们转移到一个包含指令或指针的`OP_RETURN`输出来销毁。"
 
 #: src/runes.md:146 src/runes/specification.md:378
 msgid "Cenotaphs"
@@ -2676,8 +2676,8 @@ msgid ""
 "transaction with a cenotaph are set as unmintable. Mints in a transaction "
 "with a cenotaph count towards the mint cap, but the minted runes are burned."
 msgstr ""
-"输入到包含纪念碑的交易的符文被燃烧。在包含纪念碑的交易中蚀刻的符文被设置为不可铸"
-"造。在包含纪念碑的交易中的铸造计入铸造上限，但铸造的符文被燃烧。"
+"输入到包含纪念碑的交易的符文被销毁。在包含纪念碑的交易中蚀刻的符文被设置为不可铸"
+"造。在包含纪念碑的交易中的铸造计入铸造上限，但铸造的符文被销毁。"
 
 #: src/runes.md:160
 msgid ""
@@ -2688,7 +2688,7 @@ msgid ""
 msgstr ""
 "纪念碑是一种升级机制，允许符石被赋予新的语义，改变符文的创建和转移方式，同时不"
 "会误导未升级的客户端关于这些符文的位置，因为未升级的客户端会看到这些符文已经"
-"被燃烧。"
+"被销毁。"
 
 #: src/runes/specification.md:1
 msgid "Runes Does Not Have a Specification"
@@ -7422,13 +7422,13 @@ msgid ""
 "behind in the smoking rubble a sort of forwarding address pointing to an "
 "inscription on Bitcoin."
 msgstr ""
-"燃烧传送Teleburn地址可以用于燃烧其他区块链上的资产， 留下一个转发地址指向一个"
+"销毁传送Teleburn地址可以用于销毁其他区块链上的资产， 留下一个转发地址指向一个"
 "比特币上的铭文这些地址就像是烟熏弹火后的废墟。 "
 
 #: src/guides/teleburning.md:8
 msgid ""
 "Teleburning an asset means something like, \"I'm out. Find me on Bitcoin.\""
-msgstr "燃烧传送一个资产似乎意味着 \"我走了，在比特币链上找我。\""
+msgstr "销毁传送一个资产似乎意味着 \"我走了，在比特币链上找我。\""
 
 #: src/guides/teleburning.md:10
 msgid ""
@@ -7437,8 +7437,8 @@ msgid ""
 "Currently, only Ethereum teleburn addresses are supported. Pull requests "
 "adding teleburn addresses for other chains are welcome."
 msgstr ""
-"Teleburn 地址源自铭文的ID，他们没有私钥，因此发往燃烧传送地址的资产将被烧毁 "
-"当前只支持以太坊的燃烧地址，欢迎提交关于其他链上的燃烧传送地址的拉取请求 "
+"Teleburn 地址源自铭文的ID，他们没有私钥，因此发往销毁传送地址的资产将被烧毁 "
+"当前只支持以太坊的销毁地址，欢迎提交关于其他链上的销毁传送地址的拉取请求 "
 
 #: src/guides/teleburning.md:15
 msgid "Ethereum"
@@ -7451,7 +7451,7 @@ msgid ""
 "32 bytes containing the transaction ID, and the last four bytes containing "
 "big-endian inscription index, and interpreting it as an Ethereum address."
 msgstr ""
-"以太坊的燃烧传送teleburn地址是根据取铭文ID的SHA-256哈希的前20字节来生成的 这"
+"以太坊的销毁传送teleburn地址是根据取铭文ID的SHA-256哈希的前20字节来生成的 这"
 "个哈希被序列化为36字节，其中前32字节包含交易ID， 最后四个字节包含大端序的铭文"
 "索引，并将其解释为一个Ethereum地址。"
 
@@ -7461,7 +7461,7 @@ msgid ""
 "was teleburned to [inscription zero](https://ordinals.com/"
 "inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0)."
 msgstr ""
-"ENS 域名 [rodarmor.eth](https://app.ens.domains/rodarmor.eth), 被燃烧传输"
+"ENS 域名 [rodarmor.eth](https://app.ens.domains/rodarmor.eth), 被销毁传输"
 "teleburned 到 [inscription zero](https://ordinals.com/"
 "inscription/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0)."
 
