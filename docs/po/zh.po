@@ -2653,7 +2653,7 @@ msgstr " 符文可以通过将它们转移到一个包含指令或指针的`OP_R
 
 #: src/runes.md:146 src/runes/specification.md:378
 msgid "Cenotaphs"
-msgstr "墓碑"
+msgstr "纪念碑"
 
 #: src/runes.md:149
 msgid ""
@@ -2668,7 +2668,7 @@ msgstr ""
 msgid ""
 "Malformed runestones are termed [cenotaphs](https://en.wikipedia.org/wiki/"
 "Cenotaph)."
-msgstr " 形成错误的符石被称为[墓碑](https://en.wikipedia.org/wiki/Cenotaph)."
+msgstr " 形成错误的符石被称为[纪念碑](https://en.wikipedia.org/wiki/Cenotaph)."
 
 #: src/runes.md:156
 msgid ""
@@ -2676,8 +2676,8 @@ msgid ""
 "transaction with a cenotaph are set as unmintable. Mints in a transaction "
 "with a cenotaph count towards the mint cap, but the minted runes are burned."
 msgstr ""
-"输入到包含墓碑的交易的符文被燃烧。在包含墓碑的交易中蚀刻的符文被设置为不可铸"
-"造。在包含墓碑的交易中的铸造计入铸造上限，但铸造的符文被燃烧。"
+"输入到包含纪念碑的交易的符文被燃烧。在包含纪念碑的交易中蚀刻的符文被设置为不可铸"
+"造。在包含纪念碑的交易中的铸造计入铸造上限，但铸造的符文被燃烧。"
 
 #: src/runes.md:160
 msgid ""
@@ -2686,7 +2686,7 @@ msgid ""
 "misleading unupgraded clients as to the location of those runes, as "
 "unupgraded clients will see those runes as having been burned."
 msgstr ""
-"墓碑是一种升级机制，允许符石被赋予新的语义，改变符文的创建和转移方式，同时不"
+"纪念碑是一种升级机制，允许符石被赋予新的语义，改变符文的创建和转移方式，同时不"
 "会误导未升级的客户端关于这些符文的位置，因为未升级的客户端会看到这些符文已经"
 "被燃烧。"
 
