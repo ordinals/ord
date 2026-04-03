@@ -2397,7 +2397,7 @@ msgid ""
 "A runestone may etch a new rune, mint an existing rune, and transfer runes "
 "from a transaction's inputs to its outputs."
 msgstr ""
-"符石可以刻画一个新的符文，铸造一个现有的符文，并将符文从交易的输入转移到输"
+"符石可以蚀刻一个新的符文，铸造一个现有的符文，并将符文从交易的输入转移到输"
 "出。"
 
 #: src/runes.md:26
@@ -2411,20 +2411,20 @@ msgid ""
 "represented in text as `BLOCK:TX`. For example, the ID of the rune etched in "
 "the 20th transaction of the 500th block is `500:20`."
 msgstr ""
-"符文通过ID来识别，ID由刻画符文的区块和该区块内刻画交易的索引组成，以文本形式"
+"符文通过ID来识别，ID由蚀刻符文的区块和该区块内蚀刻交易的索引组成，以文本形式"
 "表示为`BLOCK:TX`。例如，在第500个区块的第20笔交易中铸造的符文的ID是`500:20`。"
 
 #: src/runes.md:33
 msgid "Etching"
-msgstr "刻画"
+msgstr "蚀刻"
 
 #: src/runes.md:36
 msgid ""
 "Runes come into existence by being etched. Etching creates a rune and sets "
 "its properties. Once set, these properties are immutable, even to its etcher."
 msgstr ""
-"符文通过刻画而产生。刻画创建一个符文并设置其属性。一旦设置，这些属性即使对其"
-"刻画者来说也是不可变的。"
+"符文通过蚀刻而产生。蚀刻创建一个符文并设置其属性。一旦设置，这些属性即使对其"
+"蚀刻者来说也是不可变的。"
 
 #: src/runes.md:39 src/runes/specification.md:420
 msgid "Name"
@@ -2453,7 +2453,7 @@ msgid ""
 "different spacers."
 msgstr ""
 "名称的唯一性不依赖于空格符。因此，即使空格符不同，也不能用与现有符文相同的字"
-"母序列来刻画一个符文。"
+"母序列来蚀刻一个符文。"
 
 #: src/runes.md:51
 msgid ""
@@ -2511,7 +2511,7 @@ msgid ""
 "The etcher of a rune may optionally allocate to themselves units of the rune "
 "being etched. This allocation is called a premine."
 msgstr ""
-" 刻画符文的人可以选择性地为自己分配被刻画的符文单位。这种分配称为预挖。"
+" 蚀刻符文的人可以选择性地为自己分配被蚀刻的符文单位。这种分配称为预挖。"
 
 #: src/runes.md:78
 msgid "Terms"
@@ -2580,7 +2580,7 @@ msgstr "起始偏移"
 msgid ""
 "A mint is open starting in the block whose height is equal to the start "
 "offset plus the height of the block in which the rune was etched."
-msgstr "铸造从其高度等于开始偏移加上刻画符文的区块的高度的区块开始开放。"
+msgstr "铸造从其高度等于开始偏移加上蚀刻符文的区块的高度的区块开始开放。"
 
 #: src/runes.md:111
 msgid "End Offset"
@@ -2591,7 +2591,7 @@ msgid ""
 "A rune may not be minted in or after the block whose height is equal to the "
 "end offset plus the height of the block in which the rune was etched."
 msgstr ""
-" 符文不能在其高度等于结束偏移加上刻画符文的区块的高度的区块之后被铸造。"
+" 符文不能在其高度等于结束偏移加上蚀刻符文的区块的高度的区块之后被铸造。"
 
 #: src/runes.md:116 src/runes/specification.md:478
 msgid "Minting"
@@ -2676,7 +2676,7 @@ msgid ""
 "transaction with a cenotaph are set as unmintable. Mints in a transaction "
 "with a cenotaph count towards the mint cap, but the minted runes are burned."
 msgstr ""
-"输入到包含墓碑的交易的符文被燃烧。在包含墓碑的交易中刻画的符文被设置为不可铸"
+"输入到包含墓碑的交易的符文被燃烧。在包含墓碑的交易中蚀刻的符文被设置为不可铸"
 "造。在包含墓碑的交易中的铸造计入铸造上限，但铸造的符文被燃烧。"
 
 #: src/runes.md:160
