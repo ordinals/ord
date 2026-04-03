@@ -6227,7 +6227,7 @@ msgid ""
 "For details on setting up Bitcoin Core and the `ord` wallet check out the "
 "[Wallet Guide](../wallet.md)"
 msgstr ""
-"关于设置比特币核心和 `ord` 钱包的详细信息，请查看[钱包指南](../wallet.md）"
+"关于设置比特币核心和 `ord` 钱包的详细信息，请查看[钱包指南](../wallet.md)"
 
 #: src/guides/collecting/sparrow-wallet.md:83
 msgid ""
