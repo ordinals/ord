@@ -897,14 +897,14 @@ msgid ""
 "What are digital artifacts? Simply put, they are the digital equivalent of "
 "physical artifacts."
 msgstr ""
-"什么是数字文物（数字工件、数字人工制品）？ 简而言之，它们是物理人工制品的数字"
+"什么是数字文物（数字工件、数字文物）？ 简而言之，它们是物理人工制品的数字"
 "等价物。"
 
 #: src/digital-artifacts.md:21
 msgid ""
 "For a digital thing to be a digital artifact, it must be like that coin of "
 "yours:"
-msgstr "要使数字化事物成为数字人工制品，它必须像您的那枚硬币："
+msgstr "要使数字化事物成为数字文物，它必须像您的那枚硬币："
 
 #: src/digital-artifacts.md:24
 msgid ""
@@ -958,7 +958,7 @@ msgid ""
 "digital artifacts, more commonly known as NFTs. Inscriptions do not require "
 "a sidechain or separate token."
 msgstr ""
-"铭文里可刻有任意内容，从而创造了比特币原生的数字人工制品，通常被称为 NFT。铭"
+"铭文里可刻有任意内容，从而创造了比特币原生的数字文物，通常被称为 NFT。铭"
 "文不需要侧链或单独的代币。 "
 
 #: src/inscriptions.md:8
@@ -3962,7 +3962,7 @@ msgid ""
 "doesn't provide any indication of what it means if you haven't heard the "
 "term before."
 msgstr ""
-"\"数字文物\"（数字工件，数字人工制品）这些词具有很强的暗示性，即使对以前从未"
+"\"数字文物\"（数字工件，数字文物）这些词具有很强的暗示性，即使对以前从未"
 "听说过这个词的人来说也是如此相比之下，NFT是一个首字母缩略词，如果你以前没有听"
 "过这个术语，它就无法说明它的意思。"
 
@@ -4216,7 +4216,7 @@ msgid ""
 "user experience for inscriptions is likely to be simpler and more polished "
 "than the user experience for RGB and Taro NFTs."
 msgstr ""
-"序号理论是为数字人工制品而设计的，而 RGB 和 Taro 的主要用例是可替代代币，因此"
+"序号理论是为数字文物而设计的，而 RGB 和 Taro 的主要用例是可替代代币，因此"
 "铭文的用户体验可能比 RGB 和 Taro NFT 的用户体验更简单、更完善 。"
 
 #: src/faq.md:234
@@ -4995,7 +4995,7 @@ msgid ""
 "immutable, secure, and decentralized as Bitcoin itself."
 msgstr ""
 "单个 聪 可以刻有任意内容，创建可以保存在比特币钱包中并使用比特币交易传输的比"
-"特币原生数字人工制品。铭文与比特币本身一样持久、不变、安全和去中心化。"
+"特币原生数字文物。铭文与比特币本身一样持久、不变、安全和去中心化。"
 
 #: src/guides/wallet.md:9
 msgid ""
