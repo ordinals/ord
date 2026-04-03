@@ -138,7 +138,7 @@ ord --regtest wallet inscribe --fee-rate 1 --file recursive-inscription.html
 Finally you will have to mine some blocks and start the server:
 
 ```
-bitcoin-cli generatetoaddress 6 <receive address>
+bitcoin-cli -regtest generatetoaddress 6 <receive address>
 ```
 
 ### Mainnet Dependencies
