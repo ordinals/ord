@@ -83,15 +83,15 @@ pub struct Children {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct Gallery {
-  pub ids: Vec<InscriptionId>,
+pub struct ChildInscriptions {
+  pub children: Vec<RelativeInscriptionRecursive>,
   pub more: bool,
   pub page: usize,
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
-pub struct ChildInscriptions {
-  pub children: Vec<RelativeInscriptionRecursive>,
+pub struct Gallery {
+  pub ids: Vec<InscriptionId>,
   pub more: bool,
   pub page: usize,
 }
