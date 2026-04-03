@@ -1382,6 +1382,64 @@ curl -s -H "Accept: application/json" \
 <details>
   <summary>
     <code>GET</code>
+    <code><b>/gallery/&lt;INSCRIPTION_ID&gt;</b></code>
+  </summary>
+
+### Description
+
+Get the gallery items for a gallery inscription. Returns the first page of 100
+items.
+
+### Example
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0/gallery/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0
+```
+
+```json
+{
+  "ids": [
+    "ab924ff229beca227bf40221faf492a20b5e2ee4f084524c84a5f98b80fe527fi0"
+  ],
+  "more": false,
+  "page": 0
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/gallery/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
+  </summary>
+
+### Description
+
+Get a specific page of gallery items for a gallery inscription. Each page
+contains up to 100 items.
+
+### Example
+
+```bash
+curl -s -H "Accept: application/json" \
+  http://0.0.0.0/gallery/6fb976ab49dcec017f1e201e84395983204ae1a7c2abf7ced0a85d692e442799i0/1
+```
+
+```json
+{
+  "ids": [
+    "26482871f33f1051f450f2da9af275794c0b5f1c61ebf35e4467fb42c2813403i0"
+  ],
+  "more": false,
+  "page": 1
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
     <code><b>/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 
