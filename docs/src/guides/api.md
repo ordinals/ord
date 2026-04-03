@@ -1387,8 +1387,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Get the gallery items for a gallery inscription. Returns the first page of 100
-items.
+Get the first 100 items of a gallery inscription.
 
 ### Example
 
@@ -1416,8 +1415,7 @@ curl -s -H "Accept: application/json" \
 
 ### Description
 
-Get a specific page of gallery items for a gallery inscription. Each page
-contains up to 100 items.
+Get a specific page of 100 items of a gallery inscription.
 
 ### Example
 
