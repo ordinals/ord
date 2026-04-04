@@ -133,6 +133,28 @@ pub(super) async fn blockinfo(
   })
 }
 
+pub(super) async fn block_tx(
+  Extension(index): Extension<Arc<Index>>,
+  Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Block>>,
+) -> ServerResult<Json<Vec<String>>> {
+  task::block_in_place(|| {
+    let block = match query {
+      query::Block::Height(height) => index
+        .get_block_by_height(height)?
+        .ok_or_not_found(|| format!("block {height}"))?,
+      query::Block::Hash(hash) => index
+        .get_block_by_hash(hash)?
+        .ok_or_not_found(|| format!("block {hash}"))?,
+    };
+    let txs = block
+      .txdata
+      .iter()
+      .map(bitcoin::consensus::encode::serialize_hex)
+      .collect::<Vec<_>>();
+    Ok(Json(txs))
+  })
+}
+
 pub(super) async fn blocktime_string(
   Extension(index): Extension<Arc<Index>>,
 ) -> ServerResult<String> {
