@@ -2626,6 +2626,22 @@ impl Index {
         value: Amount::from_sat(value),
         script_pubkey: ScriptBuf::new(),
       };
+    } else if self.settings.disable_output_confirmations() {
+      // Fast path: single getrawtransaction RPC call + simple spent check,
+      // skipping the expensive verbose getrawtransaction needed for confirmations.
+      indexed = self.contains_output(&outpoint)?;
+
+      let Some(tx) = self.get_transaction(outpoint.txid)? else {
+        return Ok(None);
+      };
+
+      let Some(output) = tx.output.into_iter().nth(outpoint.vout as usize) else {
+        return Ok(None);
+      };
+
+      confirmations = 0;
+      spent = self.is_output_spent(outpoint)?;
+      txout = output;
     } else {
       indexed = self.contains_output(&outpoint)?;
 
