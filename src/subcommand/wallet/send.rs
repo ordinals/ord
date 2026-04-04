@@ -1,4 +1,4 @@
-use super::*;
+use {super::*, bitcoin::opcodes};
 
 #[derive(Debug, Parser)]
 pub(crate) struct Send {
@@ -6,6 +6,12 @@ pub(crate) struct Send {
   pub(crate) dry_run: bool,
   #[arg(long, help = "Use fee rate of <FEE_RATE> sats/vB")]
   fee_rate: FeeRate,
+  #[arg(
+    long,
+    help = "Include OP_RETURN output with <DATA> in the transaction. Maximum 80 bytes.",
+    value_name = "DATA"
+  )]
+  pub(crate) op_return: Option<String>,
   #[arg(
     long,
     help = "Target <AMOUNT> postage with sent inscriptions. [default: 10000 sat]",
@@ -38,7 +44,16 @@ impl Send {
       .clone()
       .require_network(wallet.chain().network())?;
 
-    let unsigned_transaction = match self.asset {
+    // Validate OP_RETURN data if provided
+    if let Some(ref data) = self.op_return {
+      ensure!(
+        data.len() <= 80,
+        "OP_RETURN data exceeds maximum size of 80 bytes ({} bytes provided)",
+        data.len()
+      );
+    }
+
+    let mut unsigned_transaction = match self.asset {
       Outgoing::Amount(amount) => {
         wallet.create_unsigned_send_amount_transaction(address, amount, self.fee_rate)?
       }
@@ -75,6 +90,17 @@ impl Send {
         true,
       )?,
     };
+
+    // Add OP_RETURN output if provided
+    if let Some(data) = self.op_return.clone() {
+      unsigned_transaction.output.push(TxOut {
+        value: Amount::ZERO,
+        script_pubkey: script::Builder::new()
+          .push_opcode(opcodes::all::OP_RETURN)
+          .push_slice(data.as_bytes())
+          .into_script(),
+      });
+    }
 
     let (txid, psbt, fee) =
       wallet.sign_and_broadcast_transaction(unsigned_transaction, self.dry_run, None)?;
