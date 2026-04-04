@@ -163,6 +163,13 @@ pub trait Api {
     address_type: Option<bitcoincore_rpc::json::AddressType>,
   ) -> Result<Address, jsonrpc_core::Error>;
 
+  #[rpc(name = "getreceivedbyaddress")]
+  fn get_received_by_address(
+    &self,
+    address: Address<NetworkUnchecked>,
+    minconf: Option<u64>,
+  ) -> Result<f64, jsonrpc_core::Error>;
+
   #[rpc(name = "listtransactions")]
   fn list_transactions(
     &self,
