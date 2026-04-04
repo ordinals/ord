@@ -85,6 +85,7 @@ rpcport={bitcoind_port}
         rune: "FOO".parse::<SpacedRune>().unwrap(),
         supply: "2000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         symbol: '¢',
         terms: Some(batch::Terms {
           amount: "1000".parse().unwrap(),

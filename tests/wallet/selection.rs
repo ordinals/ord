@@ -124,6 +124,7 @@ fn mint_does_not_select_inscription() {
           spacers: 0,
         },
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         supply: "2000".parse().unwrap(),
         symbol: '¢',
         terms: Some(batch::Terms {
