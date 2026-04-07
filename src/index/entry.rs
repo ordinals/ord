@@ -493,6 +493,166 @@ impl Entry for Txid {
   }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(u8)]
+pub(crate) enum InscriptionEventType {
+  Created = 0,
+  Transferred = 1,
+}
+
+impl InscriptionEventType {
+  fn from_u8(v: u8) -> Self {
+    match v {
+      0 => Self::Created,
+      1 => Self::Transferred,
+      _ => panic!("invalid InscriptionEventType: {v}"),
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct InscriptionEventEntry {
+  pub event_type: InscriptionEventType,
+  pub block_height: u32,
+  pub inscription_id: InscriptionId,
+  pub sequence_number: u32,
+  pub txid: Txid,
+  pub new_satpoint: Option<SatPoint>,
+  pub old_satpoint: Option<SatPoint>,
+  pub to_address: Option<String>,
+  pub from_address: Option<String>,
+  pub charms: Option<u16>,
+}
+
+pub(crate) type InscriptionEventKeyValue = (u32, u32);
+
+impl InscriptionEventEntry {
+  pub fn serialize(&self) -> Vec<u8> {
+    let mut buf = Vec::with_capacity(128);
+    buf.push(self.event_type as u8);
+    buf.extend_from_slice(&self.block_height.to_le_bytes());
+    let id_val = self.inscription_id.store();
+    buf.extend_from_slice(&id_val.0.to_le_bytes());
+    buf.extend_from_slice(&id_val.1.to_le_bytes());
+    buf.extend_from_slice(&id_val.2.to_le_bytes());
+    buf.extend_from_slice(&self.sequence_number.to_le_bytes());
+    let txid_bytes = self.txid.store();
+    buf.extend_from_slice(&txid_bytes);
+    match &self.new_satpoint {
+      Some(sp) => {
+        buf.push(1);
+        buf.extend_from_slice(&sp.store());
+      }
+      None => buf.push(0),
+    }
+    match &self.old_satpoint {
+      Some(sp) => {
+        buf.push(1);
+        buf.extend_from_slice(&sp.store());
+      }
+      None => buf.push(0),
+    }
+    match &self.to_address {
+      Some(addr) => {
+        let b = addr.as_bytes();
+        buf.extend_from_slice(&(b.len() as u16).to_le_bytes());
+        buf.extend_from_slice(b);
+      }
+      None => buf.extend_from_slice(&0u16.to_le_bytes()),
+    }
+    match &self.from_address {
+      Some(addr) => {
+        let b = addr.as_bytes();
+        buf.extend_from_slice(&(b.len() as u16).to_le_bytes());
+        buf.extend_from_slice(b);
+      }
+      None => buf.extend_from_slice(&0u16.to_le_bytes()),
+    }
+    match self.charms {
+      Some(c) => {
+        buf.push(1);
+        buf.extend_from_slice(&c.to_le_bytes());
+      }
+      None => buf.push(0),
+    }
+    buf
+  }
+
+  pub fn deserialize(data: &[u8]) -> Self {
+    let mut pos = 0;
+    let event_type = InscriptionEventType::from_u8(data[pos]);
+    pos += 1;
+    let block_height = u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap());
+    pos += 4;
+    let id_0 = u128::from_le_bytes(data[pos..pos + 16].try_into().unwrap());
+    pos += 16;
+    let id_1 = u128::from_le_bytes(data[pos..pos + 16].try_into().unwrap());
+    pos += 16;
+    let id_2 = u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap());
+    pos += 4;
+    let inscription_id = InscriptionId::load((id_0, id_1, id_2));
+    let sequence_number = u32::from_le_bytes(data[pos..pos + 4].try_into().unwrap());
+    pos += 4;
+    let txid = Txid::load(data[pos..pos + 32].try_into().unwrap());
+    pos += 32;
+    let has_new = data[pos] == 1;
+    pos += 1;
+    let new_satpoint = if has_new {
+      let sp = SatPoint::load(data[pos..pos + 44].try_into().unwrap());
+      pos += 44;
+      Some(sp)
+    } else {
+      None
+    };
+    let has_old = data[pos] == 1;
+    pos += 1;
+    let old_satpoint = if has_old {
+      let sp = SatPoint::load(data[pos..pos + 44].try_into().unwrap());
+      pos += 44;
+      Some(sp)
+    } else {
+      None
+    };
+    let to_len = u16::from_le_bytes(data[pos..pos + 2].try_into().unwrap()) as usize;
+    pos += 2;
+    let to_address = if to_len > 0 {
+      let s = String::from_utf8(data[pos..pos + to_len].to_vec()).unwrap();
+      pos += to_len;
+      Some(s)
+    } else {
+      None
+    };
+    let from_len = u16::from_le_bytes(data[pos..pos + 2].try_into().unwrap()) as usize;
+    pos += 2;
+    let from_address = if from_len > 0 {
+      let s = String::from_utf8(data[pos..pos + from_len].to_vec()).unwrap();
+      pos += from_len;
+      Some(s)
+    } else {
+      None
+    };
+    let has_charms = data[pos] == 1;
+    pos += 1;
+    let charms = if has_charms {
+      Some(u16::from_le_bytes(data[pos..pos + 2].try_into().unwrap()))
+    } else {
+      None
+    };
+    Self {
+      event_type,
+      block_height,
+      inscription_id,
+      sequence_number,
+      txid,
+      new_satpoint,
+      old_satpoint,
+      to_address,
+      from_address,
+      charms,
+    }
+  }
+}
+
 #[cfg(test)]
 mod tests {
   use super::*;
@@ -927,5 +1087,97 @@ mod tests {
       .supply(),
       1001
     );
+  }
+
+  #[test]
+  fn inscription_event_entry_created_round_trip() {
+    let inscription_id: InscriptionId =
+      "1111111111111111111111111111111111111111111111111111111111111111i0"
+        .parse()
+        .unwrap();
+    let txid = inscription_id.txid;
+
+    let entry = InscriptionEventEntry {
+      event_type: InscriptionEventType::Created,
+      block_height: 800_000,
+      inscription_id,
+      sequence_number: 42,
+      txid,
+      new_satpoint: Some(
+        "1111111111111111111111111111111111111111111111111111111111111111:0:0"
+          .parse()
+          .unwrap(),
+      ),
+      old_satpoint: None,
+      to_address: Some("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string()),
+      from_address: None,
+      charms: Some(7),
+    };
+
+    let serialized = entry.serialize();
+    let deserialized = InscriptionEventEntry::deserialize(&serialized);
+    assert_eq!(entry, deserialized);
+  }
+
+  #[test]
+  fn inscription_event_entry_transferred_round_trip() {
+    let inscription_id: InscriptionId =
+      "2222222222222222222222222222222222222222222222222222222222222222i1"
+        .parse()
+        .unwrap();
+    let txid: Txid = "3333333333333333333333333333333333333333333333333333333333333333"
+      .parse()
+      .unwrap();
+
+    let entry = InscriptionEventEntry {
+      event_type: InscriptionEventType::Transferred,
+      block_height: 850_000,
+      inscription_id,
+      sequence_number: 100,
+      txid,
+      new_satpoint: Some(
+        "3333333333333333333333333333333333333333333333333333333333333333:1:500"
+          .parse()
+          .unwrap(),
+      ),
+      old_satpoint: Some(
+        "2222222222222222222222222222222222222222222222222222222222222222:0:0"
+          .parse()
+          .unwrap(),
+      ),
+      to_address: Some("bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq".to_string()),
+      from_address: Some("bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4".to_string()),
+      charms: None,
+    };
+
+    let serialized = entry.serialize();
+    let deserialized = InscriptionEventEntry::deserialize(&serialized);
+    assert_eq!(entry, deserialized);
+  }
+
+  #[test]
+  fn inscription_event_entry_unbound_round_trip() {
+    let inscription_id: InscriptionId =
+      "4444444444444444444444444444444444444444444444444444444444444444i2"
+        .parse()
+        .unwrap();
+    let txid = inscription_id.txid;
+
+    let entry = InscriptionEventEntry {
+      event_type: InscriptionEventType::Created,
+      block_height: 900_000,
+      inscription_id,
+      sequence_number: 999,
+      txid,
+      new_satpoint: None,
+      old_satpoint: None,
+      to_address: None,
+      from_address: None,
+      charms: Some(15),
+    };
+
+    let serialized = entry.serialize();
+    let deserialized = InscriptionEventEntry::deserialize(&serialized);
+    assert_eq!(entry, deserialized);
   }
 }

@@ -1,4 +1,5 @@
 use super::*;
+use crate::index::entry::{InscriptionEventEntry, InscriptionEventType};
 
 #[derive(Debug, PartialEq, Copy, Clone)]
 enum Curse {
@@ -35,6 +36,7 @@ enum Origin {
   Old {
     sequence_number: u32,
     old_satpoint: SatPoint,
+    old_script_pubkey: Option<ScriptBuf>,
   },
 }
 
@@ -60,6 +62,10 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) transaction_buffer: Vec<u8>,
   pub(super) transaction_id_to_transaction: &'a mut Table<'tx, &'static TxidValue, &'static [u8]>,
   pub(super) unbound_inscriptions: u64,
+  pub(super) inscription_event_to_data: Option<&'a mut Table<'tx, (u32, u32), &'static [u8]>>,
+  pub(super) sequence_number_to_inscription_events: Option<&'a mut MultimapTable<'tx, u32, (u32, u32)>>,
+  pub(super) event_count: u32,
+  pub(super) chain: Chain,
 }
 
 impl InscriptionUpdater<'_, '_> {
@@ -115,12 +121,20 @@ impl InscriptionUpdater<'_, '_> {
         .id;
 
         let offset = total_input_value + old_satpoint_offset;
+
+        let old_script_pubkey = if index.index_inscription_events && index.index_addresses {
+          Some(ScriptBuf::from(input_utxo_entries[input_index].script_pubkey().to_vec()))
+        } else {
+          None
+        };
+
         floating_inscriptions.push(Flotsam {
           offset,
           inscription_id,
           origin: Origin::Old {
             sequence_number,
             old_satpoint,
+            old_script_pubkey,
           },
         });
 
@@ -300,15 +314,22 @@ impl InscriptionUpdater<'_, '_> {
           new_satpoint,
           inscriptions.next().unwrap(),
           txout.script_pubkey.is_op_return(),
+          &txout.script_pubkey,
         ));
       }
 
       output_value = end;
     }
 
-    for (new_satpoint, flotsam, op_return) in new_locations.into_iter() {
+    for (new_satpoint, flotsam, op_return, script_pubkey) in new_locations.into_iter() {
       let output_utxo_entry =
         &mut output_utxo_entries[usize::try_from(new_satpoint.outpoint.vout).unwrap()];
+
+      let script_ref = if index.index_inscription_events {
+        Some(script_pubkey.as_script())
+      } else {
+        None
+      };
 
       self.update_inscription_location(
         input_sat_ranges,
@@ -318,6 +339,7 @@ impl InscriptionUpdater<'_, '_> {
         Some(output_utxo_entry),
         utxo_cache,
         index,
+        script_ref,
       )?;
     }
 
@@ -335,6 +357,7 @@ impl InscriptionUpdater<'_, '_> {
           None,
           utxo_cache,
           index,
+          None,
         )?;
       }
       self.lost_sats += self.reward - output_value;
@@ -378,12 +401,14 @@ impl InscriptionUpdater<'_, '_> {
     mut normal_output_utxo_entry: Option<&mut UtxoEntryBuf>,
     utxo_cache: &mut HashMap<OutPoint, UtxoEntryBuf>,
     index: &Index,
+    new_script_pubkey: Option<&Script>,
   ) -> Result {
     let inscription_id = flotsam.inscription_id;
     let (unbound, sequence_number) = match flotsam.origin {
       Origin::Old {
         sequence_number,
         old_satpoint,
+        old_script_pubkey,
       } => {
         if op_return {
           let entry = InscriptionEntry::load(
@@ -411,6 +436,37 @@ impl InscriptionUpdater<'_, '_> {
             old_location: old_satpoint,
             sequence_number,
           })?;
+        }
+
+        if let (Some(event_table), Some(event_index_table)) = (
+          self.inscription_event_to_data.as_mut(),
+          self.sequence_number_to_inscription_events.as_mut(),
+        ) {
+          let from_address = old_script_pubkey.as_ref().and_then(|spk| {
+            self.chain.address_from_script(spk).ok().map(|a| a.to_string())
+          });
+
+          let to_address = new_script_pubkey.and_then(|spk| {
+            self.chain.address_from_script(spk).ok().map(|a| a.to_string())
+          });
+
+          let event = InscriptionEventEntry {
+            event_type: InscriptionEventType::Transferred,
+            block_height: self.height,
+            inscription_id,
+            sequence_number,
+            txid: new_satpoint.outpoint.txid,
+            new_satpoint: Some(new_satpoint),
+            old_satpoint: Some(old_satpoint),
+            to_address,
+            from_address,
+            charms: None,
+          };
+
+          let key = (self.height, self.event_count);
+          event_table.insert(key, event.serialize().as_slice())?;
+          event_index_table.insert(sequence_number, key)?;
+          self.event_count += 1;
         }
 
         (false, sequence_number)
@@ -542,6 +598,37 @@ impl InscriptionUpdater<'_, '_> {
             parent_inscription_ids,
             sequence_number,
           })?;
+        }
+
+        if let (Some(event_table), Some(event_index_table)) = (
+          self.inscription_event_to_data.as_mut(),
+          self.sequence_number_to_inscription_events.as_mut(),
+        ) {
+          let to_address = if !unbound {
+            new_script_pubkey.and_then(|spk| {
+              self.chain.address_from_script(spk).ok().map(|a| a.to_string())
+            })
+          } else {
+            None
+          };
+
+          let event = InscriptionEventEntry {
+            event_type: InscriptionEventType::Created,
+            block_height: self.height,
+            inscription_id,
+            sequence_number,
+            txid: inscription_id.txid,
+            new_satpoint: (!unbound).then_some(new_satpoint),
+            old_satpoint: None,
+            to_address,
+            from_address: None,
+            charms: Some(charms),
+          };
+
+          let key = (self.height, self.event_count);
+          event_table.insert(key, event.serialize().as_slice())?;
+          event_index_table.insert(sequence_number, key)?;
+          self.event_count += 1;
         }
 
         self.sequence_number_to_entry.insert(

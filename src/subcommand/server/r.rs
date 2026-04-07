@@ -624,6 +624,32 @@ pub(super) async fn undelegated_content(
   })
 }
 
+pub(super) async fn events_by_block_range(
+  Extension(index): Extension<Arc<Index>>,
+  Path((start, end, page)): Path<(u32, u32, usize)>,
+) -> ServerResult {
+  task::block_in_place(|| {
+    let (entries, more) = index.get_inscription_events_by_block_range(start, end, 100, page)?;
+
+    let events = entries.into_iter().map(api::InscriptionEvent::from).collect();
+
+    Ok(Json(api::InscriptionEvents { events, more, page }).into_response())
+  })
+}
+
+pub(super) async fn events_by_inscription(
+  Extension(index): Extension<Arc<Index>>,
+  Path((inscription_id, page)): Path<(InscriptionId, usize)>,
+) -> ServerResult {
+  task::block_in_place(|| {
+    let (entries, more) = index.get_inscription_events_by_id(inscription_id, 100, page)?;
+
+    let events = entries.into_iter().map(api::InscriptionEvent::from).collect();
+
+    Ok(Json(api::InscriptionEvents { events, more, page }).into_response())
+  })
+}
+
 pub(super) async fn utxo(
   Extension(index): Extension<Arc<Index>>,
   Path(outpoint): Path<OutPoint>,

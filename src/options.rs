@@ -53,6 +53,11 @@ pub struct Options {
   pub(crate) index_addresses: bool,
   #[arg(
     long,
+    help = "Track inscription creation and transfer events. Requires --index-addresses."
+  )]
+  pub(crate) index_inscription_events: bool,
+  #[arg(
+    long,
     help = "Set index cache size to <INDEX_CACHE_SIZE> bytes. [default: 1/4 available RAM]"
   )]
   pub(crate) index_cache_size: Option<usize>,

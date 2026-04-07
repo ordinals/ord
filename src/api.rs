@@ -1,5 +1,6 @@
 use {
   super::*,
+  crate::index::entry::{InscriptionEventEntry, InscriptionEventType},
   serde_hex::{SerHex, Strict},
 };
 
@@ -263,4 +264,43 @@ pub struct AddressInfo {
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Offers {
   pub offers: Vec<String>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct InscriptionEvents {
+  pub events: Vec<InscriptionEvent>,
+  pub more: bool,
+  pub page: usize,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct InscriptionEvent {
+  pub event_type: String,
+  pub block_height: u32,
+  pub inscription_id: InscriptionId,
+  pub txid: Txid,
+  pub new_satpoint: Option<SatPoint>,
+  pub old_satpoint: Option<SatPoint>,
+  pub to_address: Option<String>,
+  pub from_address: Option<String>,
+  pub charms: Option<u16>,
+}
+
+impl From<InscriptionEventEntry> for InscriptionEvent {
+  fn from(entry: InscriptionEventEntry) -> Self {
+    Self {
+      event_type: match entry.event_type {
+        InscriptionEventType::Created => "created".to_string(),
+        InscriptionEventType::Transferred => "transferred".to_string(),
+      },
+      block_height: entry.block_height,
+      inscription_id: entry.inscription_id,
+      txid: entry.txid,
+      new_satpoint: entry.new_satpoint,
+      old_satpoint: entry.old_satpoint,
+      to_address: entry.to_address,
+      from_address: entry.from_address,
+      charms: entry.charms,
+    }
+  }
 }

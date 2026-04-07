@@ -1,8 +1,9 @@
 use {
   self::{
     entry::{
-      Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionIdValue,
-      OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange, TxidValue,
+      Entry, HeaderValue, InscriptionEntry, InscriptionEntryValue, InscriptionEventEntry, InscriptionEventType,
+      InscriptionIdValue, OutPointValue, RuneEntryValue, RuneIdValue, SatPointValue, SatRange,
+      TxidValue,
     },
     event::Event,
     lot::Lot,
@@ -59,6 +60,7 @@ define_multimap_table! { LATEST_CHILD_SEQUENCE_NUMBER_TO_COLLECTION_SEQUENCE_NUM
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
+define_multimap_table! { SEQUENCE_NUMBER_TO_INSCRIPTION_EVENTS, u32, (u32, u32) }
 define_table! { COLLECTION_SEQUENCE_NUMBER_TO_LATEST_CHILD_SEQUENCE_NUMBER, u32, u32 }
 define_table! { GALLERY_SEQUENCE_NUMBERS, u32, () }
 define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
@@ -79,6 +81,7 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
+define_table! { INSCRIPTION_EVENT_TO_DATA, (u32, u32), &[u8] }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
@@ -99,6 +102,7 @@ pub(crate) enum Statistic {
   SatRanges = 14,
   UnboundInscriptions = 16,
   LastSavepointHeight = 17,
+  IndexInscriptionEvents = 18,
 }
 
 impl Statistic {
@@ -208,6 +212,7 @@ pub struct Index {
   height_limit: Option<u32>,
   index_addresses: bool,
   index_inscriptions: bool,
+  index_inscription_events: bool,
   index_runes: bool,
   index_sats: bool,
   index_transactions: bool,
@@ -322,6 +327,7 @@ impl Index {
         tx.open_multimap_table(SAT_TO_SEQUENCE_NUMBER)?;
         tx.open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?;
         tx.open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?;
+        tx.open_multimap_table(SEQUENCE_NUMBER_TO_INSCRIPTION_EVENTS)?;
         tx.open_table(COLLECTION_SEQUENCE_NUMBER_TO_LATEST_CHILD_SEQUENCE_NUMBER)?;
         tx.open_table(GALLERY_SEQUENCE_NUMBERS)?;
         tx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
@@ -340,6 +346,7 @@ impl Index {
         tx.open_table(SEQUENCE_NUMBER_TO_SATPOINT)?;
         tx.open_table(TRANSACTION_ID_TO_RUNE)?;
         tx.open_table(WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP)?;
+        tx.open_table(INSCRIPTION_EVENT_TO_DATA)?;
 
         {
           let mut statistics = tx.open_table(STATISTIC_TO_COUNT)?;
@@ -372,6 +379,12 @@ impl Index {
             &mut statistics,
             Statistic::IndexTransactions,
             u64::from(settings.index_transactions_raw()),
+          )?;
+
+          Self::set_statistic(
+            &mut statistics,
+            Statistic::IndexInscriptionEvents,
+            u64::from(settings.index_inscription_events_raw()),
           )?;
 
           Self::set_statistic(&mut statistics, Statistic::Schema, SCHEMA_VERSION)?;
@@ -429,6 +442,7 @@ impl Index {
     };
 
     let index_addresses;
+    let index_inscription_events;
     let index_runes;
     let index_sats;
     let index_transactions;
@@ -442,6 +456,12 @@ impl Index {
       index_runes = Self::is_statistic_set(&statistics, Statistic::IndexRunes)?;
       index_sats = Self::is_statistic_set(&statistics, Statistic::IndexSats)?;
       index_transactions = Self::is_statistic_set(&statistics, Statistic::IndexTransactions)?;
+      index_inscription_events =
+        Self::is_statistic_set(&statistics, Statistic::IndexInscriptionEvents)?;
+    }
+
+    if index_inscription_events && !index_addresses {
+      bail!("--index-inscription-events requires --index-addresses");
     }
 
     let genesis_block_coinbase_transaction =
@@ -471,6 +491,7 @@ impl Index {
       index_sats,
       index_transactions,
       index_inscriptions,
+      index_inscription_events,
       settings: settings.clone(),
       path,
       started: Utc::now(),
@@ -522,6 +543,10 @@ impl Index {
 
   pub fn has_rune_index(&self) -> bool {
     self.index_runes
+  }
+
+  pub fn has_inscription_event_index(&self) -> bool {
+    self.index_inscription_events
   }
 
   pub fn has_sat_index(&self) -> bool {
@@ -1403,6 +1428,82 @@ impl Index {
     }
 
     Ok((children, more))
+  }
+
+  pub fn get_inscription_events_by_block_range(
+    &self,
+    start_block: u32,
+    end_block: u32,
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionEventEntry>, bool)> {
+    let rtx = self.database.begin_read()?;
+    let event_table = rtx.open_table(INSCRIPTION_EVENT_TO_DATA)?;
+
+    let start_key = (start_block, 0u32);
+    let end_key = (end_block, u32::MAX);
+
+    let mut events = event_table
+      .range(start_key..=end_key)?
+      .skip(page_index * page_size)
+      .take(page_size.saturating_add(1))
+      .map(|result| {
+        result
+          .map(|(_key, value)| InscriptionEventEntry::deserialize(value.value()))
+          .map_err(|err| err.into())
+      })
+      .collect::<Result<Vec<InscriptionEventEntry>>>()?;
+
+    let more = events.len() > page_size;
+    if more {
+      events.pop();
+    }
+
+    Ok((events, more))
+  }
+
+  pub fn get_inscription_events_by_id(
+    &self,
+    inscription_id: InscriptionId,
+    page_size: usize,
+    page_index: usize,
+  ) -> Result<(Vec<InscriptionEventEntry>, bool)> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number = rtx
+      .open_table(INSCRIPTION_ID_TO_SEQUENCE_NUMBER)?
+      .get(&inscription_id.store())?
+      .ok_or_else(|| anyhow!("inscription {inscription_id} not found"))?
+      .value();
+
+    let event_index_table = rtx.open_multimap_table(SEQUENCE_NUMBER_TO_INSCRIPTION_EVENTS)?;
+    let event_table = rtx.open_table(INSCRIPTION_EVENT_TO_DATA)?;
+
+    let mut event_keys: Vec<(u32, u32)> = event_index_table
+      .get(sequence_number)?
+      .map(|result| result.map(|guard| guard.value()))
+      .collect::<std::result::Result<Vec<_>, _>>()?;
+
+    event_keys.sort();
+
+    let mut events: Vec<InscriptionEventEntry> = event_keys
+      .into_iter()
+      .skip(page_index * page_size)
+      .take(page_size.saturating_add(1))
+      .map(|key| {
+        event_table
+          .get(key)?
+          .map(|value| InscriptionEventEntry::deserialize(value.value()))
+          .ok_or_else(|| anyhow!("event entry missing for key {key:?}"))
+      })
+      .collect::<Result<Vec<_>>>()?;
+
+    let more = events.len() > page_size;
+    if more {
+      events.pop();
+    }
+
+    Ok((events, more))
   }
 
   pub fn get_parents_by_sequence_number_paginated(
@@ -7056,5 +7157,124 @@ mod tests {
         Vec::<InscriptionId>::new(),
       );
     }
+  }
+
+  #[test]
+  fn inscription_creation_events_are_persisted() {
+    let context = Context::builder()
+      .arg("--index-addresses")
+      .arg("--index-inscription-events")
+      .build();
+
+    context.mine_blocks(1);
+
+    let txid = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    context.mine_blocks(1);
+
+    // Query by inscription ID
+    let (events, more) = context
+      .index
+      .get_inscription_events_by_id(inscription_id, 100, 0)
+      .unwrap();
+
+    assert!(!more);
+    assert_eq!(events.len(), 1);
+    assert_eq!(events[0].event_type, InscriptionEventType::Created);
+    assert_eq!(events[0].inscription_id, inscription_id);
+    assert_eq!(events[0].txid, txid);
+    assert!(events[0].new_satpoint.is_some());
+    assert!(events[0].old_satpoint.is_none());
+    assert!(events[0].to_address.is_some());
+    assert!(events[0].from_address.is_none());
+    assert!(events[0].charms.is_some());
+
+    // Query by block range
+    let block_height = events[0].block_height;
+    let (block_events, _) = context
+      .index
+      .get_inscription_events_by_block_range(block_height, block_height, 100, 0)
+      .unwrap();
+
+    assert!(!block_events.is_empty());
+    assert!(block_events
+      .iter()
+      .any(|e| e.inscription_id == inscription_id));
+  }
+
+  #[test]
+  fn inscription_transfer_events_are_persisted() {
+    let context = Context::builder()
+      .arg("--index-addresses")
+      .arg("--index-inscription-events")
+      .build();
+
+    context.mine_blocks(1);
+
+    // Create inscription
+    let txid = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    context.mine_blocks(1);
+
+    // Transfer inscription (spend the output containing it)
+    let transfer_txid = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Default::default())],
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    // Should now have 2 events: created + transferred
+    let (events, _) = context
+      .index
+      .get_inscription_events_by_id(inscription_id, 100, 0)
+      .unwrap();
+
+    assert_eq!(events.len(), 2);
+
+    // First event is creation
+    assert_eq!(events[0].event_type, InscriptionEventType::Created);
+    assert_eq!(events[0].inscription_id, inscription_id);
+
+    // Second event is transfer
+    assert_eq!(events[1].event_type, InscriptionEventType::Transferred);
+    assert_eq!(events[1].inscription_id, inscription_id);
+    assert_eq!(events[1].txid, transfer_txid);
+    assert!(events[1].new_satpoint.is_some());
+    assert!(events[1].old_satpoint.is_some());
+    assert!(events[1].to_address.is_some());
+    assert!(events[1].from_address.is_some());
+    assert!(events[1].charms.is_none());
+  }
+
+  #[test]
+  fn inscription_events_not_persisted_without_flag() {
+    let context = Context::builder().build();
+
+    context.mine_blocks(1);
+
+    let txid = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/plain", "hello").to_witness())],
+      ..default()
+    });
+    let inscription_id = InscriptionId { txid, index: 0 };
+
+    context.mine_blocks(1);
+
+    // Events should be empty without the flag
+    let (events, _) = context
+      .index
+      .get_inscription_events_by_id(inscription_id, 100, 0)
+      .unwrap();
+
+    assert!(events.is_empty());
   }
 }

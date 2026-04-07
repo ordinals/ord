@@ -19,6 +19,7 @@ pub struct Settings {
   http_port: Option<u16>,
   index: Option<PathBuf>,
   index_addresses: bool,
+  index_inscription_events: bool,
   index_cache_size: Option<usize>,
   index_runes: bool,
   index_sats: bool,
@@ -134,6 +135,7 @@ impl Settings {
       http_port: self.http_port.or(source.http_port),
       index: self.index.or(source.index),
       index_addresses: self.index_addresses || source.index_addresses,
+      index_inscription_events: self.index_inscription_events || source.index_inscription_events,
       index_cache_size: self.index_cache_size.or(source.index_cache_size),
       index_runes: self.index_runes || source.index_runes,
       index_sats: self.index_sats || source.index_sats,
@@ -172,6 +174,7 @@ impl Settings {
       http_port: None,
       index: options.index,
       index_addresses: options.index_addresses,
+      index_inscription_events: options.index_inscription_events,
       index_cache_size: options.index_cache_size,
       index_runes: options.index_runes,
       index_sats: options.index_sats,
@@ -262,6 +265,7 @@ impl Settings {
       http_port: get_u16("HTTP_PORT")?,
       index: get_path("INDEX"),
       index_addresses: get_bool("INDEX_ADDRESSES"),
+      index_inscription_events: get_bool("INDEX_INSCRIPTION_EVENTS"),
       index_cache_size: get_usize("INDEX_CACHE_SIZE")?,
       index_runes: get_bool("INDEX_RUNES"),
       index_sats: get_bool("INDEX_SATS"),
@@ -294,6 +298,7 @@ impl Settings {
       http_port: None,
       index: None,
       index_addresses: true,
+      index_inscription_events: false,
       index_cache_size: None,
       index_runes: true,
       index_sats: true,
@@ -363,6 +368,7 @@ impl Settings {
       http_port: self.http_port,
       index: Some(index),
       index_addresses: self.index_addresses,
+      index_inscription_events: self.index_inscription_events,
       index_cache_size: Some(match self.index_cache_size {
         Some(index_cache_size) => index_cache_size,
         None => {
@@ -550,6 +556,10 @@ impl Settings {
 
   pub fn index_addresses_raw(&self) -> bool {
     self.index_addresses
+  }
+
+  pub fn index_inscription_events_raw(&self) -> bool {
+    self.index_inscription_events
   }
 
   pub fn index_inscriptions_raw(&self) -> bool {
@@ -1138,6 +1148,7 @@ mod tests {
         http_port: Some(8080),
         index: Some("index".into()),
         index_addresses: true,
+        index_inscription_events: false,
         index_cache_size: Some(4),
         index_runes: true,
         index_sats: true,
@@ -1203,6 +1214,7 @@ mod tests {
         http_port: None,
         index: Some("index".into()),
         index_addresses: true,
+        index_inscription_events: false,
         index_cache_size: Some(4),
         index_runes: true,
         index_sats: true,

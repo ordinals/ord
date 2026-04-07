@@ -431,6 +431,17 @@ impl Updater<'_> {
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
 
+    let mut inscription_event_to_data = if self.index.index_inscription_events {
+      Some(wtx.open_table(INSCRIPTION_EVENT_TO_DATA)?)
+    } else {
+      None
+    };
+    let mut sequence_number_to_inscription_events = if self.index.index_inscription_events {
+      Some(wtx.open_multimap_table(SEQUENCE_NUMBER_TO_INSCRIPTION_EVENTS)?)
+    } else {
+      None
+    };
+
     let index_inscriptions = self.height >= self.index.settings.first_inscription_height()
       && self.index.index_inscriptions;
 
@@ -528,6 +539,10 @@ impl Updater<'_> {
       transaction_buffer: Vec::new(),
       transaction_id_to_transaction: &mut transaction_id_to_transaction,
       unbound_inscriptions,
+      inscription_event_to_data: inscription_event_to_data.as_mut(),
+      sequence_number_to_inscription_events: sequence_number_to_inscription_events.as_mut(),
+      event_count: 0,
+      chain: self.index.settings.chain(),
     };
 
     let mut coinbase_inputs = Vec::new();

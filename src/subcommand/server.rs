@@ -318,6 +318,8 @@ impl Server {
           "/r/undelegated-content/{inscription_id}",
           get(r::undelegated_content),
         )
+        .route("/r/events/block/{start}/{end}/{page}", get(r::events_by_block_range))
+        .route("/r/events/inscription/{inscription_id}/{page}", get(r::events_by_inscription))
         .route("/r/utxo/{outpoint}", get(r::utxo));
 
       let proxiable_routes = Router::new()
