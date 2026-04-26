@@ -77,10 +77,15 @@ where
   }
 
   fn og_image(&self) -> String {
+    let path = self
+      .content
+      .og_image_path()
+      .unwrap_or_else(|| "/static/favicon.png".into());
+
     if let Some(domain) = &self.config.domain {
-      format!("https://{domain}/static/favicon.png")
+      format!("https://{domain}{path}")
     } else {
-      "https://ordinals.com/static/favicon.png".into()
+      format!("https://ordinals.com{path}")
     }
   }
 
@@ -101,6 +106,10 @@ pub trait PageContent: Display + 'static {
     Self: Sized,
   {
     PageHtml::new(self, server_config)
+  }
+
+  fn og_image_path(&self) -> Option<String> {
+    None
   }
 }
 

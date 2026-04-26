@@ -23,6 +23,14 @@ pub struct InscriptionHtml {
 }
 
 impl PageContent for InscriptionHtml {
+  fn og_image_path(&self) -> Option<String> {
+    if let Media::Image(_) = self.inscription.media() {
+      Some(format!("/content/{}", self.id))
+    } else {
+      None
+    }
+  }
+
   fn title(&self) -> String {
     format!("Inscription {}", self.number)
   }
