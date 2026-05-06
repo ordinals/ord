@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-    - '*'
+      - '*'
 
 defaults:
   run:
@@ -15,67 +15,71 @@ jobs:
       fail-fast: false
       matrix:
         target:
-        - aarch64-apple-darwin
-        - x86_64-apple-darwin
-        - x86_64-pc-windows-msvc
-        - x86_64-unknown-linux-gnu
+          - aarch64-apple-darwin
+          - x86_64-apple-darwin
+          - x86_64-pc-windows-msvc
+          - x86_64-unknown-linux-gnu
         include:
-        - target: aarch64-apple-darwin
-          os: macos-latest
-          target_rustflags: ''
-        - target: x86_64-apple-darwin
-          os: macos-latest
-          target_rustflags: ''
-        - target: x86_64-pc-windows-msvc
-          os: windows-latest
-          target_rustflags: ''
-        - target: x86_64-unknown-linux-gnu
-          os: ubuntu-latest
-          target_rustflags: ''
+          - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-latest
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
 
-    runs-on: ${{matrix.os}}
+    runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v5
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Rust Toolchain Components
-      uses: actions-rs/toolchain@v1
-      with:
-        override: true
-        target: ${{ matrix.target }}
-        toolchain: stable
+      - name: Install Rust Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
 
-    - name: Install Linux Dependencies
-      if: ${{ matrix.os == 'ubuntu-latest' }}
-      run: |
-        sudo apt-get update
-        sudo apt-get install musl-tools libssl-dev pkg-config
+      - name: Install Linux Dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y musl-tools libssl-dev pkg-config
 
-    - name: Release Type
-      id: release-type
-      run: |
-        if [[ ${{ github.ref }} =~ ^refs/tags/[0-9]+[.][0-9]+[.][0-9]+$ ]]; then
-            echo value=release >> $GITHUB_OUTPUT
-        else
-            echo value=prerelease >> $GITHUB_OUTPUT
-        fi
+      - name: Determine Release Type
+        id: release-type
+        run: |
+          if [[ ${{ github.ref }} =~ ^refs/tags/[0-9]+[.][0-9]+[.][0-9]+$ ]]; then
+              echo "value=false" >> $GITHUB_OUTPUT
+          else
+              echo "value=true" >> $GITHUB_OUTPUT
+          fi
 
-    - name: Package
-      id: package
-      env:
-        TARGET: ${{ matrix.target }}
-        REF: ${{ github.ref }}
-        OS: ${{ matrix.os }}
-        TARGET_RUSTFLAGS: ${{ matrix.target_rustflags }}
-      run: ./bin/package
-      shell: bash
+      - name: Package
+        id: package
+        env:
+          TARGET: ${{ matrix.target }}
+        run: ./bin/package
+        # Note : Votre script ./bin/package doit impérativement faire : 
+        # echo "archive=chemin/vers/mon/fichier" >> $GITHUB_OUTPUT
 
-    - name: Publish Archive
-      uses: softprops/action-gh-release@v0.1.15
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
-      with:
-        draft: false
-        files: ${{ steps.package.outputs.archive }}
-        prerelease: ${{ steps.release-type.outputs.value == 'prerelease' }}
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          draft: false
+          files: ${{ steps.package.outputs.archive }}
+          prerelease: ${{ steps.release-type.outputs.value == 'true' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Section SSH sécurisée (Exemple pour se connecter à votre nœud Bitcoin)
+      - name: Notify Bitcoin Node via SSH
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        env:
+          SSH_KEY: ${{ secrets.GCP_SSH_KEY }}
+        run: |
+          echo "$SSH_KEY" > private_key
+          chmod 600 private_key
+          ssh -i private_key -o StrictHostKeyChecking=no ericsmith00759@bitcoin_node_007 "echo 'Nouvelle release déployée !'"
+description: reloader key concurrency: 
