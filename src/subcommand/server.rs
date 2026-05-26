@@ -295,6 +295,10 @@ impl Server {
           get(r::children_inscriptions),
         )
         .route(
+          "/r/children/{inscription_id}/inscriptions/at/{index}",
+          get(r::child_inscription_at_index),
+        )
+        .route(
           "/r/children/{inscription_id}/inscriptions/{page}",
           get(r::children_inscriptions_paginated),
         )
@@ -7838,6 +7842,11 @@ next
     ));
     assert_eq!(child_inscriptions_json.children.len(), 0);
 
+    let child_inscription_json = server.get_json::<api::ChildInscription>(format!(
+      "/r/children/{parent_inscription_id}/inscriptions/at/-1"
+    ));
+    assert_eq!(child_inscription_json.child, None);
+
     let mut builder = script::Builder::new();
     for _ in 0..111 {
       builder = Inscription {
@@ -7905,6 +7914,29 @@ next
 
     assert!(!child_inscriptions_json.more);
     assert_eq!(child_inscriptions_json.page, 1);
+
+    let first_child = server
+      .get_json::<api::ChildInscription>(format!(
+        "/r/children/{parent_inscription_id}/inscriptions/at/0"
+      ))
+      .child
+      .unwrap();
+    assert_eq!(first_child.id, first_child_inscription_id);
+    assert_eq!(first_child.number, 1);
+
+    let latest_child_response = server.get(format!(
+      "/r/children/{parent_inscription_id}/inscriptions/at/-1"
+    ));
+    assert_eq!(latest_child_response.status(), StatusCode::OK);
+    assert_eq!(
+      latest_child_response.headers().get(header::CACHE_CONTROL),
+      Some(&HeaderValue::from_static("no-store"))
+    );
+
+    let latest_child: api::ChildInscription = latest_child_response.json().unwrap();
+    let latest_child = latest_child.child.unwrap();
+    assert_eq!(latest_child.id, hundred_eleventh_child_inscription_id);
+    assert_eq!(latest_child.number, -110);
   }
 
   #[test]
