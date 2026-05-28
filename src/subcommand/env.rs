@@ -51,15 +51,23 @@ impl Env {
       ord_port.unwrap_or(TcpListener::bind("127.0.0.1:0")?.local_addr()?.port()),
     );
 
-    let relative = self.directory.to_str().unwrap().to_string();
     let absolute = std::env::current_dir()?.join(&self.directory);
-    let absolute_str = absolute
-      .to_str()
-      .with_context(|| format!("directory `{}` is not valid unicode", absolute.display()))?;
+    let bitcoind_relative = self.directory.join("bitcoind");
+    let ord_relative = self.directory.join("ord");
+    let bitcoind_dir = absolute.join("bitcoind");
+    let ord_dir = absolute.join("ord");
+    let bitcoind_dir_str = bitcoind_dir.to_str().with_context(|| {
+      format!(
+        "directory `{}` is not valid unicode",
+        bitcoind_dir.display()
+      )
+    })?;
 
     fs::create_dir_all(&absolute)?;
+    fs::create_dir_all(&bitcoind_dir)?;
+    fs::create_dir_all(&ord_dir)?;
 
-    let bitcoin_conf = absolute.join("bitcoin.conf");
+    let bitcoin_conf = bitcoind_dir.join("bitcoin.conf");
 
     if !bitcoin_conf.try_exists()? {
       fs::write(
@@ -67,7 +75,7 @@ impl Env {
         format!(
           "datacarriersize=1000000
 regtest=1
-datadir={absolute_str}
+datadir={bitcoind_dir_str}
 listen=0
 txindex=1
 [regtest]
@@ -94,7 +102,7 @@ rpcport={bitcoind_port}
         turbo: false,
       }),
       inscriptions: vec![batch::Entry {
-        file: Some("env/inscription.txt".into()),
+        file: Some(self.directory.join("inscription.txt")),
         ..default()
       }],
       ..default()
@@ -109,14 +117,17 @@ rpcport={bitcoind_port}
 
     let _bitcoind = KillOnDrop(
       Command::new("bitcoind")
-        .arg(format!("-conf={}", absolute.join("bitcoin.conf").display()))
+        .arg(format!(
+          "-conf={}",
+          bitcoind_dir.join("bitcoin.conf").display()
+        ))
         .stdout(Stdio::null())
         .spawn()
         .expect("failed to start bitcoind"),
     );
 
     loop {
-      if absolute.join("regtest/.cookie").try_exists()? {
+      if bitcoind_dir.join("regtest/.cookie").try_exists()? {
         break;
       }
     }
@@ -125,12 +136,17 @@ rpcport={bitcoind_port}
 
     let server_url = format!("http://127.0.0.1:{ord_port}");
 
-    let config = absolute.join("ord.yaml");
+    let config = ord_dir.join("ord.yaml");
 
     if !config.try_exists()? {
       fs::write(
         config,
-        serde_yaml::to_string(&Settings::for_env(&absolute, &rpc_url, &server_url))?,
+        serde_yaml::to_string(&Settings::for_env(
+          &bitcoind_dir,
+          &ord_dir,
+          &rpc_url,
+          &server_url,
+        ))?,
       )?;
     }
 
@@ -142,7 +158,7 @@ rpcport={bitcoind_port}
     let mut command = Command::new(&ord);
     let ord_server = command
       .arg("--datadir")
-      .arg(&absolute)
+      .arg(&ord_dir)
       .arg("server")
       .arg("--polling-interval=100ms")
       .arg("--http-port")
@@ -160,10 +176,10 @@ rpcport={bitcoind_port}
 
     thread::sleep(Duration::from_millis(250));
 
-    if !absolute.join("regtest/wallets/ord").try_exists()? {
+    if !bitcoind_dir.join("regtest/wallets/ord").try_exists()? {
       let status = Command::new(&ord)
         .arg("--datadir")
-        .arg(&absolute)
+        .arg(&ord_dir)
         .arg("wallet")
         .arg("create")
         .status()?;
@@ -172,7 +188,7 @@ rpcport={bitcoind_port}
 
       let output = Command::new(&ord)
         .arg("--datadir")
-        .arg(&absolute)
+        .arg(&ord_dir)
         .arg("wallet")
         .arg("receive")
         .output()?;
@@ -185,7 +201,7 @@ rpcport={bitcoind_port}
       let receive = serde_json::from_slice::<wallet::receive::Output>(&output.stdout)?;
 
       let status = Command::new("bitcoin-cli")
-        .arg(format!("-datadir={relative}"))
+        .arg(format!("-datadir={}", bitcoind_relative.display()))
         .arg("generatetoaddress")
         .arg("200")
         .arg(
@@ -207,32 +223,42 @@ rpcport={bitcoind_port}
       &Info {
         bitcoind_port,
         ord_port,
-        bitcoin_cli_command: vec!["bitcoin-cli".into(), format!("-datadir={relative}")],
+        bitcoin_cli_command: vec![
+          "bitcoin-cli".into(),
+          format!("-datadir={}", bitcoind_relative.display()),
+        ],
         ord_wallet_command: vec![
           ord.to_str().unwrap().into(),
           "--datadir".into(),
-          absolute.to_str().unwrap().into(),
+          ord_dir.to_str().unwrap().into(),
           "wallet".into(),
         ],
       },
     )?;
 
-    let datadir = if relative
-      .chars()
-      .all(|c| c.is_alphanumeric() || c == '-' || c == '_')
-    {
-      relative
-    } else {
-      format!("'{relative}'")
+    let shell_arg = |path: &Path| {
+      let path = path.display().to_string();
+
+      if path
+        .chars()
+        .all(|c| c.is_alphanumeric() || c == '-' || c == '_' || c == '/' || c == '\\')
+      {
+        path
+      } else {
+        format!("'{path}'")
+      }
     };
+
+    let bitcoind_datadir = shell_arg(&bitcoind_relative);
+    let ord_datadir = shell_arg(&ord_relative);
 
     eprintln!(
       "{}
 {server_url}
 {}
-bitcoin-cli -datadir={datadir} getblockchaininfo
+bitcoin-cli -datadir={bitcoind_datadir} getblockchaininfo
 {}
-{} --datadir {datadir} wallet balance",
+{} --datadir {ord_datadir} wallet balance",
       "`ord` server URL:".blue().bold(),
       "Example `bitcoin-cli` command:".blue().bold(),
       "Example `ord` command:".blue().bold(),
