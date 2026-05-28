@@ -2327,6 +2327,27 @@ impl Index {
       Charm::Lost.set(&mut charms);
     }
 
+    let burn_height = if Charm::Burned.is_set(charms)
+      && satpoint.outpoint != OutPoint::null()
+      && satpoint.outpoint != unbound_outpoint()
+    {
+      let info = self
+        .client
+        .get_raw_transaction_info(&satpoint.outpoint.txid, None)
+        .into_option()?;
+
+      match info.and_then(|info| info.blockhash) {
+        Some(blockhash) => self
+          .client
+          .get_block_header_info(&blockhash)
+          .into_option()?
+          .map(|header| header.height.try_into().unwrap()),
+        None => None,
+      }
+    } else {
+      None
+    };
+
     let effective_mime_type = if let Some(delegate_id) = inscription.delegate() {
       let delegate_result = self.get_inscription_by_id(delegate_id);
       if let Ok(Some(delegate)) = delegate_result {
@@ -2350,6 +2371,7 @@ impl Index {
               .ok()
           })
           .map(|address| address.to_string()),
+        burn_height,
         charms: Charm::charms(charms),
         child_count,
         children,
