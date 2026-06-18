@@ -372,6 +372,42 @@ impl Api for Server {
 
     let mut state = self.state();
 
+    // Bitcoin Core v24+ rejects a pre-selected input the wallet cannot solve
+    // unless its weight is supplied via `input_weights`. Model that here so the
+    // offer-create funding path (which pre-selects the seller's foreign input)
+    // is exercised faithfully instead of silently funded.
+    {
+      let weighted = options
+        .input_weights
+        .iter()
+        .flatten()
+        .map(|w| OutPoint {
+          txid: w.txid,
+          vout: w.vout,
+        })
+        .collect::<std::collections::HashSet<OutPoint>>();
+
+      for txin in &transaction.input {
+        let outpoint = txin.previous_output;
+
+        let solvable = state
+          .transactions
+          .get(&outpoint.txid)
+          .and_then(|tx| tx.output.get(usize::try_from(outpoint.vout).unwrap()))
+          .and_then(|txout| Address::from_script(&txout.script_pubkey, state.network).ok())
+          .map(|address| state.is_wallet_address(&address))
+          .unwrap_or(false);
+
+        if !solvable && !weighted.contains(&outpoint) {
+          return Err(jsonrpc_core::Error {
+            code: jsonrpc_core::ErrorCode::ServerError(-4),
+            message: format!("Not solvable pre-selected input {outpoint}"),
+            data: None,
+          });
+        }
+      }
+    }
+
     let output_value = transaction
       .output
       .iter()
