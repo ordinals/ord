@@ -186,13 +186,16 @@ impl From<OutPoint> for JsonOutPoint {
   }
 }
 
-// One entry of fundrawtransaction's `input_weights`: the weight of a
-// pre-selected input the wallet cannot otherwise solve. (`weight` is ignored
-// here; mockcore only needs to know which inputs were declared.)
-#[derive(Deserialize)]
+// One entry of fundrawtransaction's `input_weights`: a pre-selected input the
+// wallet cannot otherwise solve, plus the weight the caller estimates for it.
+// The solvability check reads only the outpoint; the whole list is recorded on
+// the state (see `fund_raw_transaction`) so tests can assert the caller passes
+// the right weights.
+#[derive(Deserialize, Clone, Debug, PartialEq, Eq)]
 pub struct InputWeight {
   pub txid: Txid,
   pub vout: u32,
+  pub weight: u64,
 }
 
 #[derive(Deserialize)]
@@ -261,6 +264,10 @@ impl Handle {
 
   pub fn clear_state(&self) {
     self.state.lock().unwrap().clear();
+  }
+
+  pub fn fund_raw_transaction_input_weights(&self) -> Vec<InputWeight> {
+    self.state().fund_raw_transaction_input_weights.clone()
   }
 
   pub fn wallets(&self) -> BTreeSet<String> {
