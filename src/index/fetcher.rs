@@ -98,7 +98,7 @@ impl Fetcher {
     }
 
     // Results from batched JSON-RPC requests can come back in any order, so we must sort them by id
-    results.sort_by(|a, b| a.id.cmp(&b.id));
+    results.sort_by_key(|result| result.id);
 
     let txs = results
       .into_iter()

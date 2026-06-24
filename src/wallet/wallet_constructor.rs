@@ -123,8 +123,8 @@ impl WalletConstructor {
     let output_info = self.get_output_info(utxos.clone().into_keys().collect())?;
 
     let inscriptions = output_info
-      .iter()
-      .flat_map(|(_output, info)| info.inscriptions.clone().unwrap_or_default())
+      .values()
+      .flat_map(|info| info.inscriptions.clone().unwrap_or_default())
       .collect::<Vec<InscriptionId>>();
 
     let (inscriptions, inscription_info) = self.get_inscriptions(&inscriptions)?;
