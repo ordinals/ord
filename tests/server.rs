@@ -288,6 +288,46 @@ fn inscription_page() {
 }
 
 #[test]
+fn inscription_page_uses_image_content_as_og_image() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let output = CommandBuilder::new("wallet inscribe --fee-rate 1 --file foo.png")
+    .write("foo.png", "foo")
+    .core(&core)
+    .ord(&ord)
+    .run_and_deserialize_output::<Batch>();
+
+  core.mine_blocks(1);
+
+  let inscription = output.inscriptions[0].id;
+
+  ord.assert_response_regex(
+    format!("/inscription/{inscription}"),
+    format!(".*<meta property=og:image content='https://[^/]+/content/{inscription}'>.*"),
+  );
+}
+
+#[test]
+fn inscription_page_uses_favicon_as_og_image_for_non_image_content() {
+  let core = mockcore::spawn();
+  let ord = TestServer::spawn(&core);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  ord.assert_response_regex(
+    format!("/inscription/{inscription}"),
+    ".*<meta property=og:image content='https://[^/]+/static/favicon.png'>.*",
+  );
+}
+
+#[test]
 fn inscription_appears_on_reveal_transaction_page() {
   let core = mockcore::spawn();
   let ord = TestServer::spawn(&core);
