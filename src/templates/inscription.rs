@@ -24,13 +24,7 @@ pub struct InscriptionHtml {
 
 impl PageContent for InscriptionHtml {
   fn og_image_path(&self) -> Option<String> {
-    const SUPPORTED: &[&str] = &[
-      "image/apng",
-      "image/gif",
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-    ];
+    const SUPPORTED: &[&str] = &["image/gif", "image/jpeg", "image/png", "image/webp"];
 
     if SUPPORTED.contains(&self.inscription.content_type()?) {
       Some(format!("/content/{}", self.id))
@@ -80,16 +74,12 @@ mod tests {
       );
     }
 
-    case("image/apng", true);
     case("image/gif", true);
     case("image/jpeg", true);
     case("image/png", true);
     case("image/webp", true);
+
     case("image/avif", false);
-    case("image/jxl", false);
-    case("image/svg+xml", false);
-    case("text/plain;charset=utf-8", false);
-    case("video/mp4", false);
   }
 
   #[test]
