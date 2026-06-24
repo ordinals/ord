@@ -3,9 +3,11 @@
 
 use {
   bitcoin::{
-    Network, OutPoint, ScriptBuf, Transaction,
+    BlockHash, Network, OutPoint, ScriptBuf, Transaction,
+    block::Header,
     consensus::{Decodable, Encodable},
     constants::{DIFFCHANGE_INTERVAL, SUBSIDY_HALVING_INTERVAL},
+    hashes::Hash,
     opcodes,
     script::{self, Instruction},
   },
@@ -16,7 +18,7 @@ use {
     cmp,
     collections::{HashMap, VecDeque},
     fmt::{self, Formatter},
-    num::ParseIntError,
+    num::{ParseFloatError, ParseIntError},
     ops::{Add, AddAssign, Sub},
   },
   thiserror::Error,

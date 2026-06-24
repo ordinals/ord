@@ -11,6 +11,9 @@
   <dt>offset</dt><dd>{{ self.sat.third() }}</dd>
   <dt>timestamp</dt><dd><time>{{self.blocktime.timestamp()}}</time>{{self.blocktime.suffix()}}</dd>
   <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
+%% if let Some(luck) = self.block.and_then(|header| self.sat.luck(header)) {
+  <dt>luck</dt><dd>{{ luck }}</dd>
+%% }
 %% let charms = self.sat.charms();
 %% if charms != 0 {
   <dt>charms</dt>

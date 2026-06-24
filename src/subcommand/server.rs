@@ -742,6 +742,8 @@ impl Server {
       });
       let blocktime = index.block_time(sat.height())?;
 
+      let block = index.block_header_at_height(sat.height())?;
+
       let charms = sat.charms();
 
       let address = if let Some(satpoint) = satpoint {
@@ -789,6 +791,7 @@ impl Server {
       } else {
         SatHtml {
           address,
+          block,
           blocktime,
           inscriptions,
           sat,

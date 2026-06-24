@@ -1,4 +1,4 @@
-use {super::*, std::num::ParseFloatError};
+use super::*;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug, Display, Ord, PartialOrd, Deserialize, Serialize)]
 #[serde(transparent)]
@@ -19,6 +19,34 @@ impl Sat {
   pub fn height(self) -> Height {
     self.epoch().starting_height()
       + u32::try_from(self.epoch_position() / self.epoch().subsidy()).unwrap()
+  }
+
+  pub fn luck(self, block: Header) -> Option<u8> {
+    fn leading_zeros(hash: BlockHash) -> Option<u8> {
+      let mut zeros = 0u8;
+
+      for byte in hash.to_byte_array().into_iter().rev() {
+        zeros = zeros.checked_add(u8::try_from(byte.leading_zeros()).unwrap())?;
+
+        if byte != 0 {
+          break;
+        }
+      }
+
+      Some(zeros)
+    }
+
+    if self.common() {
+      return None;
+    }
+
+    let target = BlockHash::from_raw_hash(bitcoin::hashes::Hash::from_byte_array(
+      block.target().to_le_bytes(),
+    ));
+
+    let hash = block.block_hash();
+
+    leading_zeros(hash)?.checked_sub(leading_zeros(target)?)
   }
 
   pub fn cycle(self) -> u32 {
@@ -832,6 +860,12 @@ mod tests {
     assert!(Charm::Palindrome.is_set(Sat(0).charms()));
     assert!(!Charm::Palindrome.is_set(Sat(10).charms()));
     assert!(Charm::Palindrome.is_set(Sat(11).charms()));
+  }
+
+  #[test]
+  fn luck() {
+    let header = bitcoin::constants::genesis_block(Network::Bitcoin).header;
+    assert_eq!(Sat::luck(header), 11);
   }
 
   #[test]

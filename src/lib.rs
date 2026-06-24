@@ -146,6 +146,8 @@ pub mod wallet;
 type Result<T = (), E = Error> = std::result::Result<T, E>;
 type SnafuResult<T = (), E = SnafuError> = std::result::Result<T, E>;
 
+type BlockHeader = bitcoin::block::Header;
+
 const BROTLI: &str = "br";
 const BROTLI_BUFFER_SIZE: usize = 4096;
 const MAX_STANDARD_OP_RETURN_SIZE: usize = 83;

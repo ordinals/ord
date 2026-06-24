@@ -3,6 +3,7 @@ use super::*;
 #[derive(Boilerplate)]
 pub(crate) struct SatHtml {
   pub(crate) address: Option<Address>,
+  pub(crate) block: Option<BlockHeader>,
   pub(crate) blocktime: Blocktime,
   pub(crate) inscriptions: Vec<InscriptionId>,
   pub(crate) sat: Sat,

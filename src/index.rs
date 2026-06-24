@@ -1199,6 +1199,20 @@ impl Index {
     self.client.get_block_header(&hash).into_option()
   }
 
+  pub fn block_header_at_height(&self, height: Height) -> Result<Option<Header>> {
+    let height = height.n();
+
+    let rtx = self.database.begin_read()?;
+
+    let height_to_block_header = rtx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
+
+    let Some(guard) = height_to_block_header.get(height)? else {
+      return Ok(None);
+    };
+
+    Ok(Some(Header::load(*guard.value())))
+  }
+
   pub fn block_header_info(&self, hash: BlockHash) -> Result<Option<GetBlockHeaderResult>> {
     self.client.get_block_header_info(&hash).into_option()
   }
