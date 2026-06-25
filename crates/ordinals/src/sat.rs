@@ -863,9 +863,7 @@ mod tests {
   #[test]
   fn luck() {
     let genesis = bitcoin::constants::genesis_block(Network::Bitcoin).header;
-
     assert_eq!(Sat(0).luck(genesis), Some(11));
-
     assert_eq!(Sat(1).luck(genesis), None);
   }
 
