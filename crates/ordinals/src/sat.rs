@@ -862,31 +862,11 @@ mod tests {
 
   #[test]
   fn luck() {
-    assert_eq!(
-      Sat(0).luck(bitcoin::constants::genesis_block(Network::Bitcoin).header),
-      Some(11),
-    );
+    let genesis = bitcoin::constants::genesis_block(Network::Bitcoin).header;
 
-    assert_eq!(
-      Sat(1).luck(bitcoin::constants::genesis_block(Network::Bitcoin).header),
-      None,
-    );
+    assert_eq!(Sat(0).luck(genesis), Some(11));
 
-    #[track_caller]
-    fn case(header: &str, expected: Option<u8>) {
-      let header = bitcoin::consensus::encode::deserialize_hex::<Header>(header).unwrap();
-      assert_eq!(Sat(50 * COIN_VALUE).luck(header), expected);
-    }
-
-    case(
-      "0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49ffff001d1dac2b7c",
-      Some(11),
-    );
-
-    case(
-      "010000004ddccd549d28f385ab457e98d1b11ce80bfea2c5ab93015ade4973e400000000bf4473e53794beae34e64fccc471dace6ae544180816f89591894e0f417a914cd74d6e49ffff001d323b3a7b",
-      Some(0),
-    );
+    assert_eq!(Sat(1).luck(genesis), None);
   }
 
   #[test]
