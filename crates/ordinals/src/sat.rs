@@ -23,17 +23,17 @@ impl Sat {
 
   pub fn luck(self, block: Header) -> Option<u8> {
     fn leading_zeros(hash: BlockHash) -> Option<u8> {
-      let mut zeros = 0u8;
+      let mut zeros = 0;
 
       for byte in hash.to_byte_array().into_iter().rev() {
-        zeros = zeros.checked_add(u8::try_from(byte.leading_zeros()).unwrap())?;
+        zeros += byte.leading_zeros();
 
         if byte != 0 {
           break;
         }
       }
 
-      Some(zeros)
+      zeros.try_into().ok()
     }
 
     if self.common() {
