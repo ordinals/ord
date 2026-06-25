@@ -642,6 +642,16 @@ fn expected_sat_time_is_rounded() {
 }
 
 #[test]
+fn sat_page_shows_luck() {
+  let core = mockcore::spawn();
+
+  core.mine_blocks(1);
+
+  TestServer::spawn_with_args(&core, &["--index-sats"])
+    .assert_response_regex("/sat/0", r".*<dt>luck</dt><dd>11</dd>.*");
+}
+
+#[test]
 fn missing_credentials() {
   let core = mockcore::spawn();
 

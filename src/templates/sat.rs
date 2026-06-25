@@ -25,6 +25,7 @@ mod tests {
     assert_regex_match!(
       SatHtml {
         address: None,
+        block: None,
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -65,6 +66,7 @@ mod tests {
     assert_regex_match!(
       SatHtml {
         address: None,
+        block: None,
         sat: Sat(2099999997689999),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -103,6 +105,7 @@ mod tests {
     assert_regex_match!(
       SatHtml {
         address: None,
+        block: None,
         sat: Sat(1),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -117,6 +120,7 @@ mod tests {
     assert_regex_match!(
       SatHtml {
         address: None,
+        block: None,
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -139,6 +143,7 @@ mod tests {
     assert_regex_match!(
       SatHtml {
         address: None,
+        block: None,
         sat: Sat(0),
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -162,6 +167,7 @@ mod tests {
     assert_regex_match!(
       SatHtml {
         address: None,
+        block: None,
         sat: Sat::LAST,
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
@@ -176,6 +182,7 @@ mod tests {
     assert_regex_match!(
       SatHtml {
         address: None,
+        block: None,
         sat: Sat(0),
         satpoint: Some(satpoint(1, 0)),
         blocktime: Blocktime::confirmed(0),
@@ -186,10 +193,26 @@ mod tests {
   }
 
   #[test]
+  fn sat_with_luck() {
+    assert_regex_match!(
+      SatHtml {
+        address: None,
+        block: Some(bitcoin::constants::genesis_block(Network::Bitcoin).header),
+        sat: Sat(0),
+        satpoint: None,
+        blocktime: Blocktime::confirmed(0),
+        inscriptions: Vec::new(),
+      },
+      "<h1>Sat 0</h1>.*<dt>luck</dt><dd>11</dd>.*",
+    );
+  }
+
+  #[test]
   fn sat_with_address() {
     assert_regex_match!(
       SatHtml {
         address: Some(address(0)),
+        block: None,
         sat: Sat(0),
         satpoint: Some(satpoint(1, 0)),
         blocktime: Blocktime::confirmed(0),
