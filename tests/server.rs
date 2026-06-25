@@ -647,8 +647,10 @@ fn sat_page_shows_luck() {
 
   core.mine_blocks(1);
 
-  TestServer::spawn_with_args(&core, &["--index-sats"])
-    .assert_response_regex("/sat/0", r".*<dt>luck</dt><dd>11</dd>.*");
+  TestServer::spawn_with_args(&core, &["--index-sats"]).assert_response_regex(
+    "/sat/0",
+    r#".*<dt>luck</dt><dd><span title="1 in 2048">11</span></dd>.*"#,
+  );
 }
 
 #[test]

@@ -10,6 +10,15 @@ pub(crate) struct SatHtml {
   pub(crate) satpoint: Option<SatPoint>,
 }
 
+impl SatHtml {
+  fn luck_odds(luck: u8) -> String {
+    match 1u128.checked_shl(luck.into()) {
+      Some(odds) => format!("1 in {odds}"),
+      None => format!("1 in 2^{luck}"),
+    }
+  }
+}
+
 impl PageContent for SatHtml {
   fn title(&self) -> String {
     format!("Sat {}", self.sat)
@@ -19,6 +28,17 @@ impl PageContent for SatHtml {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn luck_odds() {
+    assert_eq!(SatHtml::luck_odds(0), "1 in 1");
+    assert_eq!(SatHtml::luck_odds(11), "1 in 2048");
+    assert_eq!(
+      SatHtml::luck_odds(127),
+      "1 in 170141183460469231731687303715884105728",
+    );
+    assert_eq!(SatHtml::luck_odds(128), "1 in 2^128");
+  }
 
   #[test]
   fn first() {
@@ -203,7 +223,7 @@ mod tests {
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
       },
-      "<h1>Sat 0</h1>.*<dt>luck</dt><dd>11</dd>.*",
+      "<h1>Sat 0</h1>.*<dt>luck</dt><dd><span title=\"1 in 2048\">11</span></dd>.*",
     );
   }
 
