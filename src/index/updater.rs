@@ -363,6 +363,7 @@ impl Updater<'_> {
 
       let mut rune_updater = RuneUpdater {
         event_sender: self.index.event_sender.as_ref(),
+        block_hash: block.header.block_hash(),
         block_time: block.header.time,
         burned: HashMap::new(),
         client: &self.index.client,

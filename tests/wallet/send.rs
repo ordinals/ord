@@ -1273,14 +1273,12 @@ fn sending_rune_creates_transaction_with_expected_runestone() {
   pretty_assert_eq!(
     Runestone::decipher(&tx).unwrap(),
     Artifact::Runestone(Runestone {
-      pointer: None,
-      etching: None,
       edicts: vec![Edict {
         id: etch.id,
         amount: 750,
         output: 2
       }],
-      mint: None,
+      ..default()
     }),
   );
 }

@@ -1619,7 +1619,7 @@ fn batch_can_etch_rune() {
 
   let pointer = reveal.output.len() - 2;
 
-  assert_eq!(runestone.pointer, Some(pointer.try_into().unwrap()));
+  assert_eq!(runestone.pointers, vec![u32::try_from(pointer).unwrap()]);
 
   assert_eq!(
     reveal.output[pointer].script_pubkey,

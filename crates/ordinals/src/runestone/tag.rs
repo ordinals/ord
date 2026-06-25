@@ -28,7 +28,7 @@ impl Tag {
   pub(super) fn take<const N: usize, T>(
     self,
     fields: &mut HashMap<u128, VecDeque<u128>>,
-    with: impl Fn([u128; N]) -> Option<T>,
+    with: impl FnOnce([u128; N]) -> Option<T>,
   ) -> Option<T> {
     let field = fields.get_mut(&self.into())?;
 
@@ -45,6 +45,20 @@ impl Tag {
     if field.is_empty() {
       fields.remove(&self.into()).unwrap();
     }
+
+    Some(value)
+  }
+
+  pub(super) fn take_all<T>(
+    self,
+    fields: &mut HashMap<u128, VecDeque<u128>>,
+    with: impl FnOnce(&[u128]) -> Option<T>,
+  ) -> Option<T> {
+    let field = fields.get_mut(&self.into())?;
+
+    let value = with(field.make_contiguous())?;
+
+    fields.remove(&self.into()).unwrap();
 
     Some(value)
   }

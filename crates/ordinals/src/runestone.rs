@@ -9,7 +9,7 @@ pub struct Runestone {
   pub edicts: Vec<Edict>,
   pub etching: Option<Etching>,
   pub mint: Option<RuneId>,
-  pub pointer: Option<u32>,
+  pub pointers: Vec<u32>,
 }
 
 #[derive(Debug, PartialEq)]
@@ -90,10 +90,22 @@ impl Runestone {
       RuneId::new(block.try_into().ok()?, tx.try_into().ok()?)
     });
 
-    let pointer = Tag::Pointer.take(&mut fields, |[pointer]| {
-      let pointer = u32::try_from(pointer).ok()?;
-      (u64::from(pointer) < u64::try_from(transaction.output.len()).unwrap()).then_some(pointer)
-    });
+    let pointers = Tag::Pointer
+      .take_all(&mut fields, |numbers| {
+        let mut pointers = Vec::new();
+        for pointer in numbers {
+          let pointer = u32::try_from(*pointer).ok()?;
+
+          if u64::from(pointer) >= u64::try_from(transaction.output.len()).unwrap() {
+            return None;
+          }
+
+          pointers.push(pointer)
+        }
+
+        Some(pointers)
+      })
+      .unwrap_or_default();
 
     if etching
       .map(|etching| etching.supply().is_none())
@@ -122,8 +134,25 @@ impl Runestone {
       edicts,
       etching,
       mint,
-      pointer,
+      pointers,
     }))
+  }
+
+  pub fn pointer(&self, blockhash: BlockHash, txid: Txid) -> Option<u32> {
+    match self.pointers.len() {
+      0 => None,
+      1 => Some(self.pointers[0]),
+      2.. => {
+        let mut engine = sha256::Hash::engine();
+        engine.input(blockhash.as_ref());
+        engine.input(txid.as_ref());
+        let hash = sha256::Hash::from_engine(engine);
+        let seed = u128::from_le_bytes(hash[..16].try_into().unwrap());
+        let index = seed % u128::try_from(self.pointers.len()).unwrap();
+        let active = self.pointers[usize::try_from(index).unwrap()];
+        Some(active)
+      }
+    }
   }
 
   pub fn encipher(&self) -> ScriptBuf {
@@ -163,7 +192,9 @@ impl Runestone {
       Tag::Mint.encode([block.into(), tx.into()], &mut payload);
     }
 
-    Tag::Pointer.encode_option(self.pointer, &mut payload);
+    for pointer in &self.pointers {
+      Tag::Pointer.encode([(*pointer).into()], &mut payload);
+    }
 
     if !self.edicts.is_empty() {
       varint::encode_to_vec(Tag::Body.into(), &mut payload);
@@ -252,8 +283,8 @@ mod tests {
   use {
     super::*,
     bitcoin::{
-      Amount, Sequence, TxIn, TxOut, Witness, blockdata::locktime::absolute::LockTime,
-      script::PushBytes, transaction::Version,
+      Amount, BlockHash, Sequence, TxIn, TxOut, Txid, Witness,
+      blockdata::locktime::absolute::LockTime, script::PushBytes, transaction::Version,
     },
     pretty_assertions::assert_eq,
   };
@@ -1129,7 +1160,7 @@ mod tests {
           }),
           turbo: true,
         }),
-        pointer: Some(0),
+        pointers: vec![0],
         mint: Some(RuneId::new(1, 1).unwrap()),
       }),
     );
@@ -1715,7 +1746,7 @@ mod tests {
           turbo: true,
         }),
         mint: Some(RuneId::new(17, 18).unwrap()),
-        pointer: Some(0),
+        pointers: vec![0],
       },
       &[
         Tag::Flags.into(),
@@ -1886,6 +1917,102 @@ mod tests {
         ..default()
       }),
     );
+  }
+
+  #[test]
+  fn multiple_pointers_round_trip() {
+    let runestone = Runestone {
+      pointers: vec![1, 2],
+      ..default()
+    };
+
+    let tx = Transaction {
+      input: Vec::new(),
+      output: (0..3)
+        .map(|i| TxOut {
+          script_pubkey: if i == 0 {
+            runestone.encipher()
+          } else {
+            ScriptBuf::new()
+          },
+          value: Amount::from_sat(0),
+        })
+        .collect(),
+      lock_time: LockTime::ZERO,
+      version: Version(2),
+    };
+
+    assert_eq!(
+      Runestone::decipher(&tx).unwrap(),
+      Artifact::Runestone(runestone),
+    );
+  }
+
+  #[test]
+  fn invalid_pointer_in_list_produces_cenotaph() {
+    let runestone = Runestone {
+      pointers: vec![1, 2],
+      ..default()
+    };
+
+    let tx = Transaction {
+      input: Vec::new(),
+      output: (0..2)
+        .map(|i| TxOut {
+          script_pubkey: if i == 0 {
+            runestone.encipher()
+          } else {
+            ScriptBuf::new()
+          },
+          value: Amount::from_sat(0),
+        })
+        .collect(),
+      lock_time: LockTime::ZERO,
+      version: Version(2),
+    };
+
+    assert_eq!(
+      Runestone::decipher(&tx).unwrap(),
+      Artifact::Cenotaph(Cenotaph {
+        flaw: Some(Flaw::UnrecognizedEvenTag),
+        ..default()
+      }),
+    );
+  }
+
+  #[test]
+  fn pointer_selection() {
+    #[track_caller]
+    fn case(pointers: Vec<u32>, txid: Txid, expected: Option<u32>) {
+      assert_eq!(
+        Runestone {
+          pointers,
+          ..default()
+        }
+        .pointer(BlockHash::all_zeros(), txid),
+        expected,
+      );
+    }
+
+    case(Vec::new(), Txid::all_zeros(), None);
+
+    case(vec![7], Txid::all_zeros(), Some(7));
+    case(vec![7], Txid::from_byte_array([1; 32]), Some(7));
+
+    let selections = [
+      Txid::all_zeros(),
+      Txid::from_byte_array([1; 32]),
+      Txid::from_byte_array([2; 32]),
+    ]
+    .map(|txid| {
+      Runestone {
+        pointers: vec![0, 1, 2, 3],
+        ..default()
+      }
+      .pointer(BlockHash::all_zeros(), txid)
+    });
+
+    assert_eq!(selections, [Some(1), Some(0), Some(2)]);
   }
 
   #[test]

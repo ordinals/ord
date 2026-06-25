@@ -32,7 +32,7 @@ struct Runestone {
   edicts: Vec<Edict>,
   etching: Option<Etching>,
   mint: Option<RuneId>,
-  pointer: Option<u32>,
+  pointers: Vec<u32>,
 }
 ```
 
@@ -214,7 +214,7 @@ struct Runestone {
   edicts: Vec<Edict>,
   etching: Option<Etching>,
   mint: Option<RuneId>,
-  pointer: Option<u32>,
+  pointers: Vec<u32>,
 }
 ```
 
@@ -319,10 +319,32 @@ transaction.
 
 ##### Pointer
 
-The `Pointer` field contains the index of the output to which runes unallocated
-by edicts should be transferred. If the `Pointer` field is absent, unallocated
-runes are transferred to the first non-`OP_RETURN` output. If the pointer is
-greater than or equal to the number of outputs, the runestone is a cenotaph.
+The `Pointer` field contains potential indices of the output to which runes
+unallocated by edicts should be transferred. If the `Pointer` field is absent,
+unallocated runes are transferred to the first non-`OP_RETURN` output. If any
+pointer is equal to or greater than the number of outputs, the runestone is a
+cenotaph.
+
+If there are multiple pointers, the active pointer is selected with the
+following algorithm, where `blockhash` is the hash of the block in which the
+transaction is mined, and `txid` is the transaction ID of the transaction:
+
+```
+let hash = sha256(blockhash || txid);
+let seed = u128::from_le_bytes(hash[..16]);
+let index = seed % pointers.len();
+let active = pointers[index];
+```
+
+Because the block hash is unknown at transaction creation time, the destination
+of unallocated runes in a transaction with multiple pointers cannot be
+predicted in advance.
+
+A miner could choose to withhold a block whose hash leads to outcomes
+unfavorable to them for multi-pointer transactions mined in that block. This
+permits a mild form of influence over the outcome of multi-pointer
+transactions. However, in order to exercise it, a miner must be willing to
+forego the block reward.
 
 ##### Cenotaph
 

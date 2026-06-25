@@ -42,7 +42,7 @@ impl Fetcher {
 
     let (user, password) = settings.bitcoin_credentials()?.get_user_pass()?;
     let auth = format!("{}:{}", user.unwrap(), password.unwrap());
-    let auth = format!("Basic {}", &base64_encode(auth.as_bytes()));
+    let auth = format!("Basic {}", base64_encode(auth.as_bytes()));
     Ok(Fetcher { client, url, auth })
   }
 
