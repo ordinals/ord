@@ -404,6 +404,17 @@ impl Wallet {
     )
   }
 
+  /// Returns the current chain height as an absolute `LockTime` for use as the
+  /// `nLockTime` of newly-created transactions. Setting `nLockTime` to the
+  /// current tip height is an anti-fee-sniping heuristic: it forces the
+  /// transaction to be mined no earlier than the next block, so a fee-sniping
+  /// miner cannot use it to replace a previously-confirmed transaction of ours
+  /// at a lower fee. See <https://bitcoinops.org/en/topics/fee-sniping/>.
+  pub(crate) fn lock_time(&self) -> Result<LockTime> {
+    let height = u32::try_from(self.bitcoin_client().get_block_count()?)?;
+    Ok(LockTime::from_height(height)?)
+  }
+
   pub(crate) fn check_maturity(&self, rune: Rune, commit: &Transaction) -> Result<Maturity> {
     Ok(
       if let Some(commit_tx) = self
@@ -905,7 +916,7 @@ impl Wallet {
 
     let unfunded_transaction = Transaction {
       version: Version(2),
-      lock_time: LockTime::ZERO,
+      lock_time: self.lock_time()?,
       input: Vec::new(),
       output: vec![TxOut {
         script_pubkey: destination.script_pubkey(),
@@ -967,6 +978,7 @@ impl Wallet {
         postage,
         self.chain().network(),
       )
+      .with_lock_time(self.lock_time()?)
       .build_transaction()?,
     )
   }
@@ -1061,6 +1073,7 @@ impl Wallet {
 
     let runestone;
     let postage = postage.unwrap_or(TARGET_POSTAGE);
+    let lock_time = self.lock_time()?;
 
     let unfunded_transaction = if let Some(destination) = destination {
       runestone = Runestone {
@@ -1074,7 +1087,7 @@ impl Wallet {
 
       Transaction {
         version: Version(2),
-        lock_time: LockTime::ZERO,
+        lock_time,
         input: inputs
           .into_iter()
           .map(|previous_output| TxIn {
@@ -1118,7 +1131,7 @@ impl Wallet {
 
       Transaction {
         version: Version(2),
-        lock_time: LockTime::ZERO,
+        lock_time,
         input: inputs
           .into_iter()
           .map(|previous_output| TxIn {
