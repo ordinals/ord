@@ -45,6 +45,7 @@ pub(crate) mod entry;
 pub mod event;
 mod fetcher;
 mod lot;
+pub(crate) mod migrations;
 mod reorg;
 mod rtx;
 mod updater;
@@ -284,6 +285,10 @@ impl Index {
             .unwrap_or(0);
 
           match schema_version.cmp(&SCHEMA_VERSION) {
+            cmp::Ordering::Less if migrations::upgradable(schema_version) => bail!(
+              "index at `{}` was built with an older version of ord, run `ord index upgrade` to upgrade it in place, without reindexing: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
+              path.display()
+            ),
             cmp::Ordering::Less => bail!(
               "index at `{}` appears to have been built with an older, incompatible version of ord, consider deleting and rebuilding the index: index schema {schema_version}, ord schema {SCHEMA_VERSION}",
               path.display()

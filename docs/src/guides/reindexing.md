@@ -8,6 +8,11 @@ database and restarting the indexing process with either `ord index update` or
 1. A new major release of ord, which changes the database scheme
 2. The database got corrupted somehow
 
+Some database schema changes can be applied to an existing index without
+reindexing, which is usually much faster than reindexing. If this is the case,
+`ord` will print an error message saying so when opening the index, and running
+`ord index upgrade` will upgrade the index in place.
+
 The database `ord` uses is called [redb](https://github.com/cberner/redb),
 so we give the index the default file name `index.redb`. By default we store this
 file in different locations depending on your operating system.
