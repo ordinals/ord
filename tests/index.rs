@@ -90,3 +90,16 @@ fn export_inscription_number_to_id_tsv() {
     &ord::Object::InscriptionId(inscription),
   );
 }
+
+#[test]
+fn export_with_addresses_requires_address_index() {
+  let core = mockcore::spawn();
+  let temp_dir = TempDir::new().unwrap();
+
+  CommandBuilder::new("index export --include-addresses --tsv foo.tsv")
+    .core(&core)
+    .temp_dir(Arc::new(temp_dir))
+    .expected_exit_code(1)
+    .expected_stderr("error: --include-addresses requires index built with --index-addresses\n")
+    .run_and_extract_stdout();
+}
