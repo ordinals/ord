@@ -120,7 +120,7 @@ mod tests {
   <dt>symbol</dt>
   <dd>@</dd>
   <dt>turbo</dt>
-  <dd>true</dd>
+  <dd class=turbo>true</dd>
   <dt>etching</dt>
   <dd><a class=collapse href=/tx/0{64}>0{64}</a></dd>
   <dt>parent</dt>
