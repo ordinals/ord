@@ -348,6 +348,8 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
 
   let RuneId { block, tx } = id;
 
+  let turbo_class = if turbo { " class=turbo" } else { "" };
+
   ord.assert_response_regex(
     format!("/rune/{rune}"),
     format!(
@@ -372,7 +374,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   <dt>symbol</dt>
   <dd>{symbol}</dd>
   <dt>turbo</dt>
-  <dd>{turbo}</dd>
+  <dd{turbo_class}>{turbo}</dd>
   <dt>etching</dt>
   <dd><a class=collapse href=/tx/{reveal}>{reveal}</a></dd>
   <dt>parent</dt>
