@@ -1,6 +1,21 @@
 Changelog
 =========
 
+[0.28.0](https://github.com/ordinals/ord/releases/tag/0.28.0) - 2026-08-02
+--------------------------------------------------------------------------
+
+### Added
+- Select active pointer seeded by blockhash and txid (#4541)
+- Add sat luck (#4540)
+- Use inscription image as `og:image` for `/inscription` (#4515)
+- Add /gallery API endpoint (#4508)
+
+### Misc
+- Add sat luck odds tooltip (#4542)
+- Fix clippy lints (#4539)
+- Don't underline ordinals in nav bar (#4509)
+- Update inscription field docs (#4506)
+
 [0.27.1](https://github.com/ordinals/ord/releases/tag/0.27.1) - 2026-03-10
 --------------------------------------------------------------------------
 
