@@ -633,3 +633,75 @@ fn seller_input_must_not_be_signed() {
   ))
   .run_and_extract_stdout();
 }
+
+#[test]
+fn inputs_may_not_specify_sighash_type() {
+  #[track_caller]
+  fn case(
+    core: &mockcore::Handle,
+    ord: &TestServer,
+    create: &Create,
+    input: usize,
+    sighash_type: TapSighashType,
+  ) {
+    let mut psbt = Psbt::deserialize(&base64_decode(&create.psbt).unwrap()).unwrap();
+
+    psbt.inputs[input].sighash_type = Some(sighash_type.into());
+
+    CommandBuilder::new(format!(
+      "wallet offer accept --inscription {} --amount 1btc --psbt {} --dry-run",
+      create.inscription,
+      base64_encode(&psbt.serialize()),
+    ))
+    .core(core)
+    .ord(ord)
+    .expected_exit_code(1)
+    .expected_stderr(format!(
+      "error: input `{}` specifies sighash type `{sighash_type}`: inputs may not specify any \
+       sighash type\n",
+      psbt.unsigned_tx.input[input].previous_output,
+    ))
+    .run_and_extract_stdout();
+  }
+
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let (inscription, txid) = inscribe_with_options(&core, &ord, Some(9000), 0);
+
+  let inscription_address = Address::from_script(
+    &core.tx_by_id(txid).output[0].script_pubkey,
+    Network::Bitcoin,
+  )
+  .unwrap();
+
+  core
+    .state()
+    .remove_wallet_address(inscription_address.clone());
+
+  let create = CommandBuilder::new(format!(
+    "wallet offer create --inscription {inscription} --amount 1btc --fee-rate 0"
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Create>();
+
+  core.state().clear_wallet_addresses();
+
+  core.state().add_wallet_address(inscription_address);
+
+  case(
+    &core,
+    &ord,
+    &create,
+    0,
+    TapSighashType::NonePlusAnyoneCanPay,
+  );
+
+  case(&core, &ord, &create, 0, TapSighashType::Default);
+
+  case(&core, &ord, &create, 1, TapSighashType::All);
+}

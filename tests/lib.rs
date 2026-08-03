@@ -3,7 +3,8 @@
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bitcoin::{
-    Amount, Network, OutPoint, Psbt, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
+    Amount, Network, OutPoint, Psbt, ScriptBuf, Sequence, TapSighashType, Transaction, TxIn, TxOut,
+    Txid, Witness,
     address::{Address, NetworkUnchecked},
     blockdata::locktime::absolute::LockTime,
     opcodes, script,

@@ -29,6 +29,16 @@ impl Accept {
 
     let psbt = Psbt::deserialize(&psbt).context("failed to deserialize PSBT")?;
 
+    for (txin, input) in psbt.unsigned_tx.input.iter().zip(&psbt.inputs) {
+      if let Some(sighash_type) = input.sighash_type {
+        bail!(
+          "input `{}` specifies sighash type `{sighash_type}`: inputs may not specify any sighash \
+           type",
+          txin.previous_output,
+        );
+      }
+    }
+
     let mut outgoing = BTreeMap::new();
 
     for (index, input) in psbt.unsigned_tx.input.iter().enumerate() {
