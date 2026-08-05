@@ -3,11 +3,11 @@
 
 use {
   bitcoin::{
-    BlockHash, Network, OutPoint, ScriptBuf, Transaction, Txid,
+    BlockHash, Network, OutPoint, ScriptBuf, Transaction,
     block::Header,
     consensus::{Decodable, Encodable},
     constants::{DIFFCHANGE_INTERVAL, SUBSIDY_HALVING_INTERVAL},
-    hashes::{Hash, HashEngine, sha256},
+    hashes::Hash,
     opcodes,
     script::{self, Instruction},
   },

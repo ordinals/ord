@@ -1,7 +1,6 @@
 use super::*;
 
 pub(super) struct RuneUpdater<'a, 'tx, 'client> {
-  pub(super) block_hash: BlockHash,
   pub(super) block_time: u32,
   pub(super) burned: HashMap<RuneId, Lot>,
   pub(super) client: &'client Client,
@@ -137,7 +136,7 @@ impl RuneUpdater<'_, '_, '_> {
     } else {
       let pointer = artifact
         .map(|artifact| match artifact {
-          Artifact::Runestone(runestone) => runestone.pointer(self.block_hash, txid),
+          Artifact::Runestone(runestone) => runestone.pointer,
           Artifact::Cenotaph(_) => unreachable!(),
         })
         .unwrap_or_default();

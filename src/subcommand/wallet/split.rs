@@ -686,7 +686,9 @@ mod tests {
                 amount: 1000,
                 output: 1
               }],
-              ..default()
+              etching: None,
+              mint: None,
+              pointer: None,
             }
             .encipher()
           },
@@ -752,7 +754,9 @@ mod tests {
                 amount: 1000,
                 output: 2
               }],
-              ..default()
+              etching: None,
+              mint: None,
+              pointer: None,
             }
             .encipher()
           },
@@ -829,7 +833,9 @@ mod tests {
                 amount: 1000,
                 output: 2
               }],
-              ..default()
+              etching: None,
+              mint: None,
+              pointer: None,
             }
             .encipher()
           },
@@ -897,7 +903,9 @@ mod tests {
                 amount: 1000,
                 output: 2
               }],
-              ..default()
+              etching: None,
+              mint: None,
+              pointer: None,
             }
             .encipher()
           },
@@ -969,7 +977,9 @@ mod tests {
                 amount: 1000,
                 output: 1
               }],
-              ..default()
+              etching: None,
+              mint: None,
+              pointer: None,
             }
             .encipher()
           },
@@ -1038,7 +1048,9 @@ mod tests {
                 amount: 1000,
                 output: 1
               }],
-              ..default()
+              etching: None,
+              mint: None,
+              pointer: None,
             }
             .encipher()
           },
@@ -1114,7 +1126,9 @@ mod tests {
                 amount: 2000,
                 output: 1
               }],
-              ..default()
+              etching: None,
+              mint: None,
+              pointer: None,
             }
             .encipher()
           },
@@ -1192,7 +1206,9 @@ mod tests {
                   output: 2
                 }
               ],
-              ..default()
+              etching: None,
+              mint: None,
+              pointer: None,
             }
             .encipher()
           },
@@ -1291,7 +1307,9 @@ mod tests {
                   output: 1
                 },
               ],
-              ..default()
+              etching: None,
+              mint: None,
+              pointer: None,
             }
             .encipher()
           },
@@ -1387,7 +1405,9 @@ mod tests {
                     output: i + 1,
                   })
                   .collect(),
-                ..default()
+                etching: None,
+                mint: None,
+                pointer: None,
               }
               .encipher(),
             }

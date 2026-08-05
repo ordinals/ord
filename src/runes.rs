@@ -796,7 +796,7 @@ mod tests {
           rune: Some(Rune(RUNE)),
           ..default()
         }),
-        pointers: vec![10],
+        pointer: Some(10),
         ..default()
       },
       1,
@@ -845,7 +845,7 @@ mod tests {
           spacers: Some(1),
           turbo: true,
         }),
-        pointers: vec![10],
+        pointer: Some(10),
         ..default()
       },
       1,
@@ -892,7 +892,7 @@ mod tests {
             output: 0,
           }],
           etching: Some(Etching::default()),
-          pointers: vec![10],
+          pointer: Some(10),
           ..default()
         }
         .encipher(),
@@ -954,7 +954,7 @@ mod tests {
       inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          pointers: vec![10],
+          pointer: Some(10),
           ..default()
         }
         .encipher(),
@@ -1186,7 +1186,7 @@ mod tests {
       outputs: 2,
       op_return: Some(
         Runestone {
-          pointers: vec![1],
+          pointer: Some(1),
           ..default()
         }
         .encipher(),
@@ -1215,71 +1215,6 @@ mod tests {
         OutPoint {
           txid: txid1,
           vout: 1,
-        },
-        vec![(id, u128::MAX)],
-      )],
-    );
-  }
-
-  #[test]
-  fn unallocated_runes_are_assigned_to_pointer_selected_by_block_hash() {
-    let context = Context::builder().arg("--index-runes").build();
-
-    let (txid0, id) = context.etch(
-      Runestone {
-        edicts: vec![Edict {
-          id: RuneId::default(),
-          amount: u128::MAX,
-          output: 0,
-        }],
-        etching: Some(Etching {
-          rune: Some(Rune(RUNE)),
-          premine: Some(u128::MAX),
-          ..default()
-        }),
-        ..default()
-      },
-      1,
-    );
-
-    let runestone = Runestone {
-      pointers: vec![1, 2],
-      ..default()
-    };
-
-    let txid1 = context.core.broadcast_tx(TransactionTemplate {
-      inputs: &[(id.block.try_into().unwrap(), 1, 0, Witness::new())],
-      outputs: 3,
-      fee: 2,
-      op_return: Some(runestone.encipher()),
-      ..default()
-    });
-
-    let blocks = context.mine_blocks(1);
-
-    let pointer = runestone
-      .pointer(blocks[0].header.block_hash(), txid1)
-      .unwrap();
-
-    context.assert_runes(
-      [(
-        id,
-        RuneEntry {
-          block: id.block,
-          etching: txid0,
-          spaced_rune: SpacedRune {
-            rune: Rune(RUNE),
-            spacers: 0,
-          },
-          premine: u128::MAX,
-          timestamp: id.block,
-          ..default()
-        },
-      )],
-      [(
-        OutPoint {
-          txid: txid1,
-          vout: pointer,
         },
         vec![(id, u128::MAX)],
       )],
@@ -1336,7 +1271,7 @@ mod tests {
       outputs: 2,
       op_return: Some(
         Runestone {
-          pointers: vec![2],
+          pointer: Some(2),
           ..default()
         }
         .encipher(),
@@ -4225,7 +4160,7 @@ mod tests {
       inputs: &[(5, 0, 0, Witness::new())],
       op_return: Some(
         Runestone {
-          pointers: vec![10],
+          pointer: Some(10),
           mint: Some(id),
           edicts: vec![Edict {
             id,

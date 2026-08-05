@@ -476,11 +476,7 @@ impl Plan {
           turbo: etching.turbo,
         }),
         mint: None,
-        pointers: if premine > 0 {
-          vec![(reveal_outputs.len() - 1).try_into().unwrap()]
-        } else {
-          Vec::new()
-        },
+        pointer: (premine > 0).then_some((reveal_outputs.len() - 1).try_into().unwrap()),
       };
 
       let script_pubkey = inner.encipher();
