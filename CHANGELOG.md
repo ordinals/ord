@@ -1,20 +1,29 @@
 Changelog
 =========
 
+[0.29.0](https://github.com/ordinals/ord/releases/tag/0.28.0) - 2026-08-05
+--------------------------------------------------------------------------
+
+### Changed
+- Revert "Select active pointer seeded by blockhash and txid ([#4541](https://github.com/ordinals/ord/pull/4541) by [casey](https://github.com/casey))" ([#4554](https://github.com/ordinals/ord/pull/4554) by [casey](https://github.com/casey))
+
+### Misc
+- Forbid offers from specifying input sighashes ([#4553](https://github.com/ordinals/ord/pull/4553) by [casey](https://github.com/casey))
+
 [0.28.0](https://github.com/ordinals/ord/releases/tag/0.28.0) - 2026-08-02
 --------------------------------------------------------------------------
 
 ### Added
-- Select active pointer seeded by blockhash and txid (#4541)
-- Add sat luck (#4540)
-- Use inscription image as `og:image` for `/inscription` (#4515)
-- Add /gallery API endpoint (#4508)
+- Select active pointer seeded by blockhash and txid ([#4541](https://github.com/ordinals/ord/pull/4541) by [casey](https://github.com/casey))
+- Add sat luck ([#4540](https://github.com/ordinals/ord/pull/4540) by [casey](https://github.com/casey))
+- Use inscription image as `og:image` for `/inscription` ([#4515](https://github.com/ordinals/ord/pull/4515) by [casey](https://github.com/casey))
+- Add /gallery API endpoint ([#4508](https://github.com/ordinals/ord/pull/4508) by [twosatsmaxi](https://github.com/twosatsmaxi))
 
 ### Misc
-- Add sat luck odds tooltip (#4542)
-- Fix clippy lints (#4539)
-- Don't underline ordinals in nav bar (#4509)
-- Update inscription field docs (#4506)
+- Add sat luck odds tooltip ([#4542](https://github.com/ordinals/ord/pull/4542) by [casey](https://github.com/casey))
+- Fix clippy lints ([#4539](https://github.com/ordinals/ord/pull/4539) by [casey](https://github.com/casey))
+- Don't underline ordinals in nav bar ([#4509](https://github.com/ordinals/ord/pull/4509) by [casey](https://github.com/casey))
+- Update inscription field docs ([#4506](https://github.com/ordinals/ord/pull/4506) by [casey](https://github.com/casey))
 
 [0.27.1](https://github.com/ordinals/ord/releases/tag/0.27.1) - 2026-03-10
 --------------------------------------------------------------------------
