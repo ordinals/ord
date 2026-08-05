@@ -1720,7 +1720,7 @@ i               # separator
   edicts: Vec&lt;Edict&gt;,
   etching: Option&lt;Etching&gt;,
   mint: Option&lt;RuneId&gt;,
-  pointers: Vec&lt;u32&gt;,
+  pointer: Option&lt;u32&gt;,
 }
 <span class="boring">}</span></code></pre></pre>
 <p>符文是通过蚀刻创建的：</p>
@@ -1853,7 +1853,7 @@ i               # separator
   edicts: Vec&lt;Edict&gt;,
   etching: Option&lt;Etching&gt;,
   mint: Option&lt;RuneId&gt;,
-  pointers: Vec&lt;u32&gt;,
+  pointer: Option&lt;u32&gt;,
 }
 <span class="boring">}</span></code></pre></pre>
 <p>使用以下标签从未签名的消息中解析：</p>
@@ -1915,15 +1915,7 @@ i               # separator
 <h5 id="铸造-1"><a class="header" href="#铸造-1">铸造</a></h5>
 <p>铸造<code>Mint</code>字段包含此交易中将要铸造的符文的符文ID。</p>
 <h5 id="指针-2"><a class="header" href="#指针-2">指针</a></h5>
-<p>The <code>Pointer</code> field contains potential indices of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If any pointer is equal to or greater than the number of outputs, the runestone is a cenotaph.</p>
-<p>If there are multiple pointers, the active pointer is selected with the following algorithm, where <code>blockhash</code> is the hash of the block in which the transaction is mined, and <code>txid</code> is the transaction ID of the transaction:</p>
-<pre><code>let hash = sha256(blockhash || txid);
-let seed = u128::from_le_bytes(hash[..16]);
-let index = seed % pointers.len();
-let active = pointers[index];
-</code></pre>
-<p>Because the block hash is unknown at transaction creation time, the destination of unallocated runes in a transaction with multiple pointers cannot be predicted in advance.</p>
-<p>A miner could choose to withhold a block whose hash leads to outcomes unfavorable to them for multi-pointer transactions mined in that block. This permits a mild form of influence over the outcome of multi-pointer transactions. However, in order to exercise it, a miner must be willing to forego the block reward.</p>
+<p>The <code>Pointer</code> field contains the index of the output to which runes unallocated by edicts should be transferred. If the <code>Pointer</code> field is absent, unallocated runes are transferred to the first non-<code>OP_RETURN</code> output. If the pointer is greater than or equal to the number of outputs, the runestone is a cenotaph.</p>
 <h5 id="纪念碑"><a class="header" href="#纪念碑">纪念碑</a></h5>
 <p>纪念碑<code>Cenotaph</code> 字段无法识别。</p>
 <h5 id="可分性-1"><a class="header" href="#可分性-1">可分性</a></h5>
