@@ -3,7 +3,8 @@
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
   bitcoin::{
-    Amount, Network, OutPoint, Psbt, ScriptBuf, Sequence, Transaction, TxIn, TxOut, Txid, Witness,
+    Amount, Network, OutPoint, Psbt, ScriptBuf, Sequence, TapSighashType, Transaction, TxIn, TxOut,
+    Txid, Witness,
     address::{Address, NetworkUnchecked},
     blockdata::locktime::absolute::LockTime,
     opcodes, script,
@@ -348,6 +349,8 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
 
   let RuneId { block, tx } = id;
 
+  let turbo_class = if turbo { " class=turbo" } else { "" };
+
   ord.assert_response_regex(
     format!("/rune/{rune}"),
     format!(
@@ -372,7 +375,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   <dt>symbol</dt>
   <dd>{symbol}</dd>
   <dt>turbo</dt>
-  <dd>{turbo}</dd>
+  <dd{turbo_class}>{turbo}</dd>
   <dt>etching</dt>
   <dd><a class=collapse href=/tx/{reveal}>{reveal}</a></dd>
   <dt>parent</dt>

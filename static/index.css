@@ -296,6 +296,10 @@ a.mythic {
   text-align: left;
 }
 
+.turbo {
+  text-shadow: 0 0 10px white;
+}
+
 .icon {
   height: 1rem;
   width: 1rem;

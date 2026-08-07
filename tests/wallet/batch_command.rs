@@ -1692,7 +1692,7 @@ fn batch_can_etch_turbo_rune() {
   ord.assert_response_regex(
     "/rune/AAAAAAAAAAAAA",
     format!(
-      r".*\s*<dt>turbo</dt>\s*<dd>true</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
+      r".*\s*<dt>turbo</dt>\s*<dd class=turbo>true</dd>.*<dt>parent</dt>\s*<dd><a class=collapse href=/inscription/{parent}>{parent}</a></dd>.*"
     ),
   );
 }
