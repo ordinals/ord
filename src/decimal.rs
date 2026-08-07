@@ -76,7 +76,11 @@ impl FromStr for Decimal {
       };
 
       Ok(Self {
-        value: integer * 10u128.pow(u32::from(scale)) + decimal,
+        value: integer
+          .checked_mul(10u128.pow(u32::from(scale)))
+          .context("integer overflows maximum value")?
+          .checked_add(decimal)
+          .context("decimal overflows maximum value")?,
         scale,
       })
     } else {
@@ -95,33 +99,34 @@ mod tests {
   #[test]
   fn from_str() {
     #[track_caller]
-    fn case(s: &str, value: u128, scale: u8) {
+    fn ok(s: &str, value: u128, scale: u8) {
       assert_eq!(s.parse::<Decimal>().unwrap(), Decimal { value, scale });
     }
 
-    assert_eq!(
-      ".".parse::<Decimal>().unwrap_err().to_string(),
-      "empty decimal",
+    #[track_caller]
+    fn err(s: &str, expected: &str) {
+      assert_eq!(s.parse::<Decimal>().unwrap_err().to_string(), expected);
+    }
+
+    err(".", "empty decimal");
+
+    err("a.b", "invalid digit found in string");
+
+    err(" 0.1 ", "invalid digit found in string");
+
+    err(
+      &format!("{}.1", u128::MAX),
+      "integer overflows maximum value",
     );
 
-    assert_eq!(
-      "a.b".parse::<Decimal>().unwrap_err().to_string(),
-      "invalid digit found in string",
-    );
-
-    assert_eq!(
-      " 0.1 ".parse::<Decimal>().unwrap_err().to_string(),
-      "invalid digit found in string",
-    );
-
-    case("0", 0, 0);
-    case("0.00000", 0, 0);
-    case("1.0", 1, 0);
-    case("1.1", 11, 1);
-    case("1.11", 111, 2);
-    case("1.", 1, 0);
-    case(".1", 1, 1);
-    case("1.10", 11, 1);
+    ok("0", 0, 0);
+    ok("0.00000", 0, 0);
+    ok("1.0", 1, 0);
+    ok("1.1", 11, 1);
+    ok("1.11", 111, 2);
+    ok("1.", 1, 0);
+    ok(".1", 1, 1);
+    ok("1.10", 11, 1);
   }
 
   #[test]
