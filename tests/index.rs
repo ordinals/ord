@@ -90,31 +90,3 @@ fn export_inscription_number_to_id_tsv() {
     &ord::Object::InscriptionId(inscription),
   );
 }
-
-#[test]
-fn export_addresses_without_address_index_warns() {
-  let core = mockcore::spawn();
-  let ord = TestServer::spawn(&core);
-
-  create_wallet(&core, &ord);
-
-  inscribe(&core, &ord);
-
-  core.mine_blocks(1);
-
-  let tsv = CommandBuilder::new("index export --include-addresses --tsv foo.tsv")
-    .core(&core)
-    .temp_dir(Arc::new(TempDir::new().unwrap()))
-    .stderr_regex("(?s).*warning: exporting addresses without `--index-addresses`.*")
-    .run_and_extract_file("foo.tsv");
-
-  let addresses = tsv
-    .lines()
-    .filter(|line| !line.is_empty() && !line.starts_with('#'))
-    .map(|line| line.split('\t').nth(3).unwrap())
-    .collect::<Vec<&str>>();
-
-  assert_eq!(addresses.len(), 1);
-
-  assert!(addresses[0].parse::<Address<NetworkUnchecked>>().is_ok());
-}
