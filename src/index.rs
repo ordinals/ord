@@ -707,6 +707,13 @@ impl Index {
   }
 
   pub fn export(&self, filename: &String, include_addresses: bool) -> Result {
+    if include_addresses && !self.index_addresses {
+      eprintln!(
+        "warning: exporting addresses without `--index-addresses` requires fetching every \
+         transaction over RPC, which is slow"
+      );
+    }
+
     let mut writer = BufWriter::new(File::create(filename)?);
     let rtx = self.database.begin_read()?;
 
