@@ -2992,14 +2992,11 @@ inscriptions:
 
   let request = ord.request("/gallery/100/2");
   assert_eq!(request.status(), 404);
-  assert_eq!(
-    request.text().unwrap(),
-    format!("inscription 100 not found"),
-  );
+  assert_eq!(request.text().unwrap(), "inscription 100 not found");
 
   let request = ord.request("/gallery/hello/2");
   assert_eq!(request.status(), 404);
-  assert_eq!(request.text().unwrap(), format!("sat index required"));
+  assert_eq!(request.text().unwrap(), "sat index required");
 }
 
 #[test]

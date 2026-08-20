@@ -675,8 +675,8 @@ impl Updater<'_> {
         .entry(OutPoint::null())
         .or_insert(UtxoEntryBuf::empty(self.index));
 
-      for chunk in lost_sat_ranges.chunks_exact(11) {
-        let (start, end) = SatRange::load(chunk.try_into().unwrap());
+      for chunk in lost_sat_ranges.as_chunks::<11>().0 {
+        let (start, end) = SatRange::load(*chunk);
         if !Sat(start).common() {
           sat_to_satpoint.insert(
             &start,
@@ -751,7 +751,7 @@ impl Updater<'_> {
     let mut pending_input_sat_range = None;
     let mut input_sat_ranges_iter = input_sat_ranges
       .iter()
-      .flat_map(|slice| slice.chunks_exact(11));
+      .flat_map(|slice| slice.as_chunks::<11>().0);
 
     // Preallocate our temporary array, sized to hold the combined
     // sat ranges from our inputs.  We'll never need more than that
@@ -773,11 +773,9 @@ impl Updater<'_> {
       while remaining > 0 {
         let range = pending_input_sat_range.take().unwrap_or_else(|| {
           SatRange::load(
-            input_sat_ranges_iter
+            *input_sat_ranges_iter
               .next()
-              .expect("insufficient inputs for transaction outputs")
-              .try_into()
-              .unwrap(),
+              .expect("insufficient inputs for transaction outputs"),
           )
         });
 

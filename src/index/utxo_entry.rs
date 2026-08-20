@@ -137,8 +137,8 @@ impl<'a> ParsedUtxoEntry<'a> {
       Sats::Value(value) => value,
       Sats::Ranges(ranges) => {
         let mut value = 0;
-        for chunk in ranges.chunks_exact(11) {
-          let range = SatRange::load(chunk.try_into().unwrap());
+        for chunk in ranges.as_chunks::<11>().0 {
+          let range = SatRange::load(*chunk);
           value += range.1 - range.0;
         }
         value

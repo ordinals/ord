@@ -355,9 +355,9 @@ impl InscriptionUpdater<'_, '_> {
     let mut offset = 0;
     for chunk in input_sat_ranges
       .iter()
-      .flat_map(|slice| slice.chunks_exact(11))
+      .flat_map(|slice| slice.as_chunks::<11>().0)
     {
-      let (start, end) = SatRange::load(chunk.try_into().unwrap());
+      let (start, end) = SatRange::load(*chunk);
       let size = end - start;
       if offset + size > input_offset {
         let n = start + input_offset - offset;
