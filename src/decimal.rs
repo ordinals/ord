@@ -72,12 +72,19 @@ impl FromStr for Decimal {
           / 10u128
             .checked_pow(u32::try_from(trailing_zeros).unwrap())
             .context("excessive trailing zeros")?;
-        (decimal, u8::try_from(significant_digits).unwrap())
+        (
+          decimal,
+          u8::try_from(significant_digits).context("excessive precision")?,
+        )
       };
 
       Ok(Self {
         value: integer
-          .checked_mul(10u128.pow(u32::from(scale)))
+          .checked_mul(
+            10u128
+              .checked_pow(u32::from(scale))
+              .context("excessive precision")?,
+          )
           .context("integer overflows maximum value")?
           .checked_add(decimal)
           .context("decimal overflows maximum value")?,
@@ -118,6 +125,13 @@ mod tests {
       &format!("{}.1", u128::MAX),
       "integer overflows maximum value",
     );
+
+    err(
+      "0.000000000000000000000000000000000000001",
+      "excessive precision",
+    );
+
+    err(&format!("0.{}1", "0".repeat(255)), "excessive precision");
 
     ok("0", 0, 0);
     ok("0.00000", 0, 0);
