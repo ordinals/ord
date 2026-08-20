@@ -290,6 +290,19 @@ impl Server {
         .route("/r/blockheight", get(r::blockheight_string))
         .route("/r/blockinfo/{query}", get(r::blockinfo))
         .route("/r/blocktime", get(r::blocktime_string))
+        .route("/r/gallery/{inscription_id}", get(r::gallery))
+        .route(
+          "/r/gallery/{inscription_id}/{page}",
+          get(r::gallery_paginated),
+        )
+        .route(
+          "/r/gallery/{inscription_id}/inscriptions",
+          get(r::gallery_inscriptions),
+        )
+        .route(
+          "/r/gallery/{inscription_id}/inscriptions/{page}",
+          get(r::gallery_inscriptions_paginated),
+        )
         .route(
           "/r/children/{inscription_id}/inscriptions",
           get(r::children_inscriptions),

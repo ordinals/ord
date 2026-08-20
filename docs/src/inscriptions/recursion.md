@@ -667,6 +667,129 @@ curl -s \
 <details>
   <summary>
     <code>GET</code>
+    <code><b>/r/gallery/&lt;INSCRIPTION_ID&gt;</b></code>
+  </summary>
+
+### Description
+
+The first 100 gallery item inscription ids.
+
+### Example
+
+```bash
+curl -s \
+  http://0.0.0.0:80/r/gallery/INSCRIPTION_ID
+```
+
+```json
+{
+  "ids": [
+    "a1b2c3...i0",
+    "d4e5f6...i0"
+  ],
+  "more": false,
+  "page": 0
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/gallery/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
+  </summary>
+
+### Description
+
+The set of 100 gallery item inscription ids on `<PAGE>`.
+
+### Example
+
+```bash
+curl -s \
+  http://0.0.0.0:80/r/gallery/INSCRIPTION_ID/1
+```
+
+```json
+{
+  "ids": [],
+  "more": false,
+  "page": 1
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/gallery/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
+  </summary>
+
+### Description
+
+Details of the first 100 gallery item inscriptions.
+
+### Example
+
+```bash
+curl -s \
+  http://0.0.0.0:80/r/gallery/INSCRIPTION_ID/inscriptions
+```
+
+```json
+{
+  "gallery": [
+    {
+      "charms": [],
+      "fee": 417,
+      "height": 861224,
+      "id": "a1b2c3...i0",
+      "number": 75744297,
+      "output": "a1b2c3...:0",
+      "sat": null,
+      "satpoint": "a1b2c3...:0:0",
+      "timestamp": 1726282054,
+      "attributes": {
+        "title": "Item Title",
+        "traits": {}
+      }
+    }
+  ],
+  "more": false,
+  "page": 0
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/gallery/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
+  </summary>
+
+### Description
+
+Details of the set of 100 gallery item inscriptions on `<PAGE>`.
+
+### Example
+
+```bash
+curl -s \
+  http://0.0.0.0:80/r/gallery/INSCRIPTION_ID/inscriptions/1
+```
+
+```json
+{
+  "gallery": [],
+  "more": false,
+  "page": 1
+}
+```
+</details>
+
+<details>
+  <summary>
+    <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
 
