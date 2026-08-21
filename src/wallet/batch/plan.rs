@@ -46,6 +46,50 @@ impl Plan {
     utxos: &BTreeMap<OutPoint, TxOut>,
     wallet: &Wallet,
   ) -> SubcommandResult {
+    let commit_change = [wallet.get_change_address()?, wallet.get_change_address()?];
+    let reveal_change = wallet.get_change_address()?;
+
+    let change_addresses = vec![
+      commit_change[0].clone(),
+      commit_change[1].clone(),
+      reveal_change.clone(),
+    ];
+
+    let txs = self.create_batch_transactions(
+      wallet.inscriptions().clone(),
+      wallet.chain(),
+      locked_utxos.clone(),
+      runic_utxos,
+      utxos.clone(),
+      commit_change,
+      reveal_change,
+    );
+
+    match &txs {
+      Ok(txs) => {
+        let used_scripts: std::collections::HashSet<_> = txs
+          .commit_tx
+          .output
+          .iter()
+          .chain(txs.reveal_tx.output.iter())
+          .map(|o| &o.script_pubkey)
+          .collect();
+
+        let unused_change_addresses: Vec<_> = change_addresses
+          .iter()
+          .filter(|addr| !used_scripts.contains(&addr.script_pubkey()))
+          .cloned()
+          .collect();
+
+        if !unused_change_addresses.is_empty() {
+          wallet.save_unused_change_addresses(&unused_change_addresses)?;
+        }
+      }
+      Err(_) => {
+        wallet.save_unused_change_addresses(&change_addresses)?;
+      }
+    }
+
     let Transactions {
       commit_tx,
       commit_vout,
@@ -53,15 +97,7 @@ impl Plan {
       recovery_key_pair,
       total_fees,
       rune,
-    } = self.create_batch_transactions(
-      wallet.inscriptions().clone(),
-      wallet.chain(),
-      locked_utxos.clone(),
-      runic_utxos,
-      utxos.clone(),
-      [wallet.get_change_address()?, wallet.get_change_address()?],
-      wallet.get_change_address()?,
-    )?;
+    } = txs?;
 
     if self.dry_run {
       let commit_psbt = wallet
