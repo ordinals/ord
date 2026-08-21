@@ -104,6 +104,7 @@ fn runic_utxos_are_deducted_from_cardinal() {
       etching: Some(batch::Etching {
         divisibility: 0,
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         rune: SpacedRune { rune, spacers: 1 },
         supply: "1000".parse().unwrap(),
         symbol: '¢',
@@ -216,6 +217,7 @@ fn runic_utxos_are_displayed_with_decimal_amount() {
       etching: Some(batch::Etching {
         divisibility: 3,
         premine: "1.111".parse().unwrap(),
+        premine_postage: None,
         rune: SpacedRune { rune, spacers: 1 },
         supply: "2.222".parse().unwrap(),
         symbol: '¢',

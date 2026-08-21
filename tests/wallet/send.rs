@@ -1065,6 +1065,7 @@ fn sending_rune_with_divisibility_works() {
         divisibility: 1,
         rune: SpacedRune { rune, spacers: 0 },
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         supply: "1000".parse().unwrap(),
         symbol: '¢',
         terms: None,

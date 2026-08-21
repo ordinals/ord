@@ -187,6 +187,7 @@ fn etch(core: &mockcore::Handle, ord: &TestServer, rune: Rune) -> Etched {
         divisibility: 0,
         terms: None,
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         rune: SpacedRune { rune, spacers: 0 },
         symbol: '¢',
         turbo: false,
@@ -245,6 +246,7 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
   let batch::Etching {
     divisibility,
     premine,
+    premine_postage: _,
     rune,
     supply,
     symbol,
