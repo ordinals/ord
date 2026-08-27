@@ -23,6 +23,11 @@ pub struct Options {
   pub(crate) bitcoin_rpc_username: Option<String>,
   #[arg(long, help = "Max <N> requests in flight. [default: 12]")]
   pub(crate) bitcoin_rpc_limit: Option<u32>,
+  #[arg(
+    long,
+    help = "Number of Bitcoin Core RPC connections to pool for concurrent API requests. [default: 12]"
+  )]
+  pub(crate) bitcoin_rpc_pool_size: Option<usize>,
   #[arg(long = "chain", value_enum, help = "Use <CHAIN>. [default: mainnet]")]
   pub(crate) chain_argument: Option<Chain>,
   #[arg(
