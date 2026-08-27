@@ -83,6 +83,11 @@ pub struct Options {
     help = "Require basic HTTP authentication with <SERVER_USERNAME>. Credentials are sent in cleartext. Consider using authentication in conjunction with HTTPS."
   )]
   pub(crate) server_username: Option<String>,
+  #[arg(
+    long,
+    help = "Skip confirmations lookup on /output endpoint. Reduces Bitcoin Core RPC calls for faster API responses."
+  )]
+  pub(crate) disable_output_confirmations: bool,
   #[arg(long, short, help = "Use regtest. Equivalent to `--chain regtest`.")]
   pub(crate) regtest: bool,
   #[arg(long, short, help = "Use signet. Equivalent to `--chain signet`.")]
