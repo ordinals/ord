@@ -97,7 +97,7 @@ Runestones are deciphered from transactions with the following steps:
 
 2. Concatenate all following data pushes into a payload buffer.
 
-3. Decode a sequence 128-bit [LEB128](https://en.wikipedia.org/wiki/LEB128)
+3. Decode a sequence of 128-bit [LEB128](https://en.wikipedia.org/wiki/LEB128)
    integers from the payload buffer.
 
 4. Parse the sequence of integers into an untyped message.
@@ -109,7 +109,7 @@ Deciphering may produce a malformed runestone, termed a
 
 #### Locating the Runestone Output
 
-Outputs are searched for the first script pubkey that beings with `OP_RETURN
+Outputs are searched for the first script pubkey that begins with `OP_RETURN
 OP_13`. If deciphering fails, later matching outputs are not considered.
 
 #### Assembling the Payload Buffer

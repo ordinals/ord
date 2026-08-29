@@ -5,7 +5,7 @@ Sometimes the `ord` database must be reindexed, which means deleting the
 database and restarting the indexing process with either `ord index update` or
 `ord server`. Reasons to reindex are:
 
-1. A new major release of ord, which changes the database scheme
+1. A new major release of ord, which changes the database schema
 2. The database got corrupted somehow
 
 The database `ord` uses is called [redb](https://github.com/cberner/redb),

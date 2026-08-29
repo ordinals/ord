@@ -74,7 +74,7 @@ Practice hypothesis-driven debugging
 ------------------------------------
 
 Formulate a hypothesis as to what is causing the problem. Figure out how to
-test that hypothesis. Perform that tests. If it works, great, you fixed the
+test that hypothesis. Perform that test. If it works, great, you fixed the
 issue or now you know how to fix the issue. If not, repeat with a new
 hypothesis.
 

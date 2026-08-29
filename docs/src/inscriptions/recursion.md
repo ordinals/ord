@@ -195,13 +195,10 @@ curl -s \
     350,
     1063
   ],
-  ],
-  "height": 840000,
   "height": 840000,
   "max_fee": 799987800,
   "max_fee_rate": 3604819,
   "max_tx_size": 166989,
-  "median_fee": 34800,
   "median_fee": 34800,
   "median_time": 1713570208,
   "merkle_root": "031b417c3a1828ddf3d6527fc210daafcc9218e81f98257f88d4d43bd7a5894f",
@@ -618,7 +615,7 @@ Information about an inscription.
 
 ```bash
 curl -s \
-  http://0.0.0.0:80/r/inscriptions/13130e4b299ed361f2a734f6433844ef0f0211cd504e0ca8f4d4ab20f51b8127i0
+  http://0.0.0.0:80/r/inscription/13130e4b299ed361f2a734f6433844ef0f0211cd504e0ca8f4d4ab20f51b8127i0
 ```
 
 ```json

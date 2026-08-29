@@ -4,7 +4,7 @@ URIs
 *This document is a draft. It should be considered provisional and subject to
 change at any time. The `ord:` schema has not been registered with the IANA.*
 
-Inscriptions content can be addressed with inscription URIs using the `ord:`
+Inscription content can be addressed with inscription URIs using the `ord:`
 schema.
 
 Inscription URIs consist of `ord:` followed by a target inscription ID. `ord:`

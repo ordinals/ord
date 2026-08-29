@@ -10,14 +10,14 @@ Slots
 Each satscard has ten slots containing private keys with corresponding bitcoin
 addresses.
 
-Initially, all slots are sealed and the private keys are stored only the
+Initially, all slots are sealed and the private keys are stored only on the
 satscard.
 
 Slots can be unsealed, which allows the corresponding private key to be
 extracted.
 
 Unsealing is permanent. If a satscard is sealed, you can have some confidence
-that private key is not known to anyone. That taking physical ownership of a
+that private key is not known to anyone, and that taking physical ownership of a
 satscard makes you the sole owner of assets in any sealed slots.
 
 Lifespan
