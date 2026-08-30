@@ -72,7 +72,7 @@ fn created_offer_is_correct() {
     psbt.unsigned_tx,
     Transaction {
       version: Version(2),
-      lock_time: LockTime::ZERO,
+      lock_time: LockTime::from_height(3).unwrap(),
       input: vec![
         TxIn {
           previous_output: OutPoint {
