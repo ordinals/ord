@@ -160,6 +160,31 @@ pub(super) async fn children_inscriptions(
   children_inscriptions_paginated(Extension(index), Path((inscription_id, 0))).await
 }
 
+pub(super) async fn child_inscription_at_index(
+  Extension(index): Extension<Arc<Index>>,
+  Path((parent, child_index)): Path<(InscriptionId, isize)>,
+) -> ServerResult<(HeaderMap, Json<api::ChildInscription>)> {
+  task::block_in_place(|| {
+    let parent_sequence_number = index
+      .get_inscription_entry(parent)?
+      .ok_or_not_found(|| format!("inscription {parent}"))?
+      .sequence_number;
+
+    let child = index
+      .get_child_by_sequence_number_indexed(parent_sequence_number, child_index)?
+      .map(|inscription_id| get_relative_inscription(&index, inscription_id))
+      .transpose()?;
+
+    let mut headers = HeaderMap::new();
+
+    if child_index < 0 {
+      headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-store"));
+    }
+
+    Ok((headers, Json(api::ChildInscription { child })))
+  })
+}
+
 pub(super) async fn children_inscriptions_paginated(
   Extension(index): Extension<Arc<Index>>,
   Path((parent, page)): Path<(InscriptionId, usize)>,

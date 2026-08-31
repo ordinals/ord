@@ -1426,6 +1426,38 @@ impl Index {
     Ok((children, more))
   }
 
+  pub fn get_child_by_sequence_number_indexed(
+    &self,
+    sequence_number: u32,
+    child_index: isize,
+  ) -> Result<Option<InscriptionId>> {
+    let rtx = self.database.begin_read()?;
+
+    let sequence_number_to_entry = rtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
+
+    if child_index < 0 {
+      rtx
+        .open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?
+        .get(sequence_number)?
+        .nth_back((child_index + 1).abs_diff(0))
+    } else {
+      rtx
+        .open_multimap_table(SEQUENCE_NUMBER_TO_CHILDREN)?
+        .get(sequence_number)?
+        .nth(child_index.abs_diff(0))
+    }
+    .map(|result| {
+      result
+        .and_then(|sequence_number| {
+          sequence_number_to_entry
+            .get(sequence_number.value())
+            .map(|entry| InscriptionEntry::load(entry.unwrap().value()).id)
+        })
+        .map_err(|err| err.into())
+    })
+    .transpose()
+  }
+
   pub fn get_parents_by_sequence_number_paginated(
     &self,
     parent_sequence_numbers: Vec<u32>,
