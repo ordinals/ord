@@ -106,6 +106,7 @@ pub struct ParentInscriptions {
 #[derive(Debug, PartialEq, Serialize, Deserialize, Clone)]
 pub struct Inscription {
   pub address: Option<String>,
+  pub burn_height: Option<u32>,
   pub charms: Vec<Charm>,
   pub child_count: u64,
   pub children: Vec<InscriptionId>,
