@@ -53,6 +53,17 @@ fn created_offer_is_correct() {
 
   assert!(outputs.iter().any(|output| output.output == payment_input));
 
+  // Bitcoin Core's `fundrawtransaction` docs: input_weights[].weight is the input's
+  // full weight (outpoint + sequence + witness) with a 73-byte max DER sig = 273 WU.
+  assert_eq!(
+    core.fund_raw_transaction_input_weights(),
+    vec![mockcore::InputWeight {
+      txid: psbt.unsigned_tx.input[0].previous_output.txid,
+      vout: psbt.unsigned_tx.input[0].previous_output.vout,
+      weight: 273,
+    }],
+  );
+
   for (i, output) in psbt.unsigned_tx.output.iter().enumerate() {
     if i != 1 {
       assert!(core.state().is_wallet_address(
