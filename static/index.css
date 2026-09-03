@@ -60,9 +60,36 @@ a:visited {
   color: var(--link);
 }
 
+dl {
+  border: 1px solid var(--light-bg);
+  border-radius: 0.5rem;
+  display: grid;
+  grid-template-columns: max-content auto;
+  width: fit-content;
+}
+
+dl dl {
+  margin-block: 0;
+}
+
 dt {
   font-weight: bold;
-  margin-top: 0.5rem;
+  padding: 0.25rem 0.75rem 0.25rem 0.25rem;
+}
+
+dd {
+  grid-column: 2;
+  margin: 0;
+  overflow-wrap: anywhere;
+  padding: 0.25rem 0.25rem 0.25rem 0;
+}
+
+dt:not(:first-child), dt:not(:first-child) + dd {
+  border-top: 1px solid var(--light-bg);
+}
+
+dd > ul {
+  margin-block: 0;
 }
 
 nav {
@@ -107,10 +134,6 @@ input[type=text] {
 
 input[type=image] {
   margin-top: 0.2rem;
-}
-
-dl {
-  overflow-wrap: break-word;
 }
 
 ul {

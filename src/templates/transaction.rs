@@ -55,8 +55,6 @@ mod tests {
       format!(
         "
         <h1>Transaction <span class=monospace>{txid}</span></h1>
-        <dl>
-        </dl>
         <h2>1 Input</h2>
         <ul>
           <li><a class=collapse href=/output/0000000000000000000000000000000000000000000000000000000000000000:4294967295>0000000000000000000000000000000000000000000000000000000000000000:4294967295</a></li>
