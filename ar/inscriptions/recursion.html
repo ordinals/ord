@@ -273,11 +273,24 @@
 <details>
   <summary>
     <code>GET</code>
-    <code><b>/r/blockhash</b></code>
+    <code><b>/r/block/&lt;QUERY&gt;</b></code>
   </summary>
 <h3 id="description-1"><a class="header" href="#description-1">Description</a></h3>
-<p>Latest block hash.</p>
+<p>Get hex-encoded block with height or block hash in <code>&lt;QUERY&gt;</code>. In the event of a future change to Bitcoin that changes transaction serialization in a backwards-incompatible fashion, such as SegWit, this endpoint is guaranteed to remain backwards compatible.</p>
 <h3 id="مثال-1"><a class="header" href="#مثال-1">مثال</a></h3>
+<pre><code class="language-bash">curl -s http://0.0.0.0:80/r/block/0
+</code></pre>
+<pre><code class="language-json">"0100000000000000000000000000000000000000000000000000000000000000000000003ba3edfd7a7b12b27ac72c3e67768f617fc81bc3888a51323a9fb8aa4b1e5e4a29ab5f49ffff001d1dac2b7c0101000000010000000000000000000000000000000000000000000000000000000000000000ffffffff4d04ffff001d0104455468652054696d65732030332f4a616e2f32303039204368616e63656c6c6f72206f6e206272696e6b206f66207365636f6e64206261696c6f757420666f722062616e6b73ffffffff0100f2052a01000000434104678afdb0fe5548271967f1a67130b7105cd6a828e03909a67962e0ea1f61deb649f6bc3f4cef38c4f35504e51ec112de5c384df7ba0b8d578a4c702b6bf11d5fac00000000"
+</code></pre>
+</details>
+<details>
+  <summary>
+    <code>GET</code>
+    <code><b>/r/blockhash</b></code>
+  </summary>
+<h3 id="description-2"><a class="header" href="#description-2">Description</a></h3>
+<p>Latest block hash.</p>
+<h3 id="مثال-2"><a class="header" href="#مثال-2">مثال</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash
 </code></pre>
@@ -289,9 +302,9 @@
     <code>GET</code>
     <code><b>/r/blockhash/&lt;HEIGHT&gt;</b></code>
   </summary>
-<h3 id="description-2"><a class="header" href="#description-2">Description</a></h3>
+<h3 id="description-3"><a class="header" href="#description-3">Description</a></h3>
 <p>Block hash at given block height as JSON string.</p>
-<h3 id="مثال-2"><a class="header" href="#مثال-2">مثال</a></h3>
+<h3 id="مثال-3"><a class="header" href="#مثال-3">مثال</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockhash/840000
 </code></pre>
@@ -303,9 +316,9 @@
     <code>GET</code>
     <code><b>/r/blockheight</b></code>
   </summary>
-<h3 id="description-3"><a class="header" href="#description-3">Description</a></h3>
+<h3 id="description-4"><a class="header" href="#description-4">Description</a></h3>
 <p>Latest block height.</p>
-<h3 id="مثال-3"><a class="header" href="#مثال-3">مثال</a></h3>
+<h3 id="مثال-4"><a class="header" href="#مثال-4">مثال</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blockheight
 </code></pre>
@@ -317,7 +330,7 @@
     <code>GET</code>
     <code><b>/r/blockinfo/&lt;QUERY&gt;</b></code>
   </summary>
-<h3 id="description-4"><a class="header" href="#description-4">Description</a></h3>
+<h3 id="description-5"><a class="header" href="#description-5">Description</a></h3>
 <p>Block info. <code>&lt;QUERY&gt;</code> may be a block height or block hash.</p>
 <h3 id="example-blockheight"><a class="header" href="#example-blockheight">Example (blockheight)</a></h3>
 <pre><code class="language-bash">curl -s \
@@ -410,9 +423,9 @@
     <code>GET</code>
     <code><b>/r/blocktime</b></code>
   </summary>
-<h3 id="description-5"><a class="header" href="#description-5">Description</a></h3>
+<h3 id="description-6"><a class="header" href="#description-6">Description</a></h3>
 <p>UNIX time stamp of latest block.</p>
-<h3 id="مثال-4"><a class="header" href="#مثال-4">مثال</a></h3>
+<h3 id="مثال-5"><a class="header" href="#مثال-5">مثال</a></h3>
 <pre><code class="language-bash">curl -s  \
   http://0.0.0.0:80/r/blocktime
 </code></pre>
@@ -424,9 +437,9 @@
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
-<h3 id="description-6"><a class="header" href="#description-6">Description</a></h3>
+<h3 id="description-7"><a class="header" href="#description-7">Description</a></h3>
 <p>The first 100 child inscription ids.</p>
-<h3 id="مثال-5"><a class="header" href="#مثال-5">مثال</a></h3>
+<h3 id="مثال-6"><a class="header" href="#مثال-6">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0
 </code></pre>
@@ -543,9 +556,9 @@
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
   </summary>
-<h3 id="description-7"><a class="header" href="#description-7">Description</a></h3>
+<h3 id="description-8"><a class="header" href="#description-8">Description</a></h3>
 <p>The set of 100 child inscription ids on <code>&lt;PAGE&gt;</code>.</p>
-<h3 id="مثال-6"><a class="header" href="#مثال-6">مثال</a></h3>
+<h3 id="مثال-7"><a class="header" href="#مثال-7">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/9
 </code></pre>
@@ -662,9 +675,9 @@
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
   </summary>
-<h3 id="description-8"><a class="header" href="#description-8">Description</a></h3>
+<h3 id="description-9"><a class="header" href="#description-9">Description</a></h3>
 <p>Details of first 100 child inscriptions of <code>INSCRIPTION_ID</code>.</p>
-<h3 id="مثال-7"><a class="header" href="#مثال-7">مثال</a></h3>
+<h3 id="مثال-8"><a class="header" href="#مثال-8">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions
 </code></pre>
@@ -693,9 +706,9 @@
     <code>GET</code>
     <code><b>/r/children/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
   </summary>
-<h3 id="description-9"><a class="header" href="#description-9">Description</a></h3>
+<h3 id="description-10"><a class="header" href="#description-10">Description</a></h3>
 <p>Details of 100 child inscriptions of <code>INSCRIPTION_ID</code> paginated by <code>PAGE</code>.</p>
-<h3 id="مثال-8"><a class="header" href="#مثال-8">مثال</a></h3>
+<h3 id="مثال-9"><a class="header" href="#مثال-9">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/children/e317a2a5d68bd1004ae15a06175a319272a10389ff125c98820389edef8b0a94i0/inscriptions/9
 </code></pre>
@@ -739,7 +752,7 @@
     <code>GET</code>
     <code><b>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
-<h3 id="description-10"><a class="header" href="#description-10">Description</a></h3>
+<h3 id="description-11"><a class="header" href="#description-11">Description</a></h3>
 <p>Undelegated content of an inscription.</p>
 </details>
 <details>
@@ -747,9 +760,9 @@
     <code>GET</code>
     <code><b>/r/inscription/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
-<h3 id="description-11"><a class="header" href="#description-11">Description</a></h3>
+<h3 id="description-12"><a class="header" href="#description-12">Description</a></h3>
 <p>Information about an inscription.</p>
-<h3 id="مثال-9"><a class="header" href="#مثال-9">مثال</a></h3>
+<h3 id="مثال-10"><a class="header" href="#مثال-10">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/inscriptions/13130e4b299ed361f2a734f6433844ef0f0211cd504e0ca8f4d4ab20f51b8127i0
 </code></pre>
@@ -778,9 +791,9 @@
     <code>GET</code>
     <code><b>/r/metadata/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
-<h3 id="description-12"><a class="header" href="#description-12">Description</a></h3>
+<h3 id="description-13"><a class="header" href="#description-13">Description</a></h3>
 <p>JSON string containing the hex-encoded CBOR metadata.</p>
-<h3 id="مثال-10"><a class="header" href="#مثال-10">مثال</a></h3>
+<h3 id="مثال-11"><a class="header" href="#مثال-11">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/metadata/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
@@ -792,9 +805,9 @@
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;</b></code>
   </summary>
-<h3 id="description-13"><a class="header" href="#description-13">Description</a></h3>
+<h3 id="description-14"><a class="header" href="#description-14">Description</a></h3>
 <p>The first 100 parent inscription ids.</p>
-<h3 id="مثال-11"><a class="header" href="#مثال-11">مثال</a></h3>
+<h3 id="مثال-12"><a class="header" href="#مثال-12">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0
 </code></pre>
@@ -812,9 +825,9 @@
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/&lt;PAGE&gt;</b></code>
   </summary>
-<h3 id="description-14"><a class="header" href="#description-14">Description</a></h3>
+<h3 id="description-15"><a class="header" href="#description-15">Description</a></h3>
 <p>The set of 100 parent inscription ids on <code>&lt;PAGE&gt;</code>.</p>
-<h3 id="مثال-12"><a class="header" href="#مثال-12">مثال</a></h3>
+<h3 id="مثال-13"><a class="header" href="#مثال-13">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/parents/b1ef66c2d1a047cbaa6260b74daac43813924378fe08ef8545da4cb79e8fcf00i0/9
 </code></pre>
@@ -830,9 +843,9 @@
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/inscriptions</b></code>
   </summary>
-<h3 id="description-15"><a class="header" href="#description-15">Description</a></h3>
+<h3 id="description-16"><a class="header" href="#description-16">Description</a></h3>
 <p>Details of the first 100 parent inscriptions.</p>
-<h3 id="مثال-13"><a class="header" href="#مثال-13">مثال</a></h3>
+<h3 id="مثال-14"><a class="header" href="#مثال-14">مثال</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/parents/4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019i0/inscriptions
 </code></pre>
@@ -883,9 +896,9 @@
     <code>GET</code>
     <code><b>/r/parents/&lt;INSCRIPTION_ID&gt;/inscriptions/&lt;PAGE&gt;</b></code>
   </summary>
-<h3 id="description-16"><a class="header" href="#description-16">Description</a></h3>
+<h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
 <p>Details of the set of 100 parent inscriptions on &lt;PAGE&gt;.</p>
-<h3 id="مثال-14"><a class="header" href="#مثال-14">مثال</a></h3>
+<h3 id="مثال-15"><a class="header" href="#مثال-15">مثال</a></h3>
 <pre><code class="language-bash">curl -s -H "Accept: application/json" \
   http://0.0.0.0:80/r/parents/4a86d375a70a4ecc7ffcd910e05f5e0771ae6a50133543f1bf6b5651adbf0019i0/inscriptions/1
 </code></pre>
@@ -936,9 +949,9 @@
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;</b></code>
   </summary>
-<h3 id="description-17"><a class="header" href="#description-17">Description</a></h3>
+<h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
 <p>The first 100 inscription ids on a sat. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="مثال-15"><a class="header" href="#مثال-15">مثال</a></h3>
+<h3 id="مثال-16"><a class="header" href="#مثال-16">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999
 </code></pre>
@@ -959,9 +972,9 @@
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/&lt;PAGE&gt;</b></code>
   </summary>
-<h3 id="description-18"><a class="header" href="#description-18">Description</a></h3>
+<h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
 <p>The set of 100 inscription ids on <code>&lt;PAGE&gt;</code>. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="مثال-16"><a class="header" href="#مثال-16">مثال</a></h3>
+<h3 id="مثال-17"><a class="header" href="#مثال-17">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/1499676120331756/1
 </code></pre>
@@ -989,9 +1002,9 @@
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;</b></code>
   </summary>
-<h3 id="description-19"><a class="header" href="#description-19">Description</a></h3>
+<h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
 <p>The inscription id at <code>&lt;INDEX&gt;</code> of all inscriptions on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent for example. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="مثال-17"><a class="header" href="#مثال-17">مثال</a></h3>
+<h3 id="مثال-18"><a class="header" href="#مثال-18">مثال</a></h3>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/153899938226999/at/-1
 </code></pre>
@@ -1005,9 +1018,9 @@
     <code>GET</code>
     <code><b>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</b></code>
   </summary>
-<h3 id="description-20"><a class="header" href="#description-20">Description</a></h3>
+<h3 id="description-21"><a class="header" href="#description-21">Description</a></h3>
 <p>The content of the inscription at <code>&lt;INDEX&gt;</code> on a sat. <code>&lt;INDEX&gt;</code> may be a negative number to index from the back. <code>0</code> being the first and <code>-1</code> being the most recent. Requires index with <code>--index-sats</code> flag.</p>
-<h3 id="مثال-18"><a class="header" href="#مثال-18">مثال</a></h3>
+<h3 id="مثال-19"><a class="header" href="#مثال-19">مثال</a></h3>
 <p>Fetch the content of the most recently created inscription on sat 289488340427831.</p>
 <pre><code class="language-bash">curl -s \
   http://0.0.0.0:80/r/sat/289488340427831/at/-1/content
@@ -1020,9 +1033,9 @@
     <code>GET</code>
     <code><b>/r/tx/&lt;TRANSACTION_ID&gt;</b></code>
   </summary>
-<h3 id="description-21"><a class="header" href="#description-21">Description</a></h3>
+<h3 id="description-22"><a class="header" href="#description-22">Description</a></h3>
 <p>Get hex-encoded transaction with <code>&lt;TRANSACTION_ID&gt;</code>. In the event of a future change to Bitcoin that changes transaction serialization in a backwards-incompatible fashion, such as SegWit, this endpoint is guaranteed to remain backwards compatible.</p>
-<h3 id="مثال-19"><a class="header" href="#مثال-19">مثال</a></h3>
+<h3 id="مثال-20"><a class="header" href="#مثال-20">مثال</a></h3>
 <pre><code class="language-bash">curl -s http://0.0.0.0:80/r/tx/60bcf821240064a9c55225c4f01711b0ebbcab39aa3fafeefe4299ab158536fa
 </code></pre>
 <pre><code class="language-json">"0100000000010183572872dcb32bee57003d53c2b8dbb5bc5819ff6478052599911f7778d1c7bd0000000000fdffffff011027000000000000225120e41e0cba05c6ac797cf543ff9a6c619a91a53813e59146d1e32ea89747b111a603407aa50d93d6fc01265fd52d3edc93af4e009ccc1a704ce1b5cb8ede1412a5df31eba587d080b3dc903ceb9002ed9d921aad323fd44d7b4dc2a1ad2ea12d4360424d20c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326effac0063036f7264010118746578742f706c61696e3b636861727365743d7574662d3800077072696d65730a6821c1c7a3a38df198a4fcde7d5dac5819ed19ff4d25bb893c9511f8e1f51d59326eff00000000"
@@ -1033,7 +1046,7 @@
     <code>GET</code>
     <code><b>/r/utxo/&lt;OUTPOINT&gt;</b></code>
   </summary>
-<h3 id="description-22"><a class="header" href="#description-22">Description</a></h3>
+<h3 id="description-23"><a class="header" href="#description-23">Description</a></h3>
 <p>Get assets held by an unspent transaction output.</p>
 <h3 id="examples"><a class="header" href="#examples">Examples</a></h3>
 <p>Unspent transaction output with server without any indices:</p>
