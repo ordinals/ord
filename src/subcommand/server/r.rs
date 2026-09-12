@@ -1,5 +1,25 @@
 use super::*;
 
+pub(super) async fn block(
+  Extension(index): Extension<Arc<Index>>,
+  Path(DeserializeFromStr(query)): Path<DeserializeFromStr<query::Block>>,
+) -> ServerResult<Json<String>> {
+  task::block_in_place(|| {
+    let hash = match query {
+      query::Block::Hash(hash) => hash,
+      query::Block::Height(height) => index
+        .block_hash(Some(height))?
+        .ok_or_not_found(|| format!("block {height}"))?,
+    };
+
+    Ok(Json(
+      index
+        .get_block_hex(hash)?
+        .ok_or_not_found(|| format!("block {hash}"))?,
+    ))
+  })
+}
+
 pub(super) async fn blockhash(
   Extension(index): Extension<Arc<Index>>,
 ) -> ServerResult<Json<String>> {
