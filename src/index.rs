@@ -1243,6 +1243,10 @@ impl Index {
     self.client.get_block(&hash).into_option()
   }
 
+  pub fn get_block_hex(&self, hash: BlockHash) -> Result<Option<String>> {
+    self.client.get_block_hex(&hash).into_option()
+  }
+
   pub fn get_collections_paginated(
     &self,
     page_size: usize,
