@@ -50,6 +50,17 @@ fn sweep() {
   assert_eq!(sweep.outputs, [OutPoint::new(send.txid, 0)]);
   assert_eq!(sweep.address, address.into_unchecked());
 
+  // Bitcoin Core's `fundrawtransaction` docs: input_weights[].weight is the input's
+  // full weight (outpoint + sequence + witness) with a 73-byte max DER sig = 273 WU.
+  assert_eq!(
+    core.fund_raw_transaction_input_weights(),
+    vec![mockcore::InputWeight {
+      txid: send.txid,
+      vout: 0,
+      weight: 273,
+    }],
+  );
+
   core.mine_blocks(1);
 
   let output = CommandBuilder::new("wallet inscriptions")
