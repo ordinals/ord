@@ -12,3 +12,7 @@ rust-version.workspace = true
 
 [dependencies]
 regex.workspace = true
+
+[[bin]]
+name = "update-contributors"
+test = false

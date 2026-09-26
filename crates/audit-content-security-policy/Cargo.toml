@@ -13,3 +13,7 @@ rust-version.workspace = true
 [dependencies]
 colored.workspace = true
 reqwest.workspace = true
+
+[[bin]]
+name = "audit-content-security-policy"
+test = false
