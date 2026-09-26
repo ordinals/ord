@@ -17,6 +17,7 @@ use {
     Router,
     extract::{DefaultBodyLimit, Extension, Json, Path, Query},
     http::{self, HeaderMap, HeaderName, HeaderValue, StatusCode, Uri, header},
+    middleware,
     response::{IntoResponse, Redirect, Response},
     routing::{get, post},
   },
@@ -335,12 +336,15 @@ impl Server {
           "/r/sat/{sat_number}/at/{index}/content",
           get(r::sat_at_index_content),
         )
-        .layer(axum::middleware::from_fn(Self::proxy_layer));
+        .layer(middleware::from_fn(Self::proxy_layer));
 
       let router = router.merge(proxiable_routes);
 
       let router = router
         .fallback(Self::fallback)
+        .layer(middleware::from_fn(
+          Self::reject_service_worker_script_requests,
+        ))
         .layer(Extension(index))
         .layer(Extension(server_config.clone()))
         .layer(Extension(settings.clone()))
@@ -588,7 +592,7 @@ impl Server {
   async fn proxy_layer(
     server_config: Extension<Arc<ServerConfig>>,
     request: http::Request<axum::body::Body>,
-    next: axum::middleware::Next,
+    next: middleware::Next,
   ) -> ServerResult {
     let path = request.uri().path().to_owned();
 
@@ -619,6 +623,17 @@ impl Server {
     }
 
     Ok(response)
+  }
+
+  async fn reject_service_worker_script_requests(
+    request: http::Request<axum::body::Body>,
+    next: middleware::Next,
+  ) -> Response {
+    if request.headers().contains_key("service-worker") {
+      (StatusCode::FORBIDDEN, "service workers are forbidden").into_response()
+    } else {
+      next.run(request).await
+    }
   }
 
   fn index_height(index: &Index) -> ServerResult<Height> {
@@ -8301,6 +8316,33 @@ next
 
     server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
     server_with_proxy.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+  }
+
+  #[test]
+  fn service_worker_script_requests_are_forbidden() {
+    let server = TestServer::builder().chain(Chain::Regtest).build();
+
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, inscription("text/javascript", "foo").to_witness())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let id = InscriptionId { txid, index: 0 };
+
+    server.assert_response(format!("/content/{id}"), StatusCode::OK, "foo");
+
+    let response = reqwest::blocking::Client::new()
+      .get(server.join_url(&format!("/content/{id}")))
+      .header("service-worker", "script")
+      .send()
+      .unwrap();
+
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    assert_eq!(response.text().unwrap(), "service workers are forbidden");
   }
 
   #[test]
