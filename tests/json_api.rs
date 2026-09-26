@@ -167,6 +167,7 @@ fn get_inscription() {
     inscription_json,
     api::Inscription {
       address: None,
+      burn_height: None,
       charms: vec![Charm::Coin, Charm::Uncommon],
       child_count: 0,
       children: Vec::new(),
@@ -189,6 +190,40 @@ fn get_inscription() {
       metaprotocol: None
     }
   )
+}
+
+#[test]
+fn get_burned_inscription_includes_burn_height() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription_id, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let output = CommandBuilder::new(format!("wallet burn --fee-rate 1 {inscription_id}"))
+    .core(&core)
+    .ord(&ord)
+    .stdout_regex(r".*")
+    .run_and_deserialize_output::<Send>();
+
+  assert_eq!(core.mempool()[0].compute_txid(), output.txid);
+
+  core.mine_blocks(1);
+
+  let response = ord.json_request(format!("/inscription/{inscription_id}"));
+
+  assert_eq!(response.status(), StatusCode::OK);
+
+  let inscription_json: api::Inscription = serde_json::from_str(&response.text().unwrap()).unwrap();
+
+  assert_eq!(inscription_json.burn_height, Some(5));
+  assert!(inscription_json.charms.contains(&Charm::Burned));
 }
 
 #[test]
@@ -224,6 +259,7 @@ fn get_inscription_with_metaprotocol_and_properties() {
     inscription_json,
     api::Inscription {
       address: None,
+      burn_height: None,
       charms: vec![Charm::Coin, Charm::Uncommon],
       child_count: 0,
       children: Vec::new(),
