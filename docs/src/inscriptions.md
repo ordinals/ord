@@ -170,6 +170,10 @@ This allows inscriptions to retrieve their own inscription ID with:
 let inscription_id = window.location.pathname.split("/").pop();
 ```
 
+The canonical inscription ID encoding is the reveal transaction ID in
+lowercase hexadecimal, followed by a lowercase `i`, followed by the inscription
+index in decimal without leading zeroes.
+
 If an inscription with ID X delegates to an inscription with ID Y, that is to
 say, if inscription X contains a delegate field with value Y, the content of
 inscription X must be served from the URL path `/content/X`, *not*
