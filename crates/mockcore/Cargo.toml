@@ -22,3 +22,7 @@ ord-bitcoincore-rpc = "0.19.0"
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
+
+[lib]
+test = false
+doctest = false

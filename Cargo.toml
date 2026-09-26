@@ -110,10 +110,12 @@ unindent = "0.2.1"
 [[bin]]
 name = "ord"
 path = "src/bin/main.rs"
+test = false
 
 [lib]
 name = "ord"
 path = "src/lib.rs"
+doctest = false
 
 [[test]]
 name = "integration"
