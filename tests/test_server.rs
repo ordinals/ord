@@ -10,6 +10,8 @@ use {
 
 pub(crate) struct TestServer {
   client: Client,
+  credentials: Option<(String, String)>,
+  no_sync: bool,
   ord_server_handle: Handle<SocketAddr>,
   port: u16,
   #[allow(unused)]
@@ -47,7 +49,12 @@ impl TestServer {
     ));
 
     let index = Arc::new(Index::open(&settings).unwrap());
+    let no_sync = server.no_sync;
     let ord_server_handle = Handle::new();
+
+    let credentials = settings
+      .credentials()
+      .map(|(username, password)| (username.to_string(), password.to_string()));
 
     let (tx, rx) = std::sync::mpsc::channel();
 
@@ -67,6 +74,8 @@ impl TestServer {
 
     Self {
       client,
+      credentials,
+      no_sync,
       ord_server_handle,
       port,
       tempdir,
@@ -150,8 +159,21 @@ impl TestServer {
   }
 
   pub(crate) fn sync_server(&self) {
+    if self.no_sync {
+      return;
+    }
+
     let chain_block_count = self.client.get_block_count().unwrap() + 1;
-    let response = reqwest::blocking::get(self.url().join("/update").unwrap()).unwrap();
+
+    let request = reqwest::blocking::Client::new().get(self.url().join("/update").unwrap());
+
+    let request = if let Some((username, password)) = &self.credentials {
+      request.basic_auth(username, Some(password))
+    } else {
+      request
+    };
+
+    let response = request.send().unwrap();
     assert_eq!(response.status(), StatusCode::OK);
     assert!(response.text().unwrap().parse::<u64>().unwrap() >= chain_block_count);
   }

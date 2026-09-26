@@ -76,7 +76,7 @@ impl Spawn {
   }
 }
 
-pub(crate) struct CommandBuilder {
+pub(crate) struct CommandBuilder<'a> {
   args: Vec<String>,
   core_cookie_file: Option<PathBuf>,
   core_url: Option<String>,
@@ -85,14 +85,14 @@ pub(crate) struct CommandBuilder {
   expected_stderr: Expected,
   expected_stdout: Expected,
   integration_test: bool,
-  ord_url: Option<Url>,
+  ord: Option<&'a TestServer>,
   stderr: bool,
   stdin: Vec<u8>,
   stdout: bool,
   tempdir: Arc<TempDir>,
 }
 
-impl CommandBuilder {
+impl<'a> CommandBuilder<'a> {
   pub(crate) fn new(args: impl ToArgs) -> Self {
     Self {
       args: args.to_args(),
@@ -103,7 +103,7 @@ impl CommandBuilder {
       expected_stderr: Expected::String(String::new()),
       expected_stdout: Expected::String(String::new()),
       integration_test: true,
-      ord_url: None,
+      ord: None,
       stderr: true,
       stdin: Vec::new(),
       stdout: true,
@@ -136,9 +136,9 @@ impl CommandBuilder {
     }
   }
 
-  pub(crate) fn ord(self, ord: &TestServer) -> Self {
+  pub(crate) fn ord(self, ord: &'a TestServer) -> Self {
     Self {
-      ord_url: Some(ord.url()),
+      ord: Some(ord),
       ..self
     }
   }
@@ -206,10 +206,10 @@ impl CommandBuilder {
     for arg in self.args.iter() {
       args.push(arg.clone());
       if arg == "wallet"
-        && let Some(ord_server_url) = &self.ord_url
+        && let Some(ord) = self.ord
       {
         args.push("--server-url".to_string());
-        args.push(ord_server_url.to_string());
+        args.push(ord.url().to_string());
       }
     }
 
@@ -243,6 +243,10 @@ impl CommandBuilder {
 
   #[track_caller]
   pub(crate) fn spawn(self) -> Spawn {
+    if let Some(ord) = self.ord {
+      ord.sync_server();
+    }
+
     let mut command = self.command();
     let child = command.spawn().unwrap();
 
