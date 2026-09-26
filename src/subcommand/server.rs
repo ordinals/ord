@@ -132,7 +132,7 @@ pub struct Server {
   #[arg(long, help = "Redirect HTTP traffic to HTTPS.")]
   pub(crate) redirect_http_to_https: bool,
   #[arg(long, alias = "nosync", help = "Do not update the index.")]
-  pub(crate) no_sync: bool,
+  pub no_sync: bool,
   #[arg(
     long,
     help = "Proxy `/content/INSCRIPTION_ID` and other recursive endpoints to `<PROXY>` if the inscription is not present on current chain."
