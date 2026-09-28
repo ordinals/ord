@@ -731,6 +731,35 @@ fn sending_rune_with_insufficient_balance_is_an_error() {
 }
 
 #[test]
+fn sending_rune_again_before_confirmation_ignores_spent_runic_output() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--index-runes", "--regtest"], &[]);
+
+  create_wallet(&core, &ord);
+
+  etch(&core, &ord, Rune(RUNE));
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1000:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  CommandBuilder::new(format!(
+    "--chain regtest --index-runes wallet send --fee-rate 1 bcrt1qs758ursh4q9z627kt3pp5yysm78ddny6txaqgw 1:{}",
+    Rune(RUNE)
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_exit_code(1)
+  .expected_stderr("error: insufficient `AAAAAAAAAAAAA` balance, only 0\u{A0}¢ in wallet\n")
+  .run_and_extract_stdout();
+}
+
+#[test]
 fn sending_rune_works() {
   let core = mockcore::builder().network(Network::Regtest).build();
 

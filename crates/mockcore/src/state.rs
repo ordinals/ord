@@ -300,6 +300,14 @@ impl State {
     &self.mempool
   }
 
+  pub(crate) fn is_spent_in_mempool(&self, outpoint: &OutPoint) -> bool {
+    self
+      .mempool
+      .iter()
+      .flat_map(|transaction| transaction.input.iter())
+      .any(|input| input.previous_output == *outpoint)
+  }
+
   pub(crate) fn get_confirmations(&self, tx: &Transaction) -> i32 {
     for (confirmations, hash) in self.hashes.iter().rev().enumerate() {
       if self.blocks.get(hash).unwrap().txdata.contains(tx) {
