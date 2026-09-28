@@ -428,10 +428,16 @@ impl Plan {
     let premine;
     let runestone;
 
+    let premine_postage;
+
     if let Some(etching) = self.etching {
       let vout;
       let destination;
       premine = etching.premine.to_integer(etching.divisibility)?;
+      premine_postage = etching
+        .premine_postage
+        .map(Amount::from_sat)
+        .unwrap_or(TARGET_POSTAGE);
 
       if premine > 0 {
         let output = u32::try_from(reveal_outputs.len()).unwrap();
@@ -439,7 +445,7 @@ impl Plan {
 
         reveal_outputs.push(TxOut {
           script_pubkey: reveal_change.into(),
-          value: TARGET_POSTAGE,
+          value: premine_postage,
         });
 
         vout = Some(output);
@@ -498,6 +504,7 @@ impl Plan {
       rune = Some((destination, etching.rune, vout));
     } else {
       premine = 0;
+      premine_postage = TARGET_POSTAGE;
       rune = None;
       runestone = None;
     }
@@ -521,7 +528,7 @@ impl Plan {
     }
 
     if premine > 0 {
-      target_value += TARGET_POSTAGE;
+      target_value += premine_postage;
     }
 
     let unsigned_commit_tx = TransactionBuilder::new(

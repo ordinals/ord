@@ -45,6 +45,7 @@ fn cardinals_does_not_show_runic_outputs() {
         divisibility: 0,
         terms: None,
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         rune: SpacedRune {
           rune: Rune(RUNE),
           spacers: 0,
