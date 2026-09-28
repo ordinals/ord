@@ -276,9 +276,14 @@ impl Settings {
     })
   }
 
-  pub fn for_env(dir: &Path, rpc_url: &str, server_url: &str) -> Self {
+  pub fn for_env(
+    bitcoin_data_dir: &Path,
+    data_dir: &Path,
+    rpc_url: &str,
+    server_url: &str,
+  ) -> Self {
     Self {
-      bitcoin_data_dir: Some(dir.into()),
+      bitcoin_data_dir: Some(bitcoin_data_dir.into()),
       bitcoin_rpc_limit: None,
       bitcoin_rpc_password: None,
       bitcoin_rpc_url: Some(rpc_url.into()),
@@ -288,7 +293,7 @@ impl Settings {
       config: None,
       config_dir: None,
       cookie_file: None,
-      data_dir: Some(dir.into()),
+      data_dir: Some(data_dir.into()),
       height_limit: None,
       hidden: None,
       http_port: None,
