@@ -100,6 +100,11 @@ pub struct Server {
   pub(crate) acme_domain: Vec<String>,
   #[arg(
     long,
+    help = "Reject JSON API batch requests for more than <BATCH_LIMIT> items."
+  )]
+  pub(crate) batch_limit: Option<usize>,
+  #[arg(
+    long,
     help = "Use <CSP_ORIGIN> in Content-Security-Policy header. Set this to the public-facing URL of your ord instance."
   )]
   pub(crate) csp_origin: Option<String>,
@@ -189,6 +194,7 @@ impl Server {
 
       let server_config = Arc::new(ServerConfig {
         accept_offers: self.accept_offers,
+        batch_limit: self.batch_limit.or(settings.batch_limit()),
         chain: settings.chain(),
         csp_origin: self.csp_origin.clone(),
         decompress: self.decompress,
@@ -886,14 +892,23 @@ impl Server {
   }
 
   async fn outputs(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(accept_json): AcceptJson,
     Json(outputs): Json<Vec<OutPoint>>,
   ) -> ServerResult {
     task::block_in_place(|| {
       Ok(if accept_json {
+        server_config.check_batch_limit(outputs.len())?;
+
         let mut response = Vec::new();
         for outpoint in outputs {
+          if outpoint == OutPoint::null() || outpoint == unbound_outpoint() {
+            return Err(ServerError::BadRequest(format!(
+              "outpoint {outpoint} may not be queried in batch"
+            )));
+          }
+
           let (output_info, _) = index
             .get_output_info(outpoint)?
             .ok_or_not_found(|| format!("output {outpoint}"))?;
@@ -1820,12 +1835,15 @@ impl Server {
   }
 
   async fn inscriptions_json(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(accept_json): AcceptJson,
     Json(inscriptions): Json<Vec<InscriptionId>>,
   ) -> ServerResult {
     task::block_in_place(|| {
       Ok(if accept_json {
+        server_config.check_batch_limit(inscriptions.len())?;
+
         let mut response = Vec::new();
         for inscription in inscriptions {
           let query = query::Inscription::Id(inscription);
@@ -1844,12 +1862,15 @@ impl Server {
   }
 
   async fn missing(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
     Extension(index): Extension<Arc<Index>>,
     AcceptJson(accept_json): AcceptJson,
     Json(inscription_ids): Json<Vec<InscriptionId>>,
   ) -> ServerResult {
     task::block_in_place(|| {
       Ok(if accept_json {
+        server_config.check_batch_limit(inscription_ids.len())?;
+
         Json(index.missing_inscriptions(&inscription_ids)?).into_response()
       } else {
         StatusCode::NOT_FOUND.into_response()
@@ -2555,6 +2576,25 @@ mod tests {
       assert_eq!(response.status(), StatusCode::OK);
 
       response.json().unwrap()
+    }
+
+    #[track_caller]
+    fn assert_post_json_error(
+      &self,
+      path: impl AsRef<str>,
+      body: &impl Serialize,
+      status: StatusCode,
+      expected_response: &str,
+    ) {
+      let response = reqwest::blocking::Client::new()
+        .post(self.join_url(path.as_ref()))
+        .json(body)
+        .header(header::ACCEPT, "application/json")
+        .send()
+        .unwrap();
+
+      assert_eq!(response.status(), status);
+      assert_eq!(response.text().unwrap(), expected_response);
     }
 
     #[track_caller]
@@ -9433,6 +9473,90 @@ next
       StatusCode::PAYLOAD_TOO_LARGE,
       "{}",
       response.text().unwrap(),
+    );
+  }
+
+  #[test]
+  fn batch_limit_rejects_oversized_outputs_request() {
+    let server = TestServer::builder()
+      .server_option("--batch-limit", "1")
+      .build();
+
+    server.assert_post_json_error(
+      "outputs",
+      &vec![OutPoint::null(), OutPoint::null()],
+      StatusCode::BAD_REQUEST,
+      "request for 2 items exceeds batch limit of 1",
+    );
+  }
+
+  #[test]
+  fn batch_limit_rejects_oversized_inscriptions_request() {
+    let server = TestServer::builder()
+      .server_option("--batch-limit", "1")
+      .build();
+
+    server.assert_post_json_error(
+      "inscriptions",
+      &vec![inscription_id(1), inscription_id(2)],
+      StatusCode::BAD_REQUEST,
+      "request for 2 items exceeds batch limit of 1",
+    );
+  }
+
+  #[test]
+  fn batch_limit_rejects_oversized_missing_request() {
+    let server = TestServer::builder()
+      .server_option("--batch-limit", "1")
+      .build();
+
+    server.assert_post_json_error(
+      "missing",
+      &vec![inscription_id(1), inscription_id(2)],
+      StatusCode::BAD_REQUEST,
+      "request for 2 items exceeds batch limit of 1",
+    );
+  }
+
+  #[test]
+  fn batch_limit_is_loaded_from_settings() {
+    let server = TestServer::builder().config("batch_limit: 1").build();
+
+    server.assert_post_json_error(
+      "missing",
+      &vec![inscription_id(1), inscription_id(2)],
+      StatusCode::BAD_REQUEST,
+      "request for 2 items exceeds batch limit of 1",
+    );
+  }
+
+  #[test]
+  fn batch_limit_allows_requests_at_limit() {
+    let server = TestServer::builder()
+      .server_option("--batch-limit", "1")
+      .build();
+
+    let result = server.post_json::<Vec<InscriptionId>>("missing", &vec![inscription_id(1)]);
+
+    assert_eq!(result, vec![inscription_id(1)]);
+  }
+
+  #[test]
+  fn outputs_rejects_null_and_unbound_outpoints() {
+    let server = TestServer::new();
+
+    server.assert_post_json_error(
+      "outputs",
+      &vec![OutPoint::null()],
+      StatusCode::BAD_REQUEST,
+      "outpoint 0000000000000000000000000000000000000000000000000000000000000000:4294967295 may not be queried in batch",
+    );
+
+    server.assert_post_json_error(
+      "outputs",
+      &vec![unbound_outpoint()],
+      StatusCode::BAD_REQUEST,
+      "outpoint 0000000000000000000000000000000000000000000000000000000000000000:0 may not be queried in batch",
     );
   }
 }

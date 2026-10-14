@@ -6,6 +6,7 @@ fn default() {
     .integration_test(false)
     .stdout_regex(
       r#"\{
+  "batch_limit": null,
   "bitcoin_data_dir": ".*(Bitcoin|bitcoin)",
   "bitcoin_rpc_limit": 12,
   "bitcoin_rpc_password": null,
