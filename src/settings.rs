@@ -554,6 +554,10 @@ impl Settings {
     self.height_limit
   }
 
+  pub fn http_port(&self) -> Option<u16> {
+    self.http_port
+  }
+
   pub fn index(&self) -> &Path {
     self.index.as_ref().unwrap()
   }
