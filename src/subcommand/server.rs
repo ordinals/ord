@@ -378,7 +378,7 @@ impl Server {
         router
       };
 
-      match (self.http_port(), self.https_port()) {
+      match (self.http_port(&settings), self.https_port()) {
         (Some(http_port), None) => {
           self
             .spawn(
@@ -533,9 +533,11 @@ impl Server {
     }
   }
 
-  fn http_port(&self) -> Option<u16> {
-    if self.http || self.http_port.is_some() || (self.https_port.is_none() && !self.https) {
-      Some(self.http_port.unwrap_or(80))
+  fn http_port(&self, settings: &Settings) -> Option<u16> {
+    let http_port = self.http_port.or(settings.http_port());
+
+    if self.http || http_port.is_some() || (self.https_port.is_none() && !self.https) {
+      Some(http_port.unwrap_or(80))
     } else {
       None
     }
@@ -2755,7 +2757,26 @@ mod tests {
 
   #[test]
   fn http_port_defaults_to_80() {
-    assert_eq!(parse_server_args("ord server").1.http_port(), Some(80));
+    let (settings, server) = parse_server_args("ord server");
+    assert_eq!(server.http_port(&settings), Some(80));
+  }
+
+  #[test]
+  fn http_port_is_loaded_from_settings() {
+    let (settings, server) = parse_server_args("ord server");
+    let settings = Settings::from_env([("HTTP_PORT".into(), "8080".into())].into())
+      .unwrap()
+      .or(settings);
+    assert_eq!(server.http_port(&settings), Some(8080));
+  }
+
+  #[test]
+  fn http_port_argument_overrides_settings() {
+    let (settings, server) = parse_server_args("ord server --http-port 9090");
+    let settings = Settings::from_env([("HTTP_PORT".into(), "8080".into())].into())
+      .unwrap()
+      .or(settings);
+    assert_eq!(server.http_port(&settings), Some(9090));
   }
 
   #[test]
@@ -2775,24 +2796,17 @@ mod tests {
 
   #[test]
   fn https_disables_http() {
-    assert_eq!(
-      parse_server_args("ord server --https --acme-cache foo --acme-contact bar --acme-domain baz")
-        .1
-        .http_port(),
-      None
-    );
+    let (settings, server) =
+      parse_server_args("ord server --https --acme-cache foo --acme-contact bar --acme-domain baz");
+    assert_eq!(server.http_port(&settings), None);
   }
 
   #[test]
   fn https_port_disables_http() {
-    assert_eq!(
-      parse_server_args(
-        "ord server --https-port 433 --acme-cache foo --acme-contact bar --acme-domain baz"
-      )
-      .1
-      .http_port(),
-      None
+    let (settings, server) = parse_server_args(
+      "ord server --https-port 433 --acme-cache foo --acme-contact bar --acme-domain baz",
     );
+    assert_eq!(server.http_port(&settings), None);
   }
 
   #[test]
@@ -2809,14 +2823,10 @@ mod tests {
 
   #[test]
   fn http_with_https_leaves_http_enabled() {
-    assert_eq!(
-      parse_server_args(
-        "ord server --https --http --acme-cache foo --acme-contact bar --acme-domain baz"
-      )
-      .1
-      .http_port(),
-      Some(80)
+    let (settings, server) = parse_server_args(
+      "ord server --https --http --acme-cache foo --acme-contact bar --acme-domain baz",
     );
+    assert_eq!(server.http_port(&settings), Some(80));
   }
 
   #[test]
