@@ -3,6 +3,7 @@ use super::*;
 #[derive(Default)]
 pub struct ServerConfig {
   pub accept_offers: bool,
+  pub batch_limit: Option<usize>,
   pub chain: Chain,
   pub csp_origin: Option<String>,
   pub decompress: bool,
@@ -13,6 +14,18 @@ pub struct ServerConfig {
 }
 
 impl ServerConfig {
+  pub(super) fn check_batch_limit(&self, count: usize) -> ServerResult<()> {
+    if let Some(limit) = self.batch_limit
+      && count > limit
+    {
+      Err(ServerError::BadRequest(format!(
+        "request for {count} items exceeds batch limit of {limit}"
+      )))
+    } else {
+      Ok(())
+    }
+  }
+
   pub(super) fn preview_content_security_policy(
     &self,
     media: Media,
