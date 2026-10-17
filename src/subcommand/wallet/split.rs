@@ -136,6 +136,7 @@ impl Split {
       &wallet.get_change_address()?,
       self.postage,
       &splits,
+      wallet.lock_time()?,
     )?;
 
     let unsigned_transaction = fund_raw_transaction(
@@ -159,6 +160,7 @@ impl Split {
     change_address: &Address,
     postage: Option<Amount>,
     splits: &Splitfile,
+    lock_time: LockTime,
   ) -> Result<Transaction, Error> {
     if splits.outputs.is_empty() {
       return Err(Error::NoOutputs);
@@ -302,7 +304,7 @@ impl Split {
 
     let tx = Transaction {
       version: Version(2),
-      lock_time: LockTime::ZERO,
+      lock_time,
       input: inputs
         .into_iter()
         .map(|previous_output| TxIn {
@@ -344,6 +346,7 @@ mod tests {
           outputs: Vec::new(),
           rune_info: BTreeMap::new(),
         },
+          LockTime::ZERO,
       )
       .unwrap_err(),
       Error::NoOutputs,
@@ -366,6 +369,7 @@ mod tests {
           }],
           rune_info: BTreeMap::new(),
         },
+          LockTime::ZERO,
       )
       .unwrap_err(),
       Error::DustPostage {
@@ -403,6 +407,7 @@ mod tests {
           )]
           .into()
         },
+          LockTime::ZERO,
       )
       .unwrap_err(),
       Error::ZeroValue {
@@ -447,6 +452,7 @@ mod tests {
           )]
           .into()
         },
+          LockTime::ZERO,
       )
       .unwrap_err(),
       Error::ZeroValue {
@@ -487,6 +493,7 @@ mod tests {
           )]
           .into(),
         },
+          LockTime::ZERO,
       )
       .unwrap_err(),
       Error::Shortfall {
@@ -533,6 +540,7 @@ mod tests {
           )]
           .into()
         },
+          LockTime::ZERO,
       )
       .unwrap_err(),
       Error::Shortfall {
@@ -582,6 +590,7 @@ mod tests {
           )]
           .into(),
         },
+          LockTime::ZERO,
       )
       .unwrap_err(),
       Error::DustOutput {
@@ -624,6 +633,7 @@ mod tests {
           )]
           .into()
         },
+          LockTime::ZERO,
       )
       .unwrap_err(),
       Error::DustOutput {
@@ -664,7 +674,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let tx = Split::build_transaction(false, balances, &change(0), None, &splits, LockTime::ZERO).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -732,7 +742,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change, None, &splits).unwrap();
+    let tx = Split::build_transaction(false, balances, &change, None, &splits, LockTime::ZERO).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -810,6 +820,7 @@ mod tests {
       &change,
       Some(Amount::from_sat(500)),
       &splits,
+      LockTime::ZERO,
     )
     .unwrap();
 
@@ -881,7 +892,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change, None, &splits).unwrap();
+    let tx = Split::build_transaction(false, balances, &change, None, &splits, LockTime::ZERO).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -955,7 +966,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let tx = Split::build_transaction(false, balances, &change(0), None, &splits, LockTime::ZERO).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -1026,7 +1037,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let tx = Split::build_transaction(false, balances, &change(0), None, &splits, LockTime::ZERO).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -1096,7 +1107,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let tx = Split::build_transaction(false, balances, &change(0), None, &splits, LockTime::ZERO).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -1177,7 +1188,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let tx = Split::build_transaction(false, balances, &change(0), None, &splits, LockTime::ZERO).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -1270,7 +1281,7 @@ mod tests {
       .into(),
     };
 
-    let tx = Split::build_transaction(false, balances, &change(0), None, &splits).unwrap();
+    let tx = Split::build_transaction(false, balances, &change(0), None, &splits, LockTime::ZERO).unwrap();
 
     pretty_assert_eq!(
       tx,
@@ -1350,7 +1361,7 @@ mod tests {
     };
 
     assert_eq!(
-      Split::build_transaction(false, balances, &change(0), None, &splits).unwrap_err(),
+      Split::build_transaction(false, balances, &change(0), None, &splits, LockTime::ZERO).unwrap_err(),
       Error::RunestoneSize { size: 85 },
     );
   }
@@ -1383,7 +1394,7 @@ mod tests {
     };
 
     pretty_assert_eq!(
-      Split::build_transaction(true, balances, &change(0), None, &splits).unwrap(),
+      Split::build_transaction(true, balances, &change(0), None, &splits, LockTime::ZERO).unwrap(),
       Transaction {
         version: Version(2),
         lock_time: LockTime::ZERO,

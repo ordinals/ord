@@ -119,6 +119,7 @@ pub struct TransactionBuilder {
   inputs: Vec<OutPoint>,
   inscriptions: BTreeMap<SatPoint, Vec<InscriptionId>>,
   locked_utxos: BTreeSet<OutPoint>,
+  lock_time: LockTime,
   network: Network,
   outgoing: SatPoint,
   outputs: Vec<TxOut>,
@@ -157,6 +158,7 @@ impl TransactionBuilder {
       inputs: Vec::new(),
       inscriptions,
       locked_utxos,
+      lock_time: LockTime::ZERO,
       outgoing,
       outputs: Vec::new(),
       recipient,
@@ -165,6 +167,14 @@ impl TransactionBuilder {
       unused_change_addresses: change.to_vec(),
       network,
     }
+  }
+
+  /// Sets the `nLockTime` of the transaction produced by `build_transaction`.
+  /// Defaults to `LockTime::ZERO` for backwards compatibility. Callers that
+  /// want anti-fee-sniping protection should pass the current chain height.
+  pub fn with_lock_time(mut self, lock_time: LockTime) -> Self {
+    self.lock_time = lock_time;
+    self
   }
 
   pub fn build_transaction(self) -> Result<Transaction> {
@@ -480,7 +490,7 @@ impl TransactionBuilder {
   fn build(self) -> Result<Transaction> {
     let transaction = Transaction {
       version: Version(2),
-      lock_time: LockTime::ZERO,
+      lock_time: self.lock_time,
       input: self
         .inputs
         .iter()
@@ -788,6 +798,7 @@ mod tests {
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
       locked_utxos: BTreeSet::new(),
+      lock_time: LockTime::ZERO,
       runic_utxos: BTreeSet::new(),
       recipient: recipient(),
       unused_change_addresses: vec![change(0), change(1)],
@@ -1361,6 +1372,7 @@ mod tests {
       fee_rate: FeeRate::try_from(1.0).unwrap(),
       utxos: BTreeSet::new(),
       locked_utxos: BTreeSet::new(),
+      lock_time: LockTime::ZERO,
       runic_utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),
@@ -1402,6 +1414,7 @@ mod tests {
       fee_rate: FeeRate::try_from(1.0).unwrap(),
       utxos: BTreeSet::new(),
       locked_utxos: BTreeSet::new(),
+      lock_time: LockTime::ZERO,
       runic_utxos: BTreeSet::new(),
       outgoing: satpoint(1, 0),
       inscriptions: BTreeMap::new(),

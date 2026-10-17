@@ -6,6 +6,7 @@ pub struct Plan {
   pub(crate) dry_run: bool,
   pub(crate) etching: Option<Etching>,
   pub(crate) inscriptions: Vec<Inscription>,
+  pub(crate) lock_time: LockTime,
   pub(crate) mode: Mode,
   pub(crate) no_backup: bool,
   pub(crate) no_limit: bool,
@@ -25,6 +26,7 @@ impl Default for Plan {
       dry_run: false,
       etching: None,
       inscriptions: Vec::new(),
+      lock_time: LockTime::ZERO,
       mode: Mode::SharedOutput,
       no_backup: false,
       no_limit: false,
@@ -512,6 +514,7 @@ impl Plan {
       reveal_inputs.clone(),
       &reveal_script,
       rune.is_some(),
+      self.lock_time,
     );
 
     let mut target_value = reveal_fee;
@@ -536,6 +539,7 @@ impl Plan {
       Target::Value(target_value),
       chain.network(),
     )
+    .with_lock_time(self.lock_time)
     .build_transaction()?;
 
     let (vout, _commit_output) = unsigned_commit_tx
@@ -558,6 +562,7 @@ impl Plan {
       reveal_inputs,
       &reveal_script,
       rune.is_some(),
+      self.lock_time,
     );
 
     for output in reveal_tx.output.iter() {
@@ -716,6 +721,7 @@ impl Plan {
     input: Vec<OutPoint>,
     script: &Script,
     etching: bool,
+    lock_time: LockTime,
   ) -> (Transaction, Amount) {
     let reveal_tx = Transaction {
       input: input
@@ -732,7 +738,7 @@ impl Plan {
         })
         .collect(),
       output,
-      lock_time: LockTime::ZERO,
+      lock_time,
       version: Version(2),
     };
 
