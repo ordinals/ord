@@ -240,9 +240,13 @@ impl Api for Server {
     &self,
     txid: Txid,
     vout: u32,
-    _include_mempool: Option<bool>,
+    include_mempool: Option<bool>,
   ) -> Result<Option<GetTxOutResult>, jsonrpc_core::Error> {
     let state = self.state();
+
+    if include_mempool.unwrap_or(true) && state.is_spent_in_mempool(&OutPoint { txid, vout }) {
+      return Ok(None);
+    }
 
     let Some(value) = state.utxos.get(&OutPoint { txid, vout }) else {
       return Ok(None);
@@ -406,6 +410,10 @@ impl Api for Server {
 
     if (output_value + estimated_fee) > input_value {
       for (value, outpoint) in utxos {
+        if state.is_spent_in_mempool(&outpoint) {
+          continue;
+        }
+
         if state.locked.contains(&outpoint) {
           continue;
         }
@@ -767,6 +775,10 @@ impl Api for Server {
     let mut unspent = Vec::new();
 
     for (outpoint, &amount) in &state.utxos {
+      if state.is_spent_in_mempool(outpoint) {
+        continue;
+      }
+
       if state.locked.contains(outpoint) {
         continue;
       }

@@ -230,7 +230,7 @@ impl WalletConstructor {
     let mut utxos = BTreeMap::new();
 
     for outpoint in outpoints {
-      let Some(tx_out) = bitcoin_client.get_tx_out(&outpoint.txid, outpoint.vout, Some(false))?
+      let Some(tx_out) = bitcoin_client.get_tx_out(&outpoint.txid, outpoint.vout, Some(true))?
       else {
         continue;
       };

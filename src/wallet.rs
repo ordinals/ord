@@ -182,6 +182,7 @@ impl Wallet {
       .filter(|utxo| inscriptions.contains(utxo))
       .chain(self.get_runic_outputs()?.unwrap_or_default().iter())
       .cloned()
+      .filter(|utxo| self.utxos().contains_key(utxo))
       .filter(|utxo| !locked.contains(utxo))
       .collect::<Vec<OutPoint>>();
 
@@ -864,7 +865,7 @@ impl Wallet {
     let mut fee = 0;
     for txin in unsigned_transaction.input.iter() {
       let Some(txout) = unspent_outputs.get(&txin.previous_output) else {
-        panic!("input {} not found in utxos", txin.previous_output);
+        bail!("input {} not found in wallet utxos", txin.previous_output);
       };
       fee += txout.value.to_sat();
     }
@@ -1003,6 +1004,7 @@ impl Wallet {
       .unwrap_or_default()
       .into_iter()
       .filter(|output| !inscribed_outputs.contains(output))
+      .filter(|output| self.utxos().contains_key(output))
       .map(|output| {
         self.get_runes_balances_in_output(&output).map(|balance| {
           (
