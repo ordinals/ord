@@ -90,6 +90,11 @@ pub struct ChildInscriptions {
 }
 
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct ChildInscription {
+  pub child: Option<RelativeInscriptionRecursive>,
+}
+
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct Gallery {
   pub ids: Vec<InscriptionId>,
   pub more: bool,
