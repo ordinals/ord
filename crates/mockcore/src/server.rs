@@ -860,6 +860,47 @@ impl Api for Server {
     Ok(self.state().new_address(false))
   }
 
+  fn get_received_by_address(
+    &self,
+    address: Address<NetworkUnchecked>,
+    minconf: Option<u64>,
+  ) -> Result<f64, jsonrpc_core::Error> {
+    let script_pubkey = address.assume_checked_ref().script_pubkey();
+    let minconf = minconf.unwrap_or(1);
+    let state = self.state();
+    let mut total = Amount::ZERO;
+
+    for (txid, tx) in &state.transactions {
+      let confirmations = state
+        .txid_to_block_height
+        .get(txid)
+        .map(|height| state.hashes.len().saturating_sub(*height as usize))
+        .unwrap_or(0);
+
+      if confirmations < minconf as usize {
+        continue;
+      }
+
+      for output in &tx.output {
+        if output.script_pubkey == script_pubkey {
+          total += output.value;
+        }
+      }
+    }
+
+    if minconf == 0 {
+      for tx in &state.mempool {
+        for output in &tx.output {
+          if output.script_pubkey == script_pubkey {
+            total += output.value;
+          }
+        }
+      }
+    }
+
+    Ok(total.to_btc())
+  }
+
   fn list_transactions(
     &self,
     _label: Option<String>,
