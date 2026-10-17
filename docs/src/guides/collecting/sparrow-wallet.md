@@ -121,7 +121,7 @@ There you will find some metadata about your inscription which looks like the fo
 
 ![](images/sending_01.png)
 
-There are a few of important things to check here:
+There are a few important things to check here:
 * The `output` identifier matches the identifier of the UTXO you are going to send
 * The `offset` of the inscription is `0` (this means that the inscription is located on the first sat in the UTXO)
 * the `output_value` has enough sats to cover the transaction fee (postage) for sending the transaction. The exact amount you will need depends on the fee rate you will select for the transaction

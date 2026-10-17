@@ -10,7 +10,7 @@ precedence over the configuration file, which takes precedence over defaults.
 The path to the configuration file can be given with `--config <CONFIG_PATH>`.
 `ord` will error if `<CONFIG_PATH>` doesn't exist.
 
-The path to a directory containing a configuration file name named `ord.yaml`
+The path to a directory containing a configuration file named `ord.yaml`
 can be given with `--config-dir <CONFIG_DIR_PATH>` or `--datadir
 <DATA_DIR_PATH>` in which case the config path is `<CONFIG_DIR_PATH>/ord.yaml`
 or `<DATA_DIR_PATH>/ord.yaml`. It is not an error if it does not exist.
