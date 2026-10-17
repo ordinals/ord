@@ -1563,6 +1563,7 @@ fn batch_can_etch_rune() {
         rune,
         supply: "1000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         symbol: '¢',
         terms: None,
         turbo: false,
@@ -1652,6 +1653,81 @@ fn batch_can_etch_rune() {
 }
 
 #[test]
+fn batch_can_etch_rune_with_custom_premine_postage() {
+  let core = mockcore::builder().network(Network::Regtest).build();
+
+  let ord = TestServer::spawn_with_server_args(&core, &["--regtest", "--index-runes"], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let rune = SpacedRune {
+    rune: Rune(RUNE),
+    spacers: 0,
+  };
+
+  let custom_postage = 15000;
+
+  let batch = batch(
+    &core,
+    &ord,
+    batch::File {
+      etching: Some(batch::Etching {
+        divisibility: 0,
+        rune,
+        supply: "1000".parse().unwrap(),
+        premine: "1000".parse().unwrap(),
+        premine_postage: Some(custom_postage),
+        symbol: '¢',
+        terms: None,
+        turbo: false,
+      }),
+      inscriptions: vec![batch::Entry {
+        file: Some("inscription.jpeg".into()),
+        ..default()
+      }],
+      ..default()
+    },
+  );
+
+  let reveal = core.tx_by_id(batch.output.reveal);
+
+  let Artifact::Runestone(runestone) = Runestone::decipher(&reveal).unwrap() else {
+    panic!();
+  };
+
+  let pointer = reveal.output.len() - 2;
+
+  assert_eq!(runestone.pointer, Some(pointer.try_into().unwrap()));
+  assert_eq!(reveal.output[pointer].value.to_sat(), custom_postage);
+
+  assert_eq!(
+    CommandBuilder::new("--regtest wallet balance")
+      .core(&core)
+      .ord(&ord)
+      .run_and_deserialize_output::<Balance>(),
+    Balance {
+      cardinal: 39999975000, // 400 * COIN_VALUE - ordinal(10000) - runic(15000)
+      ordinal: 10000,
+      runic: Some(custom_postage),
+      runes: Some(
+        vec![(
+          rune,
+          Decimal {
+            value: 1000,
+            scale: 0,
+          }
+        )]
+        .into_iter()
+        .collect()
+      ),
+      total: 400 * COIN_VALUE,
+    }
+  );
+}
+
+#[test]
 fn batch_can_etch_turbo_rune() {
   let core = mockcore::builder().network(Network::Regtest).build();
 
@@ -1675,6 +1751,7 @@ fn batch_can_etch_turbo_rune() {
         rune,
         supply: "1000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         symbol: '¢',
         terms: None,
         turbo: true,
@@ -1721,6 +1798,7 @@ fn batch_can_etch_rune_without_premine() {
         rune,
         supply: "1000".parse().unwrap(),
         premine: "0".parse().unwrap(),
+        premine_postage: None,
         symbol: '¢',
         terms: Some(batch::Terms {
           cap: 1,
@@ -1804,6 +1882,7 @@ fn batch_inscribe_can_etch_rune_with_offset() {
         },
         supply: "10000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         symbol: '¢',
         terms: Some(batch::Terms {
           cap: 9,
@@ -1880,6 +1959,7 @@ fn batch_inscribe_can_etch_rune_with_height() {
         },
         supply: "10000".parse().unwrap(),
         premine: "1000".parse().unwrap(),
+        premine_postage: None,
         symbol: '¢',
         terms: Some(batch::Terms {
           cap: 9,
@@ -1957,6 +2037,7 @@ fn etch_existing_rune_error() {
           },
           supply: "1000".parse().unwrap(),
           premine: "1000".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: None,
           turbo: false,
@@ -1998,6 +2079,7 @@ fn etch_reserved_rune_error() {
             spacers: 0,
           },
           premine: "1000".parse().unwrap(),
+          premine_postage: None,
           supply: "1000".parse().unwrap(),
           symbol: '¢',
           terms: None,
@@ -2041,6 +2123,7 @@ fn etch_sub_minimum_rune_error() {
           },
           supply: "1000".parse().unwrap(),
           premine: "1000".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: None,
           turbo: false,
@@ -2083,6 +2166,7 @@ fn etch_requires_rune_index() {
           },
           supply: "1000".parse().unwrap(),
           premine: "1000".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: None,
           turbo: false,
@@ -2125,6 +2209,7 @@ fn etch_divisibility_over_maximum_error() {
           },
           supply: "1000".parse().unwrap(),
           premine: "1000".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: None,
           turbo: false,
@@ -2167,6 +2252,7 @@ fn etch_mintable_overflow_error() {
           },
           supply: default(),
           premine: default(),
+          premine_postage: None,
           symbol: '¢',
           terms: Some(batch::Terms {
             cap: 2,
@@ -2217,6 +2303,7 @@ fn etch_mintable_plus_premine_overflow_error() {
           },
           supply: default(),
           premine: "1".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: Some(batch::Terms {
             cap: 1,
@@ -2267,6 +2354,7 @@ fn incorrect_supply_error() {
           },
           supply: "1".parse().unwrap(),
           premine: "1".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: Some(batch::Terms {
             cap: 1,
@@ -2317,6 +2405,7 @@ fn zero_offset_interval_error() {
           },
           supply: "2".parse().unwrap(),
           premine: "1".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: Some(batch::Terms {
             cap: 1,
@@ -2367,6 +2456,7 @@ fn zero_height_interval_error() {
           },
           supply: "2".parse().unwrap(),
           premine: "1".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: Some(batch::Terms {
             cap: 1,
@@ -2417,6 +2507,7 @@ fn invalid_start_height_error() {
           },
           supply: "2".parse().unwrap(),
           premine: "1".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: Some(batch::Terms {
             cap: 1,
@@ -2469,6 +2560,7 @@ fn invalid_end_height_error() {
           },
           supply: "2".parse().unwrap(),
           premine: "1".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: Some(batch::Terms {
             cap: 1,
@@ -2521,6 +2613,7 @@ fn zero_supply_error() {
           },
           supply: "0".parse().unwrap(),
           premine: "0".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: None,
           turbo: false,
@@ -2563,6 +2656,7 @@ fn zero_cap_error() {
           },
           supply: "1".parse().unwrap(),
           premine: "1".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: Some(batch::Terms {
             cap: 0,
@@ -2610,6 +2704,7 @@ fn zero_amount_error() {
           },
           supply: "1".parse().unwrap(),
           premine: "1".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: Some(batch::Terms {
             cap: 1,
@@ -2657,6 +2752,7 @@ fn oversize_runestone_error() {
           },
           supply: u128::MAX.to_string().parse().unwrap(),
           premine: (u128::MAX - 1).to_string().parse().unwrap(),
+          premine_postage: None,
           symbol: '\u{10FFFF}',
           terms: Some(batch::Terms {
             cap: 1,
@@ -2712,6 +2808,7 @@ fn oversize_runestones_are_allowed_with_no_limit() {
         },
         supply: u128::MAX.to_string().parse().unwrap(),
         premine: (u128::MAX - 1).to_string().parse().unwrap(),
+        premine_postage: None,
         symbol: '\u{10FFFF}',
         terms: Some(batch::Terms {
           cap: 1,
@@ -2765,6 +2862,7 @@ fn batch_inscribe_errors_if_pending_etchings() {
       },
       supply: "1000".parse().unwrap(),
       premine: "1000".parse().unwrap(),
+      premine_postage: None,
       symbol: '¢',
       ..default()
     }),
@@ -2855,6 +2953,7 @@ fn forbid_etching_below_rune_activation_height() {
           },
           supply: "1".parse().unwrap(),
           premine: "1".parse().unwrap(),
+          premine_postage: None,
           symbol: '¢',
           terms: None,
           turbo: false,
