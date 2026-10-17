@@ -1311,3 +1311,200 @@ fn error_messages_use_spaced_runes() {
     .expected_stderr("error: rune `FOO` has not been etched\n")
     .run_and_extract_stdout();
 }
+
+#[test]
+fn send_with_op_return_includes_data_in_transaction() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let op_return_data = "test op_return data";
+
+  let output = CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 --op-return '{}' bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}",
+    op_return_data,
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  let tx = &core.mempool()[0];
+  assert_eq!(tx.compute_txid(), output.txid);
+
+  // Verify that the transaction has an OP_RETURN output
+  let op_return_output = tx
+    .output
+    .iter()
+    .find(|output| output.script_pubkey.is_op_return());
+
+  assert!(
+    op_return_output.is_some(),
+    "Transaction should have an OP_RETURN output"
+  );
+
+  let op_return_output = op_return_output.unwrap();
+  assert_eq!(
+    op_return_output.value.to_sat(),
+    0,
+    "OP_RETURN output should have zero value"
+  );
+
+  // Verify the data is in the script
+  let script = &op_return_output.script_pubkey;
+  let script_bytes = script.as_bytes();
+  // OP_RETURN is 0x6a, and the data follows after the push opcode
+  assert!(
+    script_bytes.starts_with(&[0x6a]),
+    "Script should start with OP_RETURN"
+  );
+  assert!(
+    script.to_string().contains("OP_RETURN"),
+    "Script should contain OP_RETURN opcode"
+  );
+}
+
+#[test]
+fn send_with_op_return_btc_amount() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let op_return_data = "payment memo: invoice #12345";
+
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 --op-return '{}' bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 1btc",
+    op_return_data,
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  let tx = &core.mempool()[0];
+
+  // Verify that the transaction has an OP_RETURN output
+  let op_return_output = tx
+    .output
+    .iter()
+    .find(|output| output.script_pubkey.is_op_return());
+
+  assert!(
+    op_return_output.is_some(),
+    "Transaction should have an OP_RETURN output"
+  );
+}
+
+#[test]
+fn send_op_return_data_exceeding_80_bytes_fails() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  let txid = core.mine_blocks(1)[0].txdata[0].compute_txid();
+
+  // Create data that exceeds 80 bytes
+  let op_return_data = "a".repeat(81);
+
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 --op-return '{}' bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {txid}:0:0",
+    op_return_data,
+  ))
+  .core(&core)
+  .ord(&ord)
+  .expected_exit_code(1)
+  .expected_stderr("error: OP_RETURN data exceeds maximum size of 80 bytes (81 bytes provided)\n")
+  .run_and_extract_stdout();
+}
+
+#[test]
+fn send_with_op_return_exactly_80_bytes_succeeds() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  // Create data that is exactly 80 bytes
+  let op_return_data = "a".repeat(80);
+
+  CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 --op-return '{}' bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}",
+    op_return_data,
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  let tx = &core.mempool()[0];
+
+  // Verify that the transaction has an OP_RETURN output
+  let op_return_output = tx
+    .output
+    .iter()
+    .find(|output| output.script_pubkey.is_op_return());
+
+  assert!(
+    op_return_output.is_some(),
+    "Transaction should have an OP_RETURN output"
+  );
+}
+
+#[test]
+fn send_dry_run_with_op_return() {
+  let core = mockcore::spawn();
+
+  let ord = TestServer::spawn_with_server_args(&core, &[], &[]);
+
+  create_wallet(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let (inscription, _) = inscribe(&core, &ord);
+
+  core.mine_blocks(1);
+
+  let op_return_data = "dry run test";
+
+  let output = CommandBuilder::new(format!(
+    "wallet send --fee-rate 1 --op-return '{}' --dry-run bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4 {inscription}",
+    op_return_data,
+  ))
+  .core(&core)
+  .ord(&ord)
+  .run_and_deserialize_output::<Send>();
+
+  // Mempool should be empty since it's a dry run
+  assert!(core.mempool().is_empty());
+
+  // PSBT should be valid and contain the OP_RETURN output
+  let psbt = Psbt::deserialize(&base64_decode(&output.psbt).unwrap()).unwrap();
+  let op_return_output = psbt
+    .unsigned_tx
+    .output
+    .iter()
+    .find(|output| output.script_pubkey.is_op_return());
+
+  assert!(
+    op_return_output.is_some(),
+    "PSBT should contain an OP_RETURN output"
+  );
+}
