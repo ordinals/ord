@@ -46,8 +46,7 @@ mod tests {
           <dt>gallery</dt>
           <dd><a href=/inscription/2{64}i2>2{64}i2</a></dd>
           <dt>title</dt>
-        <dd>foo</dd>
-
+          <dd>foo</dd>
         </dl>
       "
       .unindent()

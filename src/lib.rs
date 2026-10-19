@@ -56,7 +56,7 @@ use {
     transaction::Version,
   },
   bitcoincore_rpc::{Client, RpcApi},
-  boilerplate::{Escape, Trusted},
+  boilerplate::{Format, Trusted},
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},

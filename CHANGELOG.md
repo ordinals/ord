@@ -1,7 +1,28 @@
 Changelog
 =========
 
-[0.29.0](https://github.com/ordinals/ord/releases/tag/0.28.0) - 2026-08-05
+[0.29.1](https://github.com/ordinals/ord/releases/tag/0.29.1) - 2026-10-19
+--------------------------------------------------------------------------
+
+### Fixed
+- Index transactions with pay-to-anchor outputs correctly ([#4575](https://github.com/ordinals/ord/pull/4575) by [casey](https://github.com/casey))
+- Respect HTTP port set in settings ([#4572](https://github.com/ordinals/ord/pull/4572) by [casey](https://github.com/casey))
+
+### Added
+- Add configurable JSON API batch limit ([#4571](https://github.com/ordinals/ord/pull/4571) by [casey](https://github.com/casey))
+- Add `/r/block/<QUERY>` that returns block hex ([#4563](https://github.com/ordinals/ord/pull/4563) by [casey](https://github.com/casey))
+
+### Misc
+- Don't create bitcoind's `settings.json` on startup ([#4568](https://github.com/ordinals/ord/pull/4568) by [casey](https://github.com/casey))
+- Update test server when running wallet commands ([#4567](https://github.com/ordinals/ord/pull/4567) by [casey](https://github.com/casey))
+- Disable empty test targets ([#4566](https://github.com/ordinals/ord/pull/4566) by [casey](https://github.com/casey))
+- Reject service worker script requests ([#4565](https://github.com/ordinals/ord/pull/4565) by [casey](https://github.com/casey))
+- Handle decimal excessive precision errors ([#4560](https://github.com/ordinals/ord/pull/4560) by [casey](https://github.com/casey))
+- Warn when exporting addresses without address index ([#4558](https://github.com/ordinals/ord/pull/4558) by [Bortlesboat](https://github.com/Bortlesboat))
+- Use checked addition in `Decimal::from_str()` ([#4557](https://github.com/ordinals/ord/pull/4557) by [casey](https://github.com/casey))
+- Update ordinals crate to 0.17.0 ([#4556](https://github.com/ordinals/ord/pull/4556) by [casey](https://github.com/casey))
+
+[0.29.0](https://github.com/ordinals/ord/releases/tag/0.29.0) - 2026-08-05
 --------------------------------------------------------------------------
 
 ### Changed

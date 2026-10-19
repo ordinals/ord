@@ -11,7 +11,7 @@ use {
     opcodes,
     script::{self, Instruction},
   },
-  derive_more::{Display, FromStr},
+  derive_more::with_trait::{Display, FromStr},
   serde::{Deserialize, Serialize},
   serde_with::{DeserializeFromStr, SerializeDisplay},
   std::{
