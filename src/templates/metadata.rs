@@ -31,7 +31,7 @@ impl Display for MetadataHtml<'_> {
       }
       Value::Null => write!(f, "null"),
       Value::Tag(tag, value) => write!(f, "<sup>{tag}</sup>{}", MetadataHtml(value)),
-      Value::Text(x) => x.escape(f, false),
+      Value::Text(x) => x.format(f, "", false),
       _ => write!(f, "unknown"),
     }
   }

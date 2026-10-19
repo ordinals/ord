@@ -61,7 +61,7 @@ impl Sign {
 
     let to_spend = bip322::create_to_spend(&address, message)?;
 
-    let to_sign = bip322::create_to_sign(&to_spend, None)?;
+    let to_sign = bip322::create_to_sign(&to_spend, None, bip322::LockParams::default())?;
 
     let result = wallet.bitcoin_client().sign_raw_transaction_with_wallet(
       &to_sign.extract_tx()?,
