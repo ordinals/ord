@@ -16,6 +16,7 @@ use {
   self::{
     arguments::Arguments,
     blocktime::Blocktime,
+    client_ext::ClientExt,
     decimal::Decimal,
     deserialize_from_str::DeserializeFromStr,
     fund_raw_transaction::fund_raw_transaction,
@@ -117,6 +118,7 @@ pub mod api;
 pub mod arguments;
 mod blocktime;
 pub mod chain;
+mod client_ext;
 pub mod decimal;
 mod deserialize_from_str;
 mod error;

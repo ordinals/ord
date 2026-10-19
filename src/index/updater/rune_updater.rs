@@ -426,8 +426,7 @@ impl RuneUpdater<'_, '_, '_> {
 
         let Some(tx_info) = self
           .client
-          .get_raw_transaction_info(&input.previous_output.txid, None)
-          .into_option()?
+          .get_raw_transaction_info_ext(input.previous_output.txid)?
         else {
           panic!(
             "can't get input transaction: {}",
@@ -435,9 +434,8 @@ impl RuneUpdater<'_, '_, '_> {
           );
         };
 
-        let taproot = tx_info.vout[input.previous_output.vout.into_usize()]
-          .script_pub_key
-          .script()?
+        let taproot = tx_info.hex.output[input.previous_output.vout.into_usize()]
+          .script_pubkey
           .is_p2tr();
 
         if !taproot {

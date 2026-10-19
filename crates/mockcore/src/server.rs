@@ -241,7 +241,7 @@ impl Api for Server {
     txid: Txid,
     vout: u32,
     _include_mempool: Option<bool>,
-  ) -> Result<Option<GetTxOutResult>, jsonrpc_core::Error> {
+  ) -> Result<Option<Value>, jsonrpc_core::Error> {
     let state = self.state();
 
     let Some(value) = state.utxos.get(&OutPoint { txid, vout }) else {
@@ -264,7 +264,7 @@ impl Api for Server {
 
     let script_pubkey = &tx.output[usize::try_from(vout).unwrap()].script_pubkey;
 
-    Ok(Some(GetTxOutResult {
+    let mut result = serde_json::to_value(GetTxOutResult {
       bestblock: BlockHash::all_zeros(),
       coinbase: false,
       confirmations: confirmations.unwrap().try_into().unwrap(),
@@ -279,7 +279,14 @@ impl Api for Server {
           .map(|addr| addr.into_unchecked()),
       },
       value: *value,
-    }))
+    })
+    .unwrap();
+
+    if *script_pubkey == ScriptBuf::new_p2a() {
+      result["scriptPubKey"]["type"] = "anchor".into();
+    }
+
+    Ok(Some(result))
   }
 
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error> {
@@ -703,10 +710,10 @@ impl Api for Server {
 
     if verbose.unwrap_or(false) {
       match state.transactions.get(&txid) {
-        Some(transaction) => Ok(
-          serde_json::to_value(GetRawTransactionResult {
+        Some(transaction) => {
+          let mut result = serde_json::to_value(GetRawTransactionResult {
             in_active_chain: Some(true),
-            hex: Vec::new(),
+            hex: serialize(transaction),
             txid: Txid::all_zeros(),
             hash: Wtxid::all_zeros(),
             size: 0,
@@ -736,8 +743,16 @@ impl Api for Server {
             time: None,
             blocktime: None,
           })
-          .unwrap(),
-        ),
+          .unwrap();
+
+          for (n, output) in transaction.output.iter().enumerate() {
+            if output.script_pubkey == ScriptBuf::new_p2a() {
+              result["vout"][n]["scriptPubKey"]["type"] = "anchor".into();
+            }
+          }
+
+          Ok(result)
+        }
         None => Err(Self::not_found()),
       }
     } else {
