@@ -469,7 +469,15 @@ impl Server {
     let test = settings.integration_test() || cfg!(test);
 
     Ok(tokio::spawn(async move {
-      let listener = tokio::net::TcpListener::bind(addr).await?.into_std()?;
+      let socket = match addr {
+        SocketAddr::V4(_) => tokio::net::TcpSocket::new_v4()?,
+        SocketAddr::V6(_) => tokio::net::TcpSocket::new_v6()?,
+      };
+
+      socket.set_reuseaddr(true)?;
+      socket.bind(addr)?;
+
+      let listener = socket.listen(4096)?.into_std()?;
 
       let addr = listener.local_addr()?;
 

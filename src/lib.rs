@@ -269,13 +269,13 @@ pub fn main() {
 
     eprintln!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
 
+    gracefully_shut_down_indexer();
+
     LISTENERS
       .lock()
       .unwrap()
       .iter()
       .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
-
-    gracefully_shut_down_indexer();
   })
   .expect("Error setting <CTRL-C> handler");
 
