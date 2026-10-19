@@ -4116,6 +4116,38 @@ mod tests {
   }
 
   #[test]
+  fn output_of_transaction_with_anchor_output() {
+    let server = TestServer::new();
+
+    server.mine_blocks(1);
+
+    let txid = server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(1, 0, 0, Default::default())],
+      recipient: Some(Address::from_script(&ScriptBuf::new_p2a(), Network::Bitcoin).unwrap()),
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let output = server.get_json::<api::Output>(format!("/output/{txid}:0"));
+
+    assert_eq!(output.script_pubkey, ScriptBuf::new_p2a());
+    assert!(!output.spent);
+
+    server.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(2, 1, 0, Default::default())],
+      ..default()
+    });
+
+    server.mine_blocks(1);
+
+    let output = server.get_json::<api::Output>(format!("/output/{txid}:0"));
+
+    assert_eq!(output.script_pubkey, ScriptBuf::new_p2a());
+    assert!(output.spent);
+  }
+
+  #[test]
   fn output_without_sat_index() {
     let txid = "4a5e1e4baab89f3a32518a88c31bc87f618f76673e2cc77ab2127b7afdeda33b";
     TestServer::new().assert_response_regex(

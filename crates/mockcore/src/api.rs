@@ -46,7 +46,7 @@ pub trait Api {
     txid: Txid,
     vout: u32,
     include_mempool: Option<bool>,
-  ) -> Result<Option<GetTxOutResult>, jsonrpc_core::Error>;
+  ) -> Result<Option<Value>, jsonrpc_core::Error>;
 
   #[rpc(name = "getwalletinfo")]
   fn get_wallet_info(&self) -> Result<GetWalletInfoResult, jsonrpc_core::Error>;

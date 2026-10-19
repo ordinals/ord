@@ -5780,6 +5780,83 @@ mod tests {
   }
 
   #[test]
+  fn commits_are_valid_in_transactions_with_anchor_outputs() {
+    let context = Context::builder().arg("--index-runes").build();
+
+    let block_count = context.index.block_count().unwrap().into_usize();
+
+    context.mine_blocks(1);
+
+    context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(block_count, 0, 0, Witness::new())],
+      op_return: Some(ScriptBuf::new_p2a()),
+      p2tr: true,
+      ..default()
+    });
+
+    context.mine_blocks(Runestone::COMMIT_CONFIRMATIONS.into());
+
+    let mut witness = Witness::new();
+
+    let runestone = Runestone {
+      etching: Some(Etching {
+        rune: Some(Rune(RUNE)),
+        ..default()
+      }),
+      ..default()
+    };
+
+    let tapscript = script::Builder::new()
+      .push_slice::<&PushBytes>(
+        runestone
+          .etching
+          .unwrap()
+          .rune
+          .unwrap()
+          .commitment()
+          .as_slice()
+          .try_into()
+          .unwrap(),
+      )
+      .into_script();
+
+    witness.push(tapscript);
+
+    witness.push([]);
+
+    let txid = context.core.broadcast_tx(TransactionTemplate {
+      inputs: &[(block_count + 1, 1, 0, witness)],
+      op_return: Some(runestone.encipher()),
+      outputs: 1,
+      ..default()
+    });
+
+    context.mine_blocks(1);
+
+    let id = RuneId {
+      block: u64::try_from(block_count + usize::from(Runestone::COMMIT_CONFIRMATIONS) + 1).unwrap(),
+      tx: 1,
+    };
+
+    context.assert_runes(
+      [(
+        id,
+        RuneEntry {
+          block: id.block,
+          etching: txid,
+          spaced_rune: SpacedRune {
+            rune: Rune(RUNE),
+            spacers: 0,
+          },
+          timestamp: id.block,
+          ..default()
+        },
+      )],
+      [],
+    );
+  }
+
+  #[test]
   fn immature_commits_are_not_valid() {
     let context = Context::builder().arg("--index-runes").build();
 
