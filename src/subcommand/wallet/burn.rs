@@ -153,20 +153,25 @@ impl Burn {
 
     let change = [wallet.get_change_address()?, wallet.get_change_address()?];
 
-    Ok(
-      TransactionBuilder::new(
-        satpoint,
-        wallet.inscriptions().clone(),
-        wallet.utxos().clone(),
-        wallet.locked_utxos().clone().into_keys().collect(),
-        runic_outputs,
-        script_pubkey,
-        change,
-        fee_rate,
-        Target::ExactPostage(burn_amount),
-        wallet.chain().network(),
-      )
-      .build_transaction()?,
+    let tx = TransactionBuilder::new(
+      satpoint,
+      wallet.inscriptions().clone(),
+      wallet.utxos().clone(),
+      wallet.locked_utxos().clone().into_keys().collect(),
+      runic_outputs,
+      script_pubkey,
+      change.clone(),
+      fee_rate,
+      Target::ExactPostage(burn_amount),
+      wallet.chain().network(),
     )
+    .build_transaction();
+
+    match &tx {
+      Ok(tx) => wallet.save_tx_unused_change_addresses(&change, tx)?,
+      Err(_) => wallet.save_unused_change_addresses(&change)?,
+    }
+
+    tx.map_err(|e| e.into())
   }
 }
