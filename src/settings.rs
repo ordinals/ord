@@ -27,6 +27,7 @@ pub struct Settings {
   integration_test: bool,
   max_savepoints: Option<usize>,
   no_index_inscriptions: bool,
+  disable_output_confirmations: bool,
   savepoint_interval: Option<usize>,
   server_password: Option<String>,
   server_url: Option<String>,
@@ -143,6 +144,7 @@ impl Settings {
       integration_test: self.integration_test || source.integration_test,
       max_savepoints: self.max_savepoints.or(source.max_savepoints),
       no_index_inscriptions: self.no_index_inscriptions || source.no_index_inscriptions,
+      disable_output_confirmations: self.disable_output_confirmations || source.disable_output_confirmations,
       savepoint_interval: self.savepoint_interval.or(source.savepoint_interval),
       server_password: self.server_password.or(source.server_password),
       server_url: self.server_url.or(source.server_url),
@@ -182,6 +184,7 @@ impl Settings {
       integration_test: options.integration_test,
       max_savepoints: options.max_savepoints,
       no_index_inscriptions: options.no_index_inscriptions,
+      disable_output_confirmations: options.disable_output_confirmations,
       savepoint_interval: options.savepoint_interval,
       server_password: options.server_password,
       server_url: None,
@@ -273,6 +276,7 @@ impl Settings {
       integration_test: get_bool("INTEGRATION_TEST"),
       max_savepoints: get_usize("MAX_SAVEPOINTS")?,
       no_index_inscriptions: get_bool("NO_INDEX_INSCRIPTIONS"),
+      disable_output_confirmations: get_bool("DISABLE_OUTPUT_CONFIRMATIONS"),
       savepoint_interval: get_usize("SAVEPOINT_INTERVAL")?,
       server_password: get_string("SERVER_PASSWORD"),
       server_url: get_string("SERVER_URL"),
@@ -306,6 +310,7 @@ impl Settings {
       integration_test: false,
       max_savepoints: None,
       no_index_inscriptions: false,
+      disable_output_confirmations: false,
       savepoint_interval: None,
       server_password: None,
       server_url: Some(server_url.into()),
@@ -383,6 +388,7 @@ impl Settings {
       integration_test: self.integration_test,
       max_savepoints: Some(self.max_savepoints.unwrap_or(2)),
       no_index_inscriptions: self.no_index_inscriptions,
+      disable_output_confirmations: self.disable_output_confirmations,
       savepoint_interval: Some(self.savepoint_interval.unwrap_or(10)),
       server_password: self.server_password,
       server_url: self.server_url,
@@ -576,6 +582,10 @@ impl Settings {
 
   pub fn index_cache_size(&self) -> usize {
     self.index_cache_size.unwrap()
+  }
+
+  pub fn disable_output_confirmations(&self) -> bool {
+    self.disable_output_confirmations
   }
 
   pub fn index_sats_raw(&self) -> bool {
