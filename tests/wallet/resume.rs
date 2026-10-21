@@ -16,6 +16,7 @@ fn get_batchfile() -> batch::File {
       },
       supply: "1000".parse().unwrap(),
       premine: "1000".parse().unwrap(),
+      premine_postage: None,
       symbol: '¢',
       ..default()
     }),

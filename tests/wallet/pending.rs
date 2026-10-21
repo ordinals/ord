@@ -24,6 +24,7 @@ fn wallet_pending() {
       },
       supply: "1000".parse().unwrap(),
       premine: "1000".parse().unwrap(),
+      premine_postage: None,
       symbol: '¢',
       ..default()
     }),
