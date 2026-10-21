@@ -166,6 +166,7 @@ impl Burn {
         Target::ExactPostage(burn_amount),
         wallet.chain().network(),
       )
+      .with_lock_time(wallet.lock_time()?)
       .build_transaction()?,
     )
   }

@@ -51,7 +51,7 @@ impl Create {
 
     let tx = Transaction {
       version: Version(2),
-      lock_time: LockTime::ZERO,
+      lock_time: wallet.lock_time()?,
       input: vec![TxIn {
         previous_output: inscription.satpoint.outpoint,
         script_sig: ScriptBuf::new(),
