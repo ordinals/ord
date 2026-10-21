@@ -60,7 +60,7 @@ If the inscription property encoding field, tag 19, is set to "br", the value
 of the properties field will be decompressed with
 [Brotli](https://en.wikipedia.org/wiki/Brotli).
 
-Inscription properties my be compressed when inscribing with
+Inscription properties may be compressed when inscribing with
 `ord wallet inscribe` and `ord wallet batch` with the `--compress` flag.
 
 To avoid decompression bombs, the maximum size of decompressed properties is
@@ -84,7 +84,7 @@ Inscriptions whose properties field contains `Item`s are galleries.
 
 Galleries contain `Item`s, whose key `0` contains a serialized inscription ID.
 Inscription ID `TXIDiINDEX` is serialized as a byte string containing the 32
-byte `TXID`, concatenated with by the four-byte little-endian `INDEX`. Trailing
+byte `TXID`, concatenated with the four-byte little-endian `INDEX`. Trailing
 zeros may be removed from four-byte `INDEX`, so IDs ending in `i0` may be
 serialized in 32 bytes.
 
@@ -99,13 +99,13 @@ does not create a backlink from the gallery item's `/inscription` page to the
 gallery.
 
 Galleries may be created when batch inscribing with `ord wallet batch` by
-including an array of string inscription IDs of under the `gallery` key of the
+including an array of string inscription IDs under the `gallery` key of the
 inscription entry in the batch file, or when using `ord wallet inscribe` using
 the `--gallery` option.
 
 ### Item Inscription IDs
 
-Inscription IDs consist of a 32-byte bitcoin transaction ID and an 0-4 byte
+Inscription IDs consist of a 32-byte bitcoin transaction ID and a 0-4 byte
 integer index, defaulting to zero if omitted. Transaction IDs are effectively
 incompressible, since they are as-if-random cryptographic hash digests.
 
