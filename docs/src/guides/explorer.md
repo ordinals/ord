@@ -22,6 +22,8 @@ The JSON-API endpoints are enabled by default, to disable them add the
 
 `ord server --disable-json-api`
 
+See [Security](../security.md) before exposing a server to the public.
+
 Search
 ------
 

@@ -12,7 +12,8 @@ and spoofing attacks.
 Without mitigations, a domain hosting an `ord server` explorer instance should
 be considered to be completely untrusted.
 
-### Cross-site Scripting
+Cross-site Scripting
+--------------------
 
 An attacker performs a cross-site scripting attack by injecting JavaScript into
 a vulnerable website such that it is later served to a victim, causing the
@@ -31,7 +32,7 @@ However, if you serve requests to `ord server` from a domain which *also*
 serves private resources or allow privileged actions, you may be vulnerable to
 cross-site scripting attacks.
 
-#### Example
+### Example
 
 - `ord server` is run under `https://example.com/ord`.
 
@@ -52,7 +53,42 @@ cross-site scripting attacks.
 To prevent this, do not make `ord server` available on the same domain and port
 as another web service which is vulnerable to cross-site scripting.
 
-### Spoofing
+Denial of Service
+-----------------
+
+The JSON API supports a number of potentially expensive endpoints which can be
+used for denial-of-service attacks. Consider starting publicly accessible
+servers with `--disable-json-api`.
+
+### Batch Limit
+
+In particular, the `POST /outputs` endpoint can be called with many outpoints,
+causing the `ord` server to perform expensive lookups for all of them.
+
+This can be mitigated with the `ord server --batch-limit <LIMIT>` option, which
+limits the number of items per request for:
+
+- `POST /inscriptions`
+- `POST /missing`
+- `POST /outputs`
+
+Note that the wallet does not support batching, so the batch limit must be
+large enough to accommodate any wallets used with the server.
+
+### Offers
+
+If `ord server` is started with `--accept-offers`, the `POST /offer` endpoint
+accepts a PSBT offer that may be up to 2 MiB, allowing an attacker to quickly
+fill the server's disk.
+
+### Decompression
+
+If `ord server` is started with `--decompress`, it will decompress compressed
+inscriptions. Decompressed content is of unbounded size, so enable
+decompression with caution.
+
+Spoofing
+--------
 
 If `ord server` is run at a well known domain, for example, `ordinals.com`, an
 attacker could publish a malicious inscription that attempts to trick users
@@ -63,7 +99,7 @@ be used to change the path without triggering a page reload, so inscription
 content can appear to the user under URL that suggests it was published by the
 site owners.
 
-#### Example
+### Example
 
 - `ord server` is run at `https://example.com`, by popular and well-respected
   Example Corporation.
