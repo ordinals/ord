@@ -1,6 +1,13 @@
-# JSON-API
+JSON API
+========
 
-By default, the `ord server` gives access to endpoints that return JSON instead of HTML if you set the HTTP `Accept: application/json` header. The structure of these objects closely follows what is shown in the HTML.  These endpoints are:
+By default, the `ord server` gives access to endpoints that return JSON instead
+of HTML if you set the HTTP `Accept: application/json` header. The structure of
+these objects closely follows what is shown in the HTML.  These endpoints are:
+
+Several endpoints are denial-of-service vectors. See
+[Security](../security.md#denial-of-service) before exposing a server to the
+public.
 
 ## Endpoints
 
