@@ -233,8 +233,13 @@
 
                 <div id="content" class="content">
                     <main>
-                        <h1 id="json-api"><a class="header" href="#json-api">JSON-API</a></h1>
-<p>By default, the <code>ord server</code> gives access to endpoints that return JSON instead of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of these objects closely follows what is shown in the HTML.  These endpoints are:</p>
+                        <h1 id="json-api"><a class="header" href="#json-api">JSON API</a></h1>
+<p>By default, the <code>ord server</code> gives access to endpoints that return JSON instead
+of HTML if you set the HTTP <code>Accept: application/json</code> header. The structure of
+these objects closely follows what is shown in the HTML.  These endpoints are:</p>
+<p>Several endpoints are denial-of-service vectors. See
+<a href="../security.html#denial-of-service">Security</a> before exposing a server to the
+public.</p>
 <h2 id="endpoints"><a class="header" href="#endpoints">Endpoints</a></h2>
 <details>
   <summary>

@@ -237,12 +237,12 @@
 <p>Anyone can publish inscriptions, including arbitrary HTML, which <code>ord server</code> will serve at <code>/content/&lt;INSCRIPTION_ID&gt;</code>, <code>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</code>, and <code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</code>.</p>
 <p>This creates potential security vulnerabilities, including cross-site scripting and spoofing attacks.</p>
 <p>Without mitigations, a domain hosting an <code>ord server</code> explorer instance should be considered to be completely untrusted.</p>
-<h3 id="cross-site-scripting"><a class="header" href="#cross-site-scripting">Cross-site Scripting</a></h3>
+<h2 id="cross-site-scripting"><a class="header" href="#cross-site-scripting">Cross-site Scripting</a></h2>
 <p>An attacker performs a cross-site scripting attack by injecting JavaScript into a vulnerable website such that it is later served to a victim, causing the malicious script to run in the victim's own browser with the same permissions as any other script from that website.</p>
 <p>Such a script could access private site resources or perform privileged actions on the user's behalf, since it would be making requests on behalf of the user.</p>
 <p>Cross-site scripting is <em>not</em> a concern for a vanilla <code>ord server</code> instance. <code>ord server</code> does not serve any private resources or allow privileged actions to be taken via the web interface, so although JavaScript can be injected using an inscription, it does not run with any meaningful permissions.</p>
 <p>However, if you serve requests to <code>ord server</code> from a domain which <em>also</em> serves private resources or allow privileged actions, you may be vulnerable to cross-site scripting attacks.</p>
-<h4 id="예제"><a class="header" href="#예제">예제</a></h4>
+<h3 id="예제"><a class="header" href="#예제">예제</a></h3>
 <ul>
 <li>
 <p><code>ord server</code> is run under <code>https://example.com/ord</code>.</p>
@@ -261,9 +261,24 @@
 </li>
 </ul>
 <p>To prevent this, do not make <code>ord server</code> available on the same domain and port as another web service which is vulnerable to cross-site scripting.</p>
-<h3 id="spoofing"><a class="header" href="#spoofing">Spoofing</a></h3>
+<h2 id="denial-of-service"><a class="header" href="#denial-of-service">Denial of Service</a></h2>
+<p>The JSON API supports a number of potentially expensive endpoints which can be used for denial-of-service attacks. Consider starting publicly accessible servers with <code>--disable-json-api</code>.</p>
+<h3 id="batch-limit"><a class="header" href="#batch-limit">Batch Limit</a></h3>
+<p>In particular, the <code>POST /outputs</code> endpoint can be called with many outpoints, causing the <code>ord</code> server to perform expensive lookups for all of them.</p>
+<p>This can be mitigated with the <code>ord server --batch-limit &lt;LIMIT&gt;</code> option, which limits the number of items per request for:</p>
+<ul>
+<li><code>POST /inscriptions</code></li>
+<li><code>POST /missing</code></li>
+<li><code>POST /outputs</code></li>
+</ul>
+<p>Note that the wallet does not support batching, so the batch limit must be large enough to accommodate any wallets used with the server.</p>
+<h3 id="offers"><a class="header" href="#offers">Offers</a></h3>
+<p>If <code>ord server</code> is started with <code>--accept-offers</code>, the <code>POST /offer</code> endpoint accepts a PSBT offer that may be up to 2 MiB, allowing an attacker to quickly fill the server's disk.</p>
+<h3 id="decompression"><a class="header" href="#decompression">Decompression</a></h3>
+<p>If <code>ord server</code> is started with <code>--decompress</code>, it will decompress compressed inscriptions. Decompressed content is of unbounded size, so enable decompression with caution.</p>
+<h2 id="spoofing"><a class="header" href="#spoofing">Spoofing</a></h2>
 <p>If <code>ord server</code> is run at a well known domain, for example, <code>ordinals.com</code>, an attacker could publish a malicious inscription that attempts to trick users into thinking that it represents the owners of the domain. For example, by publishing a mint page to induce users to send bitcoin. Additionally, the <a href="https://developer.mozilla.org/en-US/docs/Web/API/History_API">History API</a> can be used to change the path without triggering a page reload, so inscription content can appear to the user under URL that suggests it was published by the site owners.</p>
-<h4 id="예제-1"><a class="header" href="#예제-1">예제</a></h4>
+<h3 id="예제-1"><a class="header" href="#예제-1">예제</a></h3>
 <ul>
 <li>
 <p><code>ord server</code> is run at <code>https://example.com</code>, by popular and well-respected Example Corporation.</p>

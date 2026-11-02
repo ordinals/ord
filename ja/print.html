@@ -2051,12 +2051,12 @@ i               # separator
 <p>誰でも任意のHTMLを含むInscriptionを公開でき、<code>ord server</code>はこれらを<code>/content/&lt;INSCRIPTION_ID&gt;</code>、<code>/r/undelegated-content/&lt;INSCRIPTION_ID&gt;</code>、および<code>/r/sat/&lt;SAT_NUMBER&gt;/at/&lt;INDEX&gt;/content</code>で提供します。</p>
 <p>これにより、クロスサイトスクリプティングやスプーフィング攻撃を含む潜在的なセキュリティ脆弱性が生まれます。</p>
 <p>軽減策なしでは、<code>ord server</code>エクスプローラーインスタンスをホストするドメインは完全に信頼できないものと考えるべきです。</p>
-<h3 id="クロスサイトスクリプティング"><a class="header" href="#クロスサイトスクリプティング">クロスサイトスクリプティング</a></h3>
+<h2 id="クロスサイトスクリプティング"><a class="header" href="#クロスサイトスクリプティング">クロスサイトスクリプティング</a></h2>
 <p>攻撃者は脆弱なウェブサイトにJavaScriptを注入し、後でそれが被害者に提供されることでクロスサイトスクリプティング攻撃を実行し、悪意のあるスクリプトが被害者のブラウザで、そのウェブサイトの他のスクリプトと同じ権限で実行されるようにします。</p>
 <p>このようなスクリプトは、ユーザーの代わりにリクエストを行うため、プライベートなサイトリソースにアクセスしたり、ユーザーに代わって特権的なアクションを実行する可能性があります。</p>
 <p>Cross-site scripting is <em>not</em> a concern for a vanilla <code>ord server</code> instance. <code>ord server</code> does not serve any private resources or allow privileged actions to be taken via the web interface, so although JavaScript can be injected using an inscription, it does not run with any meaningful permissions.</p>
 <p>However, if you serve requests to <code>ord server</code> from a domain which <em>also</em> serves private resources or allow privileged actions, you may be vulnerable to cross-site scripting attacks.</p>
-<h4 id="例-26"><a class="header" href="#例-26">例</a></h4>
+<h3 id="例-26"><a class="header" href="#例-26">例</a></h3>
 <ul>
 <li>
 <p><code>ord server</code>が<code>https://example.com/ord</code>で実行されています。</p>
@@ -2075,9 +2075,24 @@ i               # separator
 </li>
 </ul>
 <p>これを防ぐには、クロスサイトスクリプティングに脆弱な他のウェブサービスと同じドメインとポートで<code>ord server</code>を利用可能にしないでください。</p>
-<h3 id="スプーフィング"><a class="header" href="#スプーフィング">スプーフィング</a></h3>
+<h2 id="denial-of-service"><a class="header" href="#denial-of-service">Denial of Service</a></h2>
+<p>The JSON API supports a number of potentially expensive endpoints which can be used for denial-of-service attacks. Consider starting publicly accessible servers with <code>--disable-json-api</code>.</p>
+<h3 id="batch-limit"><a class="header" href="#batch-limit">Batch Limit</a></h3>
+<p>In particular, the <code>POST /outputs</code> endpoint can be called with many outpoints, causing the <code>ord</code> server to perform expensive lookups for all of them.</p>
+<p>This can be mitigated with the <code>ord server --batch-limit &lt;LIMIT&gt;</code> option, which limits the number of items per request for:</p>
+<ul>
+<li><code>POST /inscriptions</code></li>
+<li><code>POST /missing</code></li>
+<li><code>POST /outputs</code></li>
+</ul>
+<p>Note that the wallet does not support batching, so the batch limit must be large enough to accommodate any wallets used with the server.</p>
+<h3 id="offers"><a class="header" href="#offers">Offers</a></h3>
+<p>If <code>ord server</code> is started with <code>--accept-offers</code>, the <code>POST /offer</code> endpoint accepts a PSBT offer that may be up to 2 MiB, allowing an attacker to quickly fill the server's disk.</p>
+<h3 id="decompression"><a class="header" href="#decompression">Decompression</a></h3>
+<p>If <code>ord server</code> is started with <code>--decompress</code>, it will decompress compressed inscriptions. Decompressed content is of unbounded size, so enable decompression with caution.</p>
+<h2 id="スプーフィング"><a class="header" href="#スプーフィング">スプーフィング</a></h2>
 <p><code>ord server</code>が<code>ordinals.com</code>などの有名なドメインで実行されている場合、攻撃者はそのドメインの所有者を表していると思わせる悪意のあるInscriptionを公開する可能性があります。例えば、ユーザーにビットコインを送金させるためのミントページを公開することが考えられます。さらに、<a href="https://developer.mozilla.org/en-US/docs/Web/API/History_API">History API</a>を使用してページのリロードをトリガーせずにパスを変更できるため、Inscriptionコンテンツがサイト所有者によって公開されたことを示唆するURLでユーザーに表示される可能性があります。</p>
-<h4 id="例-27"><a class="header" href="#例-27">例</a></h4>
+<h3 id="例-27"><a class="header" href="#例-27">例</a></h3>
 <ul>
 <li>
 <p><code>ord server</code>が、人気があり高く評価されているExample Corporationによって<code>https://example.com</code>で実行されています。</p>
@@ -2234,6 +2249,7 @@ i               # separator
 <p>ガイドの一覧については、カタログを参照してください。これには、ブロックブラウザガイド、スマートフォンガイド、銘文ガイドなどがあります。</p>
 <div style="break-before: page; page-break-before: always;"></div><h1 id="json-api"><a class="header" href="#json-api">JSON API</a></h1>
 <p>デフォルトでは、<code>ord server</code> は HTTP ヘッダー <code>Accept: application/json</code> を設定すると HTML の代わりに JSON を返すエンドポイントへのアクセスを提供します。これらのオブジェクトの 構造は HTML で表示される内容とほぼ同じです。これらのエンドポイントは以下の通りです：</p>
+<p>Several endpoints are denial-of-service vectors. See <a href="guides/../security.html#denial-of-service">Security</a> before exposing a server to the public.</p>
 <h2 id="エンドポイント-1"><a class="header" href="#エンドポイント-1">エンドポイント</a></h2>
 <details>
   <summary>
@@ -7497,6 +7513,7 @@ inscriptions:
 <p><code>ord server --http-port 8080</code></p>
 <p>The JSON-API endpoints are enabled by default, to disable them add the <code>--disable-json-api</code> flag (see <a href="guides/api.html">here</a> for more info):</p>
 <p><code>ord server --disable-json-api</code></p>
+<p>See <a href="guides/../security.html">Security</a> before exposing a server to the public.</p>
 <h2 id="検索"><a class="header" href="#検索">検索</a></h2>
 <p>検索ボックスではさまざまなオブジェクトを使用できます：</p>
 <h3 id="ブロック"><a class="header" href="#ブロック">ブロック</a></h3>
