@@ -125,7 +125,7 @@ impl Sweep {
 
     let tx = Transaction {
       version: Version::TWO,
-      lock_time: LockTime::ZERO,
+      lock_time: wallet.lock_time()?,
       input,
       output,
     };

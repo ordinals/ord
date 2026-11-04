@@ -74,7 +74,7 @@ impl Mint {
 
     let unfunded_transaction = Transaction {
       version: Version(2),
-      lock_time: LockTime::ZERO,
+      lock_time: wallet.lock_time()?,
       input: Vec::new(),
       output: vec![
         TxOut {
