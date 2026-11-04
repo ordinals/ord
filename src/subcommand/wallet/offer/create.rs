@@ -72,7 +72,45 @@ impl Create {
 
     wallet.lock_non_cardinal_outputs()?;
 
-    let tx = fund_raw_transaction(wallet.bitcoin_client(), self.fee_rate, &tx, None)?;
+    // Bitcoin Core v24+ rejects a pre-selected input the wallet cannot solve
+    // unless its weight is supplied via `input_weights`. The seller's input is
+    // at the seller's address, which this wallet does not hold a key for, so
+    // without this `fundrawtransaction` fails with "Not solvable pre-selected
+    // input". Estimate the seller input weight the same way `wallet sweep` does
+    // for its foreign inputs.
+    let input_weights = {
+      let mut witness = Witness::new();
+
+      // public key
+      witness.push([0; 33]);
+
+      // signature
+      witness.push([0; 73]);
+
+      let weight = TxIn {
+        previous_output: OutPoint::null(),
+        script_sig: ScriptBuf::new(),
+        sequence: Sequence::ENABLE_RBF_NO_LOCKTIME,
+        witness,
+      }
+      .segwit_weight()
+      .to_wu()
+      .try_into()
+      .unwrap();
+
+      vec![fund_raw_transaction::InputWeight {
+        txid: inscription.satpoint.outpoint.txid,
+        vout: inscription.satpoint.outpoint.vout,
+        weight,
+      }]
+    };
+
+    let tx = fund_raw_transaction(
+      wallet.bitcoin_client(),
+      self.fee_rate,
+      &tx,
+      Some(input_weights),
+    )?;
 
     let tx = consensus::encode::deserialize::<Transaction>(&tx)?;
 
